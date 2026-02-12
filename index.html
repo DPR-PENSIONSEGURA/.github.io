@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DPR Consultoría - Tu Pensión Segura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .premium-text-gradient {
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hover-card { transition: all 0.4s ease; }
+        .hover-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15); }
+        .campo-error { border: 2px solid #b71c1c !important; background-color: #fff5f5 !important; }
+        
+        /* Estilos unificados para formularios */
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e1; 
+            border-radius: 10px; box-sizing: border-box; font-size: 16px; background: #f8fafc;
+        }
+        label { font-weight: bold; display: block; margin-top: 12px; font-size: 13px; color: #334155; text-transform: uppercase; }
+        
+        .section-padding { padding: 60px 20px; }
+        .btn-clip { background-color: #fc4c02; color: white; padding: 15px; border-radius: 10px; font-weight: bold; display: block; text-align: center; margin: 10px 0; }
+        .btn-wpp-green { background-color: #25d366; color: white; padding: 15px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white py-6 shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl font-black text-blue-900 tracking-tighter uppercase">DPR <span class="text-blue-600">CONSULTORÍA</span></h1>
+                <p class="text-[10px] tracking-[0.3em] font-bold text-slate-400">TU PENSIÓN SEGURA</p>
+            </div>
+            <nav class="flex flex-wrap justify-center gap-3 text-[10px] font-black uppercase tracking-widest">
+                <a href="#quienes-somos" class="text-blue-900 hover:text-blue-600">Nosotros</a>
+                <a href="#estatus" class="bg-blue-900 text-white px-3 py-1 rounded">Estatus</a>
+                <a href="#analisis" class="text-blue-900 hover:text-blue-600">Análisis</a>
+                <a href="#modalidad10" class="text-blue-900 hover:text-blue-600">Mod 10</a>
+                <a href="#vip" class="text-amber-600 hover:text-amber-700">Asesoría VIP</a>
+            </nav>
+        </div>
+    </header>
+
+    <section id="quienes-somos" class="section-padding max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <span class="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-black uppercase">Asesoría de Alto Nivel</span>
+                <h2 class="text-5xl md:text-6xl font-black text-slate-900 leading-tight">Estrategia real para tu <span class="premium-text-gradient">mejor retiro</span>.</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">En <b>DPR Consultoría</b>, diseñamos el camino financiero que garantiza tu tranquilidad. Claridad, justicia y resultados para el trabajador mexicano.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+                    <div class="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover-card">
+                        <h4 class="font-black text-blue-900 uppercase text-xs mb-2">Claridad Total</h4>
+                        <p class="text-xs text-slate-500">Simplificamos las leyes del IMSS para ti.</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover-card">
+                        <h4 class="font-black text-blue-900 uppercase text-xs mb-2">Seguridad Legal</h4>
+                        <p class="text-xs text-slate-500">Proyecciones blindadas por la Ley vigente.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-blue-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden">
+                <div class="relative z-10 text-center">
+                    <p class="text-blue-200 uppercase font-bold text-xs tracking-widest mb-4">Contacto Directo</p>
+                    <h3 class="text-4xl font-black mb-8 italic">813 198 3700</h3>
+                    <a href="https://wa.me/528131983700" class="btn-wpp-green text-sm uppercase tracking-tighter">Agendar por WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-slate-900 text-white section-padding">
+        <div class="max-w-6xl mx-auto text-center">
+            <h2 class="text-3xl font-black mb-10 uppercase tracking-tighter">¿Bajo qué ley te jubilarás?</h2>
+            <div class="flex flex-col md:flex-row gap-4 justify-center items-center mb-10">
+                <input type="number" id="anioInput" placeholder="Año de inicio al IMSS (Ej. 1994)" class="max-w-xs text-slate-900">
+                <button onclick="consultarLey()" class="bg-blue-600 px-8 py-3 rounded-xl font-black uppercase hover:bg-blue-500 transition-all">Consultar</button>
+            </div>
+            <div id="resultadoBox" class="hidden max-w-2xl mx-auto p-8 rounded-3xl border-2 border-white/10 text-left bg-gradient-to-br from-blue-900 to-indigo-900">
+                <h4 id="resTitle" class="text-3xl font-black mb-2 uppercase tracking-tighter"></h4>
+                <p id="resDesc" class="text-lg text-blue-100 leading-relaxed"></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="estatus" class="section-padding bg-white">
+        <div class="max-w-2xl mx-auto text-center border-2 border-blue-900 rounded-[2rem] p-8 md:p-12 shadow-2xl">
+            <h3 class="text-2xl font-black text-blue-900 uppercase mb-2">Consulta de Estatus</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">Seguimiento de Trámites</p>
+            <input type="text" id="folio_busqueda" placeholder="Folio (Ej: M10-1234)">
+            <input type="text" id="curp_busqueda" placeholder="Tu CURP" maxlength="18">
+            <button onclick="ejecutarConsulta()" id="btnAccion" class="bg-blue-900 text-white w-full py-4 rounded-xl font-bold mt-4 hover:bg-blue-800 transition-all uppercase tracking-widest">Verificar Trámite</button>
+            <div id="resEstatus" class="mt-6"></div>
+        </div>
+    </section>
+
+    <section id="analisis" class="section-padding max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <div class="border-2 border-green-500 rounded-[2rem] overflow-hidden bg-white shadow-lg">
+            <div class="bg-green-500 text-white p-6 text-center"><h3 class="text-xl font-black uppercase">Análisis Rápido ($200)</h3></div>
+            <div class="p-8">
+                <label>Nombre:</label><input type="text" id="nombreR" placeholder="Tu nombre">
+                <div class="flex gap-2">
+                    <div class="flex-1"><label>CURP:</label><input type="text" id="curpR" maxlength="18"></div>
+                    <div class="flex-1"><label>NSS:</label><input type="number" id="nssR"></div>
+                </div>
+                <label>WhatsApp:</label><input type="tel" id="telR" placeholder="10 dígitos">
+                <div class="bg-green-50 p-4 rounded-xl my-6 text-center">
+                    <a href="https://pago.clip.mx/v3/8f9e2453-49dc-4078-a567-8231f9d21519" target="_blank" class="btn-clip">💳 PAGAR CON CLIP</a>
+                    <span class="text-[10px] text-red-600 font-bold">*PONER NOMBRE EN CONCEPTO*</span>
+                </div>
+                <button onclick="enviarRapido()" id="btnR" class="bg-green-500 text-white w-full py-4 rounded-xl font-black uppercase tracking-widest">Enviar Solicitud</button>
+                <div id="exitoR" class="hidden text-center text-green-600 font-bold pt-4">¡Recibido! Folio: <span id="folioR_ver"></span></div>
+            </div>
+        </div>
+        <div class="border-2 border-blue-900 rounded-[2rem] overflow-hidden bg-white shadow-lg">
+            <div class="bg-blue-900 text-white p-6 text-center"><h3 class="text-xl font-black uppercase">Análisis Detallado ($800)</h3></div>
+            <div class="p-8">
+                <label>Nombre Completo:</label><input type="text" id="nombreD" placeholder="Nombre completo">
+                <div class="flex gap-2">
+                    <div class="flex-1"><label>CURP:</label><input type="text" id="curpD" maxlength="18"></div>
+                    <div class="flex-1"><label>NSS:</label><input type="number" id="nssD"></div>
+                </div>
+                <label>WhatsApp:</label><input type="tel" id="telD" placeholder="10 dígitos">
+                <div class="bg-slate-50 p-4 rounded-xl my-6 text-center">
+                    <a href="https://pago.clip.mx/v3/e1e37ab5-9b86-4cae-8e3e-64e6e490ae64" target="_blank" class="btn-clip">💳 PAGAR CON CLIP</a>
+                    <span class="text-[10px] text-red-600 font-bold">*PONER NOMBRE EN CONCEPTO*</span>
+                </div>
+                <button onclick="enviarDetallado()" id="btnD" class="bg-blue-900 text-white w-full py-4 rounded-xl font-black uppercase tracking-widest">Generar Folio D</button>
+                <div id="exitoD" class="hidden text-center text-blue-900 font-bold pt-4">¡Éxito! Folio: <span id="folioD_ver"></span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modalidad10" class="section-padding bg-slate-50">
+        <div class="max-w-4xl mx-auto bg-white border-4 border-blue-900 rounded-[3rem] overflow-hidden shadow-2xl">
+            <div class="bg-blue-900 text-white p-10 text-center">
+                <h2 class="text-3xl font-black uppercase italic">Inscripción Modalidad 10</h2>
+                <p class="opacity-80 font-bold tracking-[0.3em] text-[10px] mt-2">DPR CONSULTORÍA PROFESIONAL</p>
+            </div>
+            <div class="p-10">
+                <a href="https://pago.clip.mx/v3/e0175337-695b-45cc-9f8a-48c2046a09af" target="_blank" class="btn-clip">💳 1. PAGAR TRÁMITE MOD 10</a>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div><label>Nombre Titular:</label><input type="text" id="m10_nombre"></div>
+                    <div><label>CURP / NSS:</label><input type="text" id="m10_id"></div>
+                    <div><label>WhatsApp:</label><input type="number" id="m10_tel"></div>
+                    <div><label>Salario Mensual:</label><input type="number" id="m10_salario"></div>
+                </div>
+                <label>Domicilio Completo:</label><input type="text" id="m10_dom">
+                <button onclick="validarYEnviarM10()" class="bg-green-600 text-white w-full py-5 rounded-2xl font-black text-xl mt-10 hover:bg-green-700 transition-all uppercase tracking-widest shadow-xl">GENERAR MI FOLIO M10</button>
+                <div id="exitoM10" class="hidden text-center mt-6 p-6 bg-green-50 border-2 border-green-600 rounded-2xl">
+                    <h4 class="font-black text-green-800 uppercase">¡Registro Modalidad 10 Exitoso!</h4>
+                    <div id="folioM10_ver" class="text-3xl font-black text-blue-900 py-4"></div>
+                    <a id="m10_link_wpp" href="#" target="_blank" class="btn-wpp-green">📲 ENVIAR COMPROBANTE</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="vip" class="section-padding max-w-4xl mx-auto">
+        <div class="bg-white border-2 border-amber-500 rounded-[3rem] overflow-hidden shadow-2xl">
+            <div class="bg-gradient-to-r from-amber-600 to-amber-500 p-8 text-white text-center">
+                <h2 class="text-3xl font-black uppercase tracking-tighter italic">Asesoría VIP Personalizada</h2>
+                <p class="font-bold text-xs opacity-90 uppercase tracking-widest mt-2">Atención Directa vía Zoom | $1,500</p>
+            </div>
+            <div class="p-10">
+                <div class="flex flex-col md:flex-row gap-4 mb-8">
+                    <a href="https://pago.clip.mx/v3/fb7333f0-a280-48b2-833b-eb4c29c30add" target="_blank" class="btn-clip flex-1">💳 PAGAR SESIÓN VIP</a>
+                    <a href="https://wa.me/528131983700" target="_blank" class="btn-wpp-green flex-1">📲 ENVIAR COMPROBANTE</a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label>Nombre:</label><input type="text" id="nombreV"></div>
+                    <div><label>WhatsApp:</label><input type="tel" id="telV"></div>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl mt-6 border border-slate-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label>Fecha:</label><input type="date" id="diaV" onchange="cargarHorarios()"></div>
+                        <div><label>Hora:</label><select id="horaV"><option value="">Selecciona fecha primero</option></select></div>
+                    </div>
+                </div>
+                <button onclick="agendarVip()" id="btnV" class="bg-amber-600 text-white w-full py-5 rounded-2xl font-black text-xl mt-8 shadow-xl hover:bg-amber-700 transition-all uppercase">Agendar Sesión VIP</button>
+                <div id="exitoVIP" class="hidden text-center p-8 bg-amber-50 rounded-2xl mt-6 border-2 border-amber-500 text-amber-900 font-black">¡CITA REGISTRADA! NOS CONTACTAREMOS PARA CONFIRMAR.</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-white section-padding text-center">
+        <div class="max-w-6xl mx-auto">
+            <h4 class="text-2xl font-black uppercase tracking-widest mb-6">DPR CONSULTORÍA</h4>
+            <div class="flex justify-center gap-10 mb-10">
+                <a href="https://wa.me/528131983700" class="hover:text-green-400">WhatsApp</a>
+                <a href="https://instagram.com/dpr_pensionsegura" class="hover:text-pink-400">Instagram</a>
+            </div>
+            <p class="text-[10px] text-slate-500 tracking-[0.5em] uppercase italic">García, Nuevo León • Estrategia en Pensiones 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        // URLs DE TUS SCRIPTS
+        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycby00KgGDV_jcFJp7rh58z8xu9h_RIQiAONy2g_qneAaBF1U_GoJJ1dDCBjBfzl60Q0DvA/exec";
+        const SCRIPT_M10 = "https://script.google.com/macros/s/AKfycbyPLUTz_H2UzNK-_CJzf64_ySjh6WKR1KfsfF7EHcnvselfJ4Sa4WdFI9jAFI22NmqYcw/exec";
+        const SCRIPT_VIP = "https://script.google.com/macros/s/AKfycbz6FgSJlMjESDrIUxyM1yfOgHbwTF_WKbZFfua-YRtQ-PbGMgpZprF_4F8gXueTAjSe8w/exec";
+
+        // LEY IMSS
+        function consultarLey() {
+            const anio = document.getElementById('anioInput').value;
+            const box = document.getElementById('resultadoBox');
+            if (anio < 1940 || anio > 2026) return alert("Año inválido");
+            box.classList.remove('hidden');
+            const resTitle = document.getElementById('resTitle');
+            const resDesc = document.getElementById('resDesc');
+            if (anio < 1997) {
+                resTitle.innerText = "¡Eres Ley 73!";
+                resDesc.innerText = "Tienes derecho a pensión vitalicia. Modalidad 40 es tu mejor aliada.";
+            } else {
+                resTitle.innerText = "Eres Ley 97";
+                resDesc.innerText = "Tu pensión depende de tu AFORE. Necesitas ahorro voluntario.";
+            }
+        }
+
+        // ESTATUS
+        async function ejecutarConsulta() {
+            const f = document.getElementById("folio_busqueda").value.trim().toUpperCase();
+            const c = document.getElementById("curp_busqueda").value.trim().toUpperCase();
+            const resBox = document.getElementById("resEstatus");
+            if(!f || !c) return alert("Completa los campos");
+            resBox.innerHTML = "🔍 Buscando...";
+            try {
+                const resp = await fetch(`${SCRIPT_MAESTRO}?curp=${encodeURIComponent(c)}&folio=${encodeURIComponent(f)}`);
+                const data = await resp.json();
+                if(data.encontrado) {
+                    resBox.innerHTML = `<div class="p-6 bg-blue-100 border-2 border-blue-900 rounded-xl font-black text-blue-900 uppercase">Estatus: ${data.status}</div>`;
+                } else {
+                    resBox.innerHTML = "<p class='text-red-600 font-bold'>No encontrado.</p>";
+                }
+            } catch (e) { resBox.innerHTML = "Error de conexión."; }
+        }
+
+        // ANALISIS RÁPIDO
+        function enviarRapido() {
+            const n = document.getElementById("nombreR").value;
+            const t = document.getElementById("telR").value;
+            if(!n || t.length < 10) return alert("Completa datos");
+            const folio = "R-" + Math.floor(1000 + Math.random() * 9000);
+            fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ nombre: n, tel: t, folio: folio, tipo: "AnalisisRapido" }) });
+            document.getElementById("exitoR").classList.remove("hidden");
+            document.getElementById("folioR_ver").innerText = folio;
+        }
+
+        // ANALISIS DETALLADO
+        function enviarDetallado() {
+            const n = document.getElementById("nombreD").value;
+            const t = document.getElementById("telD").value;
+            if(!n || t.length < 10) return alert("Completa datos");
+            const folio = "D-" + Math.floor(1000 + Math.random() * 9000);
+            fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ nombre: n, tel: t, folio: folio, tipo: "Detallado" }) });
+            document.getElementById("exitoD").classList.remove("hidden");
+            document.getElementById("folioD_ver").innerText = folio;
+        }
+
+        // MODALIDAD 10
+        function validarYEnviarM10() {
+            const n = document.getElementById("m10_nombre").value;
+            const t = document.getElementById("m10_tel").value;
+            if(!n || t.length < 10) return alert("Completa datos");
+            const folio = "M10-" + Math.floor(1000 + Math.random() * 9000);
+            fetch(SCRIPT_M10, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify({ nombre: n, tel: t, folio: folio }) });
+            document.getElementById("exitoM10").classList.remove("hidden");
+            document.getElementById("folioM10_ver").innerText = folio;
+            document.getElementById("m10_link_wpp").href = `https://wa.me/528131983700?text=Hola,%20folio%20${folio}`;
+        }
+
+        // VIP ZOOM
+        async function cargarHorarios() {
+            const select = document.getElementById('horaV');
+            select.innerHTML = '<option>Cargando horarios...</option>';
+            const horas = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"];
+            setTimeout(() => {
+                select.innerHTML = '<option value="">Elige Hora</option>';
+                horas.forEach(h => { let o = document.createElement('option'); o.value = h; o.text = h; select.add(o); });
+            }, 1000);
+        }
+        function agendarVip() {
+            const n = document.getElementById("nombreV").value;
+            const t = document.getElementById("telV").value;
+            const d = document.getElementById("diaV").value;
+            const h = document.getElementById("horaV").value;
+            if(!n || !d || !h) return alert("Completa datos");
+            fetch(SCRIPT_VIP, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ nombre: n, tel: t, cita: d + " " + h }) });
+            document.getElementById("exitoVIP").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
