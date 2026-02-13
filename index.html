@@ -89,157 +89,174 @@
             <div id="contenidoModal"></div>
         </div>
     </div>
+<script>
+    const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
 
-    <script>
-        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
+    function abrirModal(tipo) {
+        const modal = document.getElementById('modalBase');
+        const contenido = document.getElementById('contenidoModal');
+        document.body.classList.add('modal-active');
+        modal.classList.remove('hidden');
+        contenido.innerHTML = "";
 
-        function abrirModal(tipo) {
-            const modal = document.getElementById('modalBase');
-            const contenido = document.getElementById('contenidoModal');
-            document.body.classList.add('modal-active');
-            modal.classList.remove('hidden');
-            contenido.innerHTML = "";
+        // Definimos qué pide cada trámite de forma estricta
+        const esPension = ['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs'].includes(tipo);
+        const esSimple = ['modalRFC', 'modalCSF', 'modalInfonavit'].includes(tipo);
 
-            // CONFIGURACIONES DE SERVICIOS
+        if (esPension) {
             const configs = {
-                'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600', reqNombre: true, reqTel: true, reqNss: true },
-                'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600', reqNombre: true, reqTel: true, reqNss: true, reqNac: true },
-                'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10', color: 'slate-900', reqNombre: true, reqTel: true, reqNss: true },
-                'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600', reqNombre: true, reqTel: true, reqExtra: true },
-                'modalInfonavit': { titulo: 'Infonavit', precio: '$210', prefix: 'INF', color: 'red-600', reqNombre: false, reqTel: false, reqCurp: true, reqNac: true, reqExtra: true },
-                'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600', reqNombre: false, reqTel: false, reqCurp: true },
-                'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800', reqNombre: false, reqTel: false, reqCurp: true }
+                'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
+                'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600' },
+                'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10', color: 'slate-900' },
+                'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600' }
             };
-
-            if (configs[tipo]) {
-                const c = configs[tipo];
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${c.precio}</p>
-                    <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border border-blue-100">
-                        <b>PAGO:</b> BANORTE 4915 6630 4036 4896 a nombre de PENSION SEGURA
-                    </div>
-                    <div class="space-y-3">
-                        ${c.reqNombre ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        <input type="text" id="curp_${c.prefix}" placeholder="${c.prefix === 'INF' ? 'NSS o CURP' : 'CURP'}" class="w-full p-4 bg-slate-50 rounded-2xl border">
-                        ${c.reqNss ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-                        ${c.reqNac ? `<label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        ${c.prefix === 'INF' ? `<select id="extra_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>` : ''}
-                        ${c.prefix === 'DOC' ? `<input type="text" id="extra_${c.prefix}" placeholder="¿Qué documento necesitas?" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        ${c.reqTel ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        <label class="block text-[10px] font-black text-slate-400 mt-1 ml-2 uppercase">Comprobante de Pago:</label>
-                        <input type="file" id="file_${c.prefix}" class="mb-2 block w-full text-xs">
-                    </div>
-                    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-transform mt-4">Enviar Solicitud</button>
-                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
-                `;
-            } else if (tipo === 'modalEstatus') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
-                    <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2 border-slate-200">
-                    <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button>
-                    <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
-                `;
-            } else if (tipo === 'modalLey') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
-                    <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2 focus:border-blue-600">
-                    <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button>
-                    <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>
-                `;
-            } else if (tipo === 'modalInfo') {
-                contenido.innerHTML = `<div class="text-center"><h2 class="text-2xl font-black uppercase">Diana Puente Rodríguez</h2><p class="text-blue-600 font-bold text-[10px] mb-6 uppercase">Fundadora</p><p class="text-sm text-slate-600">Mi prioridad es el análisis de calidad a un costo accesible para ti!.</p></div>`;
-            }
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalBase').classList.add('hidden');
-            document.body.classList.remove('modal-active');
-        }
-
-        async function ejecutarEnvio(prefix) {
-            const btn = document.getElementById(`btn_${prefix}`);
-            const nssInput = document.getElementById(`nss_${prefix}`);
-            if(nssInput && nssInput.value.length !== 11) return alert("El NSS debe tener 11 números.");
-
-            const fileInput = document.getElementById(`file_${prefix}`);
-            if (!fileInput.files[0]) return alert("Sube tu comprobante de pago.");
-
-            btn.innerText = "PROCESANDO...";
-            btn.disabled = true;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(fileInput.files[0]);
-            reader.onload = async () => {
-                const payload = {
-                    tipo: prefix,
-                    nombre: document.getElementById(`nombre_${prefix}`) ? document.getElementById(`nombre_${prefix}`).value : "S/N",
-                    curp: document.getElementById(`curp_${prefix}`) ? document.getElementById(`curp_${prefix}`).value : "",
-                    nss: nssInput ? nssInput.value : "",
-                    tel: document.getElementById(`tel_${prefix}`) ? document.getElementById(`tel_${prefix}`).value : "S/T",
-                    nacimiento: document.getElementById(`nac_${prefix}`) ? document.getElementById(`nac_${prefix}`).value : "",
-                    infoExtra: document.getElementById(`extra_${prefix}`) ? document.getElementById(`extra_${prefix}`).value : "",
-                    folio: prefix + "-" + Math.floor(1000 + Math.random() * 9000),
-                    archivo: reader.result,
-                    archivoNombre: fileInput.files[0].name
-                };
-
-                try {
-                    await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                    document.getElementById(`exito_${prefix}`).classList.remove("hidden");
-                    document.getElementById(`folio_${prefix}`).innerText = payload.folio;
-                    btn.innerText = "¡LISTO!";
-                } catch(e) {
-                    alert("Error al enviar. Intenta de nuevo.");
-                    btn.disabled = false;
-                    btn.innerText = "Enviar Solicitud";
-                }
-            };
-        }
-
-        async function buscarEstatus() {
-            const f = document.getElementById('folioBusqueda').value.trim();
-            const res = document.getElementById('resBus');
-            const btn = document.getElementById('btnBus');
-            if(!f) return alert("Ingresa un folio");
+            const c = configs[tipo];
             
-            btn.innerText = "BUSCANDO...";
-            btn.disabled = true;
-            res.classList.add('hidden');
+            contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
+                <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border"><b>PAGO:</b> BANORTE 4915 6630 4036 4896 a nombre de PENSION SEGURA</div>
+                <div class="space-y-2">
+                    <input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                    <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                    ${c.prefix !== 'DOC' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
+                    ${c.prefix === 'D' ? `<label class="text-[10px] font-black ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                    <input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                    <label class="block text-[10px] font-black text-slate-400 mt-2 ml-2 uppercase">Comprobante de Pago:</label>
+                    <input type="file" id="file_${c.prefix}" class="mb-2 block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-4">Enviar Solicitud</button>
+                <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
+            `;
+        } 
+        else if (esSimple) {
+            const configs = {
+                'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
+                'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800' },
+                'modalInfonavit': { titulo: 'Infonavit', precio: '$210', prefix: 'INF', color: 'red-600' }
+            };
+            const c = configs[tipo];
+
+            contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
+                <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border"><b>PAGO:</b> BANORTE 4915 6630 4036 4896 a nombre de PENSION SEGURA</div>
+                <div class="space-y-2">
+                    <input type="text" id="curp_${c.prefix}" placeholder="${c.prefix === 'INF' ? 'NSS o CURP' : 'CURP'}" class="w-full p-4 bg-slate-50 rounded-2xl border border-blue-600 focus:ring-2">
+                    ${c.prefix === 'INF' ? `<label class="text-[10px] font-black ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                    ${c.prefix === 'INF' ? `<select id="extra_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>` : ''}
+                    <label class="block text-[10px] font-black text-slate-400 mt-2 ml-2 uppercase">Comprobante de Pago:</label>
+                    <input type="file" id="file_${c.prefix}" class="mb-2 block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-4">Enviar Solicitud</button>
+                <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
+            `;
+        }
+        else if (tipo === 'modalEstatus') {
+            contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
+                <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2">
+                <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button>
+                <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
+            `;
+        }
+        else if (tipo === 'modalLey') {
+            contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
+                <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2">
+                <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button>
+                <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>
+            `;
+        }
+        else if (tipo === 'modalInfo') {
+            contenido.innerHTML = `<div class="text-center"><h2 class="text-2xl font-black uppercase">Diana Puente Rodríguez</h2><p class="text-blue-600 font-bold text-[10px] mb-6 uppercase">Fundadora de DPR Consultoría</p><p class="text-sm text-slate-600">Mi prioridad es el análisis de calidad a un costo accesible para ti!</p></div>`;
+        }
+    }
+
+    async function ejecutarEnvio(prefix) {
+        const btn = document.getElementById(`btn_${prefix}`);
+        const fileInput = document.getElementById(`file_${prefix}`);
+        
+        // Validación de NSS si el campo existe
+        const nssEl = document.getElementById(`nss_${prefix}`);
+        if(nssEl && nssEl.value.length !== 11) return alert("El NSS debe tener 11 números.");
+        
+        if (!fileInput.files[0]) return alert("Sube tu comprobante de pago.");
+
+        btn.innerText = "PROCESANDO...";
+        btn.disabled = true;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(fileInput.files[0]);
+        reader.onload = async () => {
+            // Construcción segura del objeto (si el campo no existe, manda "S/N" o vacío)
+            const payload = {
+                tipo: prefix,
+                nombre: document.getElementById(`nombre_${prefix}`) ? document.getElementById(`nombre_${prefix}`).value : "S/N",
+                curp: document.getElementById(`curp_${prefix}`) ? document.getElementById(`curp_${prefix}`).value : "",
+                nss: nssEl ? nssEl.value : "N/A",
+                tel: document.getElementById(`tel_${prefix}`) ? document.getElementById(`tel_${prefix}`).value : "S/T",
+                nacimiento: document.getElementById(`nac_${prefix}`) ? document.getElementById(`nac_${prefix}`).value : "",
+                infoExtra: document.getElementById(`extra_${prefix}`) ? document.getElementById(`extra_${prefix}`).value : "",
+                folio: prefix + "-" + Math.floor(1000 + Math.random() * 9000),
+                archivo: reader.result,
+                archivoNombre: fileInput.files[0].name
+            };
 
             try {
-                const resp = await fetch(`${SCRIPT_MAESTRO}?folio=${encodeURIComponent(f)}`);
-                const est = await resp.text();
-                const estatusLimpio = est.trim();
-                res.classList.remove('hidden');
-
-                if (estatusLimpio.includes("drive.google.com") || estatusLimpio.startsWith("http")) {
-                    res.innerHTML = `<p class="mb-3 text-xs opacity-70">Tu documento está listo:</p><a href="${estatusLimpio}" target="_blank" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm shadow-md hover:bg-blue-700">📥 DESCARGAR AQUÍ</a>`;
-                    res.className = "mt-6 p-6 rounded-[2rem] text-center bg-blue-50 text-blue-700 border-2 border-blue-100";
-                } else if (!estatusLimpio || estatusLimpio === "No encontrado") {
-                    res.innerText = "FOLIO NO ENCONTRADO";
-                    res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-50 text-red-600";
-                } else {
-                    res.innerText = "ESTATUS: " + estatusLimpio;
-                    res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase " + (estatusLimpio === "Terminado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700");
-                }
-            } catch (e) { alert("Error de conexión"); }
-            finally { btn.innerText = "CONSULTAR"; btn.disabled = false; }
-        }
-
-        function verificarLey() {
-            const anio = document.getElementById('anioLey').value;
-            const res = document.getElementById('resLey');
-            if(!anio) return;
-            res.classList.remove('hidden');
-            if (anio < 1997) { 
-                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
-                res.innerHTML = "¡ERES LEY 73!"; 
-            } else { 
-                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
-                res.innerHTML = "ERES LEY 97!"; 
+                await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                document.getElementById(`folio_${prefix}`).innerText = payload.folio;
+                btn.innerText = "¡LISTO!";
+            } catch(e) {
+                alert("Error de conexión. Intenta de nuevo.");
+                btn.disabled = false;
+                btn.innerText = "Enviar Solicitud";
             }
+        };
+    }
+
+    // --- FUNCIONES AUXILIARES ---
+    function cerrarModal() { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); }
+
+    async function buscarEstatus() {
+        const f = document.getElementById('folioBusqueda').value.trim();
+        const res = document.getElementById('resBus');
+        const btn = document.getElementById('btnBus');
+        if(!f) return alert("Ingresa un folio");
+        btn.innerText = "BUSCANDO...";
+        btn.disabled = true;
+        res.classList.add('hidden');
+        try {
+            const resp = await fetch(`${SCRIPT_MAESTRO}?folio=${encodeURIComponent(f)}`);
+            const est = await resp.text();
+            const estatusLimpio = est.trim();
+            res.classList.remove('hidden');
+            if (estatusLimpio.includes("drive.google.com") || estatusLimpio.startsWith("http")) {
+                res.innerHTML = `<p class="mb-3 text-xs opacity-70">Tu documento está listo:</p><a href="${estatusLimpio}" target="_blank" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm shadow-md">📥 DESCARGAR AQUÍ</a>`;
+                res.className = "mt-6 p-6 rounded-[2rem] text-center bg-blue-50 border-2 border-blue-100";
+            } else if (!estatusLimpio || estatusLimpio === "No encontrado") {
+                res.innerText = "FOLIO NO ENCONTRADO";
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black bg-red-50 text-red-600";
+            } else {
+                res.innerText = "ESTATUS: " + estatusLimpio;
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black " + (estatusLimpio === "Terminado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700");
+            }
+        } catch (e) { alert("Error de conexión"); }
+        finally { btn.innerText = "CONSULTAR"; btn.disabled = false; }
+    }
+
+    function verificarLey() {
+        const anio = document.getElementById('anioLey').value;
+        const res = document.getElementById('resLey');
+        if(!anio) return;
+        res.classList.remove('hidden');
+        if (anio < 1997) { 
+            res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
+            res.innerHTML = "¡ERES LEY 73! LA MODALIDAD 40 ES TU MEJOR ALIADO."; 
+        } else { 
+            res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
+            res.innerHTML = "ERES LEY 97. IMPULSA TU PENSIÓN CON ASESORÍA."; 
         }
-    </script>
-</body>
-</html>
+    }
+</script>
