@@ -32,7 +32,20 @@
             document.getElementById(wppLinkId).href = `https://wa.me/528131983700?text=${encodeURIComponent(textoWpp)}`;
         };
     }
-
+function enviarDetallado() {
+    const payload = {
+        tipo: "Detallado",
+        nombre: document.getElementById("nombreD").value,
+        curp: document.getElementById("curpD").value,
+        nss: document.getElementById("nssD").value,
+        nacimiento: document.getElementById("nacD").value, // Asegúrate que el id coincida con tu input
+        correo: document.getElementById("correoD").value,
+        tel: document.getElementById("telD").value,
+        folio: "D-" + Math.floor(1000 + Math.random() * 9000)
+    };
+    // "archivoD" es el ID del input tipo file que debe estar en el formulario detallado
+    enviarConComprobante(payload, document.getElementById("archivoD"), "exitoD", "folioD_ver", "wpp_detallado_link");
+}
     // Botón: Análisis Rápido
     function enviarRapido() {
         const payload = {
@@ -71,3 +84,4 @@
         enviarConComprobante(payload, document.getElementById("m10_comprobante"), "exitoM10", "folioM10_ver", "m10_link_wpp");
     }
 </script>
+
