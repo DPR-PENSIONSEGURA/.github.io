@@ -1,13 +1,17 @@
 <script>
-    // ESTA ES TU URL ACTUALIZADA
     const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbyMXYuuGGXaLPcYUDwJOje4KEdYR5HMQdt7FwzpjR0dam05lkH6_-IUdJ062tsd27pRIg/exec";
 
-    // Función principal para enviar datos y archivos
     async function enviarConComprobante(payload, fileInput, exitoId, folioId, wppLinkId) {
         if (!fileInput || fileInput.files.length === 0) {
             return alert("Por favor, adjunta tu comprobante de pago para procesar la solicitud.");
         }
         
+        // Opcional: Cambiar el texto del botón a "Enviando..."
+        const btnOriginalText = document.activeElement.innerText;
+        const activeBtn = document.activeElement;
+        activeBtn.innerText = "ENVIANDO...";
+        activeBtn.disabled = true;
+
         const reader = new FileReader();
         const archivo = fileInput.files[0];
         reader.readAsDataURL(archivo);
@@ -16,37 +20,45 @@
             payload.archivo = reader.result;
             payload.archivoNombre = archivo.name;
 
-            // Envío de datos al Script Maestro
-            await fetch(SCRIPT_MAESTRO, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify(payload) 
-            });
+            try {
+                await fetch(SCRIPT_MAESTRO, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload) 
+                });
 
-            // Mostrar mensaje de éxito en la pantalla
-            document.getElementById(exitoId).classList.remove("hidden");
-            document.getElementById(folioId).innerText = payload.folio;
-            
-            // Configurar mensaje de WhatsApp
-            const textoWpp = `Hola Diana, envié mi registro de ${payload.tipo || payload.accion} (Folio: ${payload.folio}). El comprobante ya está en el sistema.`;
-            document.getElementById(wppLinkId).href = `https://wa.me/528131983700?text=${encodeURIComponent(textoWpp)}`;
+                document.getElementById(exitoId).classList.remove("hidden");
+                document.getElementById(folioId).innerText = payload.folio;
+                
+                const textoWpp = `Hola Diana, envié mi registro de ${payload.tipo || payload.accion} (Folio: ${payload.folio}). El comprobante ya está en el sistema.`;
+                const linkWpp = document.getElementById(wppLinkId);
+                if(linkWpp) linkWpp.href = `https://wa.me/528131983700?text=${encodeURIComponent(textoWpp)}`;
+                
+            } catch (error) {
+                alert("Hubo un error al enviar. Por favor intenta de nuevo.");
+            } finally {
+                activeBtn.innerText = btnOriginalText;
+                activeBtn.disabled = false;
+            }
         };
     }
-function enviarDetallado() {
-    const payload = {
-        tipo: "Detallado",
-        nombre: document.getElementById("nombreD").value,
-        curp: document.getElementById("curpD").value,
-        nss: document.getElementById("nssD").value,
-        nacimiento: document.getElementById("nacD").value, // Asegúrate que el id coincida con tu input
-        correo: document.getElementById("correoD").value,
-        tel: document.getElementById("telD").value,
-        folio: "D-" + Math.floor(1000 + Math.random() * 9000)
-    };
-    // "archivoD" es el ID del input tipo file que debe estar en el formulario detallado
-    enviarConComprobante(payload, document.getElementById("archivoD"), "exitoD", "folioD_ver", "wpp_detallado_link");
-}
-    // Botón: Análisis Rápido
+
+    // Análisis Detallado
+    function enviarDetallado() {
+        const payload = {
+            tipo: "Detallado",
+            nombre: document.getElementById("nombreD").value,
+            curp: document.getElementById("curpD").value,
+            nss: document.getElementById("nssD").value,
+            nacimiento: document.getElementById("nacD").value,
+            correo: document.getElementById("correoD") ? document.getElementById("correoD").value : "N/A",
+            tel: document.getElementById("telD").value,
+            folio: "D-" + Math.floor(1000 + Math.random() * 9000)
+        };
+        enviarConComprobante(payload, document.getElementById("archivoD"), "exitoD", "folioD_ver", "wpp_detallado_link");
+    }
+
+    // Análisis Rápido
     function enviarRapido() {
         const payload = {
             tipo: "AnalisisRapido",
@@ -59,7 +71,7 @@ function enviarDetallado() {
         enviarConComprobante(payload, document.getElementById("archivoR"), "exitoR", "folioR_ver", "wpp_doc_link");
     }
 
-    // Botón: Solicitud de Documentos ($15)
+    // Documentos $15
     function solicitarDocumento() {
         const payload = {
             accion: "GuardarDocumento",
@@ -70,7 +82,7 @@ function enviarDetallado() {
         enviarConComprobante(payload, document.getElementById("archivo_pago"), "exitoDoc", "folioDoc_ver", "wpp_doc_link");
     }
 
-    // Botón: Modalidad 10
+    // Modalidad 10
     function validarYEnviarM10() {
         const payload = {
             tipo: "M10",
@@ -84,4 +96,3 @@ function enviarDetallado() {
         enviarConComprobante(payload, document.getElementById("m10_comprobante"), "exitoM10", "folioM10_ver", "m10_link_wpp");
     }
 </script>
-
