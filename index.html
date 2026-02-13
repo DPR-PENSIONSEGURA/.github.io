@@ -10,6 +10,8 @@
         body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
         .modal-active { overflow: hidden; }
         .service-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -29,7 +31,7 @@
 
     <section class="pt-16 pb-8 px-6 text-center text-white">
         <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
-        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50">Consultar Estatus</button>
+        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition-all">Consultar Estatus</button>
     </section>
 
     <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -77,8 +79,8 @@
     </div>
 
     <script>
-        // URL del Script actualizada
-        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbwBcfpmVJKiK40FCTmh18xWnUg5X3zqi-niU7wnMWedW7Soc6kvexQrsk9TLr405lj7xg/exec";
+        // URL del Script Maestro Actualizada
+        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbw2D3iAzcTytpVr5r3lPta9EydETxqYyzvI5gb_9O4G2CpDqF5rJZo9ihiVgXBhE3Ed/exec";
 
         function abrirModal(tipo) {
             const modal = document.getElementById('modalBase');
@@ -87,19 +89,17 @@
             modal.classList.remove('hidden');
             contenido.innerHTML = ""; 
 
-            // --- QUIÉNES SOMOS ---
             if (tipo === 'modalInfo') {
                 contenido.innerHTML = `
                     <div class="text-center">
                         <img src="https://lh3.googleusercontent.com/d/1wQmH-Vcx60X8Wkx6im64d5wBB_-aApNH" class="w-48 h-auto rounded-3xl mx-auto mb-6 shadow-lg border-4 border-blue-600" alt="Diana Puente">
                         <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
                         <p class="text-blue-600 font-bold text-[10px] uppercase mb-6">Fundadora de DPR Consultoría</p>
-                        <p class="text-slate-600 text-sm italic leading-relaxed">Ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad.</p>
+                        <p class="text-slate-600 text-sm">Ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad.</p>
                     </div>`;
                 return;
             }
 
-            // --- QUE LEY SOY ---
             if (tipo === 'modalLey') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
@@ -115,7 +115,6 @@
                 return;
             }
 
-            // --- CONSULTAR ESTATUS (SEGURO) ---
             if (tipo === 'modalEstatus') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
@@ -128,7 +127,6 @@
                 return;
             }
 
-            // --- FORMULARIOS (ANÁLISIS, DOCS, M10) ---
             if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
                 const config = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
@@ -165,13 +163,9 @@
                     </div>
                     
                     ${(tipo !== 'modalDocs') ? `<input type="text" id="nombre_${config.prefix}" placeholder="Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
-                    
                     <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 text-center uppercase">
-                    
                     ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 text-center">` : ''}
-                    
                     ${camposExtra}
-                    
                     ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center">` : ''}
                     
                     <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase text-center">Comprobante de Pago:</label>
@@ -179,7 +173,7 @@
                     
                     <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-colors">Enviar Solicitud</button>
                     
-                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">
+                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic animate-fade-in">
                         ¡ENVIADO! TU FOLIO ES: <span id="folio_${config.prefix}"></span>
                     </div>`;
             }
@@ -198,10 +192,10 @@
             res.classList.remove('hidden');
             divOrientacion.classList.remove('hidden');
             if (anio < 1997) { 
-                res.className = "mt-4 p-4 rounded-2xl bg-green-50 text-green-700"; 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-50 text-green-700 animate-fade-in"; 
                 res.innerHTML = "¡ERES LEY 73! TU MEJOR ALIADO ES LA MODALIDAD 40"; 
             } else { 
-                res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700"; 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700 animate-fade-in"; 
                 res.innerHTML = "¡ERES LEY 97! TU PENSIÓN DEPENDERÁ DE TUS AHORROS"; 
             }
         }
@@ -268,7 +262,9 @@
                     resDiv.classList.remove('hidden');
 
                     if (respuesta === "No encontrado") {
-                        resDiv.innerHTML = `<p class="text-red-500 font-bold italic p-2 bg-red-50 rounded-xl">Datos incorrectos. Verifica tu Folio y CURP.</p>`;
+                        resDiv.innerHTML = `<p class="text-red-500 font-bold italic p-2 bg-red-50 rounded-xl animate-fade-in">Datos incorrectos. Verifica tu Folio y CURP.</p>`;
+                    } else if (respuesta.includes("Error")) {
+                        resDiv.innerHTML = `<p class="text-orange-600 font-bold">${respuesta}</p>`;
                     } else {
                         const data = JSON.parse(respuesta);
                         let htmlRes = `
@@ -293,7 +289,8 @@
                 .withFailureHandler(function(err) {
                     btn.innerText = "Buscar Resultados";
                     btn.disabled = false;
-                    alert("Error de conexión con el servidor. Intenta de nuevo.");
+                    resDiv.classList.remove('hidden');
+                    resDiv.innerHTML = `<p class="text-red-600 font-bold text-xs p-2 bg-red-50 rounded-xl">Error de conexión: Revisa si iniciaste sesión en Google o vuelve a intentar.</p>`;
                 })
                 .buscarEstatusProtegido(folio, curp);
         }
