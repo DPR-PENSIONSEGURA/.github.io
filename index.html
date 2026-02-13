@@ -93,12 +93,12 @@
     <script>
         const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
 
-        function abrirModal(tipo) {
-            const modal = document.getElementById('modalBase');
-            const contenido = document.getElementById('contenidoModal');
-            document.body.classList.add('modal-active');
-            modal.classList.remove('hidden');
-            contenido.innerHTML = ""; 
+       function abrirModal(tipo) {
+        const modal = document.getElementById('modalBase');
+        const contenido = document.getElementById('contenidoModal');
+        document.body.classList.add('modal-active');
+        modal.classList.remove('hidden');
+        contenido.innerHTML = "";
 
             if(tipo === 'modalEstatus') {
                 contenido.innerHTML = `
@@ -122,14 +122,50 @@
                     <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
                     <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_INF"></span></div>
                 `;
+             if (configs[tipo]) {
+            const c = configs[tipo];
+            contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${c.precio}</p>
+                
+                <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border border-blue-100">
+                    <b>PAGO:</b> Transferencia CLABE 1234 5678 9012 3456 (Diana Puente)
+                </div>
+
+                <div class="space-y-2">
+                    ${c.requiereNombre ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border focus:border-blue-600 outline-none">` : ''}
+                    
+                    ${c.requiereCurp ? `<input type="text" id="curp_${c.prefix}" placeholder="${c.prefix === 'INF' ? 'NSS o CURP' : 'CURP'}" class="w-full p-4 bg-slate-50 rounded-2xl border focus:border-blue-600 outline-none">` : ''}
+                    
+                    ${c.requiereNss ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border focus:border-blue-600 outline-none" maxlength="11">` : ''}
+                    
+                    ${c.requiereNac ? `<label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                    
+                    ${c.prefix === 'INF' ? `<select id="extra_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>` : ''}
+                    ${c.prefix === 'DOC' ? `<input type="text" id="extra_${c.prefix}" placeholder="¿Qué documento necesitas?" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                    
+                    ${c.requiereTel ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                    
+                    <label class="block text-[10px] font-black text-slate-400 mt-2 ml-2 uppercase">Comprobante de Pago:</label>
+                    <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
+                </div>
+                
+                <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-transform mt-4">Enviar Solicitud</button>
+                
+                <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
+            `;
             }
             else if (['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs'].includes(tipo)) {
-                const config = {
-                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
-                    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
-                    'modalM10': { titulo: 'Modalidad 10', precio: '$', prefix: 'M10' },
-                    'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC' }
-                }[tipo];
+               const configs = {
+            'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600', requiereNombre: true, requiereTel: true, requiereCurp: true, requiereNss: true },
+            'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600', requiereNombre: true, requiereTel: true, requiereCurp: true, requiereNss: true, requiereNac: true },
+            'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10', color: 'slate-900', requiereNombre: true, requiereTel: true, requiereCurp: true, requiereNss: true },
+            'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600', requiereNombre: true, requiereTel: true, requiereCurp: true, requiereExtra: true },
+            'modalInfonavit': { titulo: 'Infonavit', precio: '$210', prefix: 'INF', color: 'red-600', requiereNombre: false, requiereTel: false, requiereCurp: true, requiereNac: true, requiereExtra: true },
+            'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600', requiereNombre: false, requiereTel: false, requiereCurp: true },
+            'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800', requiereNombre: false, requiereTel: false, requiereCurp: true }
+        };
+             [tipo];
 
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
@@ -193,7 +229,7 @@ if (['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs', 'modalRFC', 'moda
                 `;
             }
             else if (tipo === 'modalInfo') {
-                contenido.innerHTML = `<div class="text-center"><h2 class="text-2xl font-black uppercase">Diana Puente Rodríguez</h2><p class="text-blue-600 font-bold text-[10px] mb-6 uppercase">Fundadora de DPR Consultoría</p><p class="text-sm text-slate-600">Especialista en pensiones y trámites de seguridad social.</p></div>`;
+                contenido.innerHTML = `<div class="text-center"><h2 class="text-2xl font-black uppercase">Diana Puente Rodríguez</h2><p class="text-blue-600 font-bold text-[10px] mb-6 uppercase">Fundadora de DPR Consultoría</p><p class="text-sm text-slate-600">Mi prioridad es el análisis de cálidad a un costo accesible para ti !..</p></div>`;
             }
         }
 
@@ -298,6 +334,7 @@ if (['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs', 'modalRFC', 'moda
     </script>
 </body>
 </html>
+
 
 
 
