@@ -1,6 +1,6 @@
 <script>
     // URLs DE TUS SCRIPTS (Asegúrate de que sean las versiones más recientes implementadas como "Anyone")
-    const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycby00KgGDV_jcFJp7rh58z8xu9h_RIQiAONy2g_qneAaBF1U_GoJJ1dDCBjBfzl60Q0DvA/exec";
+    const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbz9V5meyVds9BlWmMsTFxJdg_TOnjG8y1p2XjklC8lYN1IJmnCk2YDih4ss5tEYzk0o_Q/exec";
     const SCRIPT_M10 = "https://script.google.com/macros/s/AKfycbyPLUTz_H2UzNK-_CJzf64_ySjh6WKR1KfsfF7EHcnvselfJ4Sa4WdFI9jAFI22NmqYcw/exec";
     const SCRIPT_VIP = "https://script.google.com/macros/s/AKfycbz6FgSJlMjESDrIUxyM1yfOgHbwTF_WKbZFfua-YRtQ-PbGMgpZprF_4F8gXueTAjSe8w/exec";
 
@@ -38,40 +38,36 @@
             }
         } catch (e) { resBox.innerHTML = "Error de conexión."; }
     }
-    <section id="documentos" class="section-padding max-w-6xl mx-auto">
-        <div class="bg-slate-900 rounded-[3rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden">
-            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <span class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase">Gestión Documental</span>
-                    <h2 class="text-4xl font-black mt-6 mb-4 uppercase tracking-tighter">Solicitud de Documentos Oficiales</h2>
-                    <p class="text-blue-100 text-lg">¿Necesitas ayuda para obtener tus documentos del IMSS o AFORE? Nosotros los gestionamos por ti de manera segura y rápida.</p>
-                    <ul class="mt-6 space-y-3 text-sm text-blue-200">
-                        <li>✓ Constancia de Semanas Cotizadas</li>
-                        <li>✓ Expediente de Identificación AFORE</li>
-                        <li>✓ Estado de Cuenta Histórico</li>
-                    </ul>
-                </div>
-                <div class="bg-white p-8 rounded-[2rem] text-slate-800 shadow-xl">
-                    <label>Tu CURP:</label>
-                    <input type="text" id="doc_curp" maxlength="18" placeholder="Ingresa tu CURP">
-                    
-                    <label>Tipo de Documento:</label>
-                    <select id="doc_tipo">
-                        <option value="Semanas Cotizadas">Constancia de Semanas Cotizadas</option>
-                        <option value="Vigencia Derechos">Vigencia de Derechos</option>
-                        <option value="Correccion Datos">Corrección de Datos Personales</option>
-                        <option value="Baja Patronal">Baja Patronal / Historial</option>
-                    </select>
-
-                    <button onclick="solicitarDocumento()" id="btnDoc" class="bg-blue-600 text-white w-full py-4 rounded-xl font-black uppercase mt-8 hover:bg-blue-500 transition-all shadow-lg tracking-widest">Solicitar Documento</button>
-                    
-                    <div id="exitoDoc" class="hidden text-center mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-bold">
-                        ¡Solicitud Registrada! Folio: <span id="folioDoc_ver"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    function solicitarDocumento() {
+            const curp = document.getElementById("doc_curp").value.trim().toUpperCase();
+            const tipo = document.getElementById("doc_tipo").value;
+            
+            if(curp.length < 18) return alert("Por favor, ingresa un CURP válido de 18 caracteres.");
+            
+            const folio = "DOC-" + Math.floor(1000 + Math.random() * 9000);
+            
+            fetch(SCRIPT_MAESTRO, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ 
+                    curp: curp, 
+                    tipoDoc: tipo, 
+                    folio: folio, 
+                    accion: "GuardarDocumento" 
+                }) 
+            });
+            
+            // Mostrar éxito y folio
+            document.getElementById("exitoDoc").classList.remove("hidden");
+            document.getElementById("folioDoc_ver").innerText = folio;
+            
+            // Configurar el botón de WhatsApp con el mensaje personalizado
+            const mensajeWpp = encodeURIComponent(`Hola Diana, acabo de solicitar mi ${tipo} en la web. Mi CURP es ${curp} y mi folio es ${folio}. Adjunto el comprobante de pago de $15.`);
+            document.getElementById("wpp_doc_link").href = `https://wa.me/528131983700?text=${mensajeWpp}`;
+            
+            // Limpiar campo
+            document.getElementById("doc_curp").value = "";
+        }
 
     // ANALISIS RÁPIDO (CORREGIDO)
     function enviarRapido() {
@@ -190,4 +186,5 @@
         document.getElementById("exitoVIP").classList.remove("hidden");
     }
 </script>
+
 
