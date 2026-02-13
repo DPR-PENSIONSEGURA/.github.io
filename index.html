@@ -24,20 +24,65 @@
             </div>
             <nav class="hidden md:flex gap-6 text-xs font-bold uppercase tracking-widest text-slate-500">
                 <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600 transition-colors">¿Quiénes Somos?</button>
-                <a href="#servicios" class="hover:text-blue-600 transition-colors">Servicios</a>
-                <a href="https://wa.me/528131983700" class="hover:text-blue-600 transition-colors">Contacto</a>
-            </nav>
-        </div>
-    </header>
+                function abrirModal(tipo) {
+            const modal = document.getElementById('modalBase');
+            const contenido = document.getElementById('contenidoModal');
+            document.body.classList.add('modal-active');
+            modal.classList.remove('hidden');
 
-    <section class="relative overflow-hidden pt-16 pb-8 px-6 text-center">
-        <div class="max-w-4xl mx-auto">
-            <span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Asesoría Profesional en García, NL</span>
-            <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-tight uppercase">Asegura hoy el <br><span class="text-blue-600">retiro que mereces.</span></h2>
-            <p class="text-slate-500 max-w-xl mx-auto text-lg mb-10">Estrategias personalizadas para Ley 73 y Ley 97. Transparencia en cada trámite.</p>
-        </div>
-    </section>
+            // LIMPIAR CONTENIDO PREVIO
+            contenido.innerHTML = "";
 
+            if (tipo === 'modalInfo') {
+                contenido.innerHTML = `
+                    <div class="text-center">
+                        <div class="mb-6 overflow-hidden rounded-2xl shadow-lg border border-slate-100">
+                            <img src="https://lh3.googleusercontent.com/d/1wQmH-Vcx60X8Wkx6im64d5wBB_-aApNH" 
+                                 class="w-full h-auto object-contain" 
+                                 alt="Diana Puente Rodríguez">
+                        </div>
+                        <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
+                        <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-6">Directora de DPR Consultoría</p>
+                        <div class="text-left text-slate-600 text-sm leading-relaxed space-y-4">
+                            <p>En <b>García, Nuevo León</b>, fundé DPR Consultoría con un objetivo claro: que nadie pierda su derecho a una pensión por falta de información.</p>
+                            <p>Me especializo en diseñar el camino financiero que te permita retirarte con el monto más alto posible, aprovechando las leyes actuales.</p>
+                            <p class="border-l-4 border-blue-600 pl-4 italic">"Mi compromiso es tu tranquilidad futura."</p>
+                        </div>
+                    </div>`;
+            }
+
+            if (tipo === 'modalLey') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-2 uppercase text-blue-600">¿Qué Ley Soy?</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-8 uppercase tracking-widest">Consulta Gratuita</p>
+                    <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Año de primer alta IMSS:</label>
+                    <input type="number" id="anioLey" placeholder="Ej. 1994" class="w-full p-4 bg-slate-50 rounded-2xl mb-6 text-2xl font-black text-center border-none">
+                    <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg shadow-blue-200">Verificar</button>
+                    <div id="resLey" class="mt-6 hidden p-6 rounded-3xl text-center font-bold"></div>`;
+            }
+
+            if (tipo === 'modalFaq') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-8 uppercase text-slate-800">Preguntas Frecuentes</h2>
+                    <div class="space-y-6 text-sm">
+                        <div><p class="font-black text-blue-600 mb-1">¿Qué es la Modalidad 40?</p><p class="text-slate-500">Derecho a cotizar voluntariamente para subir promedio salarial y semanas.</p></div>
+                        <div><p class="font-black text-blue-600 mb-1">¿Cuándo pierdo mis derechos?</p><p class="text-slate-500">Después de 5 años sin cotizar. Se requiere un análisis de rescate.</p></div>
+                    </div>`;
+            }
+
+            if (tipo === 'modalRapido') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-2 uppercase text-blue-600">Análisis Rápido</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-8 uppercase tracking-widest">Costo: $200 MXN</p>
+                    <input type="text" id="nombreR" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-3 text-sm">
+                    <input type="text" id="curpR" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-3 text-sm">
+                    <input type="text" id="telR" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-6 text-sm">
+                    <label class="block text-[10px] font-black mb-2 uppercase text-slate-400 ml-2">Adjuntar Comprobante:</label>
+                    <input type="file" id="archivoR" class="mb-8 block w-full text-xs text-slate-500">
+                    <button onclick="ejecutarEnvio('R')" id="btnR" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase">Solicitar</button>
+                    <div id="exitoR" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">Folio: <span id="folioR_ver"></span></div>`;
+            }
+        }
     <main id="servicios" class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all text-left border border-slate-100">
             <div class="text-3xl mb-4">🔍</div>
@@ -71,6 +116,7 @@
             <div class="text-3xl mb-4">💼</div>
             <h3 class="font-black text-xl mb-1 uppercase">Modalidad 10</h3>
             <p class="text-blue
+
 
 
 
