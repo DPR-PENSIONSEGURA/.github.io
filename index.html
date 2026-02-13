@@ -93,15 +93,22 @@
             if (tipo === 'modalInfo') {
                 contenido.innerHTML = `
                     <div class="text-center">
-                        <img src="https://lh3.googleusercontent.com/d/1yorEMbxYHiARqkCb6jPsPnt0a4PGFp1g" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-blue-500" alt="Diana Puente Rodríguez">
-                        <h2 class="text-2xl font-black uppercase mb-2">Diana Puente Rodríguez</h2>
-                        <p class="text-blue-600 font-bold text-xs uppercase mb-6 tracking-widest">Fundadora de DPR Consultoría</p>
-                        <div class="text-left text-slate-600 space-y-4 text-sm leading-relaxed">
+                        <div class="mb-6 overflow-hidden rounded-2xl shadow-lg border border-slate-100">
+                            <img src="https://lh3.googleusercontent.com/d/1yorEMbxYHiARqkCb6jPsPnt0a4PGFp1g" 
+                                 class="w-full h-auto object-contain" 
+                                 alt="Diana Puente Rodríguez">
+                        </div>
+                        
+                        <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
+                        <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-6">Fundadora de DPR Consultoría</p>
+                        
+                        <div class="text-left text-slate-600 text-sm leading-relaxed space-y-4">
                             <p>Con sede en <b>García, Nuevo León</b>, he dedicado mi carrera a simplificar el complejo mundo de las pensiones en México.</p>
                             <p>Mi misión es que cada trabajador tome el control de su retiro, evitando errores comunes y maximizando sus beneficios legales mediante estrategias personalizadas.</p>
-                            <p><b>DPR Consultoría</b> no es solo un despacho; es tu aliado de confianza para un retiro digno y seguro.</p>
+                            <p class="border-l-4 border-blue-600 pl-4 italic">"DPR Consultoría no es solo un despacho; es tu aliado de confianza para un retiro digno y seguro."</p>
                         </div>
                     </div>`;
+            };
             }
 
             if (tipo === 'modalLey') {
@@ -221,6 +228,7 @@
     </script>
 </body>
 </html>
+
 
 
 
