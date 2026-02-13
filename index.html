@@ -77,7 +77,8 @@
     </div>
 
     <script>
-        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzdZV5byvsh5zZGGTPE1SgK1j5v_JpCi2LS4uW6MRrb6OxtogN2YR-EDRjgr3lKAGwmYA/exec";
+        // Nueva URL del Script integrada
+        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbwDDgjzgyy2jBIWMKULnOL2l_wDKCFc57e6Kao5BHtqwrb91BBLSHHerq02ztatENoVsw/exec";
 
         function abrirModal(tipo) {
             const modal = document.getElementById('modalBase');
@@ -86,7 +87,6 @@
             modal.classList.remove('hidden');
             contenido.innerHTML = ""; 
 
-            // --- QUIÉNES SOMOS ---
             if (tipo === 'modalInfo') {
                 contenido.innerHTML = `
                     <div class="text-center">
@@ -98,7 +98,6 @@
                 return;
             }
 
-            // --- QUE LEY SOY ---
             if (tipo === 'modalLey') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
@@ -108,22 +107,25 @@
                     <div id="orientacionGratis" class="hidden mt-8 border-t pt-4 text-center">
                         <p class="font-black text-[10px] mb-4 uppercase text-blue-600">Solicitar Orientación Gratuita</p>
                         <input type="text" id="nomLey" placeholder="Nombre completo" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
-                        <input type="text" id="curpLey" placeholder="CURP" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
+                        <input type="text" id="curpLey" placeholder="CURP" class="w-full p-3 bg-slate-100 rounded-xl mb-2 text-center uppercase">
                         <button onclick="solicitarOrientacion()" class="w-full bg-slate-900 text-white py-4 rounded-xl text-xs font-black uppercase">Enviar Solicitud</button>
                     </div>`;
                 return;
             }
 
-            // --- CONSULTAR ESTATUS ---
+            // --- BUSCADOR SEGURO CON CURP ---
             if (tipo === 'modalEstatus') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">Consultar Estatus</h2>
-                    <input type="text" id="folioBusqueda" placeholder="Folio (Ej: R-1234)" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black">
-                    <button onclick="alert('Conectando con base de datos...')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Buscar</button>`;
+                    <div class="space-y-4">
+                        <input type="text" id="folioBusqueda" placeholder="Folio (Ej: DOC-1234)" class="w-full p-4 bg-slate-50 rounded-2xl text-center font-black uppercase">
+                        <input type="text" id="curpBusqueda" placeholder="Ingresa tu CURP para validar" class="w-full p-4 bg-slate-50 rounded-2xl text-center font-black uppercase">
+                        <button onclick="consultarServidor()" id="btnConsultar" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Buscar Resultados</button>
+                    </div>
+                    <div id="resConsulta" class="mt-6 hidden p-6 rounded-[2rem] border-2 border-dashed border-slate-200 text-center"></div>`;
                 return;
             }
 
-            // --- FORMULARIOS (ANÁLISIS Y DOCUMENTOS) ---
             if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
                 const config = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
@@ -152,20 +154,28 @@
                 }
 
                 contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
-                    <p class="text-[15px] font-black text-red-400 mb-4 uppercase tracking-widest text-center">Costo: ${config.precio}</p>
+                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 text-center">${config.titulo}</h2>
+                    <p class="text-[15px] font-black text-red-400 mb-4 uppercase text-center">Costo: ${config.precio}</p>
                     <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-red-500 leading-relaxed italic text-center">
                         <b>MÉTODO DE PAGO:</b><br>
                         • TRANSFERENCIA A BANORTE 4915663040364896 <br> A NOMBRE DE PENSION SEGURA
                     </div>
+                    
                     ${(tipo !== 'modalDocs') ? `<input type="text" id="nombre_${config.prefix}" placeholder="Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
-                    <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
-                    ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
+                    
+                    <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 text-center uppercase">
+                    
+                    ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 text-center">` : ''}
+                    
                     ${camposExtra}
-                    ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">` : ''}
+                    
+                    ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center">` : ''}
+                    
                     <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase text-center">Comprobante de Pago:</label>
                     <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
+                    
                     <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-colors">Enviar Solicitud</button>
+                    
                     <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">
                         ¡ENVIADO! TU FOLIO ES: <span id="folio_${config.prefix}"></span>
                     </div>`;
@@ -189,7 +199,7 @@
                 res.innerHTML = "¡ERES LEY 73! TU MEJOR ALIADO ES LA MODALIDAD 40"; 
             } else { 
                 res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700"; 
-                res.innerHTML = "¡ERES LEY 97! TU PENSIÓN DEPENDERÁ DE TUS AHORROS."; 
+                res.innerHTML = "¡ERES LEY 97! TU PENSIÓN DEPENDERÁ DE TUS AHORROS"; 
             }
         }
 
@@ -208,7 +218,7 @@
                 const payload = {
                     tipo: prefix,
                     estatus: "En Proceso",
-                    curp: document.getElementById(`curp_${prefix}`).value,
+                    curp: document.getElementById(`curp_${prefix}`).value.toUpperCase(),
                     folio: folio,
                     archivo: reader.result,
                     archivoNombre: fileInput.files[0].name
@@ -229,11 +239,43 @@
                     btn.innerText = "¡LISTO!";
                     btn.className = "w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase";
                 } catch (e) {
-                    alert("Error al enviar. Intenta de nuevo.");
+                    alert("Error al enviar. Intenta de nuevo");
                     btn.disabled = false;
                     btn.innerText = "Enviar Solicitud";
                 }
             };
+        }
+
+        async function consultarServidor() {
+            const folio = document.getElementById('folioBusqueda').value.trim();
+            const curp = document.getElementById('curpBusqueda').value.trim();
+            const btn = document.getElementById('btnConsultar');
+            const resDiv = document.getElementById('resConsulta');
+
+            if (!folio || !curp) return alert("Llena ambos campos");
+
+            btn.innerText = "VERIFICANDO...";
+            btn.disabled = true;
+
+            google.script.run.withSuccessHandler(function(respuesta) {
+                btn.innerText = "Buscar Resultados";
+                btn.disabled = false;
+                resDiv.classList.remove('hidden');
+
+                if (respuesta === "No encontrado") {
+                    resDiv.innerHTML = `<p class="text-red-500 font-bold italic">Datos incorrectos. Verifica tu Folio y CURP.</p>`;
+                } else {
+                    const data = JSON.parse(respuesta);
+                    let htmlRes = `
+                        <p class="font-bold text-lg">${data.nombre}</p>
+                        <div class="mt-2 inline-block px-4 py-1 rounded-full text-xs font-black uppercase bg-blue-100 text-blue-700">${data.estatus}</div>`;
+                    
+                    if (data.estatus.toUpperCase() === "COMPLETADO" && data.linkDescarga) {
+                        htmlRes += `<a href="${data.linkDescarga}" target="_blank" class="block w-full bg-green-500 text-white text-center py-4 rounded-2xl font-black mt-6 shadow-xl animate-bounce">📥 DESCARGAR ARCHIVO</a>`;
+                    }
+                    resDiv.innerHTML = htmlRes;
+                }
+            }).buscarEstatusProtegido(folio, curp);
         }
 
         function solicitarOrientacion() {
