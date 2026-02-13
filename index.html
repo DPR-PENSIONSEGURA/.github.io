@@ -91,49 +91,70 @@
     </div>
 <script>
     const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
+function abrirModal(tipo) {
+    const modal = document.getElementById('modalBase');
+    const contenido = document.getElementById('contenidoModal');
+    document.body.classList.add('modal-active');
+    modal.classList.remove('hidden');
+    contenido.innerHTML = "";
 
-    function abrirModal(tipo) {
-        const modal = document.getElementById('modalBase');
-        const contenido = document.getElementById('contenidoModal');
-        document.body.classList.add('modal-active');
-        modal.classList.remove('hidden');
-        contenido.innerHTML = "";
+    // 1. Configuración de trámites
+    const configs = {
+        'modalRapido':    { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600', nombre: true, tel: true, curp: true, nss: true },
+        'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600', nombre: true, tel: true, curp: true, nss: true, nac: true },
+        'modalM10':       { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10', color: 'slate-900', nombre: true, tel: true, curp: true, nss: true },
+        'modalDocs':      { titulo: 'Solicitud de Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600', nombre: true, tel: true, curp: true, nss: false, listaDocs: true },
+        'modalInfonavit': { titulo: 'Infonavit', precio: '$210', prefix: 'INF', color: 'red-600', nombre: false, tel: false, curp: true, nac: true, selectInfonavit: true },
+        'modalRFC':       { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600', nombre: false, tel: false, curp: true },
+        'modalCSF':       { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800', nombre: false, tel: false, curp: true }
+    };
 
-        // Definimos qué pide cada trámite de forma estricta
-        const esPension = ['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs'].includes(tipo);
-        const esSimple = ['modalRFC', 'modalCSF', 'modalInfonavit'].includes(tipo);
+    // (Lógica de Estatus, Ley e Info se mantiene igual...)
+    if (tipo === 'modalEstatus' || tipo === 'modalLey' || tipo === 'modalInfo') {
+        // ... (tu código anterior aquí)
+        return;
+    }
 
-        if (esPension) {
-            const configs = {
-    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
-    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600' },
-    'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10', color: 'slate-900' },
-    'modalDocs': { titulo: 'Solicitud de Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600' }
-};
-const c = configs[tipo];
+    const c = configs[tipo];
+    if (c) {
+        contenido.innerHTML = `
+            <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
+            <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
+            <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border"><b>PAGO:</b> BANORTE 4915 6630 4036 4896 a nombre de PENSION SEGURA</div>
             
-            contenido.innerHTML = `
-    <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
-    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
-    <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800 border"><b>PAGO:</b> BANORTE 4915 6630 4036 4896 a nombre de PENSION SEGURA</div>
-    <div class="space-y-2">
-        <input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">
-        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
-        
-        ${c.prefix === 'DOC' ? `<input type="text" id="extra_${c.prefix}" placeholder="¿Qué documento necesitas? (Ej. Semanas Cotizadas)" class="w-full p-4 bg-slate-50 rounded-2xl border border-blue-600">` : ''}
-        
-        ${c.prefix !== 'DOC' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-        
-        ${c.prefix === 'D' ? `<label class="text-[10px] font-black ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-        
-        <input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">
-        
-        <label class="block text-[10px] font-black text-slate-400 mt-2 ml-2 uppercase">Comprobante de Pago:</label>
-        <input type="file" id="file_${c.prefix}" class="mb-2 block w-full text-xs">
-    </div>
-    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-4">Enviar Solicitud</button>
-    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
-`;
+            <div class="space-y-2">
+                ${c.nombre ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                
+                <input type="text" id="curp_${c.prefix}" placeholder="${c.prefix === 'INF' ? 'NSS o CURP' : 'CURP'}" class="w-full p-4 bg-slate-50 rounded-2xl border border-blue-600">
+                
+                ${c.nss ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
+                
+                ${c.listaDocs ? `
+                    <label class="block text-[10px] font-black text-blue-600 ml-2 uppercase italic">Selecciona el documento ($15 c/u):</label>
+                    <select id="extra_${c.prefix}" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-bold outline-none">
+                        <option value="" disabled selected>-- Elegir documento --</option>
+                        <option value="Semanas Cotizadas">Constancia de Semanas Cotizadas</option>
+                        <option value="Vigencia de Derechos">Vigencia de Derechos</option>
+                        <option value="Localización de NSS">Localización de NSS</option>
+                        <option value="Estado de Cuenta AFORE">Resumen AFORE (Básico)</option>
+                    </select>
+                ` : ''}
+                
+                ${c.nac ? `<label class="text-[10px] font-black ml-2 uppercase">Fecha Nacimiento:</label><input type="date" id="nac_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                
+                ${c.selectInfonavit ? `<select id="extra_${c.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border"><option value="Linea II">Línea II (Compra)</option><option value="Mejoravit">Mejoravit</option></select>` : ''}
+                
+                ${c.tel ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                
+                <label class="block text-[10px] font-black text-slate-400 mt-2 ml-2 uppercase">Comprobante de Pago:</label>
+                <input type="file" id="file_${c.prefix}" class="mb-2 block w-full text-xs">
+            </div>
+            
+            <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-4 active:scale-95 transition-transform">Enviar Solicitud</button>
+            <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
+        `;
+    }
+}
         } 
         else if (esSimple) {
             const configs = {
@@ -266,4 +287,5 @@ const c = configs[tipo];
         }
     }
 </script>
+
 
