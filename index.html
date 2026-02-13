@@ -46,6 +46,18 @@
             <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
         </button>
 
+<button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+    <span class="text-3xl mb-4 block">🆔</span>
+    <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
+    <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
+</button>
+
+<button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+    <span class="text-3xl mb-4 block">📜</span>
+    <h3 class="font-black text-xl uppercase italic">CSF Original</h3>
+    <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$230 MXN</p>
+</button>
+     
         <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📊</span>
             <h3 class="font-black text-xl uppercase italic">Análisis Detallado</h3>
@@ -79,7 +91,7 @@
     </div>
 
     <script>
-        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbyu1EUaXJQv8wP2ItWlchnaTElteV85WHQ9EjXb65LTKjiO-FV4lbWX-XqcEqnO3a_W9g/exec";
+        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
 
         function abrirModal(tipo) {
             const modal = document.getElementById('modalBase');
@@ -134,6 +146,44 @@
                     <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${config.prefix}"></span></div>
                 `;
             }
+             // Busca la sección de servicios en tu función abrirModal y añade 'modalRFC' y 'modalCSF'
+if (['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs', 'modalRFC', 'modalCSF'].includes(tipo)) {
+    const config = {
+        'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
+        'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
+        'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' },
+        'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC' },
+        'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC' },
+        'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF' }
+    }[tipo];
+
+    contenido.innerHTML = `
+        <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
+        <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${config.precio}</p>
+        
+        <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800">
+            <b>PAGO:</b> Transferencia CLABE 1234 5678 9012 3456 (Diana Puente)
+        </div>
+
+        <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border focus:border-blue-600">
+        <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border focus:border-blue-600">
+        
+        ${(config.prefix !== 'DOC' && config.prefix !== 'RFC' && config.prefix !== 'CSF') ? 
+            `<input type="text" id="nss_${config.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border" maxlength="11">` : ''}
+        
+        ${config.prefix === 'D' ? `<input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">` : ''}
+        
+        <input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border">
+        
+        <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
+        <input type="file" id="file_${config.prefix}" class="mb-4 block w-full text-xs">
+        
+        <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
+        
+        <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
+            ¡ENVIADO! FOLIO: <span id="folio_${config.prefix}"></span>
+        </div>`;
+}
             else if (tipo === 'modalLey') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
@@ -248,5 +298,6 @@
     </script>
 </body>
 </html>
+
 
 
