@@ -118,51 +118,66 @@
             }
 
             // --- FORMULARIOS (RAPIDO, DETALLADO, DOCS, M10) ---
-            if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
-                const config = {
-                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
-                    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
-                    'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
-                    'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' }
-                }[tipo];
+            // --- DENTRO DE LA FUNCIÓN abrirModal(tipo) EN TU HTML ---
 
-                let camposExtra = '';
-                if(tipo === 'modalDetallado') {
-                    camposExtra = `<label class="text-[10px] font-black ml-2 text-slate-400">FECHA DE NACIMIENTO:</label>
-                                   <input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
-                }
-                if(tipo === 'modalDocs') {
-                    camposExtra = `<input type="text" id="tipoDoc_${config.prefix}" placeholder="Tipo de documento que necesita" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
-                }
+if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
+    const config = {
+        'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
+        'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
+        'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
+        'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' }
+    }[tipo];
 
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
-                    
-                    <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-blue-800 leading-relaxed">
-                        <b>MÉTODOS DE PAGO:</b><br>
-                        • TRANSFERENCIA: CLABE 4915 6630 4036 4896 (BANORTE)
-                    </div>
+    let camposExtra = '';
+    
+    if(tipo === 'modalDetallado') {
+        camposExtra = `<label class="text-[10px] font-black ml-2 text-slate-400">FECHA DE NACIMIENTO:</label>
+                       <input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
+    }
 
-                    <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
-                    <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
-                    
-                    ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS (Vital)" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
-                    
-                    ${camposExtra}
-                    
-                    <input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">
-                    
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
-                    <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
-                    
-                    <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
-                    
-                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
-                        ¡ENVIADO! ESTATUS: EN PROCESO<br>
-                        FOLIO: <span id="folio_${config.prefix}"></span>
-                    </div>`;
-            }
+    // NUEVO: Menú desplegable para Documentos
+    if(tipo === 'modalDocs') {
+        camposExtra = `
+            <label class="text-[10px] font-black ml-2 text-slate-400">SELECCIONA EL DOCUMENTO:</label>
+            <select id="tipoDoc_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 font-bold text-slate-700">
+                <option value="ACTA DE DIVORCIO">ACTA DE DIVORCIO</option>
+                <option value="ACTA DE NACIMIENTO">ACTA DE NACIMIENTO</option>
+                <option value="ACTA DE MATRIMONIO">ACTA DE MATRIMONIO</option>
+                <option value="ACTA DE DEFUNCIÓN">ACTA DE DEFUNCIÓN</option>
+                <option value="CURP">CURP</option>
+                <option value="NSS">NSS</option>
+                <option value="VIGENCIA DE DERECHOS">VIGENCIA DE DERECHOS</option>
+            </select>`;
+    }
+
+    contenido.innerHTML = `
+        <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
+        <p class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
+        
+        <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-blue-800 leading-relaxed">
+            <b>MÉTODOS DE PAGO:</b><br>
+            • CLIP / TRANSFERENCIA
+        </div>
+
+        <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
+        <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
+        
+        ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
+        
+        ${camposExtra}
+        
+        ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">` : ''}
+        
+        <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
+        <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
+        
+        <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
+        
+        <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
+            ¡ENVIADO! ESTATUS: EN PROCESO<br>
+            FOLIO: <span id="folio_${config.prefix}"></span>
+        </div>`;
+}
 
             // --- CONSULTAR ESTATUS ---
             if(tipo === 'modalEstatus') {
@@ -250,6 +265,7 @@
     </script>
 </body>
 </html>
+
 
 
 
