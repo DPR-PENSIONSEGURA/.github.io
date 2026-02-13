@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Pensiones e Infonavit</title>
+    <title>DPR Consultoría | Asesores Patrimoniales, nos especializamos en que tomes la mejor opcion financiera</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -75,3 +75,62 @@
     <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-
+if(tipo === 'modalEstatus') {
+    
+                contenido.innerHTML = `
+        <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
+        <p class="text-[10px] text-center mb-4 text-slate-400 font-bold uppercase">Ingresa el folio que recibiste al enviar tu solicitud</p>
+        <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2 border-slate-200 focus:border-blue-600 outline-none">
+        <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-transform">Consultar</button>
+        <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
+    `;
+}
+async function buscarEstatus() {
+    const f = document.getElementById('folioBusqueda').value.trim();
+    const res = document.getElementById('resBus');
+    const btn = document.getElementById('btnBus');
+    
+    if(!f) {
+        alert("Por favor, ingresa un folio válido.");
+        return;
+    }
+    
+    btn.innerText = "BUSCANDO EN BASE DE DATOS...";
+    btn.disabled = true;
+    res.classList.add('hidden');
+
+    try {
+        // Añadimos un timestamp para evitar que el navegador guarde una respuesta vieja (cache)
+        const urlBusqueda = `${SCRIPT_MAESTRO}?folio=${encodeURIComponent(f)}&t=${new Date().getTime()}`;
+        
+        const resp = await fetch(urlBusqueda);
+        const est = await resp.text();
+        
+        res.classList.remove('hidden');
+        
+        // Limpiamos la respuesta por si Google envía HTML extra
+        const estatusLimpio = est.trim();
+
+        if (estatusLimpio === "No encontrado" || estatusLimpio === "") {
+            res.innerText = "FOLIO NO ENCONTRADO";
+            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-50 text-red-600 border-red-200";
+        } else {
+            res.innerText = "ESTATUS: " + estatusLimpio;
+            
+            if(estatusLimpio === "Terminado" || estatusLimpio === "FINALIZADO") {
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-green-100 text-green-700 border-green-200";
+            } else {
+                // Para "En Proceso" o cualquier otro estado
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 border-yellow-200";
+            }
+        }
+    } catch (e) {
+        console.error("Error de búsqueda:", e);
+        res.classList.remove('hidden');
+        res.innerText = "ERROR DE CONEXIÓN";
+        res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-slate-100 text-slate-500";
+    } finally {
+        btn.innerText = "CONSULTAR";
+        btn.disabled = false;
+    }
+}
