@@ -1,16 +1,15 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Asesores Patrimoniales, nos especializamos en que tomes la mejor opcion financiera</title>
+    <title>DPR Consultoría | Pensiones e Infonavit</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
         .modal-active { overflow: hidden; }
         .service-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-        /* Estilo para los inputs enfocados */
         input:focus, select:focus { border-color: #2563eb; outline: none; }
     </style>
 </head>
@@ -74,63 +73,157 @@
 
     <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-
-if(tipo === 'modalEstatus') {
-    
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">×</button>
+            <div id="contenidoModal"></div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbwryl76dik-lLsHdcl9sFPTcu4TjD_lQumwD3PHxlhydPBW7uJOmnbhS4zwEXgrJtefpA/exec";
+
+        function abrirModal(tipo) {
+            const modal = document.getElementById('modalBase');
+            const contenido = document.getElementById('contenidoModal');
+            document.body.classList.add('modal-active');
+            modal.classList.remove('hidden');
+            contenido.innerHTML = ""; 
+
+            if(tipo === 'modalEstatus') {
                 contenido.innerHTML = `
-        <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
-        <p class="text-[10px] text-center mb-4 text-slate-400 font-bold uppercase">Ingresa el folio que recibiste al enviar tu solicitud</p>
-        <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2 border-slate-200 focus:border-blue-600 outline-none">
-        <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-transform">Consultar</button>
-        <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
-    `;
-}
-async function buscarEstatus() {
-    const f = document.getElementById('folioBusqueda').value.trim();
-    const res = document.getElementById('resBus');
-    const btn = document.getElementById('btnBus');
-    
-    if(!f) {
-        alert("Por favor, ingresa un folio válido.");
-        return;
-    }
-    
-    btn.innerText = "BUSCANDO EN BASE DE DATOS...";
-    btn.disabled = true;
-    res.classList.add('hidden');
+                    <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
+                    <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2 border-slate-200">
+                    <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button>
+                    <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
+                `;
+            } 
+            else if (tipo === 'modalInfonavit') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-red-600">Precalificación Infonavit</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase">Costo: $210 MXN</p>
+                    <div class="bg-red-50 p-4 rounded-2xl mb-4 text-[10px] text-red-800 border border-red-100"><b>TRANSFERENCIA:</b> CLABE 1234 5678 9012 3456 <br> Diana Puente Rodríguez</div>
+                    <input type="text" id="nombre_INF" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">
+                    <input type="text" id="nss_INF" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border" maxlength="11">
+                    <input type="date" id="nac_INF" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">
+                    <select id="extra_INF" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 font-bold border"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>
+                    <input type="tel" id="tel_INF" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border">
+                    <input type="file" id="file_INF" class="mb-4 block w-full text-xs">
+                    <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
+                    <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_INF"></span></div>
+                `;
+            }
+            else if (['modalRapido', 'modalDetallado', 'modalM10', 'modalDocs'].includes(tipo)) {
+                const config = {
+                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
+                    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
+                    'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' },
+                    'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC' }
+                }[tipo];
 
-    try {
-        // Añadimos un timestamp para evitar que el navegador guarde una respuesta vieja (cache)
-        const urlBusqueda = `${SCRIPT_MAESTRO}?folio=${encodeURIComponent(f)}&t=${new Date().getTime()}`;
-        
-        const resp = await fetch(urlBusqueda);
-        const est = await resp.text();
-        
-        res.classList.remove('hidden');
-        
-        // Limpiamos la respuesta por si Google envía HTML extra
-        const estatusLimpio = est.trim();
-
-        if (estatusLimpio === "No encontrado" || estatusLimpio === "") {
-            res.innerText = "FOLIO NO ENCONTRADO";
-            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-50 text-red-600 border-red-200";
-        } else {
-            res.innerText = "ESTATUS: " + estatusLimpio;
-            
-            if(estatusLimpio === "Terminado" || estatusLimpio === "FINALIZADO") {
-                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-green-100 text-green-700 border-green-200";
-            } else {
-                // Para "En Proceso" o cualquier otro estado
-                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 border-yellow-200";
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${config.precio}</p>
+                    <div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] text-blue-800"><b>PAGO:</b> Transferencia CLABE 1234 5678 9012 3456</div>
+                    <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">
+                    <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">
+                    ${config.prefix !== 'DOC' ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border" maxlength="11">` : ''}
+                    ${config.prefix === 'D' ? `<input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">` : ''}
+                    ${config.prefix === 'DOC' ? `<input type="text" id="extra_${config.prefix}" placeholder="¿Qué documento necesitas?" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border">` : ''}
+                    <input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border">
+                    <input type="file" id="file_${config.prefix}" class="mb-4 block w-full text-xs">
+                    <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Enviar Solicitud</button>
+                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${config.prefix}"></span></div>
+                `;
+            }
+            else if (tipo === 'modalLey') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
+                    <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2 focus:border-blue-600">
+                    <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button>
+                    <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>
+                `;
+            }
+            else if (tipo === 'modalInfo') {
+                contenido.innerHTML = `<div class="text-center"><h2 class="text-2xl font-black uppercase">Diana Puente Rodríguez</h2><p class="text-blue-600 font-bold text-[10px] mb-6 uppercase">Fundadora de DPR Consultoría</p><p class="text-sm text-slate-600">Especialista en pensiones y trámites de seguridad social.</p></div>`;
             }
         }
-    } catch (e) {
-        console.error("Error de búsqueda:", e);
-        res.classList.remove('hidden');
-        res.innerText = "ERROR DE CONEXIÓN";
-        res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-slate-100 text-slate-500";
-    } finally {
-        btn.innerText = "CONSULTAR";
-        btn.disabled = false;
-    }
-}
+
+        function cerrarModal() {
+            document.getElementById('modalBase').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
+
+        async function ejecutarEnvio(prefix) {
+            const btn = document.getElementById(`btn_${prefix}`);
+            const nssInput = document.getElementById(`nss_${prefix}`);
+            if(nssInput && nssInput.value.length !== 11) return alert("El NSS debe tener 11 números.");
+
+            const fileInput = document.getElementById(`file_${prefix}`);
+            if (!fileInput.files[0]) return alert("Sube tu comprobante de pago.");
+
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async () => {
+                const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+                const payload = {
+                    tipo: prefix,
+                    nombre: document.getElementById(`nombre_${prefix}`).value,
+                    curp: document.getElementById(`curp_${prefix}`) ? document.getElementById(`curp_${prefix}`).value : "",
+                    nss: nssInput ? nssInput.value : "",
+                    tel: document.getElementById(`tel_${prefix}`).value,
+                    nacimiento: document.getElementById(`nac_${prefix}`) ? document.getElementById(`nac_${prefix}`).value : "",
+                    infoExtra: document.getElementById(`extra_${prefix}`) ? document.getElementById(`extra_${prefix}`).value : "",
+                    folio: folio,
+                    archivo: reader.result,
+                    archivoNombre: fileInput.files[0].name
+                };
+
+                await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                document.getElementById(`folio_${prefix}`).innerText = folio;
+                btn.innerText = "¡LISTO!";
+            };
+        }
+
+        async function buscarEstatus() {
+            const f = document.getElementById('folioBusqueda').value.trim();
+            const res = document.getElementById('resBus');
+            const btn = document.getElementById('btnBus');
+            if(!f) return alert("Ingresa un folio");
+            
+            btn.innerText = "BUSCANDO...";
+            btn.disabled = true;
+            res.classList.add('hidden');
+
+            try {
+                const resp = await fetch(`${SCRIPT_MAESTRO}?folio=${f}`);
+                const est = await resp.text();
+                res.classList.remove('hidden');
+                res.innerText = "ESTATUS: " + est;
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase " + (est === "Terminado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700");
+            } catch (e) {
+                alert("Error de conexión");
+            } finally {
+                btn.innerText = "CONSULTAR";
+                btn.disabled = false;
+            }
+        }
+
+        function verificarLey() {
+            const anio = document.getElementById('anioLey').value;
+            const res = document.getElementById('resLey');
+            if(!anio) return;
+            res.classList.remove('hidden');
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
+                res.innerHTML = "¡ERES LEY 73!"; 
+            } else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
+                res.innerHTML = "ERES LEY 97"; 
+            }
+        }
+    </script>
+</body>
+</html>
