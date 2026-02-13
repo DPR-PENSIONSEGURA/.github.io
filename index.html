@@ -187,29 +187,50 @@
             };
         }
 
-        async function buscarEstatus() {
-            const f = document.getElementById('folioBusqueda').value.trim();
-            const res = document.getElementById('resBus');
-            const btn = document.getElementById('btnBus');
-            if(!f) return alert("Ingresa un folio");
-            
-            btn.innerText = "BUSCANDO...";
-            btn.disabled = true;
-            res.classList.add('hidden');
+       async function buscarEstatus() {
+    const f = document.getElementById('folioBusqueda').value.trim();
+    const res = document.getElementById('resBus');
+    const btn = document.getElementById('btnBus');
+    if(!f) return alert("Ingresa un folio");
+    
+    btn.innerText = "BUSCANDO...";
+    btn.disabled = true;
+    res.classList.add('hidden');
 
-            try {
-                const resp = await fetch(`${SCRIPT_MAESTRO}?folio=${f}`);
-                const est = await resp.text();
-                res.classList.remove('hidden');
-                res.innerText = "ESTATUS: " + est;
-                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase " + (est === "Terminado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700");
-            } catch (e) {
-                alert("Error de conexión");
-            } finally {
-                btn.innerText = "CONSULTAR";
-                btn.disabled = false;
-            }
+    try {
+        const resp = await fetch(`${SCRIPT_MAESTRO}?folio=${encodeURIComponent(f)}`);
+        const est = await resp.text();
+        const estatusLimpio = est.trim();
+
+        res.classList.remove('hidden');
+
+        // VALIDACIÓN: ¿El estatus es un link de Google Drive?
+        if (estatusLimpio.includes("drive.google.com") || estatusLimpio.startsWith("http")) {
+            res.innerHTML = `
+                <p class="mb-3 text-xs opacity-70">Tu documento está listo:</p>
+                <a href="${estatusLimpio}" target="_blank" 
+                   class="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm hover:bg-blue-700 transition-all shadow-md">
+                   📥 DESCARGAR AQUÍ
+                </a>`;
+            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-blue-50 text-blue-700 border-2 border-blue-100";
+        } 
+        else if (estatusLimpio === "No encontrado" || estatusLimpio === "") {
+            res.innerText = "FOLIO NO ENCONTRADO";
+            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-50 text-red-600";
+        } 
+        else {
+            // Si es texto normal (ej. "En Proceso")
+            res.innerText = "ESTATUS: " + estatusLimpio;
+            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase " + 
+                            (estatusLimpio === "Terminado" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700");
         }
+    } catch (e) {
+        alert("Error de conexión");
+    } finally {
+        btn.innerText = "CONSULTAR";
+        btn.disabled = false;
+    }
+}
 
         function verificarLey() {
             const anio = document.getElementById('anioLey').value;
@@ -218,13 +239,14 @@
             res.classList.remove('hidden');
             if (anio < 1997) { 
                 res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
-                res.innerHTML = "¡ERES LEY 73!"; 
+                res.innerHTML = "¡ERES LEY 73!, LA MODALIDAD 40 ES TU MEJOR ALIADO ! AGENDA UNA ORIENTACIÓN PARA SABER MÁS"; 
             } else { 
                 res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
-                res.innerHTML = "ERES LEY 97"; 
+                res.innerHTML = "ERES LEY 97, AGENDA UNA ORIENTACIÓN PARA QUE SEPAS IMPULSAR TU PENSIÓN ! "; 
             }
         }
     </script>
 </body>
 </html>
+
 
