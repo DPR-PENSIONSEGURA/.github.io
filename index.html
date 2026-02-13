@@ -3,231 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría - Pensión Segura</title>
+    <title>DPR Consultoría | Pensiones García NL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; scroll-behavior: smooth; }
         .modal-active { overflow: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .service-card:hover { transform: translateY(-5px); }
+        input, select { border: 1px solid #e2e8f0 !important; }
+        input:focus { border-color: #2563eb !important; outline: none; }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <header class="p-6 max-w-6xl mx-auto flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-600 text-white w-10 h-10 rounded-lg flex items-center justify-center font-black">DPR</div>
-            <h1 class="font-black uppercase tracking-tighter text-xl">DPR <span class="text-blue-600">Consultoría</span></h1>
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black text-sm">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
+            </div>
+            <nav class="hidden md:flex gap-6 text-xs font-bold uppercase tracking-widest text-slate-500">
+                <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600 transition-colors">¿Quiénes Somos?</button>
+                <a href="#servicios" class="hover:text-blue-600 transition-colors">Servicios</a>
+                <a href="https://wa.me/528131983700" class="hover:text-blue-600 transition-colors">Contacto</a>
+            </nav>
         </div>
-        <button onclick="abrirModal('modalInfo')" class="text-sm font-bold border-b-2 border-blue-600">¿Quiénes Somos?</button>
     </header>
 
-    <section class="text-center py-8 px-6">
-        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase">Tu retiro merece <br><span class="text-blue-600">estrategia.</span></h2>
-        <p class="text-slate-500 max-w-2xl mx-auto text-lg">Asesoría especializada en pensiones Ley 73 y Ley 97. Gestionamos tu futuro con claridad y honestidad.</p>
+    <section class="relative overflow-hidden pt-16 pb-8 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Asesoría Profesional en García, NL</span>
+            <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-tight uppercase">Asegura hoy el <br><span class="text-blue-600">retiro que mereces.</span></h2>
+            <p class="text-slate-500 max-w-xl mx-auto text-lg mb-10">Estrategias personalizadas para Ley 73 y Ley 97. Transparencia en cada trámite.</p>
+        </div>
     </section>
 
-    <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <button onclick="abrirModal('modalLey')" class="bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-left border border-slate-100 group">
+    <main id="servicios" class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all text-left border border-slate-100">
             <div class="text-3xl mb-4">🔍</div>
             <h3 class="font-black text-xl mb-1 uppercase">¿Qué Ley Soy?</h3>
-            <p class="text-blue-600 font-bold text-xs uppercase mb-4">Gratuito</p>
-            <p class="text-slate-400 text-sm">Descubre si perteneces al régimen de 1973 o 1997 con tu año de alta.</p>
+            <p class="text-blue-600 font-bold text-[10px] uppercase mb-4 tracking-widest">Sin Costo</p>
+            <p class="text-slate-400 text-sm">Identifica tu régimen IMSS para saber qué beneficios te corresponden.</p>
         </button>
 
-        <button onclick="abrirModal('modalRapido')" class="bg-green-50 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-left border border-green-100">
+        <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all text-left border border-slate-100">
             <div class="text-3xl mb-4">⚡</div>
             <h3 class="font-black text-xl mb-1 uppercase">Análisis Rápido</h3>
-            <p class="text-green-600 font-bold text-xs uppercase mb-4">$200 MXN</p>
-            <p class="text-slate-500 text-sm">Cálculo básico de semanas y estatus actual de conservación de derechos.</p>
+            <p class="text-blue-600 font-bold text-[10px] uppercase mb-4 tracking-widest">$200 MXN</p>
+            <p class="text-slate-400 text-sm">Revisión de semanas y vigencia de derechos actual.</p>
         </button>
 
-        <button onclick="abrirModal('modalDetallado')" class="bg-blue-50 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-left border border-blue-100">
+        <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all text-left text-white">
             <div class="text-3xl mb-4">📊</div>
             <h3 class="font-black text-xl mb-1 uppercase">Análisis Detallado</h3>
-            <p class="text-blue-600 font-bold text-xs uppercase mb-4">$800 MXN</p>
-            <p class="text-slate-500 text-sm">Proyección completa con Modalidad 40, escenarios de salario y fecha de retiro.</p>
+            <p class="text-blue-200 font-bold text-[10px] uppercase mb-4 tracking-widest">$800 MXN</p>
+            <p class="text-blue-100 text-sm">Proyecciones de pensión con diferentes escenarios de Modalidad 40.</p>
         </button>
 
-        <button onclick="abrirModal('modalDocs')" class="bg-orange-50 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-left border border-orange-100">
+        <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all text-left border border-slate-100">
             <div class="text-3xl mb-4">📄</div>
             <h3 class="font-black text-xl mb-1 uppercase">Documentos</h3>
-            <p class="text-orange-600 font-bold text-xs uppercase mb-4">$15 MXN c/u</p>
-            <p class="text-slate-500 text-sm">Actas de nacimiento, matrimonio, semanas cotizadas y vigencia IMSS.</p>
+            <p class="text-blue-600 font-bold text-[10px] uppercase mb-4 tracking-widest">$15 MXN</p>
+            <p class="text-slate-400 text-sm">Actas oficiales y constancias IMSS listas para tus trámites.</p>
         </button>
 
-        <button onclick="abrirModal('modalM10')" class="bg-slate-900 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-left text-white">
+        <button onclick="abrirModal('modalM10')" class="service-card bg-slate-900 p-8 rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all text-left text-white">
             <div class="text-3xl mb-4">💼</div>
             <h3 class="font-black text-xl mb-1 uppercase">Modalidad 10</h3>
-            <p class="text-blue-400 font-bold text-xs uppercase mb-4">Gestión Profesional</p>
-            <p class="text-slate-400 text-sm">Alta para trabajadores independientes, comerciantes y artesanos.</p>
-        </button>
+            <p class="text-blue
 
-        <a href="https://wa.me/528131983700" target="_blank" class="bg-green-500 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all text-center flex flex-col justify-center items-center text-white">
-            <h3 class="font-black text-2xl uppercase">Contactar</h3>
-            <p class="font-bold">WhatsApp Directo</p>
-        </a>
-    </main>
-
-    <footer class="py-12 text-center text-slate-400 text-xs">
-        &copy; 2026 DPR Consultoría | García, Nuevo León.
-    </footer>
-
-    <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">&times;</button>
-            <div id="contenidoModal"></div>
-        </div>
-    </div>
-
-    <script>
-        const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbykw-6rUUunL4Dpo85iTVmU0Pin_MLPMY03E3kDwhY6-XdGHdLjagpclem0PUtdwXJ4gQ/exec";
-
-        function abrirModal(tipo) {
-            const modal = document.getElementById('modalBase');
-            const contenido = document.getElementById('contenidoModal');
-            document.body.classList.add('modal-active');
-            modal.classList.remove('hidden');
-
-            if (tipo === 'modalInfo') {
-                contenido.innerHTML = `
-                    <div class="text-center">
-                        <div class="mb-6 overflow-hidden rounded-2xl shadow-lg border border-slate-100">
-                            <img src="https://lh3.googleusercontent.com/d/1yorEMbxYHiARqkCb6jPsPnt0a4PGFp1g" 
-                                 class="w-full h-auto object-contain" 
-                                 alt="Diana Puente Rodríguez">
-                        </div>
-                        
-                        <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
-                        <p class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-6">Fundadora de DPR Consultoría</p>
-                        
-                        <div class="text-left text-slate-600 text-sm leading-relaxed space-y-4">
-                            <p>Con sede en <b>García, Nuevo León</b>, he dedicado mi carrera a simplificar el complejo mundo de las pensiones en México.</p>
-                            <p>Mi misión es que cada trabajador tome el control de su retiro, evitando errores comunes y maximizando sus beneficios legales mediante estrategias personalizadas.</p>
-                            <p class="border-l-4 border-blue-600 pl-4 italic">"DPR Consultoría no es solo un despacho; es tu aliado de confianza para un retiro digno y seguro."</p>
-                        </div>
-                    </div>`;
-            };
-            }
-
-            if (tipo === 'modalLey') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-6 uppercase">¿A qué Ley perteneces?</h2>
-                    <p class="text-sm text-slate-500 mb-6">Ingresa el año en que te diste de alta por primera vez en el IMSS:</p>
-                    <input type="number" id="anioLey" placeholder="Ej. 1992" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-4 text-center text-2xl font-black">
-                    <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Verificar Ahora</button>
-                    <div id="resLey" class="mt-6 hidden p-6 rounded-2xl text-center"></div>`;
-            }
-
-            if (tipo === 'modalRapido') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-2 uppercase text-green-600">Análisis Rápido</h2>
-                    <p class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">Costo: $200 MXN</p>
-                    <input type="text" id="nombreR" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-3">
-                    <input type="text" id="curpR" placeholder="CURP (18 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-3">
-                    <input type="text" id="telR" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-3">
-                    <label class="block text-xs font-black mb-2 uppercase text-slate-400">Comprobante de Pago:</label>
-                    <input type="file" id="archivoR" class="mb-6 block w-full text-sm text-slate-500">
-                    <button onclick="ejecutarEnvio('R')" id="btnR" class="w-full bg-green-500 text-white py-4 rounded-2xl font-black uppercase">Solicitar Análisis</button>
-                    <div id="exitoR" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Recibido! Folio: <span id="folioR_ver"></span></div>`;
-            }
-
-            if (tipo === 'modalDocs') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-2 uppercase text-orange-600">Gestión de Documentos</h2>
-                    <p class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">Costo: $15 MXN c/u</p>
-                    <select id="doc_tipo" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-3">
-                        <option value="Acta de Matrimonio">1. Acta de Matrimonio</option>
-                        <option value="Acta de Nacimiento">2. Acta de Nacimiento</option>
-                        <option value="Acta de Divorcio">3. Acta de Divorcio</option>
-                        <option value="Acta de Defunción">4. Acta de Defunción</option>
-                        <option value="Vigencia de Derechos IMSS">5. Vigencia de Derechos IMSS</option>
-                        <option value="Semanas Cotizadas">6. Semanas Cotizadas</option>
-                        <option value="NSS con CURP">7. Localización de NSS</option>
-                    </select>
-                    <input type="text" id="doc_curp" placeholder="CURP del titular" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-3">
-                    <label class="block text-xs font-black mb-2 uppercase text-slate-400">Comprobante de Pago ($15):</label>
-                    <input type="file" id="archivo_pago" class="mb-6 block w-full text-sm text-slate-500">
-                    <button onclick="ejecutarEnvio('DOC')" id="btnDoc" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-black uppercase">Solicitar Documento</button>
-                    <div id="exitoDoc" class="hidden mt-4 p-4 bg-orange-50 text-orange-700 rounded-2xl text-center font-bold">Folio: <span id="folioDoc_ver"></span></div>`;
-            }
-
-            if (tipo === 'modalDetallado') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-2 uppercase text-blue-600">Análisis Detallado</h2>
-                    <p class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">Costo: $800 MXN</p>
-                    <input type="text" id="nombreD" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-2 text-sm">
-                    <input type="text" id="curpD" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-2 text-sm">
-                    <input type="text" id="nssD" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-2 text-sm">
-                    <label class="text-[10px] uppercase font-bold text-slate-400 ml-2">Fecha Nacimiento:</label>
-                    <input type="date" id="nacD" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-2 text-sm">
-                    <input type="tel" id="telD" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border-none mb-2 text-sm">
-                    <input type="file" id="archivoD" class="mb-4 block w-full text-xs">
-                    <button onclick="ejecutarEnvio('D')" id="btnD" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Solicitar Proyección</button>
-                    <div id="exitoD" class="hidden mt-4 p-4 bg-blue-50 text-blue-700 rounded-2xl text-center font-bold text-sm">Folio: <span id="folioD_ver"></span></div>`;
-            }
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalBase').classList.add('hidden');
-            document.body.classList.remove('modal-active');
-        }
-
-        function verificarLey() {
-            const anio = document.getElementById('anioLey').value;
-            const res = document.getElementById('resLey');
-            res.classList.remove('hidden');
-            if (anio < 1997) {
-                res.className = "mt-6 p-6 rounded-2xl bg-green-100 text-green-800 font-bold";
-                res.innerHTML = "¡Eres Ley 73!<br><span class='text-xs font-normal'>Tienes derecho a pensión vitalicia y Modalidad 40.</span>";
-            } else {
-                res.className = "mt-6 p-6 rounded-2xl bg-blue-100 text-blue-800 font-bold";
-                res.innerHTML = "Eres Ley 97<br><span class='text-xs font-normal'>Tu pensión se basa en el ahorro de tu AFORE.</span>";
-            }
-        }
-
-        async function ejecutarEnvio(tipo) {
-            let payload = {};
-            let fileInput;
-            let btn;
-            const folio = tipo + "-" + Math.floor(1000 + Math.random() * 9000);
-
-            if (tipo === 'R') {
-                payload = { tipo: "AnalisisRapido", nombre: document.getElementById("nombreR").value, curp: document.getElementById("curpR").value, tel: document.getElementById("telR").value, folio: folio };
-                fileInput = document.getElementById("archivoR");
-                btn = document.getElementById("btnR");
-            } else if (tipo === 'DOC') {
-                payload = { accion: "GuardarDocumento", curp: document.getElementById("doc_curp").value, tipoDoc: document.getElementById("doc_tipo").value, folio: folio };
-                fileInput = document.getElementById("archivo_pago");
-                btn = document.getElementById("btnDoc");
-            } else if (tipo === 'D') {
-                payload = { tipo: "Detallado", nombre: document.getElementById("nombreD").value, curp: document.getElementById("curpD").value, nss: document.getElementById("nssD").value, nacimiento: document.getElementById("nacD").value, tel: document.getElementById("telD").value, folio: folio };
-                fileInput = document.getElementById("archivoD");
-                btn = document.getElementById("btnD");
-            }
-
-            if (!fileInput.files[0]) return alert("Adjunta el comprobante de pago");
-            
-            btn.innerText = "ENVIANDO...";
-            btn.disabled = true;
-
-            const reader = new FileReader();
-            reader.readAsDataURL(fileInput.files[0]);
-            reader.onload = async () => {
-                payload.archivo = reader.result;
-                payload.archivoNombre = fileInput.files[0].name;
-
-                await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-
-                document.getElementById("exito" + (tipo === 'DOC' ? 'Doc' : tipo)).classList.remove("hidden");
-                document.getElementById("folio" + (tipo === 'DOC' ? 'Doc' : tipo) + "_ver").innerText = folio;
-                btn.innerText = "¡ENVIADO!";
-            };
-        }
-    </script>
-</body>
-</html>
 
 
 
