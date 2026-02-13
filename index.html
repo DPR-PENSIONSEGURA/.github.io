@@ -77,7 +77,6 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTA URL CON LA DE TU GOOGLE SCRIPT EJECUTABLE
         const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzdZV5byvsh5zZGGTPE1SgK1j5v_JpCi2LS4uW6MRrb6OxtogN2YR-EDRjgr3lKAGwmYA/exec";
 
         function abrirModal(tipo) {
@@ -95,7 +94,7 @@
                         <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
                         <p class="text-blue-600 font-bold text-[10px] uppercase mb-6">Fundadora de DPR Consultoría</p>
                         <div class="text-left text-slate-600 text-sm space-y-4">
-                            <p>Ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad. En DPR Consultoría nos especializamos en acompañar el desarrollo de proyectos y negocios a través de asesoría estratégica personalizada.</p>
+                            <p>Ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad.</p>
                         </div>
                     </div>`;
             }
@@ -113,124 +112,64 @@
                         <input type="text" id="curpLey" placeholder="CURP" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
                         <input type="text" id="nssLey" placeholder="NSS" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
                         <input type="tel" id="telLey" placeholder="Teléfono" class="w-full p-3 bg-slate-100 rounded-xl mb-4">
-                        <button onclick="solicitarOrientacion()" class="w-full bg-slate-900 text-white py-4 rounded-xl text-xs font-black uppercase">Enviar a contacto@pensionsegura.org</button>
+                        <button onclick="solicitarOrientacion()" class="w-full bg-slate-900 text-white py-4 rounded-xl text-xs font-black uppercase">Enviar Solicitud</button>
                     </div>`;
             }
 
-            // --- FORMULARIOS (RAPIDO, DETALLADO, DOCS, M10) ---
-            // --- DENTRO DE LA FUNCIÓN abrirModal(tipo) EN TU HTML ---
+            // --- FORMULARIOS ---
+            if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
+                const config = {
+                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
+                    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
+                    'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
+                    'modalM10': { titulo: 'Modalidad 10', precio: '$200', prefix: 'M10' }
+                }[tipo];
 
-if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
-    const config = {
-        'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
-        'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
-        'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
-        'modalM10': { titulo: 'Modalidad 10', precio: '$200', prefix: 'M10' }
-    }[tipo];
+                let camposExtra = '';
+                if(tipo === 'modalDetallado') {
+                    camposExtra = `<label class="text-[10px] font-black ml-2 text-slate-400">FECHA DE NACIMIENTO:</label>
+                                   <input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
+                }
+                if(tipo === 'modalDocs') {
+                    camposExtra = `
+                        <label class="text-[10px] font-black ml-2 text-slate-400">SELECCIONA EL DOCUMENTO:</label>
+                        <select id="tipoDoc_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 font-bold text-slate-700">
+                            <option value="ACTA DE DIVORCIO">ACTA DE DIVORCIO</option>
+                            <option value="ACTA DE NACIMIENTO">ACTA DE NACIMIENTO</option>
+                            <option value="ACTA DE MATRIMONIO">ACTA DE MATRIMONIO</option>
+                            <option value="ACTA DE DEFUNCIÓN">ACTA DE DEFUNCIÓN</option>
+                            <option value="CURP">CURP</option>
+                            <option value="NSS">NSS</option>
+                            <option value="VIGENCIA DE DERECHOS">VIGENCIA DE DERECHOS</option>
+                        </select>`;
+                }
 
-    let camposExtra = '';
-    
-    if(tipo === 'modalDetallado') {
-        camposExtra = `<label class="text-[10px] font-black ml-2 text-slate-400">FECHA DE NACIMIENTO:</label>
-                       <input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
-    }
-
-    // NUEVO: Menú desplegable para Documentos
-    if(tipo === 'modalDocs') {
-        camposExtra = `
-            <label class="text-[10px] font-black ml-2 text-slate-400">SELECCIONA EL DOCUMENTO:</label>
-            <select id="tipoDoc_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 font-bold text-slate-700">
-                <option value="ACTA DE DIVORCIO">ACTA DE DIVORCIO</option>
-                <option value="ACTA DE NACIMIENTO">ACTA DE NACIMIENTO</option>
-                <option value="ACTA DE MATRIMONIO">ACTA DE MATRIMONIO</option>
-                <option value="ACTA DE DEFUNCIÓN">ACTA DE DEFUNCIÓN</option>
-                <option value="CURP">CURP</option>
-                <option value="NSS">NSS</option>
-                <option value="VIGENCIA DE DERECHOS">VIGENCIA DE DERECHOS</option>
-            </select>`;
-    }
-
-    contenido.innerHTML = `
-        <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
-        <p class="text-[15px] font-black text-red-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
-        
-        <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-red-500 leading-relaxed">
-            <b>MÉTODO DE PAGO:</b><br>
-            • TRANSFERENCIA A BANORTE 4915663040364896 A NOMBRE DE PENSOIN SEGURA
-        </div>
-
-        <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
-        
-        ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
-        
-        ${camposExtra}
-        
-        
-        <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
-        <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
-        
-  async function ejecutarEnvio(prefix) {
-    const btn = document.getElementById(`btn_${prefix}`);
-    const fileInput = document.getElementById(`file_${prefix}`);
-    
-    if (!fileInput.files[0]) return alert("Por favor sube el comprobante");
-
-    btn.innerText = "PROCESANDO...";
-    btn.disabled = true;
-
-    const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
-    const reader = new FileReader();
-    reader.readAsDataURL(fileInput.files[0]);
-    
-    reader.onload = async () => {
-        const payload = {
-            tipo: prefix,
-            estatus: "En Proceso",
-            nombre: document.getElementById(`nombre_${prefix}`).value,
-            curp: document.getElementById(`curp_${prefix}`).value,
-            tel: document.getElementById(`tel_${prefix}`) ? document.getElementById(`tel_${prefix}`).value : "N/A",
-            folio: folio,
-            archivo: reader.result,
-            archivoNombre: fileInput.files[0].name
-        };
-
-        // Campos opcionales
-        if(document.getElementById(`nss_${prefix}`)) payload.nss = document.getElementById(`nss_${prefix}`).value;
-        if(document.getElementById(`nac_${prefix}`)) payload.nacimiento = document.getElementById(`nac_${prefix}`).value;
-        if(document.getElementById(`tipoDoc_${prefix}`)) payload.documento = document.getElementById(`tipoDoc_${prefix}`).value;
-
-        try {
-            // Enviamos los datos al Script Maestro
-            await fetch(SCRIPT_MAESTRO, { 
-                method: 'POST', 
-                mode: 'no-cors', // Importante para evitar bloqueos de CORS
-                body: JSON.stringify(payload) 
-            });
-
-            // --- ESTO ES LO QUE HACE QUE CAMBIE EL BOTÓN ---
-            document.getElementById(`exito_${prefix}`).classList.remove("hidden");
-            document.getElementById(`folio_${prefix}`).innerText = folio;
-            btn.innerText = "¡LISTO!";
-            btn.classList.replace('bg-blue-600', 'bg-green-600');
-
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
+                    <p class="text-[15px] font-black text-red-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
+                    <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-red-500 leading-relaxed italic">
+                        <b>MÉTODO DE PAGO:</b><br>
+                        • TRANSFERENCIA A BANORTE 4915663040364896 <br> A NOMBRE DE PENSION SEGURA
+                    </div>
+                    <input type="text" id="nombre_${config.prefix}" placeholder="Nombre Completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
+                    <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
+                    ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
+                    ${camposExtra}
+                    ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">` : ''}
+                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
+                    <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
+                    <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Enviar Solicitud</button>
+                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">
+                        ¡ENVIADO! FOLIO: <span id="folio_${config.prefix}"></span>
+                    </div>`;
             }
-
-        } catch (e) {
-            console.error("Error:", e);
-            alert("Hubo un problema al conectar con el servidor.");
-            btn.disabled = false;
-            btn.innerText = "Reintentar Envío";
-        }
-    };
-}
 
             // --- CONSULTAR ESTATUS ---
             if(tipo === 'modalEstatus') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">Consultar Estatus</h2>
                     <input type="text" id="folioBusqueda" placeholder="Folio (Ej: R-1234)" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black">
-                    <button onclick="alert('Funcionalidad en desarrollo: Conectando con base de datos...')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Buscar</button>
-                `;
+                    <button onclick="alert('Conectando con base de datos...')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Buscar</button>`;
             }
         }
 
@@ -248,10 +187,10 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
             divOrientacion.classList.remove('hidden');
             if (anio < 1997) { 
                 res.className = "mt-4 p-4 rounded-2xl bg-green-50 text-green-700"; 
-                res.innerHTML = "¡ERES LEY 73!, TU MEJOR ALIADO ES LA MODALIDAD 40"; 
+                res.innerHTML = "¡ERES LEY 73! TU MEJOR ALIADO ES LA MODALIDAD 40"; 
             } else { 
                 res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700"; 
-                res.innerHTML = "ERES LEY 97!, TU PENSIÓN DEPENDERÁ DE TUS AHORROS, QUIERES SABER CÓMO MEJORAR EL RENDIMIENTO DE TU DINERO EXPONENCIALMENTE ? AGENTA UN ANÁLISIS ! "; 
+                res.innerHTML = "¡ERES LEY 97! TU PENSIÓN DEPENDERÁ DE TUS AHORROS."; 
             }
         }
 
@@ -272,13 +211,12 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
                     estatus: "En Proceso",
                     nombre: document.getElementById(`nombre_${prefix}`).value,
                     curp: document.getElementById(`curp_${prefix}`).value,
-                    tel: document.getElementById(`tel_${prefix}`).value,
                     folio: folio,
                     archivo: reader.result,
                     archivoNombre: fileInput.files[0].name
                 };
 
-                // Agregar campos condicionales si existen
+                if(document.getElementById(`tel_${prefix}`)) payload.tel = document.getElementById(`tel_${prefix}`).value;
                 if(document.getElementById(`nss_${prefix}`)) payload.nss = document.getElementById(`nss_${prefix}`).value;
                 if(document.getElementById(`nac_${prefix}`)) payload.nacimiento = document.getElementById(`nac_${prefix}`).value;
                 if(document.getElementById(`tipoDoc_${prefix}`)) payload.documento = document.getElementById(`tipoDoc_${prefix}`).value;
@@ -288,6 +226,12 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
                     document.getElementById(`exito_${prefix}`).classList.remove("hidden");
                     document.getElementById(`folio_${prefix}`).innerText = folio;
                     btn.innerText = "¡LISTO!";
+                    btn.className = "w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase";
+                    
+                    if(prefix === 'DOC') {
+                        const msg = `Solicito: ${payload.documento}. CURP: ${payload.curp}. Folio: ${folio}`;
+                        setTimeout(() => window.open(`https://wa.me/528131983700?text=${encodeURIComponent(msg)}`, '_blank'), 1000);
+                    }
                 } catch (e) {
                     alert("Error al enviar. Intenta de nuevo.");
                     btn.disabled = false;
@@ -296,30 +240,10 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
             };
         }
 
-        async function solicitarOrientacion() {
-            const d = {
-                nombre: document.getElementById('nomLey').value,
-                curp: document.getElementById('curpLey').value,
-                nss: document.getElementById('nssLey').value,
-                tel: document.getElementById('telLey').value
-            };
-            alert("Enviando datos de " + d.nombre + " a contacto@pensionsegura.org...");
-            // Aquí llamarías a una función de servidor para enviar el mail
+        function solicitarOrientacion() {
+            alert("Solicitud enviada a contacto@pensionsegura.org");
             cerrarModal();
         }
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
