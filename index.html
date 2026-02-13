@@ -106,6 +106,20 @@
                     <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl">
                     <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Verificar</button>
                     <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+                function enviarOrientacionGratuita(datos) {
+  const destinatario = "contacto@pensionsegura.org";
+  const asunto = "Nueva Solicitud de Orientación Gratuita";
+  const cuerpo = `
+    Se ha recibido una nueva consulta:
+    Nombre: ${datos.nombre}
+    CURP: ${datos.curp}
+    NSS: ${datos.nss}
+    Teléfono: ${datos.telefono}
+  `;
+  
+  MailApp.sendEmail(destinatario, asunto, cuerpo);
+  return "Correo enviado con éxito";
+}
             }
 
             if (tipo === 'modalRapido' || tipo === 'modalDetallado' || tipo === 'modalDocs') {
@@ -155,6 +169,12 @@
             reader.onload = async () => {
                 const payload = {
                     tipo: prefix === 'R' ? 'AnalisisRapido' : (prefix === 'D' ? 'Detallado' : 'Documentos'),
+                    // Al armar el objeto para enviar al Excel
+const datosEnvio = {
+    // ... otros campos
+    estatus: "En Proceso", // Valor por default solicitado
+    fechaNacimiento: document.getElementById('fechaNac').value || "No aplica"
+};
                     nombre: document.getElementById(`nombre_${prefix}`).value,
                     curp: document.getElementById(`curp_${prefix}`).value,
                     tel: document.getElementById(`tel_${prefix}`).value,
@@ -171,6 +191,7 @@
     </script>
 </body>
 </html>
+
 
 
 
