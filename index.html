@@ -40,7 +40,11 @@
             <h3 class="font-black text-xl uppercase">¿Qué Ley Soy?</h3>
             <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis / Orientación</p>
         </button>
-
+<button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+    <span class="text-3xl mb-4 block">🏠</span>
+    <h3 class="font-black text-xl uppercase">Precalificación Infonavit</h3>
+    <p class="text-red-200 font-bold text-[10px] mb-4 uppercase">$210 MXN</p>
+</button>
         <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">⚡</span>
             <h3 class="font-black text-xl uppercase">Análisis Rápido</h3>
@@ -114,7 +118,46 @@
                     </div>`;
                 return;
             }
+if (tipo === 'modalInfonavit') {
+    const config = { titulo: 'Precalificación Infonavit', precio: '$210', prefix: 'INF' };
 
+    contenido.innerHTML = `
+        <h2 class="text-2xl font-black mb-1 uppercase text-red-600">${config.titulo}</h2>
+        <p class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
+        
+        <div class="bg-red-50 p-4 rounded-2xl mb-6 text-[10px] text-red-800 leading-relaxed border border-red-100">
+            <b>DATOS DE TRANSFERENCIA:</b><br>
+            • BANCO: [Nombre del Banco]<br>
+            • CLABE: 1234 5678 9012 3456<br>
+            • BENEFICIARIO: Diana Puente Rodríguez
+        </div>
+
+        <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2 border-2 focus:border-red-600 outline-none">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+            <input type="text" id="nss_${config.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 focus:border-red-600 outline-none">
+            <input type="date" id="nac_${config.prefix}" title="Fecha de Nacimiento" class="w-full p-4 bg-slate-50 rounded-2xl border-2 focus:border-red-600 outline-none">
+        </div>
+
+        <select id="tipoLinea_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border-2 focus:border-red-600 outline-none font-bold text-slate-500">
+            <option value="" disabled selected>Selecciona tipo de línea</option>
+            <option value="Linea II">Línea II (Compra de vivienda)</option>
+            <option value="Mejoravit">Mejoravit (Remodelación)</option>
+        </select>
+        
+        <input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border-2 focus:border-red-600 outline-none">
+        
+        <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Adjuntar comprobante de pago:</label>
+        <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
+        
+        <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-red-700 transition-colors">Solicitar Precalificación</button>
+        
+        <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
+            ¡SOLICITUD ENVIADA!<br>
+            ESTATUS: EN PROCESO<br>
+            FOLIO: <span id="folio_${config.prefix}"></span>
+        </div>`;
+}
             if (tipo === 'modalEstatus') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
@@ -203,6 +246,10 @@
         async function ejecutarEnvio(prefix) {
             const btn = document.getElementById(`btn_${prefix}`);
             const fileInput = document.getElementById(`file_${prefix}`);
+            // Dentro de la función ejecutarEnvio(prefix)...
+if(document.getElementById(`tipoLinea_${prefix}`)) {
+    payload.infoExtra = "Tipo: " + document.getElementById(`tipoLinea_${prefix}`).value;
+}
             if (!fileInput.files[0]) return alert("Por favor sube el comprobante");
 
             btn.innerText = "PROCESANDO...";
@@ -302,4 +349,5 @@
     </script>
 </body>
 </html>
+
 
