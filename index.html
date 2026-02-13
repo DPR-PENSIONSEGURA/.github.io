@@ -125,7 +125,7 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
         'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
         'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
         'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
-        'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' }
+        'modalM10': { titulo: 'Modalidad 10', precio: '$200', prefix: 'M10' }
     }[tipo];
 
     let camposExtra = '';
@@ -159,14 +159,13 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
             • CLIP / TRANSFERENCIA
         </div>
 
-        <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
         <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
         
         ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
         
         ${camposExtra}
         
-        ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">` : ''}
+        // ${(tipo !== 'modalDocs') ? `<input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">` : ''}
         
         <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
         <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
@@ -265,6 +264,7 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
     </script>
 </body>
 </html>
+
 
 
 
