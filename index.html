@@ -169,12 +169,59 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
         <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
         <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
         
-        <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
-        
-        <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
-            ¡ENVIADO! ESTATUS: EN PROCESO<br>
-            FOLIO: <span id="folio_${config.prefix}"></span>
-        </div>`;
+  async function ejecutarEnvio(prefix) {
+    const btn = document.getElementById(`btn_${prefix}`);
+    const fileInput = document.getElementById(`file_${prefix}`);
+    
+    if (!fileInput.files[0]) return alert("Por favor sube el comprobante");
+
+    btn.innerText = "PROCESANDO...";
+    btn.disabled = true;
+
+    const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+    const reader = new FileReader();
+    reader.readAsDataURL(fileInput.files[0]);
+    
+    reader.onload = async () => {
+        const payload = {
+            tipo: prefix,
+            estatus: "En Proceso",
+            nombre: document.getElementById(`nombre_${prefix}`).value,
+            curp: document.getElementById(`curp_${prefix}`).value,
+            tel: document.getElementById(`tel_${prefix}`) ? document.getElementById(`tel_${prefix}`).value : "N/A",
+            folio: folio,
+            archivo: reader.result,
+            archivoNombre: fileInput.files[0].name
+        };
+
+        // Campos opcionales
+        if(document.getElementById(`nss_${prefix}`)) payload.nss = document.getElementById(`nss_${prefix}`).value;
+        if(document.getElementById(`nac_${prefix}`)) payload.nacimiento = document.getElementById(`nac_${prefix}`).value;
+        if(document.getElementById(`tipoDoc_${prefix}`)) payload.documento = document.getElementById(`tipoDoc_${prefix}`).value;
+
+        try {
+            // Enviamos los datos al Script Maestro
+            await fetch(SCRIPT_MAESTRO, { 
+                method: 'POST', 
+                mode: 'no-cors', // Importante para evitar bloqueos de CORS
+                body: JSON.stringify(payload) 
+            });
+
+            // --- ESTO ES LO QUE HACE QUE CAMBIE EL BOTÓN ---
+            document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+            document.getElementById(`folio_${prefix}`).innerText = folio;
+            btn.innerText = "¡LISTO!";
+            btn.classList.replace('bg-blue-600', 'bg-green-600');
+
+            }
+
+        } catch (e) {
+            console.error("Error:", e);
+            alert("Hubo un problema al conectar con el servidor.");
+            btn.disabled = false;
+            btn.innerText = "Reintentar Envío";
+        }
+    };
 }
 
             // --- CONSULTAR ESTATUS ---
@@ -263,6 +310,7 @@ if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
     </script>
 </body>
 </html>
+
 
 
 
