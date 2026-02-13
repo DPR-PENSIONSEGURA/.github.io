@@ -1,191 +1,73 @@
 <script>
-    // URLs DE TUS SCRIPTS (Asegúrate de que sean las versiones más recientes implementadas como "Anyone")
-    const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbwvAJDUjnGwiWAUKvtWPkuvEIhrGnlfBZG_bsZhOVSc2F4-j1KUPU3-Q-3vcg_u0CinOQ/exec";
-    const SCRIPT_M10 = "https://script.google.com/macros/s/AKfycbyPLUTz_H2UzNK-_CJzf64_ySjh6WKR1KfsfF7EHcnvselfJ4Sa4WdFI9jAFI22NmqYcw/exec";
-    const SCRIPT_VIP = "https://script.google.com/macros/s/AKfycbz6FgSJlMjESDrIUxyM1yfOgHbwTF_WKbZFfua-YRtQ-PbGMgpZprF_4F8gXueTAjSe8w/exec";
+    // ESTA ES TU URL ACTUALIZADA
+    const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbyMXYuuGGXaLPcYUDwJOje4KEdYR5HMQdt7FwzpjR0dam05lkH6_-IUdJ062tsd27pRIg/exec";
 
-    // LEY IMSS
-    function consultarLey() {
-        const anio = document.getElementById('anioInput').value;
-        const box = document.getElementById('resultadoBox');
-        if (anio < 1940 || anio > 2026) return alert("Año inválido");
-        box.classList.remove('hidden');
-        const resTitle = document.getElementById('resTitle');
-        const resDesc = document.getElementById('resDesc');
-        if (anio < 1997) {
-            resTitle.innerText = "¡Eres Ley 73!";
-            resDesc.innerText = "Tienes derecho a pensión vitalicia. Modalidad 40 es tu mejor aliada.";
-        } else {
-            resTitle.innerText = "Eres Ley 97";
-            resDesc.innerText = "Tu pensión depende de tu AFORE. Necesitas ahorro voluntario.";
+    // Función principal para enviar datos y archivos
+    async function enviarConComprobante(payload, fileInput, exitoId, folioId, wppLinkId) {
+        if (!fileInput || fileInput.files.length === 0) {
+            return alert("Por favor, adjunta tu comprobante de pago para procesar la solicitud.");
         }
-    }
+        
+        const reader = new FileReader();
+        const archivo = fileInput.files[0];
+        reader.readAsDataURL(archivo);
+        
+        reader.onload = async () => {
+            payload.archivo = reader.result;
+            payload.archivoNombre = archivo.name;
 
-    // ESTATUS
-    async function ejecutarConsulta() {
-        const f = document.getElementById("folio_busqueda").value.trim().toUpperCase();
-        const c = document.getElementById("curp_busqueda").value.trim().toUpperCase();
-        const resBox = document.getElementById("resEstatus");
-        if(!f || !c) return alert("Completa los campos");
-        resBox.innerHTML = "🔍 Buscando...";
-        try {
-            const resp = await fetch(`${SCRIPT_MAESTRO}?curp=${encodeURIComponent(c)}&folio=${encodeURIComponent(f)}`);
-            const data = await resp.json();
-            if(data.encontrado) {
-                resBox.innerHTML = `<div class="p-6 bg-blue-100 border-2 border-blue-900 rounded-xl font-black text-blue-900 uppercase">Estatus: ${data.status}</div>`;
-            } else {
-                resBox.innerHTML = "<p class='text-red-600 font-bold'>No encontrado.</p>";
-            }
-        } catch (e) { resBox.innerHTML = "Error de conexión."; }
-    }
-    function solicitarDocumento() {
-            const curp = document.getElementById("doc_curp").value.trim().toUpperCase();
-            const tipo = document.getElementById("doc_tipo").value;
-            
-            if(curp.length < 18) return alert("Por favor, ingresa un CURP válido de 18 caracteres.");
-            
-            const folio = "DOC-" + Math.floor(1000 + Math.random() * 9000);
-            
-            fetch(SCRIPT_MAESTRO, { 
+            // Envío de datos al Script Maestro
+            await fetch(SCRIPT_MAESTRO, { 
                 method: 'POST', 
                 mode: 'no-cors', 
-                body: JSON.stringify({ 
-                    curp: curp, 
-                    tipoDoc: tipo, 
-                    folio: folio, 
-                    accion: "GuardarDocumento" 
-                }) 
+                body: JSON.stringify(payload) 
             });
-            
-            // Mostrar éxito y folio
-            document.getElementById("exitoDoc").classList.remove("hidden");
-            document.getElementById("folioDoc_ver").innerText = folio;
-            
-            // Configurar el botón de WhatsApp con el mensaje personalizado
-            const mensajeWpp = encodeURIComponent(`Hola Diana, acabo de solicitar mi ${tipo} en la web. Mi CURP es ${curp} y mi folio es ${folio}. Adjunto el comprobante de pago de $15.`);
-            document.getElementById("wpp_doc_link").href = `https://wa.me/528131983700?text=${mensajeWpp}`;
-            
-            // Limpiar campo
-            document.getElementById("doc_curp").value = "";
-        }
 
-    // ANALISIS RÁPIDO (CORREGIDO)
+            // Mostrar mensaje de éxito en la pantalla
+            document.getElementById(exitoId).classList.remove("hidden");
+            document.getElementById(folioId).innerText = payload.folio;
+            
+            // Configurar mensaje de WhatsApp
+            const textoWpp = `Hola Diana, envié mi registro de ${payload.tipo || payload.accion} (Folio: ${payload.folio}). El comprobante ya está en el sistema.`;
+            document.getElementById(wppLinkId).href = `https://wa.me/528131983700?text=${encodeURIComponent(textoWpp)}`;
+        };
+    }
+
+    // Botón: Análisis Rápido
     function enviarRapido() {
-        const n = document.getElementById("nombreR").value;
-        const t = document.getElementById("telR").value;
-        const c = document.getElementById("curpR").value; // Captura CURP
-        const s = document.getElementById("nssR").value;  // Captura NSS
-        
-        if(!n || t.length < 10 || !c || !s) return alert("Completa todos los campos (Nombre, CURP, NSS y WhatsApp)");
-        
-        const folio = "R-" + Math.floor(1000 + Math.random() * 9000);
-        
-        fetch(SCRIPT_MAESTRO, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ 
-                nombre: n, 
-                tel: t, 
-                curp: c, 
-                nss: s, 
-                folio: folio, 
-                tipo: "AnalisisRapido" 
-            }) 
-        });
-        
-        document.getElementById("exitoR").classList.remove("hidden");
-        document.getElementById("folioR_ver").innerText = folio;
+        const payload = {
+            tipo: "AnalisisRapido",
+            nombre: document.getElementById("nombreR").value,
+            tel: document.getElementById("telR").value,
+            curp: document.getElementById("curpR").value,
+            nss: document.getElementById("nssR").value,
+            folio: "R-" + Math.floor(1000 + Math.random() * 9000)
+        };
+        enviarConComprobante(payload, document.getElementById("archivoR"), "exitoR", "folioR_ver", "wpp_doc_link");
     }
 
-    // ANALISIS DETALLADO (CORREGIDO)
-    function enviarDetallado() {
-        const n = document.getElementById("nombreD").value;
-        const t = document.getElementById("telD").value;
-        const c = document.getElementById("curpD").value; // Captura CURP
-        const s = document.getElementById("nssD").value;  // Captura NSS
-        
-        if(!n || t.length < 10 || !c || !s) return alert("Completa todos los campos");
-        
-        const folio = "D-" + Math.floor(1000 + Math.random() * 9000);
-        
-        fetch(SCRIPT_MAESTRO, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ 
-                nombre: n, 
-                tel: t, 
-                curp: c, 
-                nss: s, 
-                folio: folio, 
-                tipo: "Detallado" 
-            }) 
-        });
-        
-        document.getElementById("exitoD").classList.remove("hidden");
-        document.getElementById("folioD_ver").innerText = folio;
+    // Botón: Solicitud de Documentos ($15)
+    function solicitarDocumento() {
+        const payload = {
+            accion: "GuardarDocumento",
+            curp: document.getElementById("doc_curp").value.trim().toUpperCase(),
+            tipoDoc: document.getElementById("doc_tipo").value,
+            folio: "DOC-" + Math.floor(1000 + Math.random() * 9000)
+        };
+        enviarConComprobante(payload, document.getElementById("archivo_pago"), "exitoDoc", "folioDoc_ver", "wpp_doc_link");
     }
 
-    // MODALIDAD 10
+    // Botón: Modalidad 10
     function validarYEnviarM10() {
-        const n = document.getElementById("m10_nombre").value;
-        const t = document.getElementById("m10_tel").value;
-        const id = document.getElementById("m10_id").value; // CURP/NSS
-        const sal = document.getElementById("m10_salario").value;
-        const dom = document.getElementById("m10_dom").value;
-        
-        if(!n || t.length < 10 || !id) return alert("Completa los datos principales");
-        
-        const folio = "M10-" + Math.floor(1000 + Math.random() * 9000);
-        
-        fetch(SCRIPT_M10, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ 
-                nombre: n, 
-                tel: t, 
-                id_tramite: id, 
-                salario: sal, 
-                domicilio: dom, 
-                folio: folio 
-            }) 
-        });
-        
-        document.getElementById("exitoM10").classList.remove("hidden");
-        document.getElementById("folioM10_ver").innerText = folio;
-        document.getElementById("m10_link_wpp").href = `https://wa.me/528131983700?text=Hola,%20adjunto%20comprobante%20folio%20${folio}`;
-    }
-
-    // VIP ZOOM
-    async function cargarHorarios() {
-        const select = document.getElementById('horaV');
-        select.innerHTML = '<option>Cargando horarios...</option>';
-        const horas = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"];
-        setTimeout(() => {
-            select.innerHTML = '<option value="">Elige Hora</option>';
-            horas.forEach(h => { let o = document.createElement('option'); o.value = h; o.text = h; select.add(o); });
-        }, 800);
-    }
-
-    function agendarVip() {
-        const n = document.getElementById("nombreV").value;
-        const t = document.getElementById("telV").value;
-        const d = document.getElementById("diaV").value;
-        const h = document.getElementById("horaV").value;
-        if(!n || !d || !h) return alert("Completa datos");
-        
-        fetch(SCRIPT_VIP, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({ 
-                nombre: n, 
-                tel: t, 
-                cita: d + " " + h 
-            }) 
-        });
-        
-        document.getElementById("exitoVIP").classList.remove("hidden");
+        const payload = {
+            tipo: "M10",
+            nombre: document.getElementById("m10_nombre").value,
+            idOficial: document.getElementById("m10_id").value,
+            tel: document.getElementById("m10_tel").value,
+            salario: document.getElementById("m10_salario").value,
+            domicilio: document.getElementById("m10_dom").value,
+            folio: "M10-" + Math.floor(1000 + Math.random() * 9000)
+        };
+        enviarConComprobante(payload, document.getElementById("m10_comprobante"), "exitoM10", "folioM10_ver", "m10_link_wpp");
     }
 </script>
-
-
-
