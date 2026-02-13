@@ -21,21 +21,22 @@
                 <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
             </div>
             <nav class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                <button onclick="abrirModal('modalInfo')">¿Quiénes Somos?</button>
+                <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600">¿Quiénes Somos?</button>
+                <button onclick="window.open('https://tu-blog-aqui.com', '_blank')" class="bg-slate-900 text-white px-3 py-1 rounded">BLOG</button>
             </nav>
         </div>
     </header>
 
-    <section class="pt-16 pb-8 px-6 text-center">
-        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-600">estrategia.</span></h2>
- 
+    <section class="pt-16 pb-8 px-6 text-center text-white">
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
+        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50">Consultar Estatus</button>
     </section>
 
     <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">🔍</span>
             <h3 class="font-black text-xl uppercase">¿Qué Ley Soy?</h3>
-            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis</p>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis / Orientación</p>
         </button>
 
         <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
@@ -62,7 +63,7 @@
             <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">Trámite</p>
         </button>
 
-        <a href="https://wa.me/528131983700" class="service-card bg-green-500 text-white p-8 rounded-[2.5rem] shadow-sm text-center flex flex-col justify-center items-center">
+        <a href="https://wa.me/528131983700" target="_blank" class="service-card bg-green-500 text-white p-8 rounded-[2.5rem] shadow-sm text-center flex flex-col justify-center items-center">
             <h3 class="font-black text-xl uppercase italic">WhatsApp</h3>
             <p class="text-sm">Contacto Directo</p>
         </a>
@@ -76,6 +77,7 @@
     </div>
 
     <script>
+        // REEMPLAZA ESTA URL CON LA DE TU GOOGLE SCRIPT EJECUTABLE
         const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbyNOrSbqhVVvAgO9tUfMYHfuNkvPXBm5nAVcHOVrXBi81UMYKxtRMcmST5W_rXKKAFeHw/exec";
 
         function abrirModal(tipo) {
@@ -83,62 +85,93 @@
             const contenido = document.getElementById('contenidoModal');
             document.body.classList.add('modal-active');
             modal.classList.remove('hidden');
-            contenido.innerHTML = ""; // Limpiar
+            contenido.innerHTML = ""; 
 
+            // --- QUIÉNES SOMOS ---
             if (tipo === 'modalInfo') {
                 contenido.innerHTML = `
                     <div class="text-center">
                         <img src="https://lh3.googleusercontent.com/d/1wQmH-Vcx60X8Wkx6im64d5wBB_-aApNH" class="w-48 h-auto rounded-3xl mx-auto mb-6 shadow-lg border-4 border-blue-600" alt="Diana Puente">
                         <h2 class="text-2xl font-black uppercase tracking-tighter">Diana Puente Rodríguez</h2>
-                        <p class="text-blue-600 font-bold text-[10px] uppercase tracking-widest mb-6">Fundadora de DPR Consultoría</p>
+                        <p class="text-blue-600 font-bold text-[10px] uppercase mb-6">Fundadora de DPR Consultoría</p>
                         <div class="text-left text-slate-600 text-sm space-y-4">
-                            <p>Desde <b>García, Nuevo León</b>, ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad, en DPR Consultoría nos especializamos en acompañar el desarrollo de proyectos y negocios a través de asesoría estratégica personalizada. Entendemos que cada cliente tiene retos únicos, por lo que nuestras soluciones están diseñadas para adaptarse a necesidades específicas, optimizando recursos y fortaleciendo la toma de decisiones.</p>
-<p>Nuestros pilares:</p>
-<p>Compromiso: Resultados medibles y enfoque en la excelencia.</p>
-<p>Innovación: Herramientas modernas para problemas actuales.Cercanía: Consultoría directa, transparente y orientada al cliente.</p>
+                            <p>Ayudamos a trabajadores a maximizar su pensión con transparencia y legalidad. En DPR Consultoría nos especializamos en acompañar el desarrollo de proyectos y negocios a través de asesoría estratégica personalizada.</p>
                         </div>
                     </div>`;
             }
 
+            // --- QUE LEY SOY ---
             if (tipo === 'modalLey') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
                     <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl">
                     <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Verificar</button>
-                    <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
-                function enviarOrientacionGratuita(datos) {
-  const destinatario = "contacto@pensionsegura.org";
-  const asunto = "Nueva Solicitud de Orientación Gratuita";
-  const cuerpo = `
-    Se ha recibido una nueva consulta:
-    Nombre: ${datos.nombre}
-    CURP: ${datos.curp}
-    NSS: ${datos.nss}
-    Teléfono: ${datos.telefono}
-  `;
-  
-  MailApp.sendEmail(destinatario, asunto, cuerpo);
-  return "Correo enviado con éxito";
-}
+                    <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>
+                    <div id="orientacionGratis" class="hidden mt-8 border-t pt-4">
+                        <p class="font-black text-[10px] text-center mb-4 uppercase text-blue-600">Solicitar Orientación Gratuita</p>
+                        <input type="text" id="nomLey" placeholder="Nombre completo" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
+                        <input type="text" id="curpLey" placeholder="CURP" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
+                        <input type="text" id="nssLey" placeholder="NSS" class="w-full p-3 bg-slate-100 rounded-xl mb-2">
+                        <input type="tel" id="telLey" placeholder="Teléfono" class="w-full p-3 bg-slate-100 rounded-xl mb-4">
+                        <button onclick="solicitarOrientacion()" class="w-full bg-slate-900 text-white py-4 rounded-xl text-xs font-black uppercase">Enviar a contacto@pensionsegura.org</button>
+                    </div>`;
             }
 
-            if (tipo === 'modalRapido' || tipo === 'modalDetallado' || tipo === 'modalDocs') {
+            // --- FORMULARIOS (RAPIDO, DETALLADO, DOCS, M10) ---
+            if (['modalRapido', 'modalDetallado', 'modalDocs', 'modalM10'].includes(tipo)) {
                 const config = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R' },
                     'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D' },
-                    'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' }
+                    'modalDocs': { titulo: 'Solicitud Documentos', precio: '$15', prefix: 'DOC' },
+                    'modalM10': { titulo: 'Modalidad 10', precio: 'Trámite', prefix: 'M10' }
                 }[tipo];
+
+                let camposExtra = '';
+                if(tipo === 'modalDetallado') {
+                    camposExtra = `<label class="text-[10px] font-black ml-2 text-slate-400">FECHA DE NACIMIENTO:</label>
+                                   <input type="date" id="nac_${config.prefix}" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
+                }
+                if(tipo === 'modalDocs') {
+                    camposExtra = `<input type="text" id="tipoDoc_${config.prefix}" placeholder="Tipo de documento que necesita" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">`;
+                }
 
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">${config.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${config.precio}</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase tracking-widest">Costo: ${config.precio}</p>
+                    
+                    <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-[10px] text-blue-800 leading-relaxed">
+                        <b>MÉTODOS DE PAGO:</b><br>
+                        • CLIP: (Link enviado por WhatsApp)<br>
+                        • TRANSFERENCIA: CLABE 1234 5678 9012 3456 (Banco)
+                    </div>
+
                     <input type="text" id="nombre_${config.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
                     <input type="text" id="curp_${config.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">
+                    
+                    ${(tipo !== 'modalDocs') ? `<input type="text" id="nss_${config.prefix}" placeholder="NSS (Vital)" class="w-full p-4 bg-slate-50 rounded-2xl mb-2">` : ''}
+                    
+                    ${camposExtra}
+                    
                     <input type="tel" id="tel_${config.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl mb-4">
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante:</label>
+                    
+                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">Comprobante de Pago:</label>
                     <input type="file" id="file_${config.prefix}" class="mb-6 block w-full text-xs">
-                    <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic tracking-tighter">Enviar Solicitud</button>
-                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${config.prefix}"></span></div>`;
+                    
+                    <button onclick="ejecutarEnvio('${config.prefix}')" id="btn_${config.prefix}" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar Solicitud</button>
+                    
+                    <div id="exito_${config.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">
+                        ¡ENVIADO! ESTATUS: EN PROCESO<br>
+                        FOLIO: <span id="folio_${config.prefix}"></span>
+                    </div>`;
+            }
+
+            // --- CONSULTAR ESTATUS ---
+            if(tipo === 'modalEstatus') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-6 uppercase text-center">Consultar Estatus</h2>
+                    <input type="text" id="folioBusqueda" placeholder="Folio (Ej: R-1234)" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black">
+                    <button onclick="alert('Funcionalidad en desarrollo: Conectando con base de datos...')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Buscar</button>
+                `;
             }
         }
 
@@ -150,17 +183,25 @@
         function verificarLey() {
             const anio = document.getElementById('anioLey').value;
             const res = document.getElementById('resLey');
+            const divOrientacion = document.getElementById('orientacionGratis');
+            if(!anio) return;
             res.classList.remove('hidden');
-            if (anio < 1997) { res.className = "mt-4 p-4 rounded-2xl bg-green-50 text-green-700"; res.innerHTML = "¡ERES LEY 73!"; }
-            else { res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700"; res.innerHTML = "ERES LEY 97"; }
+            divOrientacion.classList.remove('hidden');
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-50 text-green-700"; 
+                res.innerHTML = "¡ERES LEY 73!"; 
+            } else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-50 text-blue-700"; 
+                res.innerHTML = "ERES LEY 97"; 
+            }
         }
 
         async function ejecutarEnvio(prefix) {
             const btn = document.getElementById(`btn_${prefix}`);
             const fileInput = document.getElementById(`file_${prefix}`);
-            if (!fileInput.files[0]) return alert("Sube el comprobante");
+            if (!fileInput.files[0]) return alert("Por favor sube el comprobante");
 
-            btn.innerText = "SUBIENDO...";
+            btn.innerText = "PROCESANDO...";
             btn.disabled = true;
 
             const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
@@ -168,13 +209,8 @@
             reader.readAsDataURL(fileInput.files[0]);
             reader.onload = async () => {
                 const payload = {
-                    tipo: prefix === 'R' ? 'AnalisisRapido' : (prefix === 'D' ? 'Detallado' : 'Documentos'),
-                    // Al armar el objeto para enviar al Excel
-const datosEnvio = {
-    // ... otros campos
-    estatus: "En Proceso", // Valor por default solicitado
-    fechaNacimiento: document.getElementById('fechaNac').value || "No aplica"
-};
+                    tipo: prefix,
+                    estatus: "En Proceso",
                     nombre: document.getElementById(`nombre_${prefix}`).value,
                     curp: document.getElementById(`curp_${prefix}`).value,
                     tel: document.getElementById(`tel_${prefix}`).value,
@@ -182,24 +218,36 @@ const datosEnvio = {
                     archivo: reader.result,
                     archivoNombre: fileInput.files[0].name
                 };
-                await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                document.getElementById(`exito_${prefix}`).classList.remove("hidden");
-                document.getElementById(`folio_${prefix}`).innerText = folio;
-                btn.innerText = "¡LISTO!";
+
+                // Agregar campos condicionales si existen
+                if(document.getElementById(`nss_${prefix}`)) payload.nss = document.getElementById(`nss_${prefix}`).value;
+                if(document.getElementById(`nac_${prefix}`)) payload.nacimiento = document.getElementById(`nac_${prefix}`).value;
+                if(document.getElementById(`tipoDoc_${prefix}`)) payload.documento = document.getElementById(`tipoDoc_${prefix}`).value;
+
+                try {
+                    await fetch(SCRIPT_MAESTRO, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                    document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                    document.getElementById(`folio_${prefix}`).innerText = folio;
+                    btn.innerText = "¡LISTO!";
+                } catch (e) {
+                    alert("Error al enviar. Intenta de nuevo.");
+                    btn.disabled = false;
+                    btn.innerText = "Enviar Solicitud";
+                }
             };
+        }
+
+        async function solicitarOrientacion() {
+            const d = {
+                nombre: document.getElementById('nomLey').value,
+                curp: document.getElementById('curpLey').value,
+                nss: document.getElementById('nssLey').value,
+                tel: document.getElementById('telLey').value
+            };
+            alert("Enviando datos de " + d.nombre + " a contacto@pensionsegura.org...");
+            // Aquí llamarías a una función de servidor para enviar el mail
+            cerrarModal();
         }
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
