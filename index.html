@@ -10,8 +10,18 @@
         body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
         .modal-active { overflow: hidden; }
         .service-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
-        .disclaimer-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; margin-bottom: 1.5rem; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; }
+        
+        /* Estilo especial para el recuadro de BANORTE */
+        .banorte-box {
+            background-color: #EB0029; /* Rojo Banorte */
+            color: white;
+            padding: 1.25rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2);
+            text-align: center;
+        }
     </style>
 </head>
 <body class="text-slate-900">
@@ -43,26 +53,26 @@
 
         <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">⚡</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Rápido</h3>
+            <h3 class="font-black text-xl uppercase italic">Análisis Rápido</h3>
             <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
         </button>
 
         <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📊</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Detallado</h3>
+            <h3 class="font-black text-xl uppercase italic">Análisis Detallado</h3>
             <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$800 MXN</p>
         </button>
 
         <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">🏠</span>
-            <h3 class="font-black text-xl uppercase italic">Precalificaciones Infonavit</h3>
+            <h3 class="font-black text-xl uppercase italic">Infonavit</h3>
             <p class="text-red-200 font-bold text-[10px] mb-4 uppercase">$210 MXN</p>
         </button>
 
         <button onclick="abrirModal('modalM10')" class="service-card bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-sm text-left">
             <span class="text-3xl mb-4 block">💼</span>
-            <h3 class="font-black text-xl uppercase italic">Inscripción a Modalidad 10</h3>
-            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">$200</p>
+            <h3 class="font-black text-xl uppercase italic">Modalidad 10</h3>
+            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">Trámite de Inscripción</p>
         </button>
 
         <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
@@ -94,6 +104,15 @@
     <script>
         const SCRIPT_MAESTRO = "https://script.google.com/macros/s/AKfycbzFxEWhXTtNsBUmdObfUykFKx-bOiuawmq58y8mnvvOmkiwK84VblzdD3ku0mP46CM/exec";
 
+        // Fragmento de HTML para los datos de transferencia (Banorte)
+        const HTML_PAGO_BANORTE = `
+            <div class="banorte-box">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Datos de Transferencia</p>
+                <p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p>
+                <p class="text-[11px] font-bold uppercase italic">Banorte | DPR Consultoría</p>
+            </div>
+        `;
+
         function abrirModal(tipo) {
             const modal = document.getElementById('modalBase');
             const contenido = document.getElementById('contenidoModal');
@@ -102,89 +121,74 @@
             contenido.innerHTML = "";
 
             if (tipo === 'modalEstatus') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2>
-                    <input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2">
-                    <button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Consultar</button>
-                    <div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>
-                `;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2><input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2"><button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Consultar</button><div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>`;
             } 
             else if (tipo === 'modalLey') {
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2>
-                    <input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2">
-                    <button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button>
-                    <div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>
-                `;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
             }
             else if (tipo === 'modalM10') {
                 contenido.innerHTML = `
-                    <div class="border-b-4 border-slate-900 pb-2 mb-4">
-                        <h2 class="text-2xl font-black uppercase text-slate-900">Inscripción Modalidad 10</h2>
-                    </div>
-                    <div class="disclaimer-box">
-                        <p class="text-[11px] font-black text-red-600 leading-tight uppercase">
-                            ⚠️ AVISO: DPR Consultoría solo realiza el trámite de inscripción. Las aportaciones mensuales ante el IMSS deben ser cubiertas directamente por el cliente.
-                        </p>
-                    </div>
+                    <h2 class="text-2xl font-black mb-1 uppercase text-slate-900">Inscripción Modalidad 10</h2>
+                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2">Aviso: DPR Consultoría solo realiza la inscripción. Las cuotas mensuales las paga el cliente.</p>
+                    ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         <input type="text" id="nombre_M10" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="email" id="correo_M10" placeholder="Correo electrónico" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="text" id="curp_M10" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="text" id="nss_M10" placeholder="NSS (11 dígitos)" class="w-full p-3 bg-slate-50 rounded-xl border" maxlength="11">
-                        <input type="number" id="salario_M10" placeholder="Salario Semanal Estimado" class="w-full p-3 bg-slate-50 rounded-xl border">
-                        <textarea id="direccion_M10" placeholder="Dirección completa (Calle, No, Col, CP, Ciudad)" class="w-full p-3 bg-slate-50 rounded-xl border h-20 text-sm"></textarea>
+                        <input type="number" id="salario_M10" placeholder="Salario Semanal" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <textarea id="direccion_M10" placeholder="Dirección completa" class="w-full p-3 bg-slate-50 rounded-xl border h-16 text-xs"></textarea>
                         <select id="pago_M10" class="w-full p-3 bg-slate-50 rounded-xl border font-bold text-slate-500">
                             <option value="" disabled selected>Frecuencia de Pago</option>
                             <option value="Mensual">Mensual</option>
                             <option value="Bimestral">Bimestral</option>
                             <option value="Trimestral">Trimestral</option>
                         </select>
-                        <input type="tel" id="tel_M10" placeholder="WhatsApp (10 dígitos)" class="w-full p-3 bg-slate-50 rounded-xl border">
-                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase italic">Subir Comprobante de Pago del Trámite:</label>
+                        <input type="tel" id="tel_M10" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="file" id="file_M10" class="block w-full text-xs">
                     </div>
-                    <button onclick="ejecutarEnvio('M10')" id="btn_M10" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl active:scale-95 transition-transform">Enviar Inscripción</button>
-                    <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_M10"></span></div>
+                    <button onclick="ejecutarEnvio('M10')" id="btn_M10" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar Trámite</button>
+                    <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_M10"></span></div>
                 `;
             }
             else if (tipo === 'modalInfonavit') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-red-600">Precalificación Infonavit</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase">Costo: $210 MXN</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: $210 MXN</p>
+                    ${HTML_PAGO_BANORTE}
                     <div class="space-y-3">
-                        <input type="text" id="nss_INF" placeholder="Ingresa únicamente tu NSS" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-red-100 focus:border-red-600" maxlength="11">
-                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase italic">Fecha de Nacimiento:</label>
+                        <input type="text" id="nss_INF" placeholder="Ingresa tu NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-red-50 focus:border-red-600" maxlength="11">
+                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Fecha de Nacimiento:</label>
                         <input type="date" id="nac_INF" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         <select id="extra_INF" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border">
-                            <option value="Linea II">Línea II (Compra de Vivienda)</option>
+                            <option value="Linea II">Línea II</option>
                             <option value="Mejoravit">Mejoravit</option>
                         </select>
                         <input type="file" id="file_INF" class="block w-full text-xs">
                     </div>
-                    <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-6">Solicitar Precalificación</button>
+                    <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-6">Solicitar</button>
                     <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_INF"></span></div>
                 `;
             }
             else if (tipo === 'modalDetallado') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-blue-600">Análisis Detallado</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase">Costo: $800 MXN</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: $800 MXN</p>
+                    ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         <input type="text" id="nombre_D" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="text" id="curp_D" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border">
-                        <input type="text" id="nss_D" placeholder="NSS (11 dígitos)" class="w-full p-3 bg-slate-50 rounded-xl border" maxlength="11">
+                        <input type="text" id="nss_D" placeholder="NSS" class="w-full p-3 bg-slate-50 rounded-xl border" maxlength="11">
                         <input type="number" id="edadRetiro_D" placeholder="Edad estimada para retirarse" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="number" id="ultimoAnio_D" placeholder="Año de su último trabajo" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="tel" id="tel_D" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="file" id="file_D" class="block w-full text-xs">
                     </div>
-                    <button onclick="ejecutarEnvio('D')" id="btn_D" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-lg">Enviar Solicitud</button>
-                    <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_D"></span></div>
+                    <button onclick="ejecutarEnvio('D')" id="btn_D" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar</button>
+                    <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_D"></span></div>
                 `;
             }
             else {
-                // Rápido, RFC, CSF, Docs
                 const configs = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
                     'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
@@ -195,14 +199,15 @@
                 if (!c) return;
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest">Costo: ${c.precio}</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
+                    ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
                         <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
                         ${tipo === 'modalDocs' ? `
                             <select id="extra_DOC" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-bold">
-                                <option value="" disabled selected>-- Elegir documento ($15) --</option>
+                                <option value="" disabled selected>-- Documento ($15) --</option>
                                 <option value="Semanas Cotizadas">Semanas Cotizadas</option>
                                 <option value="Vigencia de Derechos">Vigencia de Derechos</option>
                                 <option value="Localización de NSS">Localización de NSS</option>
@@ -211,8 +216,8 @@
                         ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
                         <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
                     </div>
-                    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-lg">Enviar</button>
-                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡ENVIADO! FOLIO: <span id="folio_${c.prefix}"></span></div>
+                    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar</button>
+                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
                 `;
             }
         }
@@ -254,7 +259,7 @@
                     document.getElementById(`folio_${prefix}`).innerText = payload.folio;
                     btn.innerText = "¡LISTO!";
                 } catch(e) {
-                    alert("Error");
+                    alert("Error de conexión");
                     btn.disabled = false;
                     btn.innerText = "Reintentar";
                 }
@@ -288,15 +293,13 @@
             res.classList.remove('hidden');
             if (anio < 1997) { 
                 res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
-                res.innerHTML = "¡ERES LEY 73!"; 
+                res.innerHTML = "¡ERES LEY 73! MODALIDAD 40 ES TU ALIADO."; 
             } else { 
                 res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
-                res.innerHTML = "¡ERES LEY 97!"; 
+                res.innerHTML = "¡ERES LEY 97! PLANEA TU RETIRO."; 
             }
         }
         function cerrarModal() { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); }
     </script>
 </body>
 </html>
-
-
