@@ -229,29 +229,46 @@
                 alert("Trámite solicitado con éxito.");
                 cerrarModal();
             } catch (e) { alert("Error al procesar el pago."); }
-        };
-
         window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value;
-            if (m < 200 || !r) return alert("Verifica los datos (Mín. $200)");
-            await addDoc(collection(db, "notificaciones_pago"), {
-                uid: userUID,
-                email: auth.currentUser.email,
-                monto: m,
-                rastreo: r,
-                fecha: serverTimestamp(),
-                estatus: "pendiente"
-            });
-            alert("Reporte enviado a tesorería.");
-            cerrarModal();
-        };
+    const montoInput = document.getElementById('depMonto');
+    const refInput = document.getElementById('depRef');
+    
+    const m = parseFloat(montoInput.value);
+    const r = refInput.value.trim();
 
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => {
-            document.getElementById('modalTramite').classList.add('hidden');
-            document.getElementById('modalSaldo').classList.add('hidden');
-        };
+    // Verificaciones de seguridad
+    if (!m || isNaN(m) || m < 200) {
+        alert("El monto mínimo es de $200.00 MXN");
+        return;
+    }
+    if (!r || r.length < 5) {
+        alert("Por favor, ingresa una referencia o clave de rastreo válida.");
+        return;
+    }
+
+    try {
+        // Usamos addDoc para enviar la notificación a Firebase
+        await addDoc(collection(db, "notificaciones_pago"), {
+            uid: userUID,
+            email: auth.currentUser.email,
+            monto: m,
+            rastreo: r,
+            fecha: serverTimestamp(),
+            estatus: "pendiente"
+        });
+
+        alert("¡Reporte enviado! Tu saldo se actualizará en cuanto validemos el depósito en Banorte.");
+        
+        // Limpiamos los campos y cerramos
+        montoInput.value = "";
+        refInput.value = "";
+        cerrarModal();
+
+    } catch (error) {
+        console.error("Error al notificar pago:", error);
+        alert("Hubo un error al conectar con el servidor. Inténtalo de nuevo.");
+    }
+};
     </script>
 </body>
 </html>
