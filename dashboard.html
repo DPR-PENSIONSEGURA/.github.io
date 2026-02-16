@@ -81,4 +81,155 @@
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 hover:text-white text-3xl font-light">×</button>
                 
                 <p class="text-[10px] font-black uppercase tracking-[0.3em] gold-text text-center mb-2">Bóveda DPR</p>
-                <h2 class="text-3xl font-
+                <h2 class="text-3xl font-black text-white text-center mb-8 uppercase italic">Gestión de Fondos</h2>
+
+                <div class="bg-slate-800/50 rounded-3xl p-6 text-center border border-white/5 mb-8">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Saldo Actual</p>
+                    <p id="txtSaldoGrande" class="text-5xl font-black text-white tracking-tighter">$0.00</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-white p-6 rounded-3xl text-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cuenta Banorte</p>
+                        <p class="text-xl font-black text-red-600 tracking-tighter">4915 6630 4036 4896</p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-1">Diana Puente Rodríguez</p>
+                    </div>
+
+                    <div class="bg-slate-800/50 p-6 rounded-3xl">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-4">Notificar Depósito (Mín. $200)</p>
+                        <input type="number" id="montoDep" placeholder="Monto" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl mb-3 text-white">
+                        <input type="text" id="refDep" placeholder="Referencia / Rastreo" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl mb-4 text-white uppercase text-sm">
+                        <button onclick="notificarPago()" class="w-full btn-gold py-4 rounded-2xl font-black uppercase italic shadow-lg">Cargar Saldo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+            authDomain: "pensionsegura-eeaff.firebaseapp.com",
+            projectId: "pensionsegura-eeaff",
+            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+            messagingSenderId: "96463651258",
+            appId: "1:96463651258:web:cb4cf865990d9521035d83"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userUID = "";
+        let saldoGlobal = 0;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userUID = user.uid;
+                escucharSaldo();
+            } else {
+                window.location.href = "login/index.html";
+            }
+        });
+
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (doc) => {
+                if (doc.exists()) {
+                    saldoGlobal = doc.data().saldo || 0;
+                    const formatted = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
+                    document.getElementById('txtSaldoHeader').innerText = formatted;
+                    document.getElementById('txtSaldoGrande').innerText = formatted;
+                }
+            });
+        }
+
+        window.abrirModal = (id) => {
+            document.getElementById(id).classList.remove('hidden');
+        };
+
+        window.abrirFormulario = (idServicio, nombreServicio, costo) => {
+            const contenido = document.getElementById('contenidoModal');
+            contenido.innerHTML = `
+                <p class="text-[10px] font-black gold-text uppercase tracking-widest mb-2">Solicitud Ejecutiva</p>
+                <h2 class="text-3xl font-black text-white uppercase italic mb-6">${nombreServicio}</h2>
+                <div class="bg-slate-800 p-4 rounded-2xl mb-6 flex justify-between items-center">
+                    <span class="text-slate-400 text-xs font-bold uppercase">Costo del servicio:</span>
+                    <span class="text-white font-black">$${costo}.00</span>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="curpPed" placeholder="CURP DEL CLIENTE" class="w-full bg-slate-800 border-none p-4 rounded-2xl text-white font-black uppercase tracking-widest focus:ring-2 focus:ring-yellow-600">
+                    <textarea id="notaPed" placeholder="Notas adicionales (opcional)" class="w-full bg-slate-800 border-none p-4 rounded-2xl text-white text-sm h-24"></textarea>
+                    <button id="btnEjecutar" onclick="procesarTramite('${idServicio}', ${costo})" class="w-full btn-gold py-5 rounded-[1.5rem] font-black uppercase italic shadow-xl">Confirmar Solicitud</button>
+                </div>
+            `;
+            abrirModal('modalBase');
+        };
+
+        window.procesarTramite = async (id, costo) => {
+            const curp = document.getElementById('curpPed').value.trim();
+            const btn = document.getElementById('btnEjecutar');
+
+            if (curp.length < 10) return alert("Por favor, ingrese un CURP válido.");
+            if (saldoGlobal < costo) return alert("Saldo insuficiente en su bóveda. Por favor, realice una recarga.");
+
+            btn.disabled = true;
+            btn.innerText = "PROCESANDO PAGO...";
+
+            try {
+                // 1. Descontar Saldo
+                await updateDoc(doc(db, "asesores", userUID), {
+                    saldo: saldoGlobal - costo
+                });
+
+                // 2. Crear Registro de Pedido
+                await addDoc(collection(db, "pedidos_servicios"), {
+                    asesor: auth.currentUser.email,
+                    uid: userUID,
+                    servicio: id,
+                    curp: curp,
+                    costo: costo,
+                    fecha: serverTimestamp(),
+                    estatus: "Pagado / En Proceso"
+                });
+
+                alert("Transacción Exitosa. Su solicitud está siendo procesada.");
+                cerrarModal();
+            } catch (e) {
+                console.error(e);
+                alert("Error en la conexión.");
+                btn.disabled = false;
+            }
+        };
+
+        window.notificarPago = async () => {
+            const monto = parseFloat(document.getElementById('montoDep').value);
+            const ref = document.getElementById('refDep').value.trim();
+
+            if (monto < 200) return alert("El monto mínimo es de $200.00 MXN");
+            if (!ref) return alert("Ingrese el número de rastreo.");
+
+            await addDoc(collection(db, "notificaciones_pago"), {
+                email: auth.currentUser.email,
+                monto: monto,
+                rastreo: ref,
+                fecha: serverTimestamp(),
+                estatus: "pendiente"
+            });
+
+            alert("Reporte enviado a tesorería. Se abonará a su cuenta tras la validación.");
+            cerrarModal();
+        };
+
+        window.cerrarModal = () => {
+            document.getElementById('modalBase').classList.add('hidden');
+            document.getElementById('modalSaldo').classList.add('hidden');
+        };
+
+        window.cerrarSesion = () => signOut(auth);
+    </script>
+</body>
+</html>
