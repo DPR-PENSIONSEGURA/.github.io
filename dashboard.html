@@ -10,21 +10,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* Usando tus colores institucionales */
         :root {
             --azul-dpr: #003366;
             --dorado-dpr: #C5A059;
+            --rojo-banorte: #EB0029;
             --blanco: #ffffff;
-            --gris-fondo: #f8f9fa;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            background-color: var(--gris-fondo);
+            background-color: #f4f7f6;
         }
 
-        /* Estilo basado en tu Header principal */
         nav {
             background-color: var(--azul-dpr);
             padding: 1rem 5%;
@@ -34,57 +32,82 @@
             color: white;
         }
 
-        .logo { font-size: 1.5rem; font-weight: bold; }
-
-        .btn-salir {
-            background: transparent;
-            border: 1px solid var(--dorado-dpr);
-            color: var(--dorado-dpr);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+        .main-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
         }
 
-        .main-container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
+        /* Tarjeta de Datos Bancarios */
+        .banorte-card {
+            background: var(--blanco);
+            border: 3px solid var(--rojo-banorte);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .banorte-card h2 {
+            color: var(--rojo-banorte);
+            margin: 0;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+        }
+
+        .cuenta-numero {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--rojo-banorte);
+            letter-spacing: 2px;
+            margin: 15px 0;
+            display: block;
         }
 
         /* Tarjeta de Saldo */
         .saldo-card {
-            background: white;
-            border-left: 5px solid var(--dorado-dpr);
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: var(--azul-dpr);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
-        .monto {
-            font-size: 3rem;
-            color: var(--azul-dpr);
+        .monto-grande {
+            font-size: 2.5rem;
+            color: var(--dorado-dpr);
             font-weight: bold;
-            margin: 10px 0;
         }
 
-        /* Sección de Notificación */
+        /* Formulario y Advertencias */
         .notificar-pago {
             background: white;
             padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .advertencia {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 5px solid #ffeeba;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
         }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; color: var(--azul-dpr); font-weight: bold; margin-bottom: 5px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--azul-dpr); }
         input {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
             box-sizing: border-box;
+            font-size: 1rem;
         }
 
         .btn-enviar {
@@ -94,13 +117,10 @@
             padding: 15px;
             width: 100%;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
         }
-
-        .btn-enviar:hover { background-color: #002244; }
 
         #status { margin-top: 15px; text-align: center; font-weight: bold; }
     </style>
@@ -108,56 +128,64 @@
 <body>
 
 <nav>
-    <div class="logo">DPR Consultoría</div>
-    <div>
-        <span id="user-display" style="margin-right: 15px; font-size: 0.9rem;"></span>
-        <button class="btn-salir" onclick="logout()">Cerrar Sesión</button>
-    </div>
+    <div style="font-weight: bold;">DPR Consultoría</div>
+    <div id="user-display" style="font-size: 0.8rem;"></div>
 </nav>
 
 <div class="main-container">
+    
+    <div class="banorte-card">
+        <h2>BANORTE</h2>
+        <p>Realiza tu transferencia o depósito a la siguiente cuenta:</p>
+        <span class="cuenta-numero">4915 6630 4036 4896</span>
+        <p style="font-weight: bold; color: #333;">Titular: DIANA PUENTE RODRIGUEZ</p>
+    </div>
+
     <div class="saldo-card">
-        <h3>Tu Saldo Disponible</h3>
-        <div class="monto" id="saldo-display">$0.00</div>
-        <p style="color: #666;">Usa este saldo para tus gestiones y solicitudes de documentos.</p>
+        <h3>Tu Saldo Prepago</h3>
+        <div class="monto-grande" id="saldo-display">$0.00</div>
     </div>
 
     <div class="notificar-pago">
-        <h3>Notificar Nuevo Depósito</h3>
-        <p style="font-size: 0.9rem; color: #666;">Si realizaste una transferencia en Banorte o depósito en OXXO, regístralo aquí.</p>
+        <h3>Notificar Pago</h3>
         
-        <div class="form-group">
-            <label>Monto Depositado ($)</label>
-            <input type="number" id="monto" placeholder="Ej: 295.00">
+        <div class="advertencia">
+            <strong>⚠️ REGLAS DE CARGA:</strong><br>
+            • El monto mínimo de recarga es de <b>$200.00 MXN</b>.<br>
+            • En montos menores a $200.00 <b>no se realizan devoluciones</b> ni se abonará el saldo.
         </div>
         
         <div class="form-group">
-            <label>Clave de Rastreo o Autorización</label>
-            <input type="text" id="rastreo" placeholder="Clave SPEI o Ticket OXXO">
+            <label>Monto enviado ($)</label>
+            <input type="number" id="monto" placeholder="Mínimo 200">
+        </div>
+        
+        <div class="form-group">
+            <label>Clave de Rastreo (SPEI) o Autorización (OXXO)</label>
+            <input type="text" id="rastreo" placeholder="Ingresa el número de operación">
         </div>
 
-        <button class="btn-enviar" onclick="enviarReporte()">Validar Pago con Sistema</button>
+        <button class="btn-enviar" onclick="enviarReporte()">Registrar Pago</button>
         <div id="status"></div>
     </div>
 </div>
 
 <script>
-   const firebaseConfig = {
-      apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-      authDomain: "pensionsegura-eeaff.firebaseapp.com",
-      projectId: "pensionsegura-eeaff",
-      storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-      messagingSenderId: "96463651258",
-      appId: "1:96463651258:web:cb4cf865990d9521035d83",
-      measurementId: "G-F18HTRZ4YH"
-    };
+    // Configuración con tus nuevas llaves
+    const firebaseConfig = {
+        apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+        authDomain: "pensionsegura-eeaff.firebaseapp.com",
+        projectId: "pensionsegura-eeaff",
+        storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+        messagingSenderId: "96463651258",
+        appId: "1:96463651258:web:cb4cf865990d9521035d83",
+        measurementId: "G-F18HTRZ4YH"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Seguridad: Si no hay sesión, regresa al login
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('user-display').innerText = user.email;
@@ -172,39 +200,39 @@
             if (doc.exists) {
                 document.getElementById('saldo-display').innerText = "$" + doc.data().saldo.toFixed(2);
             } else {
-                // Crear perfil inicial si es nuevo
                 db.collection("asesores").doc(uid).set({ saldo: 0, email: auth.currentUser.email });
             }
         });
     }
 
     function enviarReporte() {
-        const monto = document.getElementById('monto').value;
+        const monto = parseFloat(document.getElementById('monto').value);
         const rastreo = document.getElementById('rastreo').value;
         const statusDiv = document.getElementById('status');
 
         if(!monto || !rastreo) {
-            alert("Por favor, llena ambos campos para continuar.");
+            alert("Por favor, completa todos los datos.");
+            return;
+        }
+
+        if(monto < 200) {
+            alert("Recuerda que el monto mínimo es de $200. No se puede procesar esta cantidad.");
             return;
         }
 
         db.collection("notificaciones_pago").add({
             email: auth.currentUser.email,
             uid: auth.currentUser.uid,
-            monto: parseFloat(monto),
+            monto: monto,
             rastreo: rastreo.trim(),
             fecha: firebase.firestore.FieldValue.serverTimestamp(),
             estatus: "pendiente"
         }).then(() => {
-            statusDiv.style.color = "orange";
-            statusDiv.innerText = "¡Enviado! El sistema está verificando tu pago con Banorte...";
+            statusDiv.style.color = "green";
+            statusDiv.innerText = "¡Reporte enviado exitosamente!";
             document.getElementById('monto').value = "";
             document.getElementById('rastreo').value = "";
         });
-    }
-
-    function logout() {
-        auth.signOut();
     }
 </script>
 
