@@ -14,7 +14,7 @@
         .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
         .input-dark:focus { border-color: #C5A059; }
         .gold-text { color: #C5A059; }
-        .status-badge { padding: 4px 12px; rounded-full; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -30,31 +30,28 @@
                     <span class="text-[10px] font-black uppercase text-slate-400">Saldo:</span>
                     <span id="txtSaldoHeader" class="font-black text-white">$0.00</span>
                 </button>
-                <button onclick="auth.signOut()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
             </div>
         </div>
     </header>
 
     <main class="p-8 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <div onclick="prepararTramite('SC', 50)" class="executive-card p-6 rounded-[2rem]">
                 <span class="text-3xl block mb-4">📄</span>
                 <h3 class="font-black text-lg uppercase italic text-white">Semanas Cotizadas</h3>
                 <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$50.00 MXN</p>
             </div>
-
             <div onclick="prepararTramite('INF', 210)" class="executive-card p-6 rounded-[2rem]">
                 <span class="text-3xl block mb-4">🏠</span>
                 <h3 class="font-black text-lg uppercase italic text-white">Infonavit</h3>
                 <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$210.00 MXN</p>
             </div>
-
             <div onclick="prepararTramite('RFC', 35)" class="executive-card p-6 rounded-[2rem]">
                 <span class="text-3xl block mb-4">🆔</span>
                 <h3 class="font-black text-lg uppercase italic text-white">RFC Clon</h3>
                 <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$35.00 MXN</p>
             </div>
-
             <div onclick="prepararTramite('CSF', 230)" class="executive-card p-6 rounded-[2rem]">
                 <span class="text-3xl block mb-4">📜</span>
                 <h3 class="font-black text-lg uppercase italic text-white">CSF Original</h3>
@@ -75,8 +72,7 @@
                             <th class="pb-4 px-2 text-right">Acción</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-sm font-medium">
-                        </tbody>
+                    <tbody id="listaHistorial" class="text-sm font-medium"></tbody>
                 </table>
             </div>
         </section>
@@ -95,12 +91,11 @@
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
                 <h2 class="text-2xl font-black text-white text-center mb-6 uppercase italic">Bóveda de Saldo</h2>
                 <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
-                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
                     <p id="txtSaldoGrande" class="text-4xl font-black text-white">$0.00</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl text-center mb-6">
-                    <p class="text-[10px] font-black text-slate-400 uppercase">Banorte | DPR Consultoría</p>
-                    <p class="text-xl font-black text-red-600">4915 6630 4036 4896</p>
+                <div class="bg-white p-4 rounded-2xl text-center mb-6 text-slate-900 font-bold">
+                    <p class="text-xs uppercase opacity-50">Banorte</p>
+                    <p class="text-lg text-red-600">4915 6630 4036 4896</p>
                 </div>
                 <input type="number" id="depMonto" placeholder="Monto" class="input-dark mb-3">
                 <input type="text" id="depRef" placeholder="Rastreo / Autorización" class="input-dark mb-4 uppercase">
@@ -130,6 +125,14 @@
         let saldoGlobal = 0;
         let userUID = "";
 
+        // Funciones Globales para que los botones funcionen
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => {
+            document.getElementById('modalTramite').classList.add('hidden');
+            document.getElementById('modalSaldo').classList.add('hidden');
+        };
+        window.cerrarSesion = () => signOut(auth);
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userUID = user.uid;
@@ -154,8 +157,8 @@
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
                 lista.innerHTML = "";
-                snapshot.forEach(doc => {
-                    const data = doc.data();
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
                     const fecha = data.fecha ? data.fecha.toDate().toLocaleDateString() : '...';
                     lista.innerHTML += `
                         <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
@@ -170,8 +173,7 @@
                             <td class="py-4 px-2 text-right">
                                 ${data.archivoFinal ? `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline">DESCARGAR</a>` : '<span class="text-slate-600 text-[10px]">PENDIENTE</span>'}
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 });
             });
         }
@@ -179,7 +181,6 @@
         window.prepararTramite = (tipo, costo) => {
             const content = document.getElementById('formContent');
             let camposExtra = "";
-
             if (tipo === 'INF') {
                 camposExtra = `
                     <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3">
@@ -188,8 +189,7 @@
                     <select id="linea_p" class="input-dark mb-3 font-bold">
                         <option value="Linea II">Línea II</option>
                         <option value="Mejoravit">Mejoravit</option>
-                    </select>
-                `;
+                    </select>`;
             } else if (tipo === 'SC') {
                 camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3">`;
             }
@@ -200,12 +200,13 @@
                     <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">
                     ${camposExtra}
                     <textarea id="nota_p" placeholder="Notas adicionales..." class="input-dark h-24 text-sm"></textarea>
-                    <button onclick="confirmarCompra('${tipo}', ${costo})" class="w-full bg-[#C5A059] py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">
+                    <button id="btnPagar" class="w-full bg-[#C5A059] py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">
                         Confirmar Pago ($${costo}.00)
                     </button>
-                </div>
-            `;
-            abrirModal('modalTramite');
+                </div>`;
+            
+            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
+            window.abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (tipo, costo) => {
@@ -227,48 +228,27 @@
                     estatus: "En Proceso"
                 });
                 alert("Trámite solicitado con éxito.");
-                cerrarModal();
+                window.cerrarModal();
             } catch (e) { alert("Error al procesar el pago."); }
+        };
+
         window.notificarPago = async () => {
-    const montoInput = document.getElementById('depMonto');
-    const refInput = document.getElementById('depRef');
-    
-    const m = parseFloat(montoInput.value);
-    const r = refInput.value.trim();
-
-    // Verificaciones de seguridad
-    if (!m || isNaN(m) || m < 200) {
-        alert("El monto mínimo es de $200.00 MXN");
-        return;
-    }
-    if (!r || r.length < 5) {
-        alert("Por favor, ingresa una referencia o clave de rastreo válida.");
-        return;
-    }
-
-    try {
-        // Usamos addDoc para enviar la notificación a Firebase
-        await addDoc(collection(db, "notificaciones_pago"), {
-            uid: userUID,
-            email: auth.currentUser.email,
-            monto: m,
-            rastreo: r,
-            fecha: serverTimestamp(),
-            estatus: "pendiente"
-        });
-
-        alert("¡Reporte enviado! Tu saldo se actualizará en cuanto validemos el depósito en Banorte.");
-        
-        // Limpiamos los campos y cerramos
-        montoInput.value = "";
-        refInput.value = "";
-        cerrarModal();
-
-    } catch (error) {
-        console.error("Error al notificar pago:", error);
-        alert("Hubo un error al conectar con el servidor. Inténtalo de nuevo.");
-    }
-};
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('depRef').value.trim();
+            if (m < 200 || !r) return alert("Verifica los datos (Mín. $200)");
+            try {
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID,
+                    email: auth.currentUser.email,
+                    monto: m,
+                    rastreo: r,
+                    fecha: serverTimestamp(),
+                    estatus: "pendiente"
+                });
+                alert("¡Reporte enviado!");
+                window.cerrarModal();
+            } catch (e) { alert("Error al conectar."); }
+        };
     </script>
 </body>
 </html>
