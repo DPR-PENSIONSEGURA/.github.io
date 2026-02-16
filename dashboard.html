@@ -3,175 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Asesores | Pensión Segura</title>
+    <title>Panel de Control | DPR Consultoría</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        :root {
-            --azul-dpr: #003366;
-            --dorado-dpr: #C5A059;
-            --rojo-banorte: #EB0029;
-            --blanco: #ffffff;
-        }
+        :root { --azul: #003366; --dorado: #C5A059; --rojo: #EB0029; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
+        
+        nav { background: var(--azul); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; }
+        
+        .container { max-width: 1000px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .full-width { grid-column: 1 / -1; }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            background-color: #f4f7f6;
-        }
+        /* Estilo Banorte */
+        .banorte-banner { border: 2px solid var(--rojo); text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .cuenta { font-size: 1.8rem; font-weight: bold; color: var(--rojo); display: block; margin: 10px 0; }
 
-        nav {
-            background-color: var(--azul-dpr);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
+        /* Saldo */
+        .saldo-display { font-size: 2.5rem; color: var(--azul); font-weight: bold; text-align: center; margin: 10px 0; }
 
-        .main-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 20px;
-        }
+        /* Tabla de Servicios */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; background: #f8f9fa; padding: 10px; border-bottom: 2px solid #ddd; }
+        td { padding: 12px 10px; border-bottom: 1px solid #eee; }
+        
+        .btn-comprar { background: var(--azul); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-comprar:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* Tarjeta de Datos Bancarios */
-        .banorte-card {
-            background: var(--blanco);
-            border: 3px solid var(--rojo-banorte);
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .banorte-card h2 {
-            color: var(--rojo-banorte);
-            margin: 0;
-            font-size: 1.8rem;
-            text-transform: uppercase;
-        }
-
-        .cuenta-numero {
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: var(--rojo-banorte);
-            letter-spacing: 2px;
-            margin: 15px 0;
-            display: block;
-        }
-
-        /* Tarjeta de Saldo */
-        .saldo-card {
-            background: var(--azul-dpr);
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .monto-grande {
-            font-size: 2.5rem;
-            color: var(--dorado-dpr);
-            font-weight: bold;
-        }
-
-        /* Formulario y Advertencias */
-        .notificar-pago {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .advertencia {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 5px solid #ffeeba;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: var(--azul-dpr); }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-
-        .btn-enviar {
-            background-color: var(--azul-dpr);
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #status { margin-top: 15px; text-align: center; font-weight: bold; }
+        .form-group { margin-bottom: 10px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        
+        .alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 0.85rem; margin-bottom: 15px; }
+        
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <nav>
-    <div style="font-weight: bold;">DPR Consultoría</div>
-    <div id="user-display" style="font-size: 0.8rem;"></div>
+    <div style="font-weight: bold; font-size: 1.2rem;">DPR Consultoría</div>
+    <div id="user-display">Cargando...</div>
+    <button onclick="auth.signOut()" style="background:none; border:1px solid white; color:white; cursor:pointer; padding:5px 10px; border-radius:5px;">Salir</button>
 </nav>
 
-<div class="main-container">
+<div class="container">
     
-    <div class="banorte-card">
-        <h2>BANORTE</h2>
-        <p>Realiza tu transferencia o depósito a la siguiente cuenta:</p>
-        <span class="cuenta-numero">4915 6630 4036 4896</span>
-        <p style="font-weight: bold; color: #333;">Titular: DIANA PUENTE RODRIGUEZ</p>
-    </div>
-
-    <div class="saldo-card">
-        <h3>Tu Saldo Prepago</h3>
-        <div class="monto-grande" id="saldo-display">$0.00</div>
-    </div>
-
-    <div class="notificar-pago">
-        <h3>Notificar Pago</h3>
-        
-        <div class="advertencia">
-            <strong>⚠️ REGLAS DE CARGA:</strong><br>
-            • El monto mínimo de recarga es de <b>$200.00 MXN</b>.<br>
-            • En montos menores a $200.00 <b>no se realizan devoluciones</b> ni se abonará el saldo.
-        </div>
-        
-        <div class="form-group">
-            <label>Monto enviado ($)</label>
-            <input type="number" id="monto" placeholder="Mínimo 200">
-        </div>
-        
-        <div class="form-group">
-            <label>Clave de Rastreo (SPEI) o Autorización (OXXO)</label>
-            <input type="text" id="rastreo" placeholder="Ingresa el número de operación">
+    <div class="card">
+        <div class="banorte-banner">
+            <h3 style="color:var(--rojo); margin:0;">DEPÓSITOS BANORTE</h3>
+            <span class="cuenta">4915 6630 4036 4896</span>
+            <small>Titular: DIANA PUENTE RODRIGUEZ</small>
         </div>
 
-        <button class="btn-enviar" onclick="enviarReporte()">Registrar Pago</button>
-        <div id="status"></div>
+        <div style="text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
+            <span style="color: #666; text-transform: uppercase; font-size: 0.8rem;">Tu Saldo Disponible</span>
+            <div class="saldo-display" id="saldo-txt">$0.00</div>
+        </div>
+
+        <hr>
+
+        <h4>Notificar Recarga</h4>
+        <div class="alert">Mínimo $200.00. Montos menores no son reembolsables.</div>
+        <input type="number" id="deposito-monto" placeholder="Monto (ej. 500)" style="margin-bottom: 10px;">
+        <input type="text" id="deposito-ref" placeholder="Clave de Rastreo o Autorización">
+        <button onclick="reportarPago()" style="width:100%; background: #28a745; color:white; border:none; padding:12px; margin-top:10px; border-radius:5px; font-weight:bold; cursor:pointer;">Informar Pago</button>
+        <div id="pago-status" style="margin-top:10px; font-size: 0.8rem; text-align: center;"></div>
     </div>
+
+    <div class="card">
+        <h3>Solicitar Servicio</h3>
+        <p style="font-size: 0.9rem; color: #666;">El costo se descontará automáticamente de tu saldo.</p>
+        
+        <input type="text" id="curp-cliente" placeholder="CURP del Cliente" style="margin-bottom: 10px; font-weight:bold; border: 2px solid var(--azul);">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Servicio</th>
+                    <th>Costo</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Semanas Cotizadas</td>
+                    <td><b>$50</b></td>
+                    <td><button class="btn-comprar" onclick="pedirServicio('Semanas Cotizadas', 50)">Pedir</button></td>
+                </tr>
+                <tr>
+                    <td>Vigencia de Derechos</td>
+                    <td><b>$50</b></td>
+                    <td><button class="btn-comprar" onclick="pedirServicio('Vigencia Derechos', 50)">Pedir</button></td>
+                </tr>
+                <tr>
+                    <td>Estado de Cuenta AFORE</td>
+                    <td><b>$100</b></td>
+                    <td><button class="btn-comprar" onclick="pedirServicio('Estado AFORE', 100)">Pedir</button></td>
+                </tr>
+                <tr>
+                    <td>Corrección de Datos</td>
+                    <td><b>$150</b></td>
+                    <td><button class="btn-comprar" onclick="pedirServicio('Corrección Datos', 150)">Pedir</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="servicio-status" style="margin-top:15px; font-weight:bold; color: var(--azul);"></div>
+    </div>
+
 </div>
 
 <script>
-    // Configuración con tus nuevas llaves
+    // Configuración Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
         authDomain: "pensionsegura-eeaff.firebaseapp.com",
@@ -186,55 +133,79 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    let saldoActual = 0;
+
     auth.onAuthStateChanged((user) => {
         if (user) {
             document.getElementById('user-display').innerText = user.email;
-            cargarSaldo(user.uid);
+            escucharSaldo(user.uid);
         } else {
             window.location.href = "login/index.html";
         }
     });
 
-    function cargarSaldo(uid) {
+    function escucharSaldo(uid) {
         db.collection("asesores").doc(uid).onSnapshot((doc) => {
             if (doc.exists) {
-                document.getElementById('saldo-display').innerText = "$" + doc.data().saldo.toFixed(2);
+                saldoActual = doc.data().saldo;
+                document.getElementById('saldo-txt').innerText = "$" + saldoActual.toFixed(2);
             } else {
                 db.collection("asesores").doc(uid).set({ saldo: 0, email: auth.currentUser.email });
             }
         });
     }
 
-    function enviarReporte() {
-        const monto = parseFloat(document.getElementById('monto').value);
-        const rastreo = document.getElementById('rastreo').value;
-        const statusDiv = document.getElementById('status');
-
-        if(!monto || !rastreo) {
-            alert("Por favor, completa todos los datos.");
-            return;
-        }
-
-        if(monto < 200) {
-            alert("Recuerda que el monto mínimo es de $200. No se puede procesar esta cantidad.");
-            return;
-        }
+    function reportarPago() {
+        const monto = parseFloat(document.getElementById('deposito-monto').value);
+        const ref = document.getElementById('deposito-ref').value;
+        if(monto < 200) return alert("Monto mínimo $200");
+        if(!ref) return alert("Ingresa la referencia");
 
         db.collection("notificaciones_pago").add({
             email: auth.currentUser.email,
             uid: auth.currentUser.uid,
             monto: monto,
-            rastreo: rastreo.trim(),
+            rastreo: ref,
             fecha: firebase.firestore.FieldValue.serverTimestamp(),
             estatus: "pendiente"
         }).then(() => {
-            statusDiv.style.color = "green";
-            statusDiv.innerText = "¡Reporte enviado exitosamente!";
-            document.getElementById('monto').value = "";
-            document.getElementById('rastreo').value = "";
+            document.getElementById('pago-status').innerText = "Reporte enviado. Esperando validación.";
         });
     }
-</script>
 
+    function pedirServicio(nombre, costo) {
+        const curp = document.getElementById('curp-cliente').value;
+        if(curp.length < 10) return alert("Por favor ingresa un CURP válido del cliente.");
+        
+        if(saldoActual < costo) {
+            alert("Saldo insuficiente. Por favor realiza una recarga.");
+            return;
+        }
+
+        if(confirm(`¿Deseas solicitar ${nombre} por $${costo}?`)) {
+            const batch = db.batch();
+            const asesorRef = db.collection("asesores").doc(auth.currentUser.uid);
+            const pedidoRef = db.collection("pedidos_servicios").doc();
+
+            // 1. Descontar saldo
+            batch.update(asesorRef, { saldo: saldoActual - costo });
+
+            // 2. Crear pedido para Diana
+            batch.set(pedidoRef, {
+                asesor_email: auth.currentUser.email,
+                servicio: nombre,
+                costo: costo,
+                curp_cliente: curp,
+                fecha: firebase.firestore.FieldValue.serverTimestamp(),
+                estatus: "pendiente"
+            });
+
+            batch.commit().then(() => {
+                alert("Servicio solicitado con éxito. El saldo ha sido descontado.");
+                document.getElementById('curp-cliente').value = "";
+            });
+        }
+    }
+</script>
 </body>
 </html>
