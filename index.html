@@ -234,26 +234,34 @@
                 };
                 const c = configs[tipo];
                 if (!c) return;
+
+                // Definimos si es un trámite simplificado (solo CURP)
+                const esSimplificado = (tipo === 'modalRFC' || tipo === 'modalCSF');
+
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-${c.color} italic">${c.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio} MXN</p>
                     ${HTML_PAGO_BANORTE}
-                    <div class="space-y-2">
-                        <input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">
-                        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
-                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-                        <input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">
-                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
+                    <div class="space-y-3">
+                        ${!esSimplificado ? `<input type="text" id="nombre_${c.prefix}" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">` : ''}
+                        
+                        <input type="text" id="curp_${c.prefix}" placeholder="INGRESA TU CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">
+                        
+                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 DÍGITOS)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase" maxlength="11">` : ''}
+                        
+                        ${!esSimplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WHATSAPP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">` : ''}
+                        
+                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase italic">Adjunta tu comprobante de pago:</label>
+                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-[10px] font-bold text-slate-400">
                     </div>
                      <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
             </div>
-                    <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
+                    <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl hover:opacity-90 transition">Enviar Solicitud</button>
                     <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
                 `;
                 document.getElementById(`btn_${c.prefix}`).onclick = () => ejecutarEnvio(c.prefix);
             }
-        };
-
+        };     
         async function ejecutarEnvio(prefix) {
             const btn = document.getElementById(`btn_${prefix}`);
             const fileInput = document.getElementById(`file_${prefix}`);
@@ -348,6 +356,7 @@
     </script>
 </body>
 </html>
+
 
 
 
