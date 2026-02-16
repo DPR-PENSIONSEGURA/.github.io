@@ -88,7 +88,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURACIÓN FIREBASE (Diana: Cambia esto por tus datos)
         const firebaseConfig = {
            apiKey: "AIzaSyCb4H1uhIjQrFc7Q01EySjVo3jom_LcNbU",
            authDomain: "panel-admin-edfd3.firebaseapp.com",
@@ -101,7 +100,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CONFIGURACIÓN CLOUDINARY
         const CLOUD_NAME = "de5abnhul";
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
@@ -201,7 +199,6 @@
                     ${HTML_PAGO_BANORTE}
                     <div class="space-y-3">
                         <input type="text" id="curp_DOC" placeholder="INGRESA TU CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">
-                        
                         <select id="extra_DOC" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black italic uppercase text-xs">
                             <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
                             <option value="Semanas Cotizadas">Constancia de Semanas Cotizadas</option>
@@ -209,11 +206,10 @@
                             <option value="Localización de NSS">Asignación o Localización de NSS</option>
                             <option value="Estado de Cuenta AFORE">Resumen de Estado de Cuenta AFORE</option>
                         </select>
-
                         <input type="file" id="file_DOC" class="mt-2 block w-full text-[10px] font-bold text-slate-400">
                     </div>
-                    <button id="btn_DOC" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl hover:bg-blue-700 transition">Enviar Solicitud</button>
-                    <div id="exito_DOC" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Tu folio es: <span id="folio_DOC"></span></div>
+                    <button id="btn_DOC" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar Solicitud</button>
+                    <div id="exito_DOC" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_DOC"></span></div>
                 `;
                 document.getElementById('btn_DOC').onclick = () => ejecutarEnvio('DOC');
             }
@@ -230,30 +226,10 @@
                     <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
                     ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
-                        ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        <input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-                        ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
-                    </div>
-                    <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
-                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
-                `;
-                document.getElementById(`btn_${c.prefix}`).onclick = () => ejecutarEnvio(c.prefix);
-            }
-            
-                const c = configs[tipo];
-                if (!c) return;
-                contenido.innerHTML = `
-                    <h2 class="text-2xl font-black mb-1 uppercase text-${c.color} italic">${c.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
-                    ${HTML_PAGO_BANORTE}
-                    <div class="space-y-2">
-                        ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
-                        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
-                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-                        ${tipo === 'modalDocs' ? `<select id="extra_DOC" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-bold italic"><option value="" disabled selected>-- Documento ($15) --</option><option value="Semanas Cotizadas">Semanas Cotizadas</option><option value="Vigencia de Derechos">Vigencia de Derechos</option><option value="Localización de NSS">Localización de NSS</option><option value="Estado de Cuenta AFORE">Resumen AFORE</option></select>` : ''}
-                        ${tipo !== 'modalRFC' && tipo !== 'modalCSF' ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        <input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
                     </div>
                     <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
@@ -303,7 +279,12 @@
                 document.getElementById(`exito_${prefix}`).classList.remove("hidden");
                 document.getElementById(`folio_${prefix}`).innerText = folio;
                 btn.innerText = "¡LISTO!";
-            } catch(e) { alert("Error al enviar."); btn.disabled = false; btn.innerText = "Reintentar"; }
+            } catch(e) { 
+                console.error(e);
+                alert("Error al enviar."); 
+                btn.disabled = false; 
+                btn.innerText = "Reintentar"; 
+            }
         }
 
         async function buscarEstatus() {
@@ -313,12 +294,20 @@
             res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
             const q = query(collection(db, "solicitudes"), where("folio", "==", f));
             const querySnapshot = await getDocs(q);
-            if (querySnapshot.empty) { res.innerText = "Folio no encontrado"; res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; }
+            if (querySnapshot.empty) { 
+                res.innerText = "Folio no encontrado"; 
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; 
+            }
             else {
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    if (data.archivoFinal) { res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm transition hover:bg-blue-700 italic">📥 DESCARGAR RESULTADO</a>`; }
-                    else { res.innerText = "ESTATUS: " + data.estatus; res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; }
+                    if (data.archivoFinal) { 
+                        res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm transition hover:bg-blue-700 italic">📥 DESCARGAR RESULTADO</a>`; 
+                    }
+                    else { 
+                        res.innerText = "ESTATUS: " + data.estatus; 
+                        res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
+                    }
                 });
             }
         }
@@ -327,13 +316,20 @@
             const anio = document.getElementById('anioLey').value;
             const res = document.getElementById('resLey');
             res.classList.remove('hidden');
-            if (anio < 1997) { res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700 italic font-black uppercase"; res.innerHTML = "¡ERES LEY 73! MODALIDAD 40 ES TU ALIADO."; } 
-            else { res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700 italic font-black uppercase"; res.innerHTML = "¡ERES LEY 97! PLANEA TU RETIRO."; }
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700 italic font-black uppercase"; 
+                res.innerHTML = "¡ERES LEY 73! MODALIDAD 40 ES TU ALIADO."; 
+            } 
+            else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700 italic font-black uppercase"; 
+                res.innerHTML = "¡ERES LEY 97! PLANEA TU RETIRO."; 
+            }
         }
 
-        window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); }
+        window.cerrarModal = () => { 
+            document.getElementById('modalBase').classList.add('hidden'); 
+            document.body.classList.remove('modal-active'); 
+        }
     </script>
 </body>
 </html>
-
-
