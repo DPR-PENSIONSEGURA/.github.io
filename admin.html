@@ -2,61 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin | DPR Consultoría</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .detalle-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
+        .detalle-valor { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+    </style>
 </head>
-<body class="bg-slate-100 font-['Inter'] p-4 md:p-8">
-
+<body class="bg-slate-100 p-4 md:p-8">
     <div class="max-w-7xl mx-auto">
         <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-black uppercase tracking-tighter italic text-slate-800">Panel de <span class="text-blue-600">Control</span></h1>
-            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border font-bold text-xs uppercase text-slate-500">
-                DPR Consultoría Admin
-            </div>
+            <h1 class="text-3xl font-black uppercase italic italic text-slate-800">Admin <span class="text-blue-600">DPR</span></h1>
+            <div class="text-[10px] font-black bg-white px-4 py-2 rounded-full shadow-sm border uppercase">Control de Solicitudes</div>
         </header>
 
         <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
-                            <th class="p-4 italic">Fecha / Hora (s)</th>
-                            <th class="p-4">Folio</th>
-                            <th class="p-4">Cliente / WhatsApp</th>
-                            <th class="p-4">Trámite</th>
-                            <th class="p-4 text-center">Pago</th>
-                            <th class="p-4">Estatus</th>
-                            <th class="p-4 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaSolicitudes" class="text-sm font-medium text-slate-700">
-                        </tbody>
-                </table>
-            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-900 text-white text-[10px] uppercase italic tracking-widest font-black">
+                    <tr>
+                        <th class="p-4 italic">Día / Hora (s)</th>
+                        <th class="p-4">Folio</th>
+                        <th class="p-4">Cliente (Click ver más)</th>
+                        <th class="p-4">Trámite</th>
+                        <th class="p-4 text-center">Pago</th>
+                        <th class="p-4">Estatus</th>
+                        <th class="p-4 text-right">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarDetalles()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl">×</button>
+            <h2 class="text-2xl font-black mb-6 uppercase italic border-b pb-4">Ficha del Cliente</h2>
+            <div id="contenidoDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
         </div>
     </div>
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado Final</h2>
-            <p id="infoClienteModal" class="text-xs text-slate-500 mb-6 font-bold"></p>
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
+            <h2 class="text-xl font-black mb-4 uppercase italic">Finalizar Trámite</h2>
+            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
             <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Finalizar Trámite</button>
-            <button onclick="cerrarModal()" class="w-full mt-2 text-slate-400 font-bold text-xs uppercase">Cancelar</button>
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir y Notificar</button>
+            <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
             authDomain: "TU_PROYECTO.firebaseapp.com",
-            projectId: "TU_PROYECT_ID",
+            projectId: "TU_PROYECTO_ID",
             storageBucket: "TU_PROYECTO.appspot.com",
             messagingSenderId: "TU_ID",
             appId: "TU_APP_ID"
@@ -64,88 +70,102 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        let idActual = null;
-        let folioActual = null;
+        const CLOUD_NAME = "de5abnhul";
+        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // Cargar solicitudes en tiempo real
-        const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
-        onSnapshot(q, (snapshot) => {
+        let idActual, folioActual;
+        let solicitudesData = {};
+
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
-            
-            snapshot.forEach((d) => {
+            snap.forEach(d => {
                 const item = d.data();
-                const id = d.id;
-                const fecha = item.fecha?.toDate() ? item.fecha.toDate().toLocaleString('es-MX', { hour12: false }) : 'Cargando...';
+                solicitudesData[d.id] = item;
+                const fecha = item.fecha?.toDate().toLocaleString('es-MX', { hour12: false }) || '...';
                 
                 const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-50 hover:bg-blue-50/50 transition-colors";
+                tr.className = "border-b border-slate-50 hover:bg-blue-50 transition-colors cursor-pointer";
                 tr.innerHTML = `
-                    <td class="p-4 text-[11px] font-black text-slate-400 italic">${fecha}</td>
-                    <td class="p-4 font-black text-blue-600">${item.folio}</td>
-                    <td class="p-4 italic">
-                        <div class="font-black text-slate-900 uppercase">${item.nombre}</div>
-                        <a href="https://wa.me/52${item.tel}" target="_blank" class="text-green-600 text-[10px] font-bold">📲 ${item.tel}</a>
+                    <td class="p-4 text-[10px] font-black text-slate-400 italic">${fecha}</td>
+                    <td class="p-4 font-black text-blue-600 uppercase">${item.folio}</td>
+                    <td class="p-4" onclick="verMasDetalles('${d.id}')">
+                        <div class="font-black uppercase text-slate-900">${item.nombre}</div>
+                        <div class="text-[9px] text-blue-500 font-bold uppercase italic">Ver ficha completa</div>
                     </td>
-                    <td class="p-4 text-[10px] font-black uppercase">${item.tipo}</td>
-                    <td class="p-4 text-center">
-                        <a href="${item.comprobante}" target="_blank" class="bg-slate-100 p-2 rounded-lg text-lg">📄</a>
-                    </td>
+                    <td class="p-4 text-[10px] font-black uppercase italic text-slate-500">${item.tipo}</td>
+                    <td class="p-4 text-center"><a href="${item.comprobante}" target="_blank" class="text-xl">📄</a></td>
                     <td class="p-4">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                        <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
                             ${item.estatus}
                         </span>
                     </td>
                     <td class="p-4 text-right">
-                        ${item.estatus !== 'Terminado' ? `<button onclick="prepararSubida('${id}', '${item.folio}', '${item.nombre}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase italic">Subir Final</button>` : '✅'}
+                        ${item.estatus !== 'Terminado' ? 
+                        `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : 
+                        `<a href="https://wa.me/52${item.tel}?text=Hola%20${item.nombre},%20tu%20trámite%20DPR%20con%20folio%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Avisar WA</a>`}
                     </td>
                 `;
                 tabla.appendChild(tr);
             });
         });
 
-        window.prepararSubida = (id, folio, nombre) => {
-            idActual = id;
-            folioActual = folio;
-            document.getElementById('infoClienteModal').innerText = `Subiendo resultado para: ${nombre} (${folio})`;
-            document.getElementById('modalSubir').classList.remove('hidden');
-        };
-
-        document.getElementById('btnGuardarFinal').onclick = async () => {
-            const fileInput = document.getElementById('archivoFinalInput');
-            if (!fileInput.files[0]) return alert("Selecciona el PDF de respuesta.");
+        window.verMasDetalles = (id) => {
+            const item = solicitudesData[id];
+            const cont = document.getElementById('contenidoDetalles');
+            document.getElementById('modalDetalles').classList.remove('hidden');
             
-            const btn = document.getElementById('btnGuardarFinal');
-            btn.disabled = true;
-            btn.innerText = "SUBIENDO...";
+            const campos = [
+                { l: 'Nombre', v: item.nombre },
+                { l: 'CURP', v: item.curp },
+                { l: 'NSS', v: item.nss },
+                { l: 'WhatsApp', v: item.tel },
+                { l: 'Correo', v: item.correo },
+                { l: 'Salario Semanal', v: item.salario },
+                { l: 'Dirección', v: item.direccion },
+                { l: 'Pago Frecuencia', v: item.frecuenciaPago },
+                { l: 'Nacimiento', v: item.nacimiento },
+                { l: 'Opción / Extra', v: item.infoExtra },
+                { l: 'Edad Retiro', v: item.edadRetiro },
+                { l: 'Último Año Lab.', v: item.ultimoAnio }
+            ];
 
-            const reader = new FileReader();
-            reader.readAsDataURL(fileInput.files[0]);
-            reader.onload = async () => {
-                try {
-                    const storageRef = ref(storage, `resultados/${folioActual}_FINAL.pdf`);
-                    await uploadString(storageRef, reader.result, 'data_url');
-                    const fileUrl = await getDownloadURL(storageRef);
-
-                    await updateDoc(doc(db, "solicitudes", idActual), {
-                        archivoFinal: fileUrl,
-                        estatus: "Terminado"
-                    });
-
-                    alert("¡Trámite terminado con éxito!");
-                    cerrarModal();
-                } catch (e) {
-                    alert("Error al subir archivo.");
-                } finally {
-                    btn.disabled = false;
-                    btn.innerText = "Finalizar Trámite";
-                }
-            };
+            cont.innerHTML = campos
+                .filter(c => c.v && c.v !== "" && c.v !== "S/N" && c.v !== "N/A")
+                .map(c => `<div><p class="detalle-label">${c.l}</p><p class="detalle-valor">${c.v}</p></div>`)
+                .join('');
         };
 
-        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+        window.prepararSubida = (id, folio) => { 
+            idActual = id; folioActual = folio; 
+            document.getElementById('txtFolioFinal').innerText = "Trámite: " + folio;
+            document.getElementById('modalSubir').classList.remove('hidden'); 
+        };
+        
+        document.getElementById('btnGuardarFinal').onclick = async () => {
+            const file = document.getElementById('archivoFinalInput').files[0];
+            if (!file) return alert("Por favor selecciona el archivo de respuesta.");
+            const btn = document.getElementById('btnGuardarFinal');
+            btn.innerText = "PROCESANDO..."; btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', UPLOAD_PRESET);
+
+            try {
+                const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const d = await r.json();
+                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
+                alert("Trámite finalizado. El cliente ya puede descargar su archivo.");
+                cerrarSubida();
+            } catch(e) { alert("Error al subir archivo"); } 
+            finally { btn.innerText = "Subir y Notificar"; btn.disabled = false; }
+        };
+
+        window.cerrarDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
+        window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
     </script>
 </body>
 </html>
