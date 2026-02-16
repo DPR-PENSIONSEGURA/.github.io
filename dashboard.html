@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Asesores | DPR Consultoría</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --azul: #003366; --dorado: #C5A059; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        .saldo-box { background: var(--azul); color: white; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .monto { font-size: 2rem; color: var(--dorado); font-weight: bold; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 14px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>Bienvenido al Panel</h2>
+        <div id="user-email" style="color: #666; margin-bottom: 10px;">Cargando...</div>
+        
+        <div class="saldo-box">
+            <div>Tu Saldo Disponible</div>
+            <div class="monto" id="saldo-display">$0.00</div>
+        </div>
+
+        <hr>
+        
+        <h3>Notificar Depósito</h3>
+        <p style="font-size: 0.8rem;">Ingresa el monto y la clave de rastreo (Banorte) o autorización (OXXO).</p>
+        <input type="number" id="monto" placeholder="Monto (ej. 295)">
+        <input type="text" id="rastreo" placeholder="Clave de Rastreo o Autorización">
+        <button onclick="enviarReporte()">Notificar Pago</button>
+        <div id="msg" style="margin-top: 10px;"></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+      authDomain: "pensionsegura-9c817.firebaseapp.com",
+      projectId: "pensionsegura-9c817",
+      storageBucket: "pensionsegura-9c817.firebasestorage.app",
+      messagingSenderId: "169500313261",
+      appId: "1:169500313261:web:15e2b662571df505d36824"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Verificar sesión y cargar datos
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('user-email').innerText = user.email;
+            cargarSaldo(user.uid);
+        } else {
+            window.location.href = "login/index.html";
+        }
+    });
+
+    function cargarSaldo(uid) {
+        db.collection("asesores").doc(uid).onSnapshot((doc) => {
+            if (doc.exists) {
+                document.getElementById('saldo-display').innerText = "$" + doc.data().saldo.toFixed(2);
+            } else {
+                db.collection("asesores").doc(uid).set({ saldo: 0, email: auth.currentUser.email });
+            }
+        });
+    }
+
+    function enviarReporte() {
+        const monto = document.getElementById('monto').value;
+        const rastreo = document.getElementById('rastreo').value;
+        if(!monto || !rastreo) return alert("Llena todos los campos");
+
+        db.collection("notificaciones_pago").add({
+            email: auth.currentUser.email,
+            uid: auth.currentUser.uid,
+            monto: parseFloat(monto),
+            rastreo: rastreo.trim(),
+            fecha: firebase.firestore.FieldValue.serverTimestamp(),
+            estatus: "pendiente"
+        }).then(() => {
+            document.getElementById('msg').innerText = "Reporte enviado. Validando con Banorte...";
+            document.getElementById('monto').value = "";
+            document.getElementById('rastreo').value = "";
+        });
+    }
+</script>
+</body>
+</html>
