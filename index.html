@@ -112,7 +112,7 @@
             </div>
         `;
 
-        window.abrirModal = (tipo) => {
+window.abrirModal = (tipo) => {
             const modal = document.getElementById('modalBase');
             const contenido = document.getElementById('contenidoModal');
             document.body.classList.add('modal-active');
@@ -131,7 +131,6 @@
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-slate-900 italic">Inscripción Modalidad 10</h2>
                     <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2 italic">Aviso: DPR Consultoría solo realiza la inscripción.</p>
-                     <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2 italic">Costo $200.</p>
                     ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         <input type="text" id="nombre_M10" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
@@ -149,8 +148,6 @@
                         <input type="tel" id="tel_M10" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="file" id="file_M10" class="block w-full text-xs">
                     </div>
-                    <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
-            </div>
                     <button id="btn_M10" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar Trámite</button>
                     <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_M10"></span></div>
                 `;
@@ -171,8 +168,6 @@
                         </select>
                         <input type="file" id="file_INF" class="block w-full text-xs">
                     </div>
-                     <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
-            </div>
                     <button id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-6">Solicitar</button>
                     <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_INF"></span></div>
                 `;
@@ -192,8 +187,6 @@
                         <input type="tel" id="tel_D" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
                         <input type="file" id="file_D" class="block w-full text-xs">
                     </div>
-                     <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
-            </div>
                     <button id="btn_D" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar</button>
                     <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_D"></span></div>
                 `;
@@ -207,22 +200,16 @@
                     <div class="space-y-3">
                         <input type="text" id="curp_DOC" placeholder="INGRESA TU CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">
                         <select id="extra_DOC" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black italic uppercase text-xs">
-                         option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
-                           // <option value="Semanas Cotizadas">Constancia de Semanas Cotizadas</option>
-                            <option value="Acta de Matrimonio">Acta de Matrimonio</option>
-                            <option value="Acta de Nacimiento">Acta de Nacimiento</option>
-                            <option value="Acta de Defunción">Acta de Defunción</option>
-                            <option value="Acta de divorcio">Acta de Divorcio</option>
-                             <option value="Vigencia de Derechos">Constancia de Vigencia de Derechos</option>
-                            <option value="Localización de NSS">Localización de NSS</option>
+                            <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
+                            <option value="Semanas Cotizadas">Constancia de Semanas Cotizadas</option>
+                            <option value="Vigencia de Derechos">Constancia de Vigencia de Derechos</option>
+                            <option value="Localización de NSS">Asignación o Localización de NSS</option>
                             <option value="Estado de Cuenta AFORE">Resumen de Estado de Cuenta AFORE</option>
                         </select>
                         <input type="file" id="file_DOC" class="mt-2 block w-full text-[10px] font-bold text-slate-400">
                     </div>
-                     <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
-            </div>
-                    <button id="btn_DOC" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar Solicitud</button>
-                    <div id="exito_DOC" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_DOC"></span></div>
+                    <button id="btn_DOC" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl hover:bg-blue-700 transition">Enviar Solicitud</button>
+                    <div id="exito_DOC" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Tu folio es: <span id="folio_DOC"></span></div>
                 `;
                 document.getElementById('btn_DOC').onclick = () => ejecutarEnvio('DOC');
             }
@@ -234,32 +221,27 @@
                 };
                 const c = configs[tipo];
                 if (!c) return;
-
-                // Definimos si es un trámite simplificado (solo CURP)
-                const esSimplificado = (tipo === 'modalRFC' || tipo === 'modalCSF');
+                
+                // Si es RFC o CSF, no pedimos nombre ni tel
+                const simplificado = (tipo === 'modalRFC' || tipo === 'modalCSF');
 
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-${c.color} italic">${c.titulo}</h2>
-                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio} MXN</p>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
                     ${HTML_PAGO_BANORTE}
-                    <div class="space-y-3">
-                        ${!esSimplificado ? `<input type="text" id="nombre_${c.prefix}" placeholder="NOMBRE COMPLETO" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">` : ''}
-                        
-                        <input type="text" id="curp_${c.prefix}" placeholder="INGRESA TU CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">
-                        
-                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 DÍGITOS)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase" maxlength="11">` : ''}
-                        
-                        ${!esSimplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WHATSAPP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">` : ''}
-                        
-                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase italic">Adjunta tu comprobante de pago:</label>
-                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-[10px] font-bold text-slate-400">
+                    <div class="space-y-2">
+                        ${!simplificado ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
+                        ${!simplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
                     </div>
-                     <p class="text-[11px] font-bold uppercase italic">ADJUNTA TU COMPROBANTE DE PAGO</p>
-            </div>
-                    <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl hover:opacity-90 transition">Enviar Solicitud</button>
+                    <button id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
                     <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
                 `;
                 document.getElementById(`btn_${c.prefix}`).onclick = () => ejecutarEnvio(c.prefix);
+            }
+        };
             }
         };     
         async function ejecutarEnvio(prefix) {
@@ -356,6 +338,7 @@
     </script>
 </body>
 </html>
+
 
 
 
