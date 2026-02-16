@@ -3,44 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría - Pensiones e IMSS</title>
+    <title>DPR Consultoría | Pensiones e Infonavit</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
+        .modal-active { overflow: hidden; }
+        .service-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; }
+        .banorte-box {
+            background-color: #EB0029; 
+            color: white;
+            padding: 1.25rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2);
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body class="text-slate-900">
 
-    <section class="max-w-lg mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg">
-        <h2 class="text-2xl font-bold text-blue-800 mb-4">Solicitud de Asesoría</h2>
-        <p class="text-sm text-gray-600 mb-6">Completa tus datos para iniciar tu análisis de pensión.</p>
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
+            </div>
+            <nav class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600">¿Quiénes Somos?</button>
+                <button onclick="window.open('https://tu-blog-aqui.com', '_blank')" class="bg-slate-900 text-white px-3 py-1 rounded">BLOG</button>
+            </nav>
+        </div>
+    </header>
 
-        <form id="formSolicitud" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium">Nombre Completo</label>
-                <input type="text" id="nombre" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium">WhatsApp / Teléfono</label>
-                <input type="tel" id="telefono" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium">Servicio de Interés</label>
-                <select id="servicio" class="w-full p-2 border rounded-md">
-                    <option value="Analisis Rápido">Análisis Rápido ($200)</option>
-                    <option value="Proyección de Pensión">Proyección de Pensión</option>
-                    <option value="Corrección de Datos">Corrección de Datos</option>
-                </select>
-            </div>
-            <button type="submit" id="btnEnviar" class="w-full bg-blue-700 text-white py-3 rounded-md font-bold hover:bg-blue-800 transition">
-                Enviar Solicitud
-            </button>
-        </form>
-        <p id="mensajeExito" class="hidden mt-4 text-green-600 font-medium text-center">¡Datos enviados con éxito!</p>
+    <section class="pt-16 pb-8 px-6 text-center text-white">
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
+        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50">Consultar Estatus</button>
     </section>
+
+    <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🔍</span>
+            <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis</p>
+        </button>
+
+        <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">⚡</span>
+            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Rápido</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
+        </button>
+
+        <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📊</span>
+            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Detallado</h3>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$800 MXN</p>
+        </button>
+
+        <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">🏠</span>
+            <h3 class="font-black text-xl uppercase italic">Precalificación Infonavit</h3>
+            <p class="text-red-200 font-bold text-[10px] mb-4 uppercase">$210 MXN</p>
+        </button>
+
+        <button onclick="abrirModal('modalM10')" class="service-card bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-sm text-left">
+            <span class="text-3xl mb-4 block">💼</span>
+            <h3 class="font-black text-xl uppercase italic"> Inscripción Modalidad 10</h3>
+            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">$200</p>
+        </button>
+
+        <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🆔</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
+        </button>
+
+        <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📜</span>
+            <h3 class="font-black text-xl uppercase italic">CSF Original</h3>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$230 MXN</p>
+        </button>
+
+        <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">📄</span>
+            <h3 class="font-black text-xl uppercase italic">Documentos</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$15 MXN</p>
+        </button>
+    </main>
+
+    <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">×</button>
+            <div id="contenidoModal"></div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
-        // CONFIGURACIÓN DE TU PROYECTO (Copia esto de tu consola de Firebase)
+        // CONFIGURACIÓN DE TU PROYECTO (Diana, pon aquí tus datos de la consola)
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
             authDomain: "TU_PROYECTO.firebaseapp.com",
@@ -52,34 +116,149 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
-        // LÓGICA DEL FORMULARIO
-        const form = document.getElementById('formSolicitud');
-        
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnEnviar');
-            btn.disabled = true;
-            btn.innerText = "Enviando...";
+        const HTML_PAGO_BANORTE = `
+            <div class="banorte-box">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Datos de Transferencia</p>
+                <p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p>
+                <p class="text-[11px] font-bold uppercase italic">Banorte | DPR Consultoría</p>
+            </div>
+        `;
 
-            try {
-                await addDoc(collection(db, "solicitudes"), {
-                    nombre: document.getElementById('nombre').value,
-                    telefono: document.getElementById('telefono').value,
-                    servicio: document.getElementById('servicio').value,
-                    estatus: "Pendiente",
-                    fecha: serverTimestamp() // ESTO GUARDA HORA Y SEGUNDO EXACTO
-                });
+        // Funciones Globales para que los botones onclick sigan funcionando
+        window.abrirModal = (tipo) => {
+            const modal = document.getElementById('modalBase');
+            const contenido = document.getElementById('contenidoModal');
+            document.body.classList.add('modal-active');
+            modal.classList.remove('hidden');
+            contenido.innerHTML = "";
 
-                form.reset();
-                document.getElementById('mensajeExito').classList.remove('hidden');
-                btn.innerText = "Enviar Solicitud";
-                btn.disabled = false;
-            } catch (error) {
-                console.error("Error al enviar:", error);
-                alert("Hubo un error al enviar los datos.");
+            if (tipo === 'modalEstatus') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2><input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2"><button id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Consultar</button><div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>`;
+                document.getElementById('btnBus').onclick = buscarEstatus;
+            } 
+            else if (tipo === 'modalLey') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button id="btnVerificar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+                document.getElementById('btnVerificar').onclick = verificarLey;
             }
-        });
+            // ... (Aquí irían el resto de tus condicionales de modal: M10, Infonavit, etc.)
+            // PARA EL EJEMPLO ACTUALIZADO USAMOS LA LÓGICA DE TU ÚLTIMO CÓDIGO PERO ENVIANDO A FIREBASE
+            else if (tipo === 'modalRapido' || tipo === 'modalDetallado' || tipo === 'modalInfonavit' || tipo === 'modalM10' || tipo === 'modalRFC' || tipo === 'modalCSF' || tipo === 'modalDocs') {
+                const configs = {
+                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
+                    'modalDetallado': { titulo: 'Análisis Detallado', precio: '$800', prefix: 'D', color: 'blue-600' },
+                    'modalInfonavit': { titulo: 'Precalificación Infonavit', precio: '$210', prefix: 'INF', color: 'red-600' },
+                    'modalM10': { titulo: 'Inscripción Modalidad 10', precio: '$200', prefix: 'M10', color: 'slate-900' },
+                    'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
+                    'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800' },
+                    'modalDocs': { titulo: 'Documentos', precio: '$15', prefix: 'DOC', color: 'blue-600' }
+                };
+                const c = configs[tipo];
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-${c.color}">${c.titulo}</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${c.precio}</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-2">
+                        <input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
+                    </div>
+                    <button id="btn_${c.prefix}" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar Trámite</button>
+                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
+                `;
+                document.getElementById(`btn_${c.prefix}`).onclick = () => ejecutarEnvio(c.prefix);
+            }
+        };
+
+        async function ejecutarEnvio(prefix) {
+            const btn = document.getElementById(`btn_${prefix}`);
+            const fileInput = document.getElementById(`file_${prefix}`);
+            if (!fileInput.files[0]) return alert("Sube tu comprobante de pago.");
+
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async () => {
+                const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+                
+                try {
+                    // 1. Subir archivo a Firebase Storage
+                    const storageRef = ref(storage, `comprobantes/${folio}_${fileInput.files[0].name}`);
+                    await uploadString(storageRef, reader.result, 'data_url');
+                    const fileUrl = await getDownloadURL(storageRef);
+
+                    // 2. Guardar datos en Firestore con HORA Y SEGUNDO EXACTO
+                    await addDoc(collection(db, "solicitudes"), {
+                        folio: folio,
+                        nombre: document.getElementById(`nombre_${prefix}`)?.value || "S/N",
+                        curp: document.getElementById(`curp_${prefix}`)?.value || "S/C",
+                        tel: document.getElementById(`tel_${prefix}`)?.value || "S/T",
+                        comprobante: fileUrl,
+                        estatus: "En Proceso",
+                        tipo: prefix,
+                        fecha: serverTimestamp()
+                    });
+
+                    document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                    document.getElementById(`folio_${prefix}`).innerText = folio;
+                    btn.innerText = "¡LISTO!";
+                } catch(e) {
+                    console.error(e);
+                    alert("Error al enviar.");
+                    btn.disabled = false;
+                    btn.innerText = "Reintentar";
+                }
+            };
+        }
+
+        async function buscarEstatus() {
+            const f = document.getElementById('folioBusqueda').value.trim();
+            const res = document.getElementById('resBus');
+            if(!f) return alert("Ingresa un folio");
+            
+            res.classList.remove('hidden');
+            res.innerText = "BUSCANDO...";
+
+            const q = query(collection(db, "solicitudes"), where("folio", "==", f));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                res.innerText = "Folio no encontrado";
+                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700";
+            } else {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.archivoFinal) {
+                        res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm">📥 DESCARGAR RESULTADO</a>`;
+                    } else {
+                        res.innerText = "ESTATUS: " + data.estatus;
+                        res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700";
+                    }
+                });
+            }
+        }
+
+        function verificarLey() {
+            const anio = document.getElementById('anioLey').value;
+            const res = document.getElementById('resLey');
+            res.classList.remove('hidden');
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700"; 
+                res.innerHTML = "¡ERES LEY 73! MODALIDAD 40 ES TU ALIADO."; 
+            } else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700"; 
+                res.innerHTML = "¡ERES LEY 97! PLANEA TU RETIRO."; 
+            }
+        }
+
+        window.cerrarModal = () => { 
+            document.getElementById('modalBase').classList.add('hidden'); 
+            document.body.classList.remove('modal-active'); 
+        }
     </script>
 </body>
 </html>
