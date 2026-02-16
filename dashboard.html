@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Executive Panel</title>
+    <title>DPR Consultoría | Panel de Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .executive-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .executive-card:hover { border-color: #C5A059; transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .modal-blur { backdrop-filter: blur(12px); }
+        .executive-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s ease; cursor: pointer; }
+        .executive-card:hover { border-color: #C5A059; transform: translateY(-5px); }
+        .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
+        .input-dark:focus { border-color: #C5A059; }
         .gold-text { color: #C5A059; }
-        .btn-gold { background: #C5A059; color: #0F172A; transition: all 0.3s ease; }
-        .btn-gold:hover { background: #F1D299; transform: scale(1.02); }
     </style>
 </head>
 <body class="text-slate-200">
@@ -22,86 +21,70 @@
     <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
         <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="gold-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900 shadow-lg shadow-yellow-600/20">DP</div>
+                <div class="gold-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900">DP</div>
                 <h1 class="font-black uppercase tracking-tighter text-xl text-white">DPR <span class="gold-text italic">Consultoría</span></h1>
             </div>
-            <div class="flex items-center gap-6">
-                <button onclick="abrirModal('modalSaldo')" class="group flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 hover:border-gold-dpr transition">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-gold-dpr">Mi Saldo:</span>
+            <div class="flex items-center gap-4">
+                <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2">
+                    <span class="text-[10px] font-black uppercase text-slate-400">Saldo:</span>
                     <span id="txtSaldoHeader" class="font-black text-white">$0.00</span>
                 </button>
-                <button onclick="cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 hover:text-red-400 tracking-widest">Cerrar Sesión</button>
+                <button onclick="auth.signOut()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
             </div>
         </div>
     </header>
 
-    <section class="py-16 px-6 text-center">
-        <p class="text-[10px] font-black uppercase tracking-[0.5em] gold-text mb-4">Executive Dashboard</p>
-        <h2 class="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white uppercase italic">Gestión de <br><span class="opacity-50">Servicios Premium.</span></h2>
-    </section>
-
-    <main class="p-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-20">
+    <main class="p-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        <button onclick="abrirFormulario('SC', 'Semanas Cotizadas', 50)" class="executive-card p-8 rounded-[2rem] text-left">
-            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🔍</div>
-            <h3 class="font-black text-lg uppercase italic text-white mb-1">Semanas Cotizadas</h3>
-            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$50.00 MXN</p>
-        </button>
+        <div onclick="prepararTramite('SC')" class="executive-card p-6 rounded-[2rem]">
+            <span class="text-3xl block mb-4">📄</span>
+            <h3 class="font-black text-lg uppercase italic text-white">Semanas Cotizadas</h3>
+            <p class="text-[10px] font-black gold-text uppercase mt-1">$50.00 MXN</p>
+        </div>
 
-        <button onclick="abrirFormulario('VD', 'Vigencia de Derechos', 50)" class="executive-card p-8 rounded-[2rem] text-left">
-            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🛡️</div>
-            <h3 class="font-black text-lg uppercase italic text-white mb-1">Vigencia de Derechos</h3>
-            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$50.00 MXN</p>
-        </button>
+        <div onclick="prepararTramite('VD')" class="executive-card p-6 rounded-[2rem]">
+            <span class="text-3xl block mb-4">🛡️</span>
+            <h3 class="font-black text-lg uppercase italic text-white">Vigencia de Derechos</h3>
+            <p class="text-[10px] font-black gold-text uppercase mt-1">$50.00 MXN</p>
+        </div>
 
-        <button onclick="abrirFormulario('AFORE', 'Estado de Cuenta AFORE', 100)" class="executive-card p-8 rounded-[2rem] text-left">
-            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🏦</div>
-            <h3 class="font-black text-lg uppercase italic text-white mb-1">Estatus AFORE</h3>
-            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$100.00 MXN</p>
-        </button>
+        <div onclick="prepararTramite('INF')" class="executive-card p-6 rounded-[2rem]">
+            <span class="text-3xl block mb-4">🏠</span>
+            <h3 class="font-black text-lg uppercase italic text-white">Infonavit</h3>
+            <p class="text-[10px] font-black gold-text uppercase mt-1">$210.00 MXN</p>
+        </div>
 
-        <button onclick="abrirFormulario('INF', 'Precalificación Infonavit', 210)" class="executive-card p-8 rounded-[2rem] text-left">
-            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🏠</div>
-            <h3 class="font-black text-lg uppercase italic text-white mb-1">Infonavit</h3>
-            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$210.00 MXN</p>
-        </button>
+        <div onclick="prepararTramite('AFORE')" class="executive-card p-6 rounded-[2rem]">
+            <span class="text-3xl block mb-4">🏦</span>
+            <h3 class="font-black text-lg uppercase italic text-white">Estado de Cuenta AFORE</h3>
+            <p class="text-[10px] font-black gold-text uppercase mt-1">$100.00 MXN</p>
+        </div>
 
     </main>
 
-    <div id="modalBase" class="fixed inset-0 bg-slate-950/90 modal-blur hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 hover:text-white text-3xl font-light">×</button>
-            <div id="contenidoModal"></div>
+    <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
+            <div id="formContent"></div>
         </div>
     </div>
 
-    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 modal-blur hidden z-50 flex items-center justify-center p-4">
-        <div class="gold-gradient w-full max-w-md rounded-[3rem] p-1 shadow-[0_0_50px_rgba(197,160,89,0.3)]">
-            <div class="bg-slate-900 w-full h-full rounded-[2.9rem] p-10 relative">
-                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 hover:text-white text-3xl font-light">×</button>
-                
-                <p class="text-[10px] font-black uppercase tracking-[0.3em] gold-text text-center mb-2">Bóveda DPR</p>
-                <h2 class="text-3xl font-black text-white text-center mb-8 uppercase italic">Gestión de Fondos</h2>
-
-                <div class="bg-slate-800/50 rounded-3xl p-6 text-center border border-white/5 mb-8">
-                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Saldo Actual</p>
-                    <p id="txtSaldoGrande" class="text-5xl font-black text-white tracking-tighter">$0.00</p>
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[2px]">
+            <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
+                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
+                <h2 class="text-2xl font-black text-white text-center mb-6 uppercase italic">Bóveda de Saldo</h2>
+                <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
+                    <p id="txtSaldoGrande" class="text-4xl font-black text-white">$0.00</p>
                 </div>
-
-                <div class="space-y-4">
-                    <div class="bg-white p-6 rounded-3xl text-center">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cuenta Banorte</p>
-                        <p class="text-xl font-black text-red-600 tracking-tighter">4915 6630 4036 4896</p>
-                        <p class="text-[9px] font-bold text-slate-500 uppercase mt-1">Diana Puente Rodríguez</p>
-                    </div>
-
-                    <div class="bg-slate-800/50 p-6 rounded-3xl">
-                        <p class="text-[10px] font-black uppercase text-slate-400 mb-4">Notificar Depósito (Mín. $200)</p>
-                        <input type="number" id="montoDep" placeholder="Monto" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl mb-3 text-white">
-                        <input type="text" id="refDep" placeholder="Referencia / Rastreo" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl mb-4 text-white uppercase text-sm">
-                        <button onclick="notificarPago()" class="w-full btn-gold py-4 rounded-2xl font-black uppercase italic shadow-lg">Cargar Saldo</button>
-                    </div>
+                <div class="bg-white p-4 rounded-2xl text-center mb-6">
+                    <p class="text-[10px] font-black text-slate-400 uppercase">Banorte</p>
+                    <p class="text-xl font-black text-red-600">4915 6630 4036 4896</p>
                 </div>
+                <input type="number" id="depMonto" placeholder="Monto" class="input-dark mb-3">
+                <input type="text" id="depRef" placeholder="Rastreo / Autorización" class="input-dark mb-4 uppercase">
+                <button onclick="notificarPago()" class="w-full bg-[#C5A059] py-4 rounded-2xl font-black uppercase italic text-slate-900">Informar Depósito</button>
             </div>
         </div>
     </div>
@@ -124,112 +107,106 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let userUID = "";
         let saldoGlobal = 0;
+        let userUID = "";
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userUID = user.uid;
-                escucharSaldo();
-            } else {
-                window.location.href = "login/index.html";
-            }
+                onSnapshot(doc(db, "asesores", userUID), (doc) => {
+                    if (doc.exists()) {
+                        saldoGlobal = doc.data().saldo || 0;
+                        const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
+                        document.getElementById('txtSaldoHeader').innerText = fmt;
+                        document.getElementById('txtSaldoGrande').innerText = fmt;
+                    }
+                });
+            } else { window.location.href = "login/index.html"; }
         });
 
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (doc) => {
-                if (doc.exists()) {
-                    saldoGlobal = doc.data().saldo || 0;
-                    const formatted = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
-                    document.getElementById('txtSaldoHeader').innerText = formatted;
-                    document.getElementById('txtSaldoGrande').innerText = formatted;
-                }
-            });
-        }
-
-        window.abrirModal = (id) => {
-            document.getElementById(id).classList.remove('hidden');
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => {
+            document.getElementById('modalTramite').classList.add('hidden');
+            document.getElementById('modalSaldo').classList.add('hidden');
         };
 
-        window.abrirFormulario = (idServicio, nombreServicio, costo) => {
-            const contenido = document.getElementById('contenidoModal');
-            contenido.innerHTML = `
-                <p class="text-[10px] font-black gold-text uppercase tracking-widest mb-2">Solicitud Ejecutiva</p>
-                <h2 class="text-3xl font-black text-white uppercase italic mb-6">${nombreServicio}</h2>
-                <div class="bg-slate-800 p-4 rounded-2xl mb-6 flex justify-between items-center">
-                    <span class="text-slate-400 text-xs font-bold uppercase">Costo del servicio:</span>
-                    <span class="text-white font-black">$${costo}.00</span>
-                </div>
+        window.prepararTramite = (tipo) => {
+            const content = document.getElementById('formContent');
+            let formHTML = `
+                <h2 class="text-3xl font-black text-white uppercase italic mb-6">${getNombre(tipo)}</h2>
                 <div class="space-y-4">
-                    <input type="text" id="curpPed" placeholder="CURP DEL CLIENTE" class="w-full bg-slate-800 border-none p-4 rounded-2xl text-white font-black uppercase tracking-widest focus:ring-2 focus:ring-yellow-600">
-                    <textarea id="notaPed" placeholder="Notas adicionales (opcional)" class="w-full bg-slate-800 border-none p-4 rounded-2xl text-white text-sm h-24"></textarea>
-                    <button id="btnEjecutar" onclick="procesarTramite('${idServicio}', ${costo})" class="w-full btn-gold py-5 rounded-[1.5rem] font-black uppercase italic shadow-xl">Confirmar Solicitud</button>
+                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black tracking-widest">
+                    <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark" maxlength="11">
+            `;
+
+            if (tipo === 'INF') {
+                formHTML += `
+                    <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Fecha de Nacimiento:</label>
+                    <input type="date" id="nac_p" class="input-dark">
+                    <select id="linea_p" class="input-dark font-bold">
+                        <option value="Linea II">Línea II</option>
+                        <option value="Mejoravit">Mejoravit</option>
+                    </select>
+                `;
+            }
+
+            formHTML += `
+                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
+                    <button onclick="confirmarCompra('${tipo}', ${getCosto(tipo)})" class="w-full bg-[#C5A059] py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">
+                        Pagar y Solicitar ($${getCosto(tipo)}.00)
+                    </button>
                 </div>
             `;
-            abrirModal('modalBase');
+            content.innerHTML = formHTML;
+            abrirModal('modalTramite');
         };
 
-        window.procesarTramite = async (id, costo) => {
-            const curp = document.getElementById('curpPed').value.trim();
-            const btn = document.getElementById('btnEjecutar');
+        window.confirmarCompra = async (tipo, costo) => {
+            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p').value;
+            if (curp.length < 10) return alert("CURP inválido.");
 
-            if (curp.length < 10) return alert("Por favor, ingrese un CURP válido.");
-            if (saldoGlobal < costo) return alert("Saldo insuficiente en su bóveda. Por favor, realice una recarga.");
-
-            btn.disabled = true;
-            btn.innerText = "PROCESANDO PAGO...";
-
-            try {
-                // 1. Descontar Saldo
-                await updateDoc(doc(db, "asesores", userUID), {
-                    saldo: saldoGlobal - costo
-                });
-
-                // 2. Crear Registro de Pedido
-                await addDoc(collection(db, "pedidos_servicios"), {
-                    asesor: auth.currentUser.email,
-                    uid: userUID,
-                    servicio: id,
-                    curp: curp,
-                    costo: costo,
-                    fecha: serverTimestamp(),
-                    estatus: "Pagado / En Proceso"
-                });
-
-                alert("Transacción Exitosa. Su solicitud está siendo procesada.");
-                cerrarModal();
-            } catch (e) {
-                console.error(e);
-                alert("Error en la conexión.");
-                btn.disabled = false;
+            if (confirm(`Se descontarán $${costo}.00 de tu saldo. ¿Confirmar?`)) {
+                try {
+                    await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                    await addDoc(collection(db, "pedidos_servicios"), {
+                        asesor: auth.currentUser.email,
+                        tipo: tipo,
+                        curp: curp,
+                        nss: document.getElementById('nss_p').value,
+                        nacimiento: document.getElementById('nac_p')?.value || "",
+                        linea: document.getElementById('linea_p')?.value || "",
+                        nota: document.getElementById('nota_p').value,
+                        fecha: serverTimestamp(),
+                        estatus: "Pagado"
+                    });
+                    alert("Solicitud procesada con éxito.");
+                    cerrarModal();
+                } catch (e) { alert("Error al procesar."); }
             }
         };
 
         window.notificarPago = async () => {
-            const monto = parseFloat(document.getElementById('montoDep').value);
-            const ref = document.getElementById('refDep').value.trim();
-
-            if (monto < 200) return alert("El monto mínimo es de $200.00 MXN");
-            if (!ref) return alert("Ingrese el número de rastreo.");
-
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('depRef').value;
+            if (m < 200 || !r) return alert("Verifica los datos (Mín. $200)");
             await addDoc(collection(db, "notificaciones_pago"), {
                 email: auth.currentUser.email,
-                monto: monto,
-                rastreo: ref,
+                monto: m,
+                rastreo: r,
                 fecha: serverTimestamp(),
                 estatus: "pendiente"
             });
-
-            alert("Reporte enviado a tesorería. Se abonará a su cuenta tras la validación.");
+            alert("Reporte enviado.");
             cerrarModal();
         };
 
-        window.cerrarModal = () => {
-            document.getElementById('modalBase').classList.add('hidden');
-            document.getElementById('modalSaldo').classList.add('hidden');
-        };
-
-        window.cerrarSesion = () => signOut(auth);
+        function getNombre(t) {
+            return {SC:'Semanas Cotizadas', VD:'Vigencia de Derechos', INF:'Infonavit', AFORE:'Estado AFORE'}[t];
+        }
+        function getCosto(t) {
+            return {SC:50, VD:50, INF:210, AFORE:100}[t];
+        }
     </script>
 </body>
 </html>
