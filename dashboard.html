@@ -3,209 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control | DPR Consultoría</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+    <title>DPR Consultoría | Executive Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --azul: #003366; --dorado: #C5A059; --rojo: #EB0029; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        
-        nav { background: var(--azul); color: white; padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; }
-        
-        .container { max-width: 1000px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .full-width { grid-column: 1 / -1; }
-
-        /* Estilo Banorte */
-        .banorte-banner { border: 2px solid var(--rojo); text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-        .cuenta { font-size: 1.8rem; font-weight: bold; color: var(--rojo); display: block; margin: 10px 0; }
-
-        /* Saldo */
-        .saldo-display { font-size: 2.5rem; color: var(--azul); font-weight: bold; text-align: center; margin: 10px 0; }
-
-        /* Tabla de Servicios */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; background: #f8f9fa; padding: 10px; border-bottom: 2px solid #ddd; }
-        td { padding: 12px 10px; border-bottom: 1px solid #eee; }
-        
-        .btn-comprar { background: var(--azul); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-comprar:disabled { background: #ccc; cursor: not-allowed; }
-
-        .form-group { margin-bottom: 10px; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        
-        .alert { background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; font-size: 0.85rem; margin-bottom: 15px; }
-        
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; scroll-behavior: smooth; }
+        .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
+        .executive-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .executive-card:hover { border-color: #C5A059; transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .modal-blur { backdrop-filter: blur(12px); }
+        .gold-text { color: #C5A059; }
+        .btn-gold { background: #C5A059; color: #0F172A; transition: all 0.3s ease; }
+        .btn-gold:hover { background: #F1D299; transform: scale(1.02); }
     </style>
 </head>
-<body>
+<body class="text-slate-200">
 
-<nav>
-    <div style="font-weight: bold; font-size: 1.2rem;">DPR Consultoría</div>
-    <div id="user-display">Cargando...</div>
-    <button onclick="auth.signOut()" style="background:none; border:1px solid white; color:white; cursor:pointer; padding:5px 10px; border-radius:5px;">Salir</button>
-</nav>
-
-<div class="container">
-    
-    <div class="card">
-        <div class="banorte-banner">
-            <h3 style="color:var(--rojo); margin:0;">DEPÓSITOS BANORTE</h3>
-            <span class="cuenta">4915 6630 4036 4896</span>
-            <small>Titular: DIANA PUENTE RODRIGUEZ</small>
+    <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="gold-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900 shadow-lg shadow-yellow-600/20">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-xl text-white">DPR <span class="gold-text italic">Consultoría</span></h1>
+            </div>
+            <div class="flex items-center gap-6">
+                <button onclick="abrirModal('modalSaldo')" class="group flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full border border-slate-700 hover:border-gold-dpr transition">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-gold-dpr">Mi Saldo:</span>
+                    <span id="txtSaldoHeader" class="font-black text-white">$0.00</span>
+                </button>
+                <button onclick="cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 hover:text-red-400 tracking-widest">Cerrar Sesión</button>
+            </div>
         </div>
+    </header>
 
-        <div style="text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
-            <span style="color: #666; text-transform: uppercase; font-size: 0.8rem;">Tu Saldo Disponible</span>
-            <div class="saldo-display" id="saldo-txt">$0.00</div>
+    <section class="py-16 px-6 text-center">
+        <p class="text-[10px] font-black uppercase tracking-[0.5em] gold-text mb-4">Executive Dashboard</p>
+        <h2 class="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white uppercase italic">Gestión de <br><span class="opacity-50">Servicios Premium.</span></h2>
+    </section>
+
+    <main class="p-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-20">
+        
+        <button onclick="abrirFormulario('SC', 'Semanas Cotizadas', 50)" class="executive-card p-8 rounded-[2rem] text-left">
+            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🔍</div>
+            <h3 class="font-black text-lg uppercase italic text-white mb-1">Semanas Cotizadas</h3>
+            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$50.00 MXN</p>
+        </button>
+
+        <button onclick="abrirFormulario('VD', 'Vigencia de Derechos', 50)" class="executive-card p-8 rounded-[2rem] text-left">
+            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🛡️</div>
+            <h3 class="font-black text-lg uppercase italic text-white mb-1">Vigencia de Derechos</h3>
+            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$50.00 MXN</p>
+        </button>
+
+        <button onclick="abrirFormulario('AFORE', 'Estado de Cuenta AFORE', 100)" class="executive-card p-8 rounded-[2rem] text-left">
+            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🏦</div>
+            <h3 class="font-black text-lg uppercase italic text-white mb-1">Estatus AFORE</h3>
+            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$100.00 MXN</p>
+        </button>
+
+        <button onclick="abrirFormulario('INF', 'Precalificación Infonavit', 210)" class="executive-card p-8 rounded-[2rem] text-left">
+            <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-2xl mb-6">🏠</div>
+            <h3 class="font-black text-lg uppercase italic text-white mb-1">Infonavit</h3>
+            <p class="text-[10px] font-black gold-text uppercase tracking-widest">$210.00 MXN</p>
+        </button>
+
+    </main>
+
+    <div id="modalBase" class="fixed inset-0 bg-slate-950/90 modal-blur hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 hover:text-white text-3xl font-light">×</button>
+            <div id="contenidoModal"></div>
         </div>
-
-        <hr>
-
-        <h4>Notificar Recarga</h4>
-        <div class="alert">Mínimo $200.00. Montos menores no son reembolsables.</div>
-        <input type="number" id="deposito-monto" placeholder="Monto (ej. 500)" style="margin-bottom: 10px;">
-        <input type="text" id="deposito-ref" placeholder="Clave de Rastreo o Autorización">
-        <button onclick="reportarPago()" style="width:100%; background: #28a745; color:white; border:none; padding:12px; margin-top:10px; border-radius:5px; font-weight:bold; cursor:pointer;">Informar Pago</button>
-        <div id="pago-status" style="margin-top:10px; font-size: 0.8rem; text-align: center;"></div>
     </div>
 
-    <div class="card">
-        <h3>Solicitar Servicio</h3>
-        <p style="font-size: 0.9rem; color: #666;">El costo se descontará automáticamente de tu saldo.</p>
-        
-        <input type="text" id="curp-cliente" placeholder="CURP del Cliente" style="margin-bottom: 10px; font-weight:bold; border: 2px solid var(--azul);">
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Servicio</th>
-                    <th>Costo</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Semanas Cotizadas</td>
-                    <td><b>$50</b></td>
-                    <td><button class="btn-comprar" onclick="pedirServicio('Semanas Cotizadas', 50)">Pedir</button></td>
-                </tr>
-                <tr>
-                    <td>Vigencia de Derechos</td>
-                    <td><b>$50</b></td>
-                    <td><button class="btn-comprar" onclick="pedirServicio('Vigencia Derechos', 50)">Pedir</button></td>
-                </tr>
-                <tr>
-                    <td>Estado de Cuenta AFORE</td>
-                    <td><b>$100</b></td>
-                    <td><button class="btn-comprar" onclick="pedirServicio('Estado AFORE', 100)">Pedir</button></td>
-                </tr>
-                <tr>
-                    <td>Corrección de Datos</td>
-                    <td><b>$150</b></td>
-                    <td><button class="btn-comprar" onclick="pedirServicio('Corrección Datos', 150)">Pedir</button></td>
-                </tr>
-            </tbody>
-        </table>
-        <div id="servicio-status" style="margin-top:15px; font-weight:bold; color: var(--azul);"></div>
-    </div>
-
-</div>
-
-<script>
-    // Configuración Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-        authDomain: "pensionsegura-eeaff.firebaseapp.com",
-        projectId: "pensionsegura-eeaff",
-        storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-        messagingSenderId: "96463651258",
-        appId: "1:96463651258:web:cb4cf865990d9521035d83",
-        measurementId: "G-F18HTRZ4YH"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    let saldoActual = 0;
-
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            document.getElementById('user-display').innerText = user.email;
-            escucharSaldo(user.uid);
-        } else {
-            window.location.href = "login/index.html";
-        }
-    });
-
-    function escucharSaldo(uid) {
-        db.collection("asesores").doc(uid).onSnapshot((doc) => {
-            if (doc.exists) {
-                saldoActual = doc.data().saldo;
-                document.getElementById('saldo-txt').innerText = "$" + saldoActual.toFixed(2);
-            } else {
-                db.collection("asesores").doc(uid).set({ saldo: 0, email: auth.currentUser.email });
-            }
-        });
-    }
-
-    function reportarPago() {
-        const monto = parseFloat(document.getElementById('deposito-monto').value);
-        const ref = document.getElementById('deposito-ref').value;
-        if(monto < 200) return alert("Monto mínimo $200");
-        if(!ref) return alert("Ingresa la referencia");
-
-        db.collection("notificaciones_pago").add({
-            email: auth.currentUser.email,
-            uid: auth.currentUser.uid,
-            monto: monto,
-            rastreo: ref,
-            fecha: firebase.firestore.FieldValue.serverTimestamp(),
-            estatus: "pendiente"
-        }).then(() => {
-            document.getElementById('pago-status').innerText = "Reporte enviado. Esperando validación.";
-        });
-    }
-
-    function pedirServicio(nombre, costo) {
-        const curp = document.getElementById('curp-cliente').value;
-        if(curp.length < 10) return alert("Por favor ingresa un CURP válido del cliente.");
-        
-        if(saldoActual < costo) {
-            alert("Saldo insuficiente. Por favor realiza una recarga.");
-            return;
-        }
-
-        if(confirm(`¿Deseas solicitar ${nombre} por $${costo}?`)) {
-            const batch = db.batch();
-            const asesorRef = db.collection("asesores").doc(auth.currentUser.uid);
-            const pedidoRef = db.collection("pedidos_servicios").doc();
-
-            // 1. Descontar saldo
-            batch.update(asesorRef, { saldo: saldoActual - costo });
-
-            // 2. Crear pedido para Diana
-            batch.set(pedidoRef, {
-                asesor_email: auth.currentUser.email,
-                servicio: nombre,
-                costo: costo,
-                curp_cliente: curp,
-                fecha: firebase.firestore.FieldValue.serverTimestamp(),
-                estatus: "pendiente"
-            });
-
-            batch.commit().then(() => {
-                alert("Servicio solicitado con éxito. El saldo ha sido descontado.");
-                document.getElementById('curp-cliente').value = "";
-            });
-        }
-    }
-</script>
-</body>
-</html>
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 modal-blur hidden z-50 flex items-center justify-center p-4">
+        <div class="gold-gradient w-full max-w-md rounded-[3rem] p-1 shadow-[0_0_50px_rgba(197,160,89,0.3)]">
+            <div class="bg-slate-900 w-full h-full rounded-[2.9rem] p-10 relative">
+                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 hover:text-white text-3xl font-light">×</button>
+                
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] gold-text text-center mb-2">Bóveda DPR</p>
+                <h2 class="text-3xl font-
