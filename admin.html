@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | DPR Consultoría</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-100 font-['Inter'] p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-black uppercase tracking-tighter italic text-slate-800">Panel de <span class="text-blue-600">Control</span></h1>
+            <div class="bg-white px-4 py-2 rounded-xl shadow-sm border font-bold text-xs uppercase text-slate-500">
+                DPR Consultoría Admin
+            </div>
+        </header>
+
+        <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
+                            <th class="p-4 italic">Fecha / Hora (s)</th>
+                            <th class="p-4">Folio</th>
+                            <th class="p-4">Cliente / WhatsApp</th>
+                            <th class="p-4">Trámite</th>
+                            <th class="p-4 text-center">Pago</th>
+                            <th class="p-4">Estatus</th>
+                            <th class="p-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaSolicitudes" class="text-sm font-medium text-slate-700">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+            <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado Final</h2>
+            <p id="infoClienteModal" class="text-xs text-slate-500 mb-6 font-bold"></p>
+            <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Finalizar Trámite</button>
+            <button onclick="cerrarModal()" class="w-full mt-2 text-slate-400 font-bold text-xs uppercase">Cancelar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com",
+            projectId: "TU_PROYECT_ID",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "TU_ID",
+            appId: "TU_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let idActual = null;
+        let folioActual = null;
+
+        // Cargar solicitudes en tiempo real
+        const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = "";
+            
+            snapshot.forEach((d) => {
+                const item = d.data();
+                const id = d.id;
+                const fecha = item.fecha?.toDate() ? item.fecha.toDate().toLocaleString('es-MX', { hour12: false }) : 'Cargando...';
+                
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-50 hover:bg-blue-50/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 text-[11px] font-black text-slate-400 italic">${fecha}</td>
+                    <td class="p-4 font-black text-blue-600">${item.folio}</td>
+                    <td class="p-4 italic">
+                        <div class="font-black text-slate-900 uppercase">${item.nombre}</div>
+                        <a href="https://wa.me/52${item.tel}" target="_blank" class="text-green-600 text-[10px] font-bold">📲 ${item.tel}</a>
+                    </td>
+                    <td class="p-4 text-[10px] font-black uppercase">${item.tipo}</td>
+                    <td class="p-4 text-center">
+                        <a href="${item.comprobante}" target="_blank" class="bg-slate-100 p-2 rounded-lg text-lg">📄</a>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                            ${item.estatus}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        ${item.estatus !== 'Terminado' ? `<button onclick="prepararSubida('${id}', '${item.folio}', '${item.nombre}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase italic">Subir Final</button>` : '✅'}
+                    </td>
+                `;
+                tabla.appendChild(tr);
+            });
+        });
+
+        window.prepararSubida = (id, folio, nombre) => {
+            idActual = id;
+            folioActual = folio;
+            document.getElementById('infoClienteModal').innerText = `Subiendo resultado para: ${nombre} (${folio})`;
+            document.getElementById('modalSubir').classList.remove('hidden');
+        };
+
+        document.getElementById('btnGuardarFinal').onclick = async () => {
+            const fileInput = document.getElementById('archivoFinalInput');
+            if (!fileInput.files[0]) return alert("Selecciona el PDF de respuesta.");
+            
+            const btn = document.getElementById('btnGuardarFinal');
+            btn.disabled = true;
+            btn.innerText = "SUBIENDO...";
+
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async () => {
+                try {
+                    const storageRef = ref(storage, `resultados/${folioActual}_FINAL.pdf`);
+                    await uploadString(storageRef, reader.result, 'data_url');
+                    const fileUrl = await getDownloadURL(storageRef);
+
+                    await updateDoc(doc(db, "solicitudes", idActual), {
+                        archivoFinal: fileUrl,
+                        estatus: "Terminado"
+                    });
+
+                    alert("¡Trámite terminado con éxito!");
+                    cerrarModal();
+                } catch (e) {
+                    alert("Error al subir archivo.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "Finalizar Trámite";
+                }
+            };
+        };
+
+        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+    </script>
+</body>
+</html>
