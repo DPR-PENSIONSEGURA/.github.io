@@ -19,6 +19,43 @@
 </head>
 <body>
 
+    <div class="max-w-4xl mx-auto p-6">
+    <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white mb-8 shadow-2xl relative overflow-hidden">
+        <div class="relative z-10">
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Mi Saldo Disponible</p>
+            <h2 class="text-5xl font-black italic tracking-tighter">$<span id="saldoAsesor">0.00</span></h2>
+            <p class="text-[10px] mt-4 font-bold text-blue-400 uppercase">DPR Consultoría | Wallet</p>
+        </div>
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-30"></div>
+    </div>
+
+    <button onclick="document.getElementById('formRecarga').classList.toggle('hidden')" 
+            class="w-full bg-white text-slate-900 border-2 border-slate-100 py-4 rounded-2xl font-black uppercase italic tracking-widest hover:bg-slate-50 transition shadow-sm mb-6">
+        + Solicitar Recarga
+    </button>
+
+    <div id="formRecarga" class="hidden bg-white rounded-[2rem] p-8 shadow-xl border border-slate-50 mb-10">
+        <h3 class="font-black uppercase italic text-lg mb-6 text-slate-800">Nueva Recarga</h3>
+        
+        <div class="bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-xs font-bold border border-red-100">
+            Depósita a Banorte: <span class="block text-lg font-black tracking-tighter">4915 6630 4036 4896</span>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-black uppercase ml-2 text-slate-400">Monto a recargar</label>
+                <input type="number" id="montoRecarga" placeholder="Ej: 1000" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-600 outline-none font-black text-xl">
+            </div>
+            <div>
+                <label class="text-[10px] font-black uppercase ml-2 text-slate-400">Comprobante de pago (Foto/PDF)</label>
+                <input type="file" id="fileRecarga" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+            </div>
+            <button onclick="enviarSolicitudRecarga()" id="btnEnviarRecarga" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg shadow-blue-200">
+                Enviar para Aprobación
+            </button>
+        </div>
+    </div>
+</div>
     <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
         <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
