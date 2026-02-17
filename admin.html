@@ -2,257 +2,146 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Admin | DPR Consultoría</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPR Admin | Control de Bóveda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .detalle-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
-        .detalle-valor { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        .admin-table-container { background: white; border-radius: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .btn-approve { background-color: #10B981; color: white; transition: all 0.3s; }
+        .btn-approve:hover { background-color: #059669; transform: scale(1.05); }
+        .btn-reject { background-color: #EF4444; color: white; transition: all 0.3s; }
+        .btn-reject:hover { background-color: #DC2626; transform: scale(1.05); }
     </style>
 </head>
-<body class="bg-slate-100 p-4 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-black uppercase italic italic text-slate-800">Admin <span class="text-blue-600">DPR</span></h1>
-            <div class="text-[10px] font-black bg-white px-4 py-2 rounded-full shadow-sm border uppercase">Control de Solicitudes</div>
+<body class="p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-black uppercase tracking-tighter italic">Control de <span class="text-blue-600">Bóveda</span></h1>
+                <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">DPR Consultoría | Administración</p>
+            </div>
+            <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100 text-center">
+                <p class="text-[10px] font-black uppercase text-slate-400">Pendientes de Pago</p>
+                <p id="countPendientes" class="text-xl font-black text-blue-600">0</p>
+            </div>
         </header>
-<div class="p-6 bg-slate-50 min-h-screen">
-    <h2 class="text-3xl font-black uppercase italic mb-6 text-slate-800">
-        Validación de <span class="text-blue-600">Recargas</span>
-    </h2>
 
-    <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
-                    <th class="p-5">Asesor</th>
-                    <th class="p-5">Monto</th>
-                    <th class="p-5">Comprobante</th>
-                    <th class="p-5 text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tablaRecargas">
-                </tbody>
-        </table>
-    </div>
-</div>
-
-<script type="module">
-    import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    
-    const db = getFirestore();
-
-    // Escuchar recargas pendientes en tiempo real
-    const q = query(collection(db, "recargas"), where("estatus", "==", "Pendiente"));
-    
-    onSnapshot(q, (snapshot) => {
-        const tabla = document.getElementById("tablaRecargas");
-        tabla.innerHTML = "";
-
-        snapshot.forEach((recarga) => {
-            const r = recarga.data();
-            const id = recarga.id;
-
-            tabla.innerHTML += `
-                <tr class="border-b hover:bg-slate-50 transition">
-                    <td class="p-5">
-                        <p class="font-black text-slate-800">${r.asesorNombre}</p>
-                        <p class="text-xs text-slate-400">${r.asesorEmail}</p>
-                    </td>
-                    <td class="p-5 font-black text-green-600 text-lg">
-                        $${r.monto}
-                    </td>
-                    <td class="p-5">
-                        <button onclick="window.open('${r.comprobante}', '_blank')" class="group relative">
-                            <img src="${r.comprobante}" class="w-12 h-12 rounded-lg object-cover border-2 border-slate-200 group-hover:border-blue-500 transition">
-                            <span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[8px] px-1 rounded shadow">VER</span>
-                        </button>
-                    </td>
-                    <td class="p-5 text-center space-x-2">
-                        <button onclick="aprobarRecarga('${id}', '${r.asesorId}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-blue-700 transition">Aprobar</button>
-                        <button onclick="rechazarRecarga('${id}')" class="bg-red-100 text-red-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-red-200 transition">Rechazar</button>
-                    </td>
-                </tr>
-            `;
-        });
-    });
-
-    // Función para aprobar y sumar saldo
-    window.aprobarRecarga = async (docId, asesorId, monto) => {
-        if(!confirm("¿Confirmas que el pago de $" + monto + " ya está en Banorte?")) return;
-
-        try {
-            // 1. Cambiar estatus de la recarga
-            await updateDoc(doc(db, "recargas", docId), { estatus: "Aprobado" });
-
-            // 2. Sumar el saldo al perfil del asesor (Atomic increment)
-            await updateDoc(doc(db, "asesores", asesorId), {
-                saldo: increment(monto)
-            });
-
-            alert("Saldo abonado correctamente.");
-        } catch (e) {
-            console.error(e);
-            alert("Error al procesar el saldo.");
-        }
-    };
-
-    window.rechazarRecarga = async (docId) => {
-        if(confirm("¿Rechazar este pago?")) {
-            await updateDoc(doc(db, "recargas", docId), { estatus: "Rechazado" });
-        }
-    };
-</script>
-        
-        <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
+        <div class="admin-table-container overflow-hidden">
             <table class="w-full text-left">
-                <thead class="bg-slate-900 text-white text-[10px] uppercase italic tracking-widest font-black">
+                <thead class="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">
                     <tr>
-                        <th class="p-4 italic">Día / Hora (s)</th>
-                        <th class="p-4">Folio</th>
-                        <th class="p-4">Cliente (Click ver más)</th>
-                        <th class="p-4">Trámite</th>
-                        <th class="p-4 text-center">Pago</th>
-                        <th class="p-4">Estatus</th>
-                        <th class="p-4 text-right">Acción</th>
+                        <th class="p-6">Asesor</th>
+                        <th class="p-6">Monto Solicitado</th>
+                        <th class="p-6">Referencia / Rastreo</th>
+                        <th class="p-6">Comprobante</th>
+                        <th class="p-6 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
+                <tbody id="tablaPendientes" class="divide-y divide-slate-100">
+                    </tbody>
             </table>
-        </div>
-    </div>
-
-    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarDetalles()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl">×</button>
-            <h2 class="text-2xl font-black mb-6 uppercase italic border-b pb-4">Ficha del Cliente</h2>
-            <div id="contenidoDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                </div>
-        </div>
-    </div>
-
-    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center">
-            <h2 class="text-xl font-black mb-4 uppercase italic">Finalizar Trámite</h2>
-            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
-            <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir y Notificar</button>
-            <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
+            <div id="noData" class="hidden p-20 text-center text-slate-300 font-bold uppercase italic tracking-widest">
+                No hay pagos pendientes por validar
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCb4H1uhIjQrFc7Q01EySjVo3jom_LcNbU",
-            authDomain: "panel-admin-edfd3.firebaseapp.com",
-            projectId: "panel-admin-edfd3",
-            storageBucket: "panel-admin-edfd3.firebasestorage.app",
-            messagingSenderId: "354858068513",
-            appId: "1:354858068513:web:20921ab7072cb052d61160"
+            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+            authDomain: "pensionsegura-eeaff.firebaseapp.com",
+            projectId: "pensionsegura-eeaff",
+            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+            messagingSenderId: "96463651258",
+            appId: "1:96463651258:web:cb4cf865990d9521035d83"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const CLOUD_NAME = "de5abnhul";
-        const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        let idActual, folioActual;
-        let solicitudesData = {};
-
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-            const tabla = document.getElementById('tablaSolicitudes');
+        // ESCUCHAR PAGOS PENDIENTES
+        const q = query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente"));
+        
+        onSnapshot(q, (snapshot) => {
+            const tabla = document.getElementById("tablaPendientes");
+            const count = document.getElementById("countPendientes");
+            const noData = document.getElementById("noData");
+            
             tabla.innerHTML = "";
-            snap.forEach(d => {
-                const item = d.data();
-                solicitudesData[d.id] = item;
-                const fecha = item.fecha?.toDate().toLocaleString('es-MX', { hour12: false }) || '...';
-                
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-slate-50 hover:bg-blue-50 transition-colors cursor-pointer";
-                tr.innerHTML = `
-                    <td class="p-4 text-[10px] font-black text-slate-400 italic">${fecha}</td>
-                    <td class="p-4 font-black text-blue-600 uppercase">${item.folio}</td>
-                    <td class="p-4" onclick="verMasDetalles('${d.id}')">
-                        <div class="font-black uppercase text-slate-900">${item.nombre}</div>
-                        <div class="text-[9px] text-blue-500 font-bold uppercase italic">Ver ficha completa</div>
-                    </td>
-                    <td class="p-4 text-[10px] font-black uppercase italic text-slate-500">${item.tipo}</td>
-                    <td class="p-4 text-center"><a href="${item.comprobante}" target="_blank" class="text-xl">📄</a></td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                            ${item.estatus}
-                        </span>
-                    </td>
-                    <td class="p-4 text-right">
-                        ${item.estatus !== 'Terminado' ? 
-                        `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : 
-                        `<a href="https://wa.me/52${item.tel}?text=Hola%20${item.nombre},%20tu%20trámite%20DPR%20con%20folio%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Avisar WA</a>`}
-                    </td>
-                `;
-                tabla.appendChild(tr);
-            });
+            count.innerText = snapshot.size;
+
+            if (snapshot.empty) {
+                noData.classList.remove('hidden');
+            } else {
+                noData.classList.add('hidden');
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+
+                    tabla.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-6">
+                                <p class="font-black text-slate-800 uppercase text-sm">${data.asesorEmail.split('@')[0]}</p>
+                                <p class="text-[10px] text-slate-400 font-bold">${data.asesorEmail}</p>
+                            </td>
+                            <td class="p-6">
+                                <span class="text-lg font-black text-green-600">$${data.monto.toFixed(2)}</span>
+                            </td>
+                            <td class="p-6">
+                                <span class="bg-slate-100 px-3 py-1 rounded-lg font-mono text-xs font-bold text-slate-600">${data.rastreo}</span>
+                            </td>
+                            <td class="p-6">
+                                <a href="${data.comprobante}" target="_blank" class="group relative inline-block">
+                                    <img src="${data.comprobante}" class="w-12 h-12 rounded-xl object-cover border-2 border-slate-200 group-hover:border-blue-500 transition">
+                                    <span class="absolute inset-0 flex items-center justify-center bg-black/40 text-[8px] text-white opacity-0 group-hover:opacity-100 rounded-xl font-black">VER</span>
+                                </a>
+                            </td>
+                            <td class="p-6 text-center space-x-2">
+                                <button onclick="aprobarPago('${id}', '${data.uid}', ${data.monto})" class="btn-approve px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-green-100">Aprobar</button>
+                                <button onclick="rechazarPago('${id}')" class="btn-reject px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-100">Rechazar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
         });
 
-        window.verMasDetalles = (id) => {
-            const item = solicitudesData[id];
-            const cont = document.getElementById('contenidoDetalles');
-            document.getElementById('modalDetalles').classList.remove('hidden');
-            
-            const campos = [
-                { l: 'Nombre', v: item.nombre },
-                { l: 'CURP', v: item.curp },
-                { l: 'NSS', v: item.nss },
-                { l: 'WhatsApp', v: item.tel },
-                { l: 'Correo', v: item.correo },
-                { l: 'Salario Semanal', v: item.salario },
-                { l: 'Dirección', v: item.direccion },
-                { l: 'Pago Frecuencia', v: item.frecuenciaPago },
-                { l: 'Nacimiento', v: item.nacimiento },
-                { l: 'Opción / Extra', v: item.infoExtra },
-                { l: 'Edad Retiro', v: item.edadRetiro },
-                { l: 'Último Año Lab.', v: item.ultimoAnio }
-            ];
-
-            cont.innerHTML = campos
-                .filter(c => c.v && c.v !== "" && c.v !== "S/N" && c.v !== "N/A")
-                .map(c => `<div><p class="detalle-label">${c.l}</p><p class="detalle-valor">${c.v}</p></div>`)
-                .join('');
-        };
-
-        window.prepararSubida = (id, folio) => { 
-            idActual = id; folioActual = folio; 
-            document.getElementById('txtFolioFinal').innerText = "Trámite: " + folio;
-            document.getElementById('modalSubir').classList.remove('hidden'); 
-        };
-        
-        document.getElementById('btnGuardarFinal').onclick = async () => {
-            const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Por favor selecciona el archivo de respuesta.");
-            const btn = document.getElementById('btnGuardarFinal');
-            btn.innerText = "PROCESANDO..."; btn.disabled = true;
-
-            const fd = new FormData();
-            fd.append('file', file);
-            fd.append('upload_preset', UPLOAD_PRESET);
+        // LÓGICA DE APROBACIÓN
+        window.aprobarPago = async (docId, asesorUid, monto) => {
+            if (!confirm(`¿Confirmas el depósito de $${monto} en la cuenta Banorte?`)) return;
 
             try {
-                const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await r.json();
-                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("Trámite finalizado. El cliente ya puede descargar su archivo.");
-                cerrarSubida();
-            } catch(e) { alert("Error al subir archivo"); } 
-            finally { btn.innerText = "Subir y Notificar"; btn.disabled = false; }
+                // 1. Actualizar el saldo del asesor (Suma atómica)
+                const asesorRef = doc(db, "asesores", asesorUid);
+                await updateDoc(asesorRef, {
+                    saldo: increment(monto)
+                });
+
+                // 2. Marcar notificación como aprobada
+                await updateDoc(doc(db, "notificaciones_pago", docId), {
+                    estatus: "aprobado"
+                });
+
+                alert("Saldo abonado exitosamente al asesor.");
+            } catch (e) {
+                console.error(e);
+                alert("Error al procesar el abono.");
+            }
         };
 
-        window.cerrarDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
-        window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
+        window.rechazarPago = async (docId) => {
+            if (!confirm("¿Deseas rechazar esta notificación de pago?")) return;
+            await updateDoc(doc(db, "notificaciones_pago", docId), {
+                estatus: "rechazado"
+            });
+        };
+
     </script>
 </body>
 </html>
