@@ -91,29 +91,21 @@
             <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
                 <h2 class="text-2xl font-black text-white text-center mb-6 uppercase italic">Bóveda de Saldo</h2>
-                
                 <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
                     <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
                     <p id="txtSaldoGrande" class="text-4xl font-black text-white">$0.00</p>
                 </div>
-
                 <div class="bg-white p-4 rounded-2xl text-center mb-6 text-slate-900 shadow-inner">
                     <p class="text-[10px] font-black uppercase opacity-50">Depósito Banorte</p>
                     <p class="text-lg font-black text-red-600 tracking-tighter">4915 6630 4036 4896</p>
                 </div>
-
                 <div class="space-y-3">
                     <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
                     <input type="text" id="depRef" placeholder="Folio de Rastreo / Autorización" class="input-dark uppercase">
-                    
                     <label class="block text-[10px] font-black text-slate-500 ml-2 uppercase">Adjuntar Comprobante</label>
                     <input type="file" id="fileRecarga" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-800 file:text-white file:font-bold">
-                    
                     <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4 hover:scale-[1.02] transition">Informar Depósito</button>
-                    <p class="text-[9px] text-slate-500 text-center mt-4 px-4 leading-tight">
-    Al informar su depósito, acepta los Términos y Condiciones de DPR Consultoría. 
-    El saldo no es reembolsable y está sujeto a validación bancaria.
-</p>
+                    <p class="text-[9px] text-slate-500 text-center mt-4 px-4 leading-tight">Al informar su depósito, acepta los Términos y Condiciones de DPR Consultoría. El saldo no es reembolsable y está sujeto a validación bancaria.</p>
                 </div>
             </div>
         </div>
@@ -124,32 +116,27 @@
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // CONFIGURACIÓN DE FIREBASE (Usa tus credenciales correctas aquí)
-   // Aquí pegaremos tus "llaves" de Firebase en el siguiente paso
-const firebaseConfig = {
-  apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-  authDomain: "pensionsegura-eeaff.firebaseapp.com",
-  projectId: "pensionsegura-eeaff",
-  storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-  messagingSenderId: "96463651258",
-  appId: "1:96463651258:web:cb4cf865990d9521035d83",
-  measurementId: "G-F18HTRZ4YH"
-    
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+            authDomain: "pensionsegura-eeaff.firebaseapp.com",
+            projectId: "pensionsegura-eeaff",
+            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+            messagingSenderId: "96463651258",
+            appId: "1:96463651258:web:cb4cf865990d9521035d83",
+            measurementId: "G-F18HTRZ4YH"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // CLOUDINARY
-       const CLOUD_NAME = "de5abnhul"; 
-       const UPLOAD_PRESET = "dpr_uploads";
-       const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+        const CLOUD_NAME = "de5abnhul"; 
+        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0;
         let userUID = "";
 
-        // AUTH
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userUID = user.uid;
@@ -158,7 +145,6 @@ const firebaseConfig = {
             } else { window.location.href = "login/index.html"; }
         });
 
-        // ESCUCHAS EN TIEMPO REAL
         function escucharSaldo() {
             onSnapshot(doc(db, "asesores", userUID), (doc) => {
                 if (doc.exists()) {
@@ -196,43 +182,28 @@ const firebaseConfig = {
             });
         }
 
-        // FUNCIONES DE RECARGA (NOTIFICAR PAGO)
         window.notificarPago = async () => {
             const btn = document.getElementById('btnNotificar');
             const m = parseFloat(document.getElementById('depMonto').value);
             const r = document.getElementById('depRef').value.trim();
             const fileInput = document.getElementById('fileRecarga');
-
-            if (!m || m < 200 || !r || !fileInput.files[0]) {
-                return alert("Requerido: Monto (mín $200), Rastreo y foto del comprobante.");
-            }
-
+            if (!m || m < 200 || !r || !fileInput.files[0]) return alert("Requerido: Monto (mín $200), Rastreo y foto del comprobante.");
             btn.innerText = "SUBIENDO...";
             btn.disabled = true;
-
             try {
-                // 1. Subir a Cloudinary
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
                 formData.append('upload_preset', UPLOAD_PRESET);
-                
-                const cloudResp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const cloudResp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                 const fileData = await cloudResp.json();
-
-                // 2. Guardar reporte en Firebase
-                await addDoc(collection(db, "notificaciones_pago"), {
-                    uid: userUID,
+                await addDoc(collection(db, "recargas"), {
+                    asesorId: userUID,
                     asesorEmail: auth.currentUser.email,
                     monto: m,
-                    rastreo: r,
                     comprobante: fileData.secure_url,
                     fecha: serverTimestamp(),
-                    estatus: "pendiente"
+                    estatus: "Pendiente"
                 });
-
                 alert("¡Pago reportado! Tu saldo se actualizará tras la validación.");
                 window.cerrarModal();
             } catch (e) {
@@ -244,58 +215,28 @@ const firebaseConfig = {
             }
         };
 
-        // FUNCIONES DE TRÁMITES
         window.prepararTramite = (tipo, costo) => {
             const content = document.getElementById('formContent');
             let camposExtra = "";
             if (tipo === 'INF') {
-                camposExtra = `
-                    <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">
-                    <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase mb-1">Fecha de Nacimiento:</label>
-                    <input type="date" id="nac_p" class="input-dark mb-3">
-                    <select id="linea_p" class="input-dark mb-3 font-bold uppercase text-xs">
-                        <option value="Linea II">Línea II</option>
-                        <option value="Mejoravit">Mejoravit</option>
-                    </select>`;
+                camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase mb-1">Fecha de Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3"><select id="linea_p" class="input-dark mb-3 font-bold uppercase text-xs"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>`;
             } else if (tipo === 'SC') {
                 camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">`;
             }
-
-            content.innerHTML = `
-                <h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2>
-                <div class="space-y-4 text-left">
-                    <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label>
-                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">
-                    ${camposExtra}
-                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
-                    
-                    <div class="pt-4">
-                        <p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo del servicio: $${costo}.00</p>
-                        <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl hover:scale-[1.02] transition">
-                            Confirmar y Descontar Saldo
-                        </button>
-                    </div>
-                </div>`;
-            
+            content.innerHTML = `<h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2><div class="space-y-4 text-left"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label><input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">${camposExtra}<textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea><div class="pt-4"><p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo del servicio: $${costo}.00</p><button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl hover:scale-[1.02] transition">Confirmar y Descontar Saldo</button></div></div>`;
             document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
             window.abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (tipo, costo) => {
-            if (saldoGlobal < costo) return alert("Saldo insuficiente. Por favor realiza una recarga.");
-            
+            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
             const curp = document.getElementById('curp_p').value.trim();
             if (curp.length < 10) return alert("Ingresa una CURP válida.");
-
             const btn = document.getElementById('btnPagar');
             btn.innerText = "PROCESANDO PAGO...";
             btn.disabled = true;
-
             try {
-                // 1. Descontar Saldo
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                
-                // 2. Registrar Pedido
                 await addDoc(collection(db, "pedidos_servicios"), {
                     uid: userUID,
                     tipo: tipo,
@@ -307,26 +248,14 @@ const firebaseConfig = {
                     fecha: serverTimestamp(),
                     estatus: "En Proceso"
                 });
-
-                alert("¡Trámite solicitado! El costo ha sido descontado de tu bóveda.");
+                alert("¡Trámite solicitado!");
                 window.cerrarModal();
-            } catch (e) {
-                alert("Error en la transacción.");
-            }
+            } catch (e) { alert("Error en la transacción."); }
         };
 
-        // UI HELPERS
-        window.abrirModal = (id) => {
-            document.getElementById(id).classList.remove('hidden');
-            document.body.classList.add('modal-active');
-        };
-        window.cerrarModal = () => {
-            document.getElementById('modalTramite').classList.add('hidden');
-            document.getElementById('modalSaldo').classList.add('hidden');
-            document.body.classList.remove('modal-active');
-        };
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.classList.add('modal-active'); };
+        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.classList.remove('modal-active'); };
         window.cerrarSesion = () => signOut(auth);
-
     </script>
 </body>
 </html>
