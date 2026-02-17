@@ -156,31 +156,49 @@
             });
         }
 
-        function escucharHistorial() {
-            const q = query(collection(db, "pedidos_servicios"), where("uid", "==", userUID), orderBy("fecha", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const lista = document.getElementById('listaHistorial');
-                lista.innerHTML = "";
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const fecha = data.fecha ? data.fecha.toDate().toLocaleDateString() : '...';
-                    lista.innerHTML += `
-                        <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
-                            <td class="py-4 px-2 text-slate-400 text-xs">${fecha}</td>
-                            <td class="py-4 px-2 font-black text-white text-xs tracking-widest">${data.tipo}</td>
-                            <td class="py-4 px-2 text-slate-300 text-xs">${data.curp}</td>
-                            <td class="py-4 px-2">
-                                <span class="status-badge ${data.estatus === 'Finalizado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">
-                                    ${data.estatus}
-                                </span>
-                            </td>
-                            <td class="py-4 px-2 text-right">
-                                ${data.archivoFinal ? `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline text-amber-500">DESCARGAR</a>` : '<span class="text-slate-600 text-[10px]">EN PROCESO</span>'}
-                            </td>
-                        </tr>`;
-                });
-            });
+function escucharHistorial() {
+    // CAMBIO 1: Ahora busca en "solicitudes", que es donde envía el Index
+    // CAMBIO 2: Eliminamos el filtro de UID temporalmente para que veas todas las solicitudes de la web
+    const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
+    
+    onSnapshot(q, (snapshot) => {
+        const lista = document.getElementById('listaHistorial');
+        lista.innerHTML = "";
+        
+        if (snapshot.empty) {
+            lista.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase italic">No hay trámites registrados aún</td></tr>';
+            return;
         }
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            // Verificamos que la fecha sea un Timestamp de Firebase para evitar que el código se rompa
+            const fecha = data.fecha && data.fecha.toDate ? data.fecha.toDate().toLocaleDateString() : '...';
+            
+            lista.innerHTML += `
+                <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
+                    <td class="py-4 px-2 text-slate-400 text-xs">${fecha}</td>
+                    <td class="py-4 px-2 font-black text-white text-xs tracking-widest">${data.tipo || 'S/N'}</td>
+                    <td class="py-4 px-2 text-slate-300 text-xs">${data.curp || 'S/C'}</td>
+                    <td class="py-4 px-2">
+                        <span class="status-badge ${data.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">
+                            ${data.estatus || 'En Proceso'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-2 text-right">
+                        ${data.archivoFinal ? 
+                            `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline text-amber-500">DESCARGAR</a>` : 
+                            '<span class="text-slate-600 text-[10px]">EN PROCESO</span>'}
+                    </td>
+                </tr>`;
+        });
+    }, (error) => {
+        console.error("Error en el historial:", error);
+        if(error.code === 'permission-denied') {
+            alert("Error de permisos: Revisa las Rules en Firebase.");
+        }
+    });
+}
 
         window.notificarPago = async () => {
             const btn = document.getElementById('btnNotificar');
