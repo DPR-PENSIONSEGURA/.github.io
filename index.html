@@ -89,15 +89,15 @@
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Configuración Unificada Pensionsegura
-        const firebaseConfig = {
-            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-            authDomain: "pensionsegura-eeaff.firebaseapp.com",
-            projectId: "pensionsegura-eeaff",
-            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-            messagingSenderId: "96463651258",
-            appId: "1:96463651258:web:cb4cf865990d9521035d83",
-            measurementId: "G-F18HTRZ4YH"
-        };
+      const firebaseConfig = {
+  apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+  authDomain: "pensionsegura-eeaff.firebaseapp.com",
+  projectId: "pensionsegura-eeaff",
+  storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+  messagingSenderId: "96463651258",
+  appId: "1:96463651258:web:cb4cf865990d9521035d83",
+  measurementId: "G-F18HTRZ4YH"
+}; // <--- No olvides cerrar con };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -347,3 +347,4 @@
     </script>
 </body>
 </html>
+
