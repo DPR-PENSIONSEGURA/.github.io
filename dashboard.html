@@ -139,8 +139,9 @@
         const auth = getAuth(app);
 
         // CLOUDINARY
-        const CLOUD_NAME = "de5abnhul";
-        const UPLOAD_PRESET = "dpr_uploads";
+       const CLOUD_NAME = "de5abnhul"; 
+       const UPLOAD_PRESET = "dpr_uploads";
+       const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0;
         let userUID = "";
