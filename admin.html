@@ -17,7 +17,94 @@
             <h1 class="text-3xl font-black uppercase italic italic text-slate-800">Admin <span class="text-blue-600">DPR</span></h1>
             <div class="text-[10px] font-black bg-white px-4 py-2 rounded-full shadow-sm border uppercase">Control de Solicitudes</div>
         </header>
+<div class="p-6 bg-slate-50 min-h-screen">
+    <h2 class="text-3xl font-black uppercase italic mb-6 text-slate-800">
+        Validación de <span class="text-blue-600">Recargas</span>
+    </h2>
 
+    <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
+                    <th class="p-5">Asesor</th>
+                    <th class="p-5">Monto</th>
+                    <th class="p-5">Comprobante</th>
+                    <th class="p-5 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaRecargas">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
+    const db = getFirestore();
+
+    // Escuchar recargas pendientes en tiempo real
+    const q = query(collection(db, "recargas"), where("estatus", "==", "Pendiente"));
+    
+    onSnapshot(q, (snapshot) => {
+        const tabla = document.getElementById("tablaRecargas");
+        tabla.innerHTML = "";
+
+        snapshot.forEach((recarga) => {
+            const r = recarga.data();
+            const id = recarga.id;
+
+            tabla.innerHTML += `
+                <tr class="border-b hover:bg-slate-50 transition">
+                    <td class="p-5">
+                        <p class="font-black text-slate-800">${r.asesorNombre}</p>
+                        <p class="text-xs text-slate-400">${r.asesorEmail}</p>
+                    </td>
+                    <td class="p-5 font-black text-green-600 text-lg">
+                        $${r.monto}
+                    </td>
+                    <td class="p-5">
+                        <button onclick="window.open('${r.comprobante}', '_blank')" class="group relative">
+                            <img src="${r.comprobante}" class="w-12 h-12 rounded-lg object-cover border-2 border-slate-200 group-hover:border-blue-500 transition">
+                            <span class="absolute -top-2 -right-2 bg-blue-600 text-white text-[8px] px-1 rounded shadow">VER</span>
+                        </button>
+                    </td>
+                    <td class="p-5 text-center space-x-2">
+                        <button onclick="aprobarRecarga('${id}', '${r.asesorId}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-blue-700 transition">Aprobar</button>
+                        <button onclick="rechazarRecarga('${id}')" class="bg-red-100 text-red-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase hover:bg-red-200 transition">Rechazar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+
+    // Función para aprobar y sumar saldo
+    window.aprobarRecarga = async (docId, asesorId, monto) => {
+        if(!confirm("¿Confirmas que el pago de $" + monto + " ya está en Banorte?")) return;
+
+        try {
+            // 1. Cambiar estatus de la recarga
+            await updateDoc(doc(db, "recargas", docId), { estatus: "Aprobado" });
+
+            // 2. Sumar el saldo al perfil del asesor (Atomic increment)
+            await updateDoc(doc(db, "asesores", asesorId), {
+                saldo: increment(monto)
+            });
+
+            alert("Saldo abonado correctamente.");
+        } catch (e) {
+            console.error(e);
+            alert("Error al procesar el saldo.");
+        }
+    };
+
+    window.rechazarRecarga = async (docId) => {
+        if(confirm("¿Rechazar este pago?")) {
+            await updateDoc(doc(db, "recargas", docId), { estatus: "Rechazado" });
+        }
+    };
+</script>
+        
         <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
             <table class="w-full text-left">
                 <thead class="bg-slate-900 text-white text-[10px] uppercase italic tracking-widest font-black">
