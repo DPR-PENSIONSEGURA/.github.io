@@ -32,34 +32,38 @@
 </div>
 
 <script>
-    // Aquí pegaremos tus "llaves" de Firebase en el siguiente paso
 const firebaseConfig = {
-  apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-  authDomain: "pensionsegura-eeaff.firebaseapp.com",
-  projectId: "pensionsegura-eeaff",
-  storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-  messagingSenderId: "96463651258",
-  appId: "1:96463651258:web:cb4cf865990d9521035d83",
-  measurementId: "G-F18HTRZ4YH"
-    ;
+    apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+    authDomain: "pensionsegura-eeaff.firebaseapp.com",
+    projectId: "pensionsegura-eeaff",
+    storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+    messagingSenderId: "96463651258",
+    appId: "1:96463651258:web:cb4cf865990d9521035d83",
+    measurementId: "G-F18HTRZ4YH"
+}; // <--- Aquí estaba el error, ya está corregido
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-    function login() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('error-msg');
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-msg');
 
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                // Si todo sale bien, lo mandamos al panel principal
-                window.location.href = "../dashboard.html"; 
-            })
-            .catch((error) => {
-                errorMsg.innerText = "Usuario o contraseña incorrectos.";
-            });
+    if(!email || !password) {
+        errorMsg.innerText = "Por favor, llena todos los campos.";
+        return;
     }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            window.location.href = "../dashboard.html"; 
+        })
+        .catch((error) => {
+            console.error(error);
+            errorMsg.innerText = "Usuario o contraseña incorrectos.";
+        });
+}
 </script>
 
 </body>
