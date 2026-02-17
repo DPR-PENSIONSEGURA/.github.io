@@ -116,15 +116,15 @@
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-  authDomain: "pensionsegura-eeaff.firebaseapp.com",
-  projectId: "pensionsegura-eeaff",
-  storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-  messagingSenderId: "96463651258",
-  appId: "1:96463651258:web:cb4cf865990d9521035d83",
-  measurementId: "G-F18HTRZ4YH"
-}; // <--- No olvides cerrar con };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+            authDomain: "pensionsegura-eeaff.firebaseapp.com",
+            projectId: "pensionsegura-eeaff",
+            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+            messagingSenderId: "96463651258",
+            appId: "1:96463651258:web:cb4cf865990d9521035d83",
+            measurementId: "G-F18HTRZ4YH"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -175,7 +175,7 @@ const firebaseConfig = {
                                 </span>
                             </td>
                             <td class="py-4 px-2 text-right">
-                                ${data.archivoFinal ? `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline">DESCARGAR</a>` : '<span class="text-slate-600 text-[10px]">EN PROCESO</span>'}
+                                ${data.archivoFinal ? `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline text-amber-500">DESCARGAR</a>` : '<span class="text-slate-600 text-[10px]">EN PROCESO</span>'}
                             </td>
                         </tr>`;
                 });
@@ -196,13 +196,14 @@ const firebaseConfig = {
                 formData.append('upload_preset', UPLOAD_PRESET);
                 const cloudResp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                 const fileData = await cloudResp.json();
-                await addDoc(collection(db, "recargas"), {
-                    asesorId: userUID,
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID,
                     asesorEmail: auth.currentUser.email,
                     monto: m,
+                    rastreo: r,
                     comprobante: fileData.secure_url,
                     fecha: serverTimestamp(),
-                    estatus: "Pendiente"
+                    estatus: "pendiente"
                 });
                 alert("¡Pago reportado! Tu saldo se actualizará tras la validación.");
                 window.cerrarModal();
@@ -223,7 +224,7 @@ const firebaseConfig = {
             } else if (tipo === 'SC') {
                 camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">`;
             }
-            content.innerHTML = `<h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2><div class="space-y-4 text-left"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label><input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">${camposExtra}<textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea><div class="pt-4"><p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo del servicio: $${costo}.00</p><button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl hover:scale-[1.02] transition">Confirmar y Descontar Saldo</button></div></div>`;
+            content.innerHTML = `<h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2><div class="space-y-4 text-left"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label><input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">${camposExtra}<textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea><div class="pt-4"><p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo: $${costo}.00</p><button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar y Descontar Saldo</button></div></div>`;
             document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
             window.abrirModal('modalTramite');
         };
@@ -233,7 +234,7 @@ const firebaseConfig = {
             const curp = document.getElementById('curp_p').value.trim();
             if (curp.length < 10) return alert("Ingresa una CURP válida.");
             const btn = document.getElementById('btnPagar');
-            btn.innerText = "PROCESANDO PAGO...";
+            btn.innerText = "PROCESANDO...";
             btn.disabled = true;
             try {
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
