@@ -38,42 +38,42 @@
         <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">🔍</span>
             <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
-            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase text-blue-600">Gratis</p>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis</p>
         </button>
         <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">⚡</span>
             <h3 class="font-black text-xl uppercase italic">Análisis Rápido</h3>
-            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase text-blue-600">$200 MXN</p>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
         </button>
         <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📊</span>
             <h3 class="font-black text-xl uppercase italic text-white">Análisis Detallado</h3>
-            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase text-blue-200">$800 MXN</p>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$800 MXN</p>
         </button>
         <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">🏠</span>
             <h3 class="font-black text-xl uppercase italic text-white">Precalificación Infonavit</h3>
-            <p class="text-red-200 font-bold text-[10px] mb-4 uppercase text-red-200">$210 MXN</p>
+            <p class="text-red-200 font-bold text-[10px] mb-4 uppercase">$210 MXN</p>
         </button>
         <button onclick="abrirModal('modalM10')" class="service-card bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-sm text-left">
             <span class="text-3xl mb-4 block">💼</span>
             <h3 class="font-black text-xl uppercase italic text-white">Modalidad 10</h3>
-            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase text-blue-400">$200 MXN</p>
+            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
         </button>
         <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">🆔</span>
             <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
-            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase text-blue-600">$35 MXN</p>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
         </button>
         <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📜</span>
             <h3 class="font-black text-xl uppercase italic text-white">CSF Original</h3>
-            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase text-blue-200">$230 MXN</p>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$230 MXN</p>
         </button>
         <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">📄</span>
             <h3 class="font-black text-xl uppercase italic">Documentos</h3>
-            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase text-blue-600">$15 MXN</p>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$15 MXN</p>
         </button>
     </main>
 
@@ -88,34 +88,31 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Configuración Unificada Pensionsegura
-      const firebaseConfig = {
-  apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-  authDomain: "pensionsegura-eeaff.firebaseapp.com",
-  projectId: "pensionsegura-eeaff",
-  storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-  messagingSenderId: "96463651258",
-  appId: "1:96463651258:web:cb4cf865990d9521035d83",
-  measurementId: "G-F18HTRZ4YH"
-}; // <--- No olvides cerrar con };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
+            authDomain: "pensionsegura-eeaff.firebaseapp.com",
+            projectId: "pensionsegura-eeaff",
+            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
+            messagingSenderId: "96463651258",
+            appId: "1:96463651258:web:cb4cf865990d9521035d83",
+            measurementId: "G-F18HTRZ4YH"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Configuración Cloudinary
         const CLOUD_NAME = "de5abnhul";
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         const HTML_PAGO_BANORTE = `
             <div class="banorte-box">
-                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80">Datos de Transferencia</p>
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80 text-white">Datos de Transferencia</p>
                 <p class="text-lg font-black tracking-tighter mb-1 text-white">4915 6630 4036 4896</p>
                 <p class="text-[11px] font-bold uppercase italic text-white">Banorte | DPR Consultoría</p>
             </div>
         `;
 
-        // Funciones del Modal
         window.abrirModal = (tipo) => {
             const modal = document.getElementById('modalBase');
             const contenido = document.getElementById('contenidoModal');
@@ -126,8 +123,8 @@
             if (tipo === 'modalInfo') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-4 uppercase text-center text-slate-800 italic">DPR Consultoría</h2>
-                    <p class="text-sm text-slate-600 leading-relaxed mb-4">Somos especialistas en asesoría de pensiones IMSS, Infonavit y estrategias de retiro en García, Nuevo León.</p>
-                    <p class="text-xs font-bold text-blue-600 text-center text-blue-600">Ubicación: Calle Lerdo de Tejada #113, Col. Centro.</p>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">Especialistas en asesoría de pensiones IMSS, Infonavit y retiro en García, Nuevo León.</p>
+                    <p class="text-xs font-bold text-blue-600 text-center">Ubicación: Calle Lerdo de Tejada #113, Col. Centro.</p>
                 `;
             }
             else if (tipo === 'modalEstatus') {
@@ -139,7 +136,7 @@
             else if (tipo === 'modalM10') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-slate-900 italic">Inscripción Modalidad 10</h2>
-                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2 text-red-600">Aviso: DPR Consultoría solo realiza la inscripción.</p>
+                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2">Aviso: DPR Consultoría solo realiza la inscripción.</p>
                     ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         <input type="text" id="nombre_M10" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
@@ -158,7 +155,7 @@
                         <input type="file" id="file_M10" class="block w-full text-xs">
                     </div>
                     <button onclick="ejecutarEnvio('M10')" id="btn_M10" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar Trámite</button>
-                    <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_M10"></span></div>
+                    <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic text-green-700">¡Enviado! Folio: <span id="folio_M10"></span></div>
                 `;
             }
             else if (tipo === 'modalInfonavit') {
@@ -177,7 +174,7 @@
                         <input type="file" id="file_INF" class="block w-full text-xs">
                     </div>
                     <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-6">Solicitar</button>
-                    <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_INF"></span></div>
+                    <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic text-green-700">¡Enviado! Folio: <span id="folio_INF"></span></div>
                 `;
             }
             else if (tipo === 'modalDetallado') {
@@ -195,7 +192,7 @@
                         <input type="file" id="file_D" class="block w-full text-xs">
                     </div>
                     <button onclick="ejecutarEnvio('D')" id="btn_D" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar</button>
-                    <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_D"></span></div>
+                    <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic text-green-700">¡Enviado! Folio: <span id="folio_D"></span></div>
                 `;
             }
             else if (tipo === 'modalDocs') {
@@ -241,7 +238,7 @@
                         <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
                     </div>
                     <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
-                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
+                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic text-green-700">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
                 `;
             }
         };
@@ -260,13 +257,10 @@
             formData.append('upload_preset', UPLOAD_PRESET);
 
             try {
-                // 1. Subida a Cloudinary
                 const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                 const fileData = await resp.json();
-                
                 const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
 
-                // 2. Guardado en Firebase (Usa 'solicitudes' para clientes externos)
                 await addDoc(collection(db, "solicitudes"), {
                     uid: "CLIENTE_WEB",
                     folio: folio,
@@ -314,7 +308,7 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     if (data.archivoFinal) { 
-                        res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm hover:bg-blue-700 italic">📥 DESCARGAR RESULTADO</a>`; 
+                        res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm italic">📥 DESCARGAR RESULTADO</a>`; 
                     } else { 
                         res.innerText = "ESTATUS: " + data.estatus; 
                         res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
@@ -336,7 +330,6 @@
             }
         }
 
-        // Exportar funciones al objeto window
         window.ejecutarEnvio = ejecutarEnvio;
         window.buscarEstatus = buscarEstatus;
         window.verificarLey = verificarLey;
@@ -347,4 +340,3 @@
     </script>
 </body>
 </html>
-
