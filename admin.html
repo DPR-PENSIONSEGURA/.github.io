@@ -8,11 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .detalle-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
-        .detalle-valor { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
         .seccion-titulo { border-left: 4px solid #2563eb; padding-left: 1rem; }
         .badge-asesor { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
         .badge-web { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
+        select { font-size: 10px; font-weight: 800; text-transform: uppercase; border-radius: 8px; padding: 4px; outline: none; border: 1px solid #e2e8f0; cursor: pointer; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -22,7 +21,6 @@
                 <h1 class="text-3xl font-black uppercase italic text-slate-800">Panel <span class="text-blue-600">DPR Admin</span></h1>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">García, Nuevo León</p>
             </div>
-            <div class="text-[10px] font-black bg-white px-6 py-2 rounded-full shadow-sm border uppercase text-slate-900">Control Centralizado</div>
         </header>
 
         <section class="mb-12">
@@ -44,18 +42,17 @@
 
         <section>
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites Realizados</span></h2>
-            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
-                <div class="overflow-x-auto">
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto max-h-[700px] overflow-y-auto">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black tracking-widest">
-                            <tr>
+                        <thead class="bg-slate-900 sticky top-0 z-10">
+                            <tr class="text-white text-[10px] uppercase font-black tracking-widest">
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Origen</th>
                                 <th class="p-4">Servicio</th>
-                                <th class="p-4">Folio</th>
-                                <th class="p-4">Cliente</th>
-                                <th class="p-4">Estatus</th>
-                                <th class="p-4 text-right">Acción</th>
+                                <th class="p-4">Cliente / Asesor</th>
+                                <th class="p-4">Estatus / Acción</th>
+                                <th class="p-4 text-right">Documento</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
@@ -65,20 +62,12 @@
         </section>
     </div>
 
-    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarDetalles()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl">×</button>
-            <h2 class="text-2xl font-black mb-6 uppercase italic border-b pb-4 text-slate-800">Ficha del Cliente</h2>
-            <div id="contenidoDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-    </div>
-
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center border-t-8 border-blue-600">
             <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
             <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
             <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir Resultado</button>
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Marcar Terminado</button>
             <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
@@ -104,7 +93,6 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let idActual, folioActual;
-        let solicitudesData = {};
 
         // 1. ESCUCHAR RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
@@ -114,49 +102,61 @@
                 const r = d.data();
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-5"><p class="font-black text-slate-800 text-xs">${r.asesorEmail || 'Sin correo'}</p></td>
+                        <td class="p-5 font-black text-xs">${r.asesorEmail || 'Sin correo'}</td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
-                        <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-bold uppercase underline">Ver Foto</button></td>
-                        <td class="p-5 text-center">
-                            <button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-md">Aprobar</button>
-                        </td>
+                        <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Baucher</button></td>
+                        <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Aprobar</button></td>
                     </tr>`;
             });
         });
 
-        // 2. ESCUCHAR SOLICITUDES (MEJORADO)
+        // 2. ESCUCHAR SOLICITUDES CON MENÚ DE ESTATUS
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
-                solicitudesData[d.id] = item;
-                const fecha = item.fecha && item.fecha.toDate ? item.fecha.toDate().toLocaleDateString() : '...';
-                const origenBadge = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
+                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
+                const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
                 
+                // Definir colores según estatus
+                let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
+                if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
+                if(item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
+
                 tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
+                    <tr class="border-b hover:bg-blue-50/50 transition">
                         <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
-                        <td class="p-4">${origenBadge}</td>
-                        <td class="p-4 font-black text-slate-700 uppercase text-xs">${item.tipo || 'S/N'}</td>
-                        <td class="p-4 font-black text-blue-600 uppercase text-xs">${item.folio || '---'}</td>
-                        <td class="p-4" onclick="verMasDetalles('${d.id}')">
-                            <div class="font-black text-slate-900 uppercase text-xs cursor-pointer hover:text-blue-600 underline decoration-dotted">${item.nombre || 'SIN NOMBRE'}</div>
-                        </td>
+                        <td class="p-4">${origen}</td>
+                        <td class="p-4 font-black text-slate-700 uppercase text-xs">${item.tipo}</td>
+                        <td class="p-4"><div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div><div class="text-[9px] text-slate-400">${item.curp}</div></td>
                         <td class="p-4">
-                            <span class="px-2 py-1 rounded-full text-[9px] font-black ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} uppercase">
-                                ${item.estatus}
-                            </span>
+                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase}">
+                                <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado (Descarga)</option>
+                                <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
+                                <option value="CURP Incorrecto" ${item.estatus === 'CURP Incorrecto' ? 'selected' : ''}>CURP Incorrecto</option>
+                                <option value="NSS Incorrecto" ${item.estatus === 'NSS Incorrecto' ? 'selected' : ''}>NSS Incorrecto</option>
+                                <option value="Pedido Duplicado" ${item.estatus === 'Pedido Duplicado' ? 'selected' : ''}>Pedido Duplicado</option>
+                            </select>
                         </td>
                         <td class="p-4 text-right">
                             ${item.estatus !== 'Terminado' ? 
                                 `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : 
-                                `<a href="https://wa.me/52${item.tel}?text=Hola%20${item.nombre},%20tu%20${item.tipo}%20folio%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">WA</a>`
+                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Ver Archivo</button>`
                             }
                         </td>
                     </tr>`;
             });
         });
+
+        // FUNCIONES DE ACTUALIZACIÓN
+        window.actualizarEstatus = async (id, nuevoEstatus) => {
+            try {
+                await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
+                alert("Estatus actualizado a: " + nuevoEstatus);
+            } catch (e) { alert("Error al actualizar"); }
+        };
 
         window.aprobarRecarga = async (docId, asesorId, monto) => {
             if(!confirm("¿Aprobar saldo?")) return;
@@ -165,23 +165,6 @@
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
                 alert("¡Saldo cargado!");
             } catch (e) { alert("Error al cargar saldo."); }
-        };
-
-        window.verMasDetalles = (id) => {
-            const item = solicitudesData[id];
-            const cont = document.getElementById('contenidoDetalles');
-            document.getElementById('modalDetalles').classList.remove('hidden');
-            const campos = [
-                { l: 'Servicio Solicitado', v: item.tipo },
-                { l: 'Nombre del Cliente', v: item.nombre },
-                { l: 'CURP', v: item.curp },
-                { l: 'NSS', v: item.nss },
-                { l: 'WhatsApp', v: item.tel },
-                { l: 'Email', v: item.correo },
-                { l: 'Info Adicional', v: item.infoExtra || item.nota },
-                { l: 'Comprobante Pago', v: item.comprobante ? `<a href="${item.comprobante}" target="_blank" class="text-blue-600 underline">Ver Imagen</a>` : 'No aplica' }
-            ];
-            cont.innerHTML = campos.map(c => `<div><p class="detalle-label">${c.l}</p><p class="detalle-valor">${c.v || 'N/A'}</p></div>`).join('');
         };
 
         window.prepararSubida = (id, folio) => { 
@@ -199,13 +182,13 @@
             try {
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
+                // Al subir archivo se pone en Terminado automáticamente
                 await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
                 alert("¡Trámite finalizado!"); cerrarSubida();
             } catch(e) { alert("Error al subir."); }
-            finally { btn.innerText = "Subir Resultado"; btn.disabled = false; }
+            finally { btn.innerText = "Subir y Marcar Terminado"; btn.disabled = false; }
         };
 
-        window.cerrarDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
         window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
     </script>
 </body>
