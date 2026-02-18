@@ -3,116 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Panel Ejecutivo</title>
+    <title>Admin Maestro | DPR Consultoría</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; scroll-behavior: smooth; }
-        .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
-        .category-card:hover { border-color: #C5A059; background: rgba(255, 255, 255, 0.07); }
-        .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
-        .input-dark:focus { border-color: #C5A059; }
-        .gold-text { color: #C5A059; }
-        .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .seccion-titulo { border-left: 4px solid #2563eb; padding-left: 1rem; }
+        .badge-asesor { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
+        .badge-web { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
+        select { font-size: 10px; font-weight: 800; text-transform: uppercase; border-radius: 8px; padding: 4px; outline: none; border: 1px solid #e2e8f0; cursor: pointer; }
     </style>
 </head>
-<body>
-
-    <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="gold-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900">DP</div>
-                <h1 class="font-black uppercase tracking-tighter text-xl text-white">DPR <span class="gold-text italic">Consultoría</span></h1>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-black uppercase italic text-slate-800">Panel <span class="text-blue-600">DPR Admin</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">García, Nuevo León</p>
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 hover:bg-slate-700 transition">
-                    <span id="txtSaldoHeader" class="font-black text-white">...</span>
-                </button>
-                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
-            </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="p-6 max-w-7xl mx-auto">
-        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Selecciona Categoría</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏥</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
-            </button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">⚖️</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">SAT</span>
-            </button>
-            <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">📄</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">DOCUMENTOS</span>
-            </button>
-            <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏠</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
-            </button>
-            <button onclick="mostrarTramites('AFO')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">💰</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">AFORE WEB</span>
-            </button>
-            <button onclick="mostrarTramites('CON')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">📞</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">CONTACTO</span>
-            </button>
-        </div>
-
-        <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
-
-        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl">
-            <h2 class="text-xl font-black text-white uppercase italic mb-6">Mis Solicitudes Recientes</h2>
-            <div class="overflow-x-auto">
+        <section class="mb-12">
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas</span></h2>
+            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
                 <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
-                            <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-2">Servicio</th>
-                            <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Documento</th>
+                    <thead class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
+                        <tr>
+                            <th class="p-5">Asesor</th>
+                            <th class="p-5">Monto</th>
+                            <th class="p-5">Comprobante</th>
+                            <th class="p-5 text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-xs"></tbody>
+                    <tbody id="tablaRecargas"></tbody>
                 </table>
             </div>
         </section>
-    </main>
 
-    <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 relative border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <div id="formContent"></div>
-        </div>
-    </div>
-
-    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[1px]">
-            <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
-                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-                <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Billetera</h2>
-                <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
-                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
-                    <p id="txtSaldoGrande" class="text-4xl font-black text-white">...</p>
-                </div>
-                <div class="space-y-3">
-                    <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
-                    <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase">
-                    <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                    <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4">Informar Depósito</button>
+        <section>
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites Realizados</span></h2>
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto max-h-[750px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-900 sticky top-0 z-10">
+                            <tr class="text-white text-[10px] uppercase font-black tracking-widest">
+                                <th class="p-4">Fecha</th>
+                                <th class="p-4">Origen</th>
+                                <th class="p-4">Servicio</th>
+                                <th class="p-4">Cliente / Asesor</th>
+                                <th class="p-4">Estatus / Acción</th>
+                                <th class="p-4 text-right">Acción Documento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
+                    </table>
                 </div>
             </div>
+        </section>
+    </div>
+
+    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center border-t-8 border-blue-600">
+            <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
+            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
+            <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Finalizar</button>
+            <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -125,173 +87,140 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
         const CLOUD_NAME = "de5abnhul"; 
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let saldoGlobal = 0, userUID = "";
+        let idActual, folioActual;
 
-        const TRAMITES = {
-            'IMSS': [
-                { id: 'M10', nombre: 'Modalidad 10', precio: 200, nss: true, extra: 'DIRECCIÓN' },
-                { id: 'M40', nombre: 'Simulación Mod 40', precio: 300, nss: true },
-                { id: 'ALTA MENSUAL', nombre: 'ALTA MENSUAL', precio: 600, nss: true, curp: true },
-                { id: 'SINDO UR', nombre: 'SINDO ULTIMO RETIRO', precio: 40, nss: true },    
-                { id: 'SINDO ALFA', nombre: 'SINDO ALFA NUMERICO', precio: 80, curp: true },
-                { id: 'SINDO COMP', nombre: 'SINDO COMPLETO', precio: 220, nss: true }
-            ],
-            'SAT': [
-                { id: 'RFC', nombre: 'RFC Clon', precio: 35, curp: true },
-                { id: 'RFCV', nombre: 'RFC Verificable', precio: 140, curp: true },
-                { id: 'CSF', nombre: 'Constancia Fiscal', precio: 230, curp: true },
-                { id: 'RFC CON IDCIF', nombre: 'RFC CON IDCIF', precio: 40, curp: true, extra: 'IDCIF' },
-                { id: 'Loc idcif', nombre: 'LOCALIZAR IDCIF', precio: 60, extra: 'DATOS ACCESO' },
-                { id: 'op. cumplimiento', nombre: 'OPINION CUMPLIMIENTO', precio: 30, curp: true }
-            ],
-            'DOC': [
-                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 50, nss: true, curp: true },
-                { id: 'VIGENCIA', nombre: 'Vigencia de Derechos', precio: 13, curp: true },
-                { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
-                { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { id: 'MATRIMONIO', nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { id: 'DIVORCIO', nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { id: 'DEFUNCIÓN', nombre: 'Acta de Defunción', precio: 15, curp: true },
-                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true },
-                { id: 'CFE', nombre: 'RECIBO CFE', precio: 15, extra: 'NUMERO SERVICIO' }
-            ],
-            'INF': [
-                { id: 'PRECA MEJVT', nombre: 'Mejoravit', precio: 120, nss: true, nac: true },
-                { id: 'PRECA LINEA II', nombre: 'Linea II', precio: 120, nss: true, nac: true },
-                { id: 'CUENTA', nombre: 'Crear cuenta Infonavit', precio: 150, nss: true, extra: 'TEL Y CORREO' },
-                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true },
-                { id: 'ESTADO DE CUENTA H', nombre: 'HISTÓRICO DE CUENTA', precio: 150, nss: true },
-                { id: 'DESVINC', nombre: 'DESVINCULAR DISPOSITIVO', precio: 150, nss: true },
-                { id: 'CONTRA', nombre: 'LOCALIZAR CONTRASEÑA', precio: 170, nss: true }
-            ],
-            'AFO': [
-                { id: 'RETIRO', nombre: 'RETIRO DESEMPLEO', precio: 50, curp: true, extra: 'CLAVE AFORE WEB' },
-                { id: 'Contraseña', nombre: 'Cambio Contraseña', precio: 30, curp: true, extra: 'TELÉFONO' },
-                { id: 'REGISTRO', nombre: 'REGISTRO AFORE WEB', precio: 50, nss: true, curp: true, extra: 'CLAVE AW' }
-            ],
-            'CON': [
-                { id: 'ASESORIA', nombre: 'Asesoría Personalizada', precio: 0, extra: 'TEMA A TRATAR' }
-            ]
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
+        // 1. ESCUCHAR RECARGAS PENDIENTES
+        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
+            const tabla = document.getElementById("tablaRecargas");
+            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas pendientes</td></tr>' : "";
+            snap.forEach(d => {
+                const r = d.data();
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail || 'S/C'}</td>
+                        <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
+                        <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Ver Baucher</button></td>
+                        <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Aprobar</button></td>
+                    </tr>`;
+            });
         });
 
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
-                if (docSnap.exists()) {
-                    saldoGlobal = docSnap.data().saldo || 0;
-                    const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
-                    document.getElementById('txtSaldoHeader').innerText = fmt;
-                    document.getElementById('txtSaldoGrande').innerText = fmt;
-                }
+        // 2. ESCUCHAR TODAS LAS SOLICITUDES (CON DETALLE DE DOCUMENTO)
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = "";
+            snap.forEach(d => {
+                const item = d.data();
+                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
+                const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
+                
+                // Muestra el nombre específico del documento solicitado (ej. Acta de Nacimiento)
+                const detalleServicio = (item.tipo === 'DOC' && item.infoExtra) 
+                    ? `<div class="text-[9px] text-blue-500 font-bold lowercase italic">${item.infoExtra}</div>` 
+                    : "";
+
+                // Colores dinámicos para el menú de estatus
+                let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
+                if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
+                if(item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
+
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50/30 transition">
+                        <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
+                        <td class="p-4">${origen}</td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div>
+                            ${detalleServicio}
+                        </td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
+                            <div class="text-[9px] text-slate-400 font-bold">${item.curp}</div>
+                        </td>
+                        <td class="p-4">
+                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold">
+                                <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado (Descarga)</option>
+                                <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
+                                <option value="CURP Incorrecto" ${item.estatus === 'CURP Incorrecto' ? 'selected' : ''}>CURP Incorrecto</option>
+                                <option value="NSS Incorrecto" ${item.estatus === 'NSS Incorrecto' ? 'selected' : ''}>NSS Incorrecto</option>
+                                <option value="Pedido Duplicado" ${item.estatus === 'Pedido Duplicado' ? 'selected' : ''}>Pedido Duplicado</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex flex-col gap-1 items-end">
+                                <button onclick="window.open('${item.comprobante}', '_blank')" class="text-[9px] font-black text-red-600 underline uppercase hover:text-red-800">Ver Pago</button>
+                                ${item.estatus !== 'Terminado' ? 
+                                    `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir PDF</button>` : 
+                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Ver Archivo</button>`
+                                }
+                            </div>
+                        </td>
+                    </tr>`;
             });
-        }
+        });
 
-        window.mostrarTramites = (cat) => {
-            const listado = document.getElementById('listaServicios');
-            listado.classList.remove('hidden');
-            listado.innerHTML = TRAMITES[cat].map(t => `
-                <div onclick="prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss}, ${t.nac}, '${t.extra || ''}')" class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-blue-500 transition">
-                    <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00 MXN</p>
-                </div>
-            `).join('');
-            window.scrollTo({ top: 300, behavior: 'smooth' });
+        // ACTUALIZAR ESTATUS MANUALMENTE
+        window.actualizarEstatus = async (id, nuevoEstatus) => {
+            try {
+                await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
+                alert("Estado actualizado: " + nuevoEstatus);
+            } catch (e) { alert("Error al actualizar estado."); }
         };
 
-        window.prepararTramite = (nombre, costo, prefijo, pideNss, pideNac, pideExtra) => {
-            const content = document.getElementById('formContent');
-            let camposExtra = "";
-            if(pideNss) camposExtra += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase font-bold">`;
-            if(pideNac) camposExtra += `<label class="text-[9px] ml-2 text-slate-500 font-bold uppercase">Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3">`;
-            if(pideExtra) camposExtra += `<input type="text" id="extra_p" placeholder="${pideExtra}" class="input-dark mb-3 uppercase font-bold">`;
-
-            content.innerHTML = `
-                <h2 class="text-2xl font-black text-white uppercase italic mb-6 gold-text">${nombre}</h2>
-                <div class="space-y-4">
-                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-bold">
-                    ${camposExtra}
-                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
-                    <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar: $${costo}</button>
-                </div>`;
-            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(nombre, costo, prefijo);
-            abrirModal('modalTramite');
+        // APROBAR RECARGA DE SALDO
+        window.aprobarRecarga = async (docId, asesorId, monto) => {
+            if(!confirm("¿Confirmas el depósito?")) return;
+            try {
+                await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
+                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                alert("¡Saldo cargado con éxito!");
+            } catch (e) { alert("Error al cargar saldo."); }
         };
 
-        window.confirmarCompra = async (nombre, costo, prefijo) => {
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value.trim();
-            if (curp.length < 10) return alert("CURP inválida.");
+        // PREPARAR EL MODAL PARA SUBIR EL RESULTADO
+        window.prepararSubida = (id, folio) => { 
+            idActual = id; folioActual = folio; 
+            document.getElementById('txtFolioFinal').innerText = "Subiendo archivo para: " + folio;
+            document.getElementById('modalSubir').classList.remove('hidden'); 
+        };
+
+        // SUBIR ARCHIVO A CLOUDINARY Y MARCAR COMO TERMINADO
+        document.getElementById('btnGuardarFinal').onclick = async () => {
+            const file = document.getElementById('archivoFinalInput').files[0];
+            if (!file) return alert("Por favor selecciona un archivo PDF.");
             
-            const btn = document.getElementById('btnPagar');
-            btn.innerText = "PROCESANDO..."; btn.disabled = true;
-
-            try {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                const folio = prefijo + "-" + Math.floor(10000 + Math.random() * 90000);
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR",
-                    nombre: auth.currentUser.email, // Registra quién lo hizo para el Admin
-                    tipo: nombre, folio: folio, curp: curp,
-                    nss: document.getElementById('nss_p')?.value || "N/A",
-                    nacimiento: document.getElementById('nac_p')?.value || "",
-                    infoExtra: document.getElementById('extra_p')?.value || document.getElementById('nota_p')?.value || "",
-                    estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("¡Solicitud enviada!"); cerrarModal();
-            } catch (e) { alert("Error en el sistema."); }
-        };
-
-        function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const lista = document.getElementById('listaHistorial');
-                lista.innerHTML = snapshot.empty ? '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Sin historial</td></tr>' : "";
-                snapshot.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const fecha = d.fecha?.toDate().toLocaleDateString() || '...';
-                    lista.innerHTML += `
-                        <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
-                            <td class="py-4 px-2 text-slate-400 font-bold">${fecha}</td>
-                            <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}<br><span class="text-blue-400 text-[9px]">${d.folio}</span></td>
-                            <td class="py-4 px-2 text-center"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">${d.estatus}</span></td>
-                            <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">DESCARGAR</a>` : '--'}</td>
-                        </tr>`;
-                });
-            });
-        }
-
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value.trim();
-            const file = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !file) return alert("Completa los datos.");
-            const btn = document.getElementById('btnNotificar');
+            const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            
+            const fd = new FormData(); 
+            fd.append('file', file); 
+            fd.append('upload_preset', UPLOAD_PRESET);
+            
             try {
-                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), {
-                    uid: userUID, asesorEmail: auth.currentUser.email, monto: m, rastreo: r,
-                    comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente"
+                const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const d = await r.json();
+                
+                await updateDoc(doc(db, "solicitudes", idActual), { 
+                    archivoFinal: d.secure_url, 
+                    estatus: "Terminado" 
                 });
-                alert("¡Recarga reportada!"); cerrarModal();
-            } catch (e) { alert("Error."); } finally { btn.innerText = "Informar Depósito"; btn.disabled = false; }
+                
+                alert("¡Trámite finalizado!"); 
+                cerrarSubida();
+            } catch(e) { 
+                console.error(e);
+                alert("Error al subir el archivo."); 
+            } finally { 
+                btn.innerText = "Subir y Finalizar"; btn.disabled = false; 
+            }
         };
 
-        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.style.overflow = 'auto'; };
-        window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
+        window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
     </script>
 </body>
 </html>
