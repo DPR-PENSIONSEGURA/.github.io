@@ -112,12 +112,12 @@
     </div>
 
     <script type="module">
-        // 1. IMPORTACIONES CORRECTAS (Solo Web SDK)
+        // 1. IMPORTACIONES
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (pensionsegura-9c817)
+        // 2. CONFIGURACIÓN (PROYECTO NUEVO: pensionsegura-9c817)
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -140,21 +140,18 @@
         let saldoGlobal = 0;
         let userUID = "";
 
-        // 4. VERIFICAR SI ESTÁ LOGUEADO
+        // 4. AUTENTICACIÓN
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userUID = user.uid;
                 escucharSaldo();
-                escucharHistorial(); // Cargar historial de compras de ESTE usuario
+                escucharHistorial(); 
             } else {
-                // Si no hay sesión, mandarlo al login o intentar loguear aquí
-                // Para pruebas rápidas, si no hay usuario, iniciamos sesión con Google
-                const provider = new GoogleAuthProvider();
-                signInWithPopup(auth, provider).catch(e => alert("Inicia sesión para ver tu saldo"));
+                window.location.href = "login/index.html"; 
             }
         });
 
-        // 5. ESCUCHAR EL SALDO EN TIEMPO REAL
+        // 5. ESCUCHAR SALDO
         function escucharSaldo() {
             onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
                 if (docSnap.exists()) {
@@ -169,24 +166,19 @@
             });
         }
 
-        // 6. ESCUCHAR EL HISTORIAL DE COMPRAS (PedidosServicios)
+        // 6. HISTORIAL
         function escucharHistorial() {
-            // Buscamos en la colección donde se guardan las compras (pedidos_servicios)
             const q = query(collection(db, "pedidos_servicios"), where("uid", "==", userUID), orderBy("fecha", "desc"));
-            
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
                 lista.innerHTML = "";
-                
                 if (snapshot.empty) {
                     lista.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase italic">Aún no has solicitado servicios</td></tr>';
                     return;
                 }
-
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     const fecha = data.fecha && data.fecha.toDate ? data.fecha.toDate().toLocaleDateString() : '...';
-                    
                     lista.innerHTML += `
                         <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
                             <td class="py-4 px-2 text-slate-400 text-xs">${fecha}</td>
@@ -207,7 +199,7 @@
             });
         }
 
-        // 7. FUNCIÓN PARA REPORTAR PAGO (Subir Saldo)
+        // 7. NOTIFICAR PAGO (GLOBAL)
         window.notificarPago = async () => {
             const btn = document.getElementById('btnNotificar');
             const m = parseFloat(document.getElementById('depMonto').value);
@@ -223,11 +215,9 @@
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
                 formData.append('upload_preset', UPLOAD_PRESET);
-                
                 const cloudResp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
                 const fileData = await cloudResp.json();
                 
-                // Guardar la notificación
                 await addDoc(collection(db, "notificaciones_pago"), {
                     uid: userUID,
                     asesorEmail: auth.currentUser ? auth.currentUser.email : "Sin Correo",
@@ -237,19 +227,13 @@
                     fecha: serverTimestamp(),
                     estatus: "pendiente"
                 });
-                
-                alert("¡Pago enviado a revisión! Tu saldo se actualizará en breve.");
+                alert("¡Pago enviado a revisión!");
                 window.cerrarModal();
-            } catch (e) {
-                console.error(e);
-                alert("Error al subir el comprobante. Intenta con una imagen más ligera.");
-            } finally {
-                btn.innerText = "Informar Depósito";
-                btn.disabled = false;
-            }
+            } catch (e) { console.error(e); alert("Error al subir."); } 
+            finally { btn.innerText = "Informar Depósito"; btn.disabled = false; }
         };
 
-        // 8. FUNCIONES DE COMPRA DE SERVICIOS
+        // 8. PREPARAR TRÁMITE (GLOBAL)
         window.prepararTramite = (tipo, costo) => {
             const content = document.getElementById('formContent');
             let camposExtra = "";
@@ -262,4 +246,52 @@
             content.innerHTML = `
                 <h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2>
                 <div class="space-y-4 text-left">
-                    <label
+                    <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label>
+                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">
+                    ${camposExtra}
+                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
+                    <div class="pt-4">
+                        <p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo del servicio: $${costo}.00</p>
+                        <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl hover:scale-[1.02] transition">Confirmar y Descontar Saldo</button>
+                    </div>
+                </div>`;
+                
+            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
+            window.abrirModal('modalTramite');
+        };
+
+        // 9. CONFIRMAR COMPRA (GLOBAL)
+        window.confirmarCompra = async (tipo, costo) => {
+            if (saldoGlobal < costo) return alert("Saldo insuficiente. Por favor realiza una recarga.");
+            const curp = document.getElementById('curp_p').value.trim();
+            if (curp.length < 10) return alert("Ingresa una CURP válida.");
+            
+            const btn = document.getElementById('btnPagar');
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+            
+            try {
+                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                await addDoc(collection(db, "pedidos_servicios"), {
+                    uid: userUID,
+                    tipo: tipo,
+                    curp: curp,
+                    nss: document.getElementById('nss_p')?.value || "",
+                    nacimiento: document.getElementById('nac_p')?.value || "",
+                    linea: document.getElementById('linea_p')?.value || "",
+                    nota: document.getElementById('nota_p').value,
+                    fecha: serverTimestamp(),
+                    estatus: "En Proceso"
+                });
+                alert("¡Servicio contratado con éxito!");
+                window.cerrarModal();
+            } catch (e) { console.error(e); alert("Error en la transacción."); }
+        };
+
+        // 10. UTILIDADES
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.classList.add('modal-active'); };
+        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.classList.remove('modal-active'); };
+        window.cerrarSesion = () => signOut(auth);
+    </script>
+</body>
+</html>
