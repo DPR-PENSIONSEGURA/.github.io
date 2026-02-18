@@ -11,6 +11,8 @@
         .detalle-label { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; }
         .detalle-valor { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
         .seccion-titulo { border-left: 4px solid #2563eb; padding-left: 1rem; }
+        .badge-asesor { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
+        .badge-web { background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -41,20 +43,24 @@
         </section>
 
         <section>
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites</span></h2>
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites Realizados</span></h2>
             <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-200">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-black tracking-widest">
-                        <tr>
-                            <th class="p-4 text-white">Día</th>
-                            <th class="p-4 text-white">Folio</th>
-                            <th class="p-4 text-white">Cliente</th>
-                            <th class="p-4 text-white">Estatus</th>
-                            <th class="p-4 text-right text-white">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black tracking-widest">
+                            <tr>
+                                <th class="p-4">Fecha</th>
+                                <th class="p-4">Origen</th>
+                                <th class="p-4">Servicio</th>
+                                <th class="p-4">Folio</th>
+                                <th class="p-4">Cliente</th>
+                                <th class="p-4">Estatus</th>
+                                <th class="p-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
@@ -72,17 +78,15 @@
             <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
             <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
             <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir PDF</button>
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir Resultado</button>
             <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
-        // 1. IMPORTACIONES WEB CORRECTAS (No borrar)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (pensionsegura-9c817)
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -92,7 +96,6 @@
             appId: "1:169500313261:web:15e2b662571df505d36824"
         };
 
-        // 3. INICIALIZACIÓN
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -103,7 +106,7 @@
         let idActual, folioActual;
         let solicitudesData = {};
 
-        // 4. LÓGICA DE ESCUCHA (RECARGAS)
+        // 1. ESCUCHAR RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
             tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas pendientes</td></tr>' : "";
@@ -111,55 +114,57 @@
                 const r = d.data();
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-5"><p class="font-black text-slate-800 text-xs">${r.asesorEmail || 'Sin correo'}</p><p class="text-[9px] text-gray-400">${r.uid}</p></td>
+                        <td class="p-5"><p class="font-black text-slate-800 text-xs">${r.asesorEmail || 'Sin correo'}</p></td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
                         <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-bold uppercase underline">Ver Foto</button></td>
-                        <td class="p-5 text-center space-x-2">
-                            <button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-md hover:bg-blue-700">Aprobar</button>
+                        <td class="p-5 text-center">
+                            <button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-md">Aprobar</button>
                         </td>
                     </tr>`;
             });
         });
 
-        // 5. LÓGICA DE ESCUCHA (SOLICITUDES)
+        // 2. ESCUCHAR SOLICITUDES (MEJORADO)
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
                 solicitudesData[d.id] = item;
-                // Manejo seguro de fecha
-                let fecha = '...';
-                if(item.fecha && item.fecha.toDate) {
-                    fecha = item.fecha.toDate().toLocaleDateString();
-                }
-
+                const fecha = item.fecha && item.fecha.toDate ? item.fecha.toDate().toLocaleDateString() : '...';
+                const origenBadge = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
+                
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-4 text-[10px] font-black text-slate-400">${fecha}</td>
-                        <td class="p-4 font-black text-blue-600 uppercase">${item.folio}</td>
-                        <td class="p-4" onclick="verMasDetalles('${d.id}')"><div class="font-black text-slate-900 uppercase text-xs cursor-pointer hover:text-blue-500">${item.nombre}</div></td>
-                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[9px] font-black ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} uppercase">${item.estatus}</span></td>
+                        <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
+                        <td class="p-4">${origenBadge}</td>
+                        <td class="p-4 font-black text-slate-700 uppercase text-xs">${item.tipo || 'S/N'}</td>
+                        <td class="p-4 font-black text-blue-600 uppercase text-xs">${item.folio || '---'}</td>
+                        <td class="p-4" onclick="verMasDetalles('${d.id}')">
+                            <div class="font-black text-slate-900 uppercase text-xs cursor-pointer hover:text-blue-600 underline decoration-dotted">${item.nombre || 'SIN NOMBRE'}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded-full text-[9px] font-black ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} uppercase">
+                                ${item.estatus}
+                            </span>
+                        </td>
                         <td class="p-4 text-right">
-                            ${item.estatus !== 'Terminado' ? `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic hover:scale-105 transition">Subir PDF</button>` : `<a href="https://wa.me/52${item.tel}?text=Hola,%20tu%20trámite%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">WA</a>`}
+                            ${item.estatus !== 'Terminado' ? 
+                                `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : 
+                                `<a href="https://wa.me/52${item.tel}?text=Hola%20${item.nombre},%20tu%20${item.tipo}%20folio%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">WA</a>`
+                            }
                         </td>
                     </tr>`;
             });
         });
 
-        // FUNCIONES GLOBALES
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm("¿Confirmas que recibiste el dinero en Banorte?")) return;
+            if(!confirm("¿Aprobar saldo?")) return;
             try {
-                // 1. Sumar saldo al asesor
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
-                // 2. Marcar la notificación como aprobada
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo agregado correctamente!");
-            } catch (e) { 
-                console.error(e);
-                alert("Error: Asegúrate de que el asesor existe en la colección 'asesores'."); 
-            }
+                alert("¡Saldo cargado!");
+            } catch (e) { alert("Error al cargar saldo."); }
         };
 
         window.verMasDetalles = (id) => {
@@ -167,13 +172,14 @@
             const cont = document.getElementById('contenidoDetalles');
             document.getElementById('modalDetalles').classList.remove('hidden');
             const campos = [
-                { l: 'Nombre', v: item.nombre }, 
-                { l: 'CURP', v: item.curp }, 
+                { l: 'Servicio Solicitado', v: item.tipo },
+                { l: 'Nombre del Cliente', v: item.nombre },
+                { l: 'CURP', v: item.curp },
                 { l: 'NSS', v: item.nss },
                 { l: 'WhatsApp', v: item.tel },
                 { l: 'Email', v: item.correo },
-                { l: 'Salario', v: item.salario },
-                { l: 'Link Pago', v: item.comprobante ? `<a href="${item.comprobante}" target="_blank" class="text-blue-500 underline">Ver Baucher</a>` : 'Sin foto' }
+                { l: 'Info Adicional', v: item.infoExtra || item.nota },
+                { l: 'Comprobante Pago', v: item.comprobante ? `<a href="${item.comprobante}" target="_blank" class="text-blue-600 underline">Ver Imagen</a>` : 'No aplica' }
             ];
             cont.innerHTML = campos.map(c => `<div><p class="detalle-label">${c.l}</p><p class="detalle-valor">${c.v || 'N/A'}</p></div>`).join('');
         };
@@ -183,30 +189,20 @@
             document.getElementById('txtFolioFinal').innerText = "Trámite: " + folio;
             document.getElementById('modalSubir').classList.remove('hidden'); 
         };
-        
+
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Selecciona el PDF del resultado.");
-            
+            if (!file) return alert("Selecciona el archivo.");
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
-
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            
             try {
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
-                if(d.error) throw d.error;
-
                 await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("¡Trámite finalizado y enviado!"); 
-                cerrarSubida();
-            } catch(e) { 
-                console.error(e);
-                alert("Error al subir archivo."); 
-            } finally {
-                btn.innerText = "Subir PDF"; btn.disabled = false;
-            }
+                alert("¡Trámite finalizado!"); cerrarSubida();
+            } catch(e) { alert("Error al subir."); }
+            finally { btn.innerText = "Subir Resultado"; btn.disabled = false; }
         };
 
         window.cerrarDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
