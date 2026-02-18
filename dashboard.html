@@ -65,4 +65,201 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
-                        <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-80
+                        <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
+                            <th class="pb-4 px-2">Fecha</th>
+                            <th class="pb-4 px-2">Servicio</th>
+                            <th class="pb-4 px-2">Cliente / CURP</th>
+                            <th class="pb-4 px-2">Estatus</th>
+                            <th class="pb-4 px-2 text-right">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaHistorial" class="text-sm font-medium"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl hover:text-white">×</button>
+            <div id="formContent"></div>
+        </div>
+    </div>
+
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[2px]">
+            <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
+                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
+                <h2 class="text-2xl font-black text-white text-center mb-6 uppercase italic">Bóveda de Saldo</h2>
+                <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
+                    <p id="txtSaldoGrande" class="text-4xl font-black text-white">...</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl text-center mb-6 text-slate-900 shadow-inner">
+                    <p class="text-[10px] font-black uppercase opacity-50">Depósito Banorte</p>
+                    <p class="text-lg font-black text-red-600 tracking-tighter">4915 6630 4036 4896</p>
+                </div>
+                <div class="space-y-3">
+                    <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
+                    <input type="text" id="depRef" placeholder="Folio de Rastreo / Autorización" class="input-dark uppercase">
+                    <label class="block text-[10px] font-black text-slate-500 ml-2 uppercase">Adjuntar Comprobante</label>
+                    <input type="file" id="fileRecarga" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-800 file:text-white file:font-bold">
+                    <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4 hover:scale-[1.02] transition">Informar Depósito</button>
+                    <p class="text-[9px] text-slate-500 text-center mt-4 px-4 leading-tight">Al informar su depósito, acepta los Términos y Condiciones de DPR Consultoría. El saldo no es reembolsable y está sujeto a validación bancaria.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. IMPORTACIONES CORRECTAS (Solo Web SDK)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (pensionsegura-9c817)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app",
+            messagingSenderId: "169500313261",
+            appId: "1:169500313261:web:15e2b662571df505d36824"
+        };
+
+        // 3. INICIALIZAR APP
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // CLOUDINARY
+        const CLOUD_NAME = "de5abnhul"; 
+        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        let saldoGlobal = 0;
+        let userUID = "";
+
+        // 4. VERIFICAR SI ESTÁ LOGUEADO
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userUID = user.uid;
+                escucharSaldo();
+                escucharHistorial(); // Cargar historial de compras de ESTE usuario
+            } else {
+                // Si no hay sesión, mandarlo al login o intentar loguear aquí
+                // Para pruebas rápidas, si no hay usuario, iniciamos sesión con Google
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider).catch(e => alert("Inicia sesión para ver tu saldo"));
+            }
+        });
+
+        // 5. ESCUCHAR EL SALDO EN TIEMPO REAL
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
+                if (docSnap.exists()) {
+                    saldoGlobal = docSnap.data().saldo || 0;
+                    const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
+                    document.getElementById('txtSaldoHeader').innerText = fmt;
+                    document.getElementById('txtSaldoGrande').innerText = fmt;
+                } else {
+                    document.getElementById('txtSaldoHeader').innerText = "$0.00";
+                    document.getElementById('txtSaldoGrande').innerText = "$0.00";
+                }
+            });
+        }
+
+        // 6. ESCUCHAR EL HISTORIAL DE COMPRAS (PedidosServicios)
+        function escucharHistorial() {
+            // Buscamos en la colección donde se guardan las compras (pedidos_servicios)
+            const q = query(collection(db, "pedidos_servicios"), where("uid", "==", userUID), orderBy("fecha", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const lista = document.getElementById('listaHistorial');
+                lista.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    lista.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase italic">Aún no has solicitado servicios</td></tr>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const fecha = data.fecha && data.fecha.toDate ? data.fecha.toDate().toLocaleDateString() : '...';
+                    
+                    lista.innerHTML += `
+                        <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
+                            <td class="py-4 px-2 text-slate-400 text-xs">${fecha}</td>
+                            <td class="py-4 px-2 font-black text-white text-xs tracking-widest">${data.tipo || 'S/N'}</td>
+                            <td class="py-4 px-2 text-slate-300 text-xs">${data.curp || 'S/C'}</td>
+                            <td class="py-4 px-2">
+                                <span class="status-badge ${data.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">
+                                    ${data.estatus || 'En Proceso'}
+                                </span>
+                            </td>
+                            <td class="py-4 px-2 text-right">
+                                ${data.archivoFinal ? 
+                                    `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline text-amber-500">DESCARGAR RESULTADO</a>` : 
+                                    '<span class="text-slate-600 text-[10px]">EN REVISIÓN</span>'}
+                            </td>
+                        </tr>`;
+                });
+            });
+        }
+
+        // 7. FUNCIÓN PARA REPORTAR PAGO (Subir Saldo)
+        window.notificarPago = async () => {
+            const btn = document.getElementById('btnNotificar');
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('depRef').value.trim();
+            const fileInput = document.getElementById('fileRecarga');
+            
+            if (!m || m < 200 || !r || !fileInput.files[0]) return alert("Requerido: Monto (mín $200), Rastreo y foto del comprobante.");
+            
+            btn.innerText = "SUBIENDO...";
+            btn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                formData.append('upload_preset', UPLOAD_PRESET);
+                
+                const cloudResp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const fileData = await cloudResp.json();
+                
+                // Guardar la notificación
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID,
+                    asesorEmail: auth.currentUser ? auth.currentUser.email : "Sin Correo",
+                    monto: m,
+                    rastreo: r,
+                    comprobante: fileData.secure_url,
+                    fecha: serverTimestamp(),
+                    estatus: "pendiente"
+                });
+                
+                alert("¡Pago enviado a revisión! Tu saldo se actualizará en breve.");
+                window.cerrarModal();
+            } catch (e) {
+                console.error(e);
+                alert("Error al subir el comprobante. Intenta con una imagen más ligera.");
+            } finally {
+                btn.innerText = "Informar Depósito";
+                btn.disabled = false;
+            }
+        };
+
+        // 8. FUNCIONES DE COMPRA DE SERVICIOS
+        window.prepararTramite = (tipo, costo) => {
+            const content = document.getElementById('formContent');
+            let camposExtra = "";
+            if (tipo === 'INF') {
+                camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase mb-1">Fecha de Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3"><select id="linea_p" class="input-dark mb-3 font-bold uppercase text-xs"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>`;
+            } else if (tipo === 'SC') {
+                camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">`;
+            }
+            
+            content.innerHTML = `
+                <h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2>
+                <div class="space-y-4 text-left">
+                    <label
