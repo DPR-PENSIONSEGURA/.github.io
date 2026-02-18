@@ -87,16 +87,24 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+npm install firebase
+        
+        // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA3btkCIzFYOs6EXIa0FaecuB1jTqGH3w4",
-            authDomain: "pensionsegura-eeaff.firebaseapp.com",
-            projectId: "pensionsegura-eeaff",
-            storageBucket: "pensionsegura-eeaff.firebasestorage.app",
-            messagingSenderId: "96463651258",
-            appId: "1:96463651258:web:cb4cf865990d9521035d83",
-            measurementId: "G-F18HTRZ4YH"
-        };
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+  authDomain: "pensionsegura-9c817.firebaseapp.com",
+  projectId: "pensionsegura-9c817",
+  storageBucket: "pensionsegura-9c817.firebasestorage.app",
+  messagingSenderId: "169500313261",
+  appId: "1:169500313261:web:15e2b662571df505d36824"
+};
+
+// Initialize Firebase
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -340,3 +348,4 @@
     </script>
 </body>
 </html>
+
