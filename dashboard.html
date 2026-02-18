@@ -105,7 +105,6 @@
                     <label class="block text-[10px] font-black text-slate-500 ml-2 uppercase">Adjuntar Comprobante</label>
                     <input type="file" id="fileRecarga" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-800 file:text-white file:font-bold">
                     <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4 hover:scale-[1.02] transition">Informar Depósito</button>
-                    <p class="text-[9px] text-slate-500 text-center mt-4 px-4 leading-tight">Al informar su depósito, acepta los Términos y Condiciones de DPR Consultoría. El saldo no es reembolsable y está sujeto a validación bancaria.</p>
                 </div>
             </div>
         </div>
@@ -114,9 +113,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // PROYECTO NUEVO (9c817)
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -154,42 +152,34 @@
                     const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
                     document.getElementById('txtSaldoHeader').innerText = fmt;
                     document.getElementById('txtSaldoGrande').innerText = fmt;
-                } else {
-                    document.getElementById('txtSaldoHeader').innerText = "$0.00";
-                    document.getElementById('txtSaldoGrande').innerText = "$0.00";
                 }
             });
         }
 
-        // AHORA LEE DE LA COLECCIÓN "solicitudes" (IGUAL QUE EL ADMIN)
         function escucharHistorial() {
-            // Filtra solo los trámites hechos por ESTE asesor
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
-            
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
                 lista.innerHTML = "";
                 if (snapshot.empty) {
-                    lista.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase italic">Aún no has solicitado servicios</td></tr>';
+                    lista.innerHTML = '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase italic">Sin trámites aún</td></tr>';
                     return;
                 }
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    const fecha = data.fecha && data.fecha.toDate ? data.fecha.toDate().toLocaleDateString() : '...';
+                    const fecha = data.fecha?.toDate().toLocaleDateString() || '...';
                     lista.innerHTML += `
                         <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
                             <td class="py-4 px-2 text-slate-400 text-xs">${fecha}</td>
                             <td class="py-4 px-2 font-black text-white text-xs tracking-widest">${data.tipo || 'S/N'}<br><span class="text-[9px] text-blue-400">${data.folio || ''}</span></td>
-                            <td class="py-4 px-2 text-slate-300 text-xs font-bold">${data.nombre || 'S/N'}<br><span class="text-[9px] text-slate-500 font-normal">${data.curp}</span></td>
+                            <td class="py-4 px-2 text-slate-300 text-xs font-bold">${data.curp || 'S/C'}</td>
                             <td class="py-4 px-2">
                                 <span class="status-badge ${data.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">
                                     ${data.estatus || 'En Proceso'}
                                 </span>
                             </td>
                             <td class="py-4 px-2 text-right">
-                                ${data.archivoFinal ? 
-                                    `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline text-amber-500">DESCARGAR RESULTADO</a>` : 
-                                    '<span class="text-slate-600 text-[10px]">EN REVISIÓN</span>'}
+                                ${data.archivoFinal ? `<a href="${data.archivoFinal}" target="_blank" class="gold-text font-black text-[10px] hover:underline">DESCARGAR</a>` : '<span class="text-slate-600 text-[10px]">EN REVISIÓN</span>'}
                             </td>
                         </tr>`;
                 });
@@ -211,8 +201,8 @@
                     uid: userUID, asesorEmail: auth.currentUser.email, monto: m, rastreo: r,
                     comprobante: fileData.secure_url, fecha: serverTimestamp(), estatus: "pendiente"
                 });
-                alert("Pago enviado."); window.cerrarModal();
-            } catch (e) { console.error(e); alert("Error."); } 
+                alert("Pago reportado."); window.cerrarModal();
+            } catch (e) { alert("Error al subir."); } 
             finally { btn.innerText = "Informar Depósito"; btn.disabled = false; }
         };
 
@@ -220,93 +210,51 @@
             const content = document.getElementById('formContent');
             let camposExtra = "";
             if (tipo === 'INF') {
-                camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase mb-1">Fecha de Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3"><select id="linea_p" class="input-dark mb-3 font-bold uppercase text-xs"><option value="Linea II">Línea II</option><option value="Mejoravit">Mejoravit</option></select>`;
+                camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase"><label class="block text-[10px] font-black text-slate-400 ml-2 uppercase mb-1">Fecha de Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3">`;
             } else if (tipo === 'SC') {
                 camposExtra = `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">`;
             }
-            
             content.innerHTML = `
                 <h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2>
                 <div class="space-y-4 text-left">
-                    <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase">Información del Cliente</label>
-                    
-                    <input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-dark uppercase font-black">
-                    
                     <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">
                     ${camposExtra}
-                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
-                    <div class="pt-4">
-                        <p class="text-[10px] text-center text-slate-500 font-bold mb-3">Costo: $${costo}.00</p>
-                        <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl hover:scale-[1.02] transition">Confirmar y Descontar Saldo</button>
-                    </div>
+                    <textarea id="nota_p" placeholder="Notas adicionales..." class="input-dark h-24 text-sm"></textarea>
+                    <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar: $${costo}.00</button>
                 </div>`;
             document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
             window.abrirModal('modalTramite');
         };
 
-       // ... (Dentro del script de dashboard.html)
-
-window.confirmarCompra = async (tipo, costo) => {
-    if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-    
-    // YA NO PEDIMOS NOMBRE, lo tomamos del usuario autenticado
-    const nombreAsesor = auth.currentUser.displayName || auth.currentUser.email; 
-    const curp = document.getElementById('curp_p').value.trim();
-    
-    if (curp.length < 10) return alert("Ingresa una CURP válida.");
-    
-    const btn = document.getElementById('btnPagar');
-    btn.innerText = "PROCESANDO..."; btn.disabled = true;
-    
-    try {
-        await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-        
-        const folio = tipo + "-" + Math.floor(10000 + Math.random() * 90000);
-        await addDoc(collection(db, "solicitudes"), {
-            asesor_uid: userUID,
-            origen: "ASESOR",
-            nombre: nombreAsesor, // Nombre automático del asesor
-            folio: folio,
-            tipo: tipo,
-            curp: curp,
-            nss: document.getElementById('nss_p')?.value || "N/A",
-            nacimiento: document.getElementById('nac_p')?.value || "",
-            infoExtra: document.getElementById('linea_p')?.value || document.getElementById('nota_p').value,
-            estatus: "En Proceso",
-            fecha: serverTimestamp()
-        });
-        alert("¡Solicitud enviada!");
-        window.cerrarModal();
-    } catch (e) { alert("Error en la transacción."); }
-};
-            
+        window.confirmarCompra = async (tipo, costo) => {
+            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p').value.trim();
+            if (curp.length < 10) return alert("CURP inválida.");
+            const btn = document.getElementById('btnPagar');
+            btn.innerText = "PROCESANDO..."; btn.disabled = true;
             try {
-                // 1. DESCONTAR SALDO
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                
-                // 2. GUARDAR EN "solicitudes" (PARA QUE EL ADMIN LO VEA)
                 const folio = tipo + "-" + Math.floor(10000 + Math.random() * 90000);
                 await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, // Importante para tu historial
-                    origen: "ASESOR",    // Para diferenciar en Admin
+                    asesor_uid: userUID,
+                    origen: "ASESOR",
+                    nombre: auth.currentUser.email, // Usa el email como identificador en el admin
                     folio: folio,
                     tipo: tipo,
-                    nombre: nombre,      // ¡YA NO SERÁ UNDEFINED!
                     curp: curp,
                     nss: document.getElementById('nss_p')?.value || "N/A",
                     nacimiento: document.getElementById('nac_p')?.value || "",
-                    infoExtra: document.getElementById('linea_p')?.value || document.getElementById('nota_p').value,
                     estatus: "En Proceso",
                     fecha: serverTimestamp()
                 });
-                alert("¡Trámite enviado! Folio: " + folio);
+                alert("¡Enviado! Folio: " + folio);
                 window.cerrarModal();
-            } catch (e) { console.error(e); alert("Error."); }
+            } catch (e) { alert("Error."); }
         };
 
         window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.classList.add('modal-active'); };
         window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.classList.remove('modal-active'); };
-        window.cerrarSesion = () => signOut(auth);
+        window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
     </script>
 </body>
 </html>
