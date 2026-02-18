@@ -3,78 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría - Pensiones e IMSS</title>
+    <title>DPR Consultoría | Pensiones e Infonavit</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        .btn-whatsapp {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #25d366;
-            color: white;
-            border-radius: 50px;
-            padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            transition: transform 0.3s;
-        }
-        .btn-whatsapp:hover {
-            transform: scale(1.1);
-            color: white;
-            text-decoration: none;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
+        .modal-active { overflow: hidden; }
+        .service-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; }
+        .banorte-box { background-color: #EB0029; color: white; padding: 1.25rem; border-radius: 1.5rem; margin-bottom: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="text-slate-900">
 
-    <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-blue-800">DPR Consultoría</h1>
-        <div>
-            <a href="/login" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Iniciar Sesión</a>
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
+            </div>
+            <nav class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600">¿Quiénes Somos?</button>
+                <button onclick="window.open('https://pensionsegura.org/blog', '_blank')" class="bg-slate-900 text-white px-3 py-1 rounded font-bold">BLOG</button>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-4xl mx-auto mt-10 p-6 text-center">
-        <h2 class="text-4xl font-extrabold mb-4">Especialistas en Pensiones e IMSS</h2>
-        <p class="text-lg text-gray-600 mb-8">Te ayudamos con tus trámites de Afore, Modalidad 40 y proyecciones de pensión de forma segura.</p>
-        
-        <div class="grid md:grid-cols-2 gap-6 mt-10">
-            <div class="bg-white p-6 rounded-lg shadow">
-                <i class="fas fa-calculator text-3xl text-blue-500 mb-3"></i>
-                <h3 class="font-bold">Cálculos Precisos</h3>
-                <p class="text-sm">Simulaciones de Modalidad 40 basadas en la UMA actual.</p>
-            </div>
-            <div class="bg-white p-6 rounded-lg shadow">
-                <i class="fas fa-file-invoice text-3xl text-blue-500 mb-3"></i>
-                <h3 class="font-bold">Gestión de Trámites</h3>
-                <p class="text-sm">Asesoría profesional en trámites ante el IMSS.</p>
-            </div>
-        </div>
+    <section class="pt-16 pb-8 px-6 text-center text-white">
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight text-white">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
+        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition">Consultar Estatus</button>
+    </section>
+
+    <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🔍</span>
+            <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">Gratis</p>
+        </button>
+        <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">⚡</span>
+            <h3 class="font-black text-xl uppercase italic">Análisis Rápido</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📊</span>
+            <h3 class="font-black text-xl uppercase italic text-white">Análisis Detallado</h3>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$800 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">🏠</span>
+            <h3 class="font-black text-xl uppercase italic text-white">Precalificación Infonavit</h3>
+            <p class="text-red-200 font-bold text-[10px] mb-4 uppercase">$210 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalM10')" class="service-card bg-slate-900 text-white p-8 rounded-[2.5rem] shadow-sm text-left">
+            <span class="text-3xl mb-4 block">💼</span>
+            <h3 class="font-black text-xl uppercase italic text-white">Modalidad 10</h3>
+            <p class="text-blue-400 font-bold text-[10px] mb-4 uppercase">$200 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🆔</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🆔</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$140 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📜</span>
+            <h3 class="font-black text-xl uppercase italic text-white">CSF Original</h3>
+            <p class="text-blue-200 font-bold text-[10px] mb-4 uppercase">$230 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">📄</span>
+            <h3 class="font-black text-xl uppercase italic">Documentos</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$15 MXN</p>
+        </button>
     </main>
 
-    <footer class="mt-20 bg-gray-100 p-10 border-t">
-        <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
-            <div>
-                <h4 class="font-bold mb-2">Visítanos</h4>
-                <p>Calle Lerdo de Tejada #113, Colonia Centro</p>
-                <p>García, Nuevo León, C.P. 66050</p>
-            </div>
-            <div>
-                <h4 class="font-bold mb-2">Contacto</h4>
-                <p>Teléfono: 81 3198 3700</p>
-                <p>Web: pensionsegura.org</p>
-            </div>
+    <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">×</button>
+            <div id="contenidoModal"></div>
         </div>
-    </footer>
+    </div>
 
-    <a href="https://wa.me/528131983700?text=Hola%20Diana,%20necesito%20ayuda%20con%20la%20página" 
-       class="btn-whatsapp" target="_blank">
-        <i class="fab fa-whatsapp mr-2 text-2xl"></i>
-        ¿Necesitas ayuda?
-    </a>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app",
+            messagingSenderId: "169500313261",
+            appId: "1:169500313261:web:15e2b662571df505d36824"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CLOUD_NAME = "de5abnhul";
+        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        const HTML_PAGO_BANORTE = `
+            <div class="banorte-box">
+                <p class="text-[10px] font-black uppercase tracking-widest mb-1 opacity-80 text-white">Datos de Transferencia</p>
+                <p class="text-lg font-black tracking-tighter mb-1 text-white">4915 6630 4036 4896</p>
+                <p class="text-[11px] font-bold uppercase italic text-white">Banorte | DPR Consultoría</p>
+            </div>
+        `;
+
+        const MSG_SUBE_PAGO = `<h2 class="block text-[10px] font-black mb-1 uppercase text-red-600 italic">SUBE TU COMPROBANTE DE PAGO</h2>`;
+
+        window.abrirModal = (tipo) => {
+            const modal = document.getElementById('modalBase');
+            const contenido = document.getElementById('contenidoModal');
+            document.body.classList.add('modal-active');
+            modal.classList.remove('hidden');
+            contenido.innerHTML = "";
+
+            if (tipo === 'modalInfo') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-4 uppercase text-center text-slate-800 italic">DPR Consultoría</h2>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4">Especialistas en asesoría de pensiones IMSS, Infonavit y retiro des García, Nuevo León hacia todo méxico</p>
+                    <p class="text-xs font-bold text-blue-600 text-center">Ubicación: Calle Lerdo de Tejada #113, Col. Centro.</p>
+                `;
+            }
+            else if (tipo === 'modalEstatus') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center text-slate-800">Consultar Estatus</h2><input type="text" id="folioBusqueda" placeholder="Ej: R-1234" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2"><button onclick="buscarEstatus()" id="btnBus" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Consultar</button><div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black uppercase tracking-widest border-2"></div>`;
+            } 
+            else if (tipo === 'modalLey') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año de alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" id="btnVerificar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-md">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+            }
+            else if (tipo === 'modalM10') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-slate-900 italic">Inscripción Modalidad 10</h2>
+                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2">Aviso: DPR Consultoría solo realiza la inscripción.</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-2">
+                        <input type="text" id="nombre_M10" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="email" id="correo_M10" placeholder="Correo electrónico" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="text" id="curp_M10" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="text" id="nss_M10" placeholder="NSS (11 dígitos)" class="w-full p-3 bg-slate-50 rounded-xl border" maxlength="11">
+                        <input type="number" id="salario_M10" placeholder="Salario Semanal" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <textarea id="direccion_M10" placeholder="Dirección completa" class="w-full p-3 bg-slate-50 rounded-xl border h-16 text-xs"></textarea>
+                        <select id="pago_M10" class="w-full p-3 bg-slate-50 rounded-xl border font-bold text-slate-500">
+                            <option value="" disabled selected>Frecuencia de Pago</option>
+                            <option value="Mensual">Mensual</option>
+                            <option value="Bimestral">Bimestral</option>
+                            <option value="Trimestral">Trimestral</option>
+                        </select>
+                        <input type="tel" id="tel_M10" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        ${MSG_SUBE_PAGO}
+                        <input type="file" id="file_M10" class="block w-full text-xs">
+                    </div>
+                    <button onclick="ejecutarEnvio('M10')" id="btn_M10" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar Trámite</button>
+                    <div id="exito_M10" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_M10"></span></div>
+                `;
+            }
+            else if (tipo === 'modalInfonavit') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-red-600 italic">Precalificación Infonavit</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-6 uppercase tracking-widest italic">Costo: $210 MXN</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-3">
+                        <input type="text" id="nss_INF" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-red-50" maxlength="11">
+                        <label class="block text-[10px] font-black text-slate-400 ml-2 uppercase italic">Fecha de Nacimiento:</label>
+                        <input type="date" id="nac_INF" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        <select id="extra_INF" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border">
+                            <option value="Linea II">Línea II</option>
+                            <option value="Mejoravit">Mejoravit</option>
+                        </select>
+                        ${MSG_SUBE_PAGO}
+                        <input type="file" id="file_INF" class="block w-full text-xs">
+                    </div>
+                    <button onclick="ejecutarEnvio('INF')" id="btn_INF" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg mt-6">Solicitar</button>
+                    <div id="exito_INF" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_INF"></span></div>
+                `;
+            }
+            else if (tipo === 'modalDetallado') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Análisis Detallado</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: $800 MXN</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-2">
+                        <input type="text" id="nombre_D" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="text" id="curp_D" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="text" id="nss_D" placeholder="NSS" class="w-full p-3 bg-slate-50 rounded-xl border" maxlength="11">
+                        <input type="number" id="edadRetiro_D" placeholder="Edad estimada para retirarse" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="number" id="ultimoAnio_D" placeholder="Año de su último trabajo" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        <input type="tel" id="tel_D" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
+                        ${MSG_SUBE_PAGO}
+                        <input type="file" id="file_D" class="block w-full text-xs">
+                    </div>
+                    <button onclick="ejecutarEnvio('D')" id="btn_D" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-4">Enviar</button>
+                    <div id="exito_D" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_D"></span></div>
+                `;
+            }
+            else if (tipo === 'modalDocs') {
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Documentos</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: $15 MXN</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-3">
+                        <input type="text" id="curp_DOC" placeholder="INGRESA TU CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-slate-200 font-bold uppercase">
+                        <select id="extra_DOC" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black italic uppercase text-xs">
+                            <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
+                            <option value="Acta de Matrimonio">Acta de Matrimonio</option>
+                            <option value="Acta de Nacimiento">Acta de Nacimiento</option>
+                            <option value="Acta de Defunción">Acta de Defunción</option>
+                            <option value="Acta de Divorcio">Acta de Divorcio</option>
+                            <option value="Vigencia de Derechos">Constancia de Vigencia de Derechos</option>
+                            <option value="Localización de NSS"> Localización de NSS</option>
+                            <option value="Localizar afore">Localizar AFORE</option>
+                        </select>
+                        ${MSG_SUBE_PAGO}
+                        <input type="file" id="file_DOC" class="mt-2 block w-full text-[10px] font-bold text-slate-400">
+                    </div>
+                    <button onclick="ejecutarEnvio('DOC')" id="btn_DOC" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar Solicitud</button>
+                    <div id="exito_DOC" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_DOC"></span></div>
+                `;
+            }
+            else {
+                const configs = {
+                    'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
+                    'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
+                    'modalRFCV': { titulo: 'RFC Verificable', precio: '$140', prefix: 'RFCV', color: 'blue-600' },
+                    'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800' }
+                };
+                const c = configs[tipo];
+                if (!c) return;
+                
+                const simplificado = (tipo === 'modalRFC' || tipo === 'modalRFCV' || tipo === 'modalCSF');
+
+                contenido.innerHTML = `
+                    <h2 class="text-2xl font-black mb-1 uppercase text-${c.color} italic">${c.titulo}</h2>
+                    <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
+                    ${HTML_PAGO_BANORTE}
+                    <div class="space-y-2">
+                        ${!simplificado ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
+                        ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
+                        ${!simplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        ${MSG_SUBE_PAGO}
+                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
+                    </div>
+                    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
+                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
+                `;
+            }
+        };
+
+        async function ejecutarEnvio(prefix) {
+            const btn = document.getElementById(`btn_${prefix}`);
+            const fileInput = document.getElementById(`file_${prefix}`);
+            if (!fileInput || !fileInput.files[0]) return alert("Sube tu comprobante de pago.");
+
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            try {
+                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const fileData = await resp.json();
+                const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+
+                await addDoc(collection(db, "solicitudes"), {
+                    uid: "CLIENTE_WEB",
+                    origen: "WEB",
+                    folio: folio,
+                    tipo: prefix,
+                    nombre: document.getElementById(`nombre_${prefix}`)?.value || "CLIENTE WEB",
+                    curp: document.getElementById(`curp_${prefix}`)?.value || "S/C",
+                    nss: document.getElementById(`nss_${prefix}`)?.value || "N/A",
+                    tel: document.getElementById(`tel_${prefix}`)?.value || "S/T",
+                    correo: document.getElementById(`correo_${prefix}`)?.value || "",
+                    salario: document.getElementById(`salario_${prefix}`)?.value || "",
+                    direccion: document.getElementById(`direccion_${prefix}`)?.value || "",
+                    frecuenciaPago: document.getElementById(`pago_${prefix}`)?.value || "",
+                    nacimiento: document.getElementById(`nac_${prefix}`)?.value || "",
+                    infoExtra: document.getElementById(`extra_${prefix}`)?.value || "",
+                    edadRetiro: document.getElementById(`edadRetiro_${prefix}`)?.value || "",
+                    ultimoAnio: document.getElementById(`ultimoAnio_${prefix}`)?.value || "",
+                    comprobante: fileData.secure_url,
+                    estatus: "En Proceso",
+                    fecha: serverTimestamp()
+                });
+
+                document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                document.getElementById(`folio_${prefix}`).innerText = folio;
+                btn.innerText = "¡LISTO!";
+            } catch(e) { 
+                console.error(e);
+                alert("Error al enviar."); 
+                btn.disabled = false; 
+                btn.innerText = "Reintentar"; 
+            }
+        }
+
+        async function buscarEstatus() {
+            const f = document.getElementById('folioBusqueda').value.trim();
+            const res = document.getElementById('resBus');
+            if(!f) return alert("Ingresa un folio");
+            res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
+            try {
+                const q = query(collection(db, "solicitudes"), where("folio", "==", f));
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) { 
+                    res.innerText = "Folio no encontrado"; 
+                    res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; 
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.archivoFinal) { 
+                            res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm italic">📥 DESCARGAR RESULTADO</a>`; 
+                        } else { 
+                            res.innerText = "ESTATUS: " + data.estatus; 
+                            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
+                        }
+                    });
+                }
+            } catch (e) { res.innerText = "Error de conexión"; }
+        }
+
+        function verificarLey() {
+            const anio = document.getElementById('anioLey').value;
+            const res = document.getElementById('resLey');
+            res.classList.remove('hidden');
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700 font-black uppercase text-xs"; 
+                res.innerHTML = "¡ERES LEY 73!"; 
+            } else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700 font-black uppercase text-xs"; 
+                res.innerHTML = "¡ERES LEY 97!"; 
+            }
+        }
+
+        window.abrirModal = abrirModal;
+        window.buscarEstatus = buscarEstatus;
+        window.verificarLey = verificarLey;
+        window.ejecutarEnvio = ejecutarEnvio;
+        window.cerrarModal = () => { 
+            document.getElementById('modalBase').classList.add('hidden'); 
+            document.body.classList.remove('modal-active'); 
+        }
+    </script>
 </body>
 </html>
