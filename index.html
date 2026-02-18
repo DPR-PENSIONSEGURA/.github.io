@@ -65,6 +65,12 @@
             <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
             <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
         </button>
+ <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🆔</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
+            <p class="text-blue-600 font-bold text-[10px] mb-4 uppercase">$35 MXN</p>
+        </button>
+        
         <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📜</span>
             <h3 class="font-black text-xl uppercase italic text-white">CSF Original</h3>
@@ -138,7 +144,7 @@
             else if (tipo === 'modalM10') {
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-slate-900 italic">Inscripción Modalidad 10</h2>
-                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2">Aviso: DPR Consultoría solo realiza la inscripción.</p>
+                    <p class="text-[9px] font-black text-red-600 mb-4 uppercase italic border-l-4 border-red-500 pl-2">Aviso: DPR Consultoría solo realiza la inscripción, el documento con sus aportaciones será cargado con su folio. Revisa el Estatus para descargarlo .</p>
                     ${HTML_PAGO_BANORTE}
                     <div class="space-y-2">
                         <input type="text" id="nombre_M10" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
@@ -229,12 +235,13 @@
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
                     'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
                     'modalCSF': { titulo: 'CSF Original', precio: '$230', prefix: 'CSF', color: 'blue-800' }
+                    'modalCSF': { titulo: 'CSF Verificable', precio: '$140', prefix: 'RFCV', color: 'blue-800' }
                 };
                 const c = configs[tipo];
                 if (!c) return;
                 
                 const simplificado = (tipo === 'modalRFC' || tipo === 'modalCSF');
-
+                  const simplificado = (tipo === 'modalRFCV' || tipo === 'modalCSF');
                 contenido.innerHTML = `
                     <h2 class="text-2xl font-black mb-1 uppercase text-${c.color} italic">${c.titulo}</h2>
                     <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: ${c.precio}</p>
@@ -355,6 +362,7 @@
     </script>
 </body>
 </html>
+
 
 
 
