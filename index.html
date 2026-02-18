@@ -85,27 +85,21 @@
     </div>
 
     <script type="module">
+        // 1. IMPORTACIONES CORRECTAS PARA NAVEGADOR
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-npm install firebase
-        
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-  authDomain: "pensionsegura-9c817.firebaseapp.com",
-  projectId: "pensionsegura-9c817",
-  storageBucket: "pensionsegura-9c817.firebasestorage.app",
-  messagingSenderId: "169500313261",
-  appId: "1:169500313261:web:15e2b662571df505d36824"
-};
+        // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (9c817)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app",
+            messagingSenderId: "169500313261",
+            appId: "1:169500313261:web:15e2b662571df505d36824"
+        };
 
-// Initialize Firebase
-
+        // 3. INICIALIZAR APP
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -306,22 +300,28 @@ const firebaseConfig = {
             const res = document.getElementById('resBus');
             if(!f) return alert("Ingresa un folio");
             res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
-            const q = query(collection(db, "solicitudes"), where("folio", "==", f));
-            const querySnapshot = await getDocs(q);
             
-            if (querySnapshot.empty) { 
-                res.innerText = "Folio no encontrado"; 
-                res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; 
-            } else {
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.archivoFinal) { 
-                        res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm italic">📥 DESCARGAR RESULTADO</a>`; 
-                    } else { 
-                        res.innerText = "ESTATUS: " + data.estatus; 
-                        res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
-                    }
-                });
+            try {
+                const q = query(collection(db, "solicitudes"), where("folio", "==", f));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) { 
+                    res.innerText = "Folio no encontrado"; 
+                    res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; 
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.archivoFinal) { 
+                            res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm italic">📥 DESCARGAR RESULTADO</a>`; 
+                        } else { 
+                            res.innerText = "ESTATUS: " + data.estatus; 
+                            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                res.innerText = "Error de conexión";
             }
         }
 
@@ -348,4 +348,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
