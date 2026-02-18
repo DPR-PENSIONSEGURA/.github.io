@@ -43,8 +43,8 @@
         <section>
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites Realizados</span></h2>
             <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto max-h-[700px] overflow-y-auto">
-                    <table class="w-full text-left">
+                <div class="overflow-x-auto max-h-[750px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-900 sticky top-0 z-10">
                             <tr class="text-white text-[10px] uppercase font-black tracking-widest">
                                 <th class="p-4">Fecha</th>
@@ -52,7 +52,7 @@
                                 <th class="p-4">Servicio</th>
                                 <th class="p-4">Cliente / Asesor</th>
                                 <th class="p-4">Estatus / Acción</th>
-                                <th class="p-4 text-right">Documento</th>
+                                <th class="p-4 text-right">Acción Documento</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
@@ -67,7 +67,7 @@
             <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
             <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
             <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Marcar Terminado</button>
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Finalizar</button>
             <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
@@ -94,7 +94,7 @@
 
         let idActual, folioActual;
 
-        // 1. ESCUCHAR RECARGAS
+        // 1. ESCUCHAR RECARGAS PENDIENTES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
             tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas pendientes</td></tr>' : "";
@@ -102,15 +102,15 @@
                 const r = d.data();
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-5 font-black text-xs">${r.asesorEmail || 'Sin correo'}</td>
+                        <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail || 'S/C'}</td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
-                        <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Baucher</button></td>
+                        <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Ver Baucher</button></td>
                         <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Aprobar</button></td>
                     </tr>`;
             });
         });
 
-        // 2. ESCUCHAR SOLICITUDES CON MENÚ DE ESTATUS
+        // 2. ESCUCHAR TODAS LAS SOLICITUDES (CON DETALLE DE DOCUMENTO)
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
@@ -119,19 +119,30 @@
                 const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
                 const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
                 
-                // Definir colores según estatus
+                // Muestra el nombre específico del documento solicitado (ej. Acta de Nacimiento)
+                const detalleServicio = (item.tipo === 'DOC' && item.infoExtra) 
+                    ? `<div class="text-[9px] text-blue-500 font-bold lowercase italic">${item.infoExtra}</div>` 
+                    : "";
+
+                // Colores dinámicos para el menú de estatus
                 let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
                 if(item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
 
                 tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50/50 transition">
+                    <tr class="border-b hover:bg-blue-50/30 transition">
                         <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
                         <td class="p-4">${origen}</td>
-                        <td class="p-4 font-black text-slate-700 uppercase text-xs">${item.tipo}</td>
-                        <td class="p-4"><div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div><div class="text-[9px] text-slate-400">${item.curp}</div></td>
                         <td class="p-4">
-                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase}">
+                            <div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div>
+                            ${detalleServicio}
+                        </td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
+                            <div class="text-[9px] text-slate-400 font-bold">${item.curp}</div>
+                        </td>
+                        <td class="p-4">
+                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold">
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado (Descarga)</option>
                                 <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
@@ -141,52 +152,72 @@
                             </select>
                         </td>
                         <td class="p-4 text-right">
-                            ${item.estatus !== 'Terminado' ? 
-                                `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : 
-                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Ver Archivo</button>`
-                            }
+                            <div class="flex flex-col gap-1 items-end">
+                                <button onclick="window.open('${item.comprobante}', '_blank')" class="text-[9px] font-black text-red-600 underline uppercase hover:text-red-800">Ver Pago</button>
+                                ${item.estatus !== 'Terminado' ? 
+                                    `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir PDF</button>` : 
+                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Ver Archivo</button>`
+                                }
+                            </div>
                         </td>
                     </tr>`;
             });
         });
 
-        // FUNCIONES DE ACTUALIZACIÓN
+        // ACTUALIZAR ESTATUS MANUALMENTE
         window.actualizarEstatus = async (id, nuevoEstatus) => {
             try {
                 await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
-                alert("Estatus actualizado a: " + nuevoEstatus);
-            } catch (e) { alert("Error al actualizar"); }
+                alert("Estado actualizado: " + nuevoEstatus);
+            } catch (e) { alert("Error al actualizar estado."); }
         };
 
+        // APROBAR RECARGA DE SALDO
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm("¿Aprobar saldo?")) return;
+            if(!confirm("¿Confirmas el depósito?")) return;
             try {
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo cargado!");
+                alert("¡Saldo cargado con éxito!");
             } catch (e) { alert("Error al cargar saldo."); }
         };
 
+        // PREPARAR EL MODAL PARA SUBIR EL RESULTADO
         window.prepararSubida = (id, folio) => { 
             idActual = id; folioActual = folio; 
-            document.getElementById('txtFolioFinal').innerText = "Trámite: " + folio;
+            document.getElementById('txtFolioFinal').innerText = "Subiendo archivo para: " + folio;
             document.getElementById('modalSubir').classList.remove('hidden'); 
         };
 
+        // SUBIR ARCHIVO A CLOUDINARY Y MARCAR COMO TERMINADO
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Selecciona el archivo.");
+            if (!file) return alert("Por favor selecciona un archivo PDF.");
+            
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+            
+            const fd = new FormData(); 
+            fd.append('file', file); 
+            fd.append('upload_preset', UPLOAD_PRESET);
+            
             try {
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
-                // Al subir archivo se pone en Terminado automáticamente
-                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("¡Trámite finalizado!"); cerrarSubida();
-            } catch(e) { alert("Error al subir."); }
-            finally { btn.innerText = "Subir y Marcar Terminado"; btn.disabled = false; }
+                
+                await updateDoc(doc(db, "solicitudes", idActual), { 
+                    archivoFinal: d.secure_url, 
+                    estatus: "Terminado" 
+                });
+                
+                alert("¡Trámite finalizado!"); 
+                cerrarSubida();
+            } catch(e) { 
+                console.error(e);
+                alert("Error al subir el archivo."); 
+            } finally { 
+                btn.innerText = "Subir y Finalizar"; btn.disabled = false; 
+            }
         };
 
         window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
