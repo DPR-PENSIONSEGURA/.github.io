@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Maestro | DPR Consultoría</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -77,28 +78,21 @@
     </div>
 
     <script type="module">
+        // 1. IMPORTACIONES WEB CORRECTAS (No borrar)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-npm install firebase
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (pensionsegura-9c817)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app",
+            messagingSenderId: "169500313261",
+            appId: "1:169500313261:web:15e2b662571df505d36824"
+        };
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-  authDomain: "pensionsegura-9c817.firebaseapp.com",
-  projectId: "pensionsegura-9c817",
-  storageBucket: "pensionsegura-9c817.firebasestorage.app",
-  messagingSenderId: "169500313261",
-  appId: "1:169500313261:web:15e2b662571df505d36824"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
+        // 3. INICIALIZACIÓN
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -109,59 +103,78 @@ const app = initializeApp(firebaseConfig);
         let idActual, folioActual;
         let solicitudesData = {};
 
-        // 1. ESCUCHAR RECARGAS
+        // 4. LÓGICA DE ESCUCHA (RECARGAS)
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
-            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas</td></tr>' : "";
+            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas pendientes</td></tr>' : "";
             snap.forEach(d => {
                 const r = d.data();
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-5"><p class="font-black text-slate-800 text-xs">${r.asesorEmail}</p></td>
+                        <td class="p-5"><p class="font-black text-slate-800 text-xs">${r.asesorEmail || 'Sin correo'}</p><p class="text-[9px] text-gray-400">${r.uid}</p></td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
                         <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-bold uppercase underline">Ver Foto</button></td>
                         <td class="p-5 text-center space-x-2">
-                            <button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-md">Aprobar</button>
+                            <button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-md hover:bg-blue-700">Aprobar</button>
                         </td>
                     </tr>`;
             });
         });
 
-        // 2. ESCUCHAR SOLICITUDES
+        // 5. LÓGICA DE ESCUCHA (SOLICITUDES)
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
                 solicitudesData[d.id] = item;
-                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
+                // Manejo seguro de fecha
+                let fecha = '...';
+                if(item.fecha && item.fecha.toDate) {
+                    fecha = item.fecha.toDate().toLocaleDateString();
+                }
+
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50 transition">
                         <td class="p-4 text-[10px] font-black text-slate-400">${fecha}</td>
                         <td class="p-4 font-black text-blue-600 uppercase">${item.folio}</td>
-                        <td class="p-4" onclick="verMasDetalles('${d.id}')"><div class="font-black text-slate-900 uppercase text-xs">${item.nombre}</div></td>
+                        <td class="p-4" onclick="verMasDetalles('${d.id}')"><div class="font-black text-slate-900 uppercase text-xs cursor-pointer hover:text-blue-500">${item.nombre}</div></td>
                         <td class="p-4"><span class="px-2 py-1 rounded-full text-[9px] font-black ${item.estatus === 'Terminado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} uppercase">${item.estatus}</span></td>
                         <td class="p-4 text-right">
-                            ${item.estatus !== 'Terminado' ? `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">Subir PDF</button>` : `<a href="https://wa.me/52${item.tel}?text=Folio%20${item.folio}%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">WA</a>`}
+                            ${item.estatus !== 'Terminado' ? `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic hover:scale-105 transition">Subir PDF</button>` : `<a href="https://wa.me/52${item.tel}?text=Hola,%20tu%20trámite%20${item.folio}%20está%20listo." target="_blank" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic">WA</a>`}
                         </td>
                     </tr>`;
             });
         });
 
+        // FUNCIONES GLOBALES
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm("¿Depósito confirmado en Banorte?")) return;
+            if(!confirm("¿Confirmas que recibiste el dinero en Banorte?")) return;
             try {
+                // 1. Sumar saldo al asesor
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
+                // 2. Marcar la notificación como aprobada
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("Saldo sumado.");
-            } catch (e) { alert("Error."); }
+                alert("¡Saldo agregado correctamente!");
+            } catch (e) { 
+                console.error(e);
+                alert("Error: Asegúrate de que el asesor existe en la colección 'asesores'."); 
+            }
         };
 
         window.verMasDetalles = (id) => {
             const item = solicitudesData[id];
             const cont = document.getElementById('contenidoDetalles');
             document.getElementById('modalDetalles').classList.remove('hidden');
-            const campos = [{ l: 'Nombre', v: item.nombre }, { l: 'CURP', v: item.curp }, { l: 'WhatsApp', v: item.tel }];
+            const campos = [
+                { l: 'Nombre', v: item.nombre }, 
+                { l: 'CURP', v: item.curp }, 
+                { l: 'NSS', v: item.nss },
+                { l: 'WhatsApp', v: item.tel },
+                { l: 'Email', v: item.correo },
+                { l: 'Salario', v: item.salario },
+                { l: 'Link Pago', v: item.comprobante ? `<a href="${item.comprobante}" target="_blank" class="text-blue-500 underline">Ver Baucher</a>` : 'Sin foto' }
+            ];
             cont.innerHTML = campos.map(c => `<div><p class="detalle-label">${c.l}</p><p class="detalle-valor">${c.v || 'N/A'}</p></div>`).join('');
         };
 
@@ -173,14 +186,27 @@ const app = initializeApp(firebaseConfig);
         
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Selecciona el PDF.");
+            if (!file) return alert("Selecciona el PDF del resultado.");
+            
+            const btn = document.getElementById('btnGuardarFinal');
+            btn.innerText = "SUBIENDO..."; btn.disabled = true;
+
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+            
             try {
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
+                if(d.error) throw d.error;
+
                 await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("¡Finalizado!"); cerrarSubida();
-            } catch(e) { alert("Error."); } 
+                alert("¡Trámite finalizado y enviado!"); 
+                cerrarSubida();
+            } catch(e) { 
+                console.error(e);
+                alert("Error al subir archivo."); 
+            } finally {
+                btn.innerText = "Subir PDF"; btn.disabled = false;
+            }
         };
 
         window.cerrarDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
