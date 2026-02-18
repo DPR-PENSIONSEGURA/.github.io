@@ -9,13 +9,12 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; scroll-behavior: smooth; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .executive-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s ease; cursor: pointer; }
-        .executive-card:hover { border-color: #C5A059; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(197, 160, 89, 0.1); }
+        .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
+        .category-card:hover { border-color: #C5A059; background: rgba(255, 255, 255, 0.07); }
         .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
         .input-dark:focus { border-color: #C5A059; }
         .gold-text { color: #C5A059; }
-        .status-badge { padding: 4px 12px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-        .modal-active { overflow: hidden; }
+        .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -28,81 +27,82 @@
             </div>
             <div class="flex items-center gap-4">
                 <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 hover:bg-slate-700 transition">
-                    <span class="text-[10px] font-black uppercase text-slate-400">Mi Billetera:</span>
                     <span id="txtSaldoHeader" class="font-black text-white">...</span>
                 </button>
-                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 tracking-widest hover:opacity-70">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
             </div>
         </div>
     </header>
 
-    <main class="p-8 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div onclick="prepararTramite('SC', 50)" class="executive-card p-6 rounded-[2rem]">
-                <span class="text-3xl block mb-4">📄</span>
-                <h3 class="font-black text-lg uppercase italic text-white">Semanas Cotizadas</h3>
-                <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$50.00 MXN</p>
-            </div>
-            <div onclick="prepararTramite('INF', 210)" class="executive-card p-6 rounded-[2rem]">
-                <span class="text-3xl block mb-4">🏠</span>
-                <h3 class="font-black text-lg uppercase italic text-white">Infonavit</h3>
-                <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$210.00 MXN</p>
-            </div>
-            <div onclick="prepararTramite('RFC', 35)" class="executive-card p-6 rounded-[2rem]">
-                <span class="text-3xl block mb-4">🆔</span>
-                <h3 class="font-black text-lg uppercase italic text-white">RFC Clon</h3>
-                <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$35.00 MXN</p>
-            </div>
-            <div onclick="prepararTramite('CSF', 230)" class="executive-card p-6 rounded-[2rem]">
-                <span class="text-3xl block mb-4">📜</span>
-                <h3 class="font-black text-lg uppercase italic text-white">CSF Original</h3>
-                <p class="text-[10px] font-black gold-text mt-1 uppercase tracking-widest">$230.00 MXN</p>
-            </div>
+    <main class="p-6 max-w-7xl mx-auto">
+        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Selecciona Categoría</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+            <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">🏥</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
+            </button>
+            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">⚖️</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">SAT</span>
+            </button>
+            <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">📄</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">DOCUMENTOS</span>
+            </button>
+            <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">🏠</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
+            </button>
+            <button onclick="mostrarTramites('AFO')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">💰</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">AFORE WEB</span>
+            </button>
+            <button onclick="mostrarTramites('CON')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">📞</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">CONTACTO</span>
+            </button>
         </div>
 
-        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-8 shadow-2xl">
-            <h2 class="text-2xl font-black text-white uppercase italic mb-6">Mis Solicitudes</h2>
+        <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
+
+        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl">
+            <h2 class="text-xl font-black text-white uppercase italic mb-6">Mis Solicitudes Recientes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
                             <th class="pb-4 px-2">Fecha</th>
                             <th class="pb-4 px-2">Servicio</th>
-                            <th class="pb-4 px-2">Cliente / CURP</th>
-                            <th class="pb-4 px-2">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Nota / Archivo</th>
+                            <th class="pb-4 px-2 text-center">Estatus</th>
+                            <th class="pb-4 px-2 text-right">Documento</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-sm font-medium"></tbody>
+                    <tbody id="listaHistorial" class="text-xs"></tbody>
                 </table>
             </div>
         </section>
     </main>
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl hover:text-white">×</button>
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 relative border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
             <div id="formContent"></div>
         </div>
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[2px]">
+        <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[1px]">
             <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
-                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-3xl">×</button>
-                <h2 class="text-2xl font-black text-white text-center mb-6 uppercase italic">Bóveda de Saldo</h2>
+                <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
+                <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Billetera</h2>
                 <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
                     <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
                     <p id="txtSaldoGrande" class="text-4xl font-black text-white">...</p>
                 </div>
-                <div class="bg-white p-4 rounded-2xl text-center mb-6 text-slate-900 shadow-inner">
-                    <p class="text-[10px] font-black uppercase opacity-50">Depósito Banorte</p>
-                    <p class="text-lg font-black text-red-600 tracking-tighter">4915 6630 4036 4896</p>
-                </div>
                 <div class="space-y-3">
                     <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
-                    <input type="text" id="depRef" placeholder="Folio de Rastreo / Autorización" class="input-dark uppercase">
-                    <input type="file" id="fileRecarga" class="block w-full text-xs text-slate-400 mt-2">
+                    <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase">
+                    <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
                     <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4">Informar Depósito</button>
                 </div>
             </div>
@@ -133,6 +133,53 @@
 
         let saldoGlobal = 0, userUID = "";
 
+        const TRAMITES = {
+            'IMSS': [
+                { id: 'M10', nombre: 'Modalidad 10', precio: 200, nss: true, extra: 'DIRECCIÓN' },
+                { id: 'M40', nombre: 'Simulación Mod 40', precio: 300, nss: true },
+                { id: 'ALTA MENSUAL', nombre: 'ALTA MENSUAL', precio: 600, nss: true, curp: true },
+                { id: 'SINDO UR', nombre: 'SINDO ULTIMO RETIRO', precio: 40, nss: true },    
+                { id: 'SINDO ALFA', nombre: 'SINDO ALFA NUMERICO', precio: 80, curp: true },
+                { id: 'SINDO COMP', nombre: 'SINDO COMPLETO', precio: 220, nss: true }
+            ],
+            'SAT': [
+                { id: 'RFC', nombre: 'RFC Clon', precio: 35, curp: true },
+                { id: 'RFCV', nombre: 'RFC Verificable', precio: 140, curp: true },
+                { id: 'CSF', nombre: 'Constancia Fiscal', precio: 230, curp: true },
+                { id: 'RFC CON IDCIF', nombre: 'RFC CON IDCIF', precio: 40, curp: true, extra: 'IDCIF' },
+                { id: 'Loc idcif', nombre: 'LOCALIZAR IDCIF', precio: 60, extra: 'DATOS ACCESO' },
+                { id: 'op. cumplimiento', nombre: 'OPINION CUMPLIMIENTO', precio: 30, curp: true }
+            ],
+            'DOC': [
+                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 50, nss: true, curp: true },
+                { id: 'VIGENCIA', nombre: 'Vigencia de Derechos', precio: 13, curp: true },
+                { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
+                { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
+                { id: 'MATRIMONIO', nombre: 'Acta de Matrimonio', precio: 15, curp: true },
+                { id: 'DIVORCIO', nombre: 'Acta de Divorcio', precio: 15, curp: true },
+                { id: 'DEFUNCIÓN', nombre: 'Acta de Defunción', precio: 15, curp: true },
+                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true },
+                { id: 'CFE', nombre: 'RECIBO CFE', precio: 15, extra: 'NUMERO SERVICIO' }
+            ],
+            'INF': [
+                { id: 'PRECA MEJVT', nombre: 'Mejoravit', precio: 120, nss: true, nac: true },
+                { id: 'PRECA LINEA II', nombre: 'Linea II', precio: 120, nss: true, nac: true },
+                { id: 'CUENTA', nombre: 'Crear cuenta Infonavit', precio: 150, nss: true, extra: 'TEL Y CORREO' },
+                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true },
+                { id: 'ESTADO DE CUENTA H', nombre: 'HISTÓRICO DE CUENTA', precio: 150, nss: true },
+                { id: 'DESVINC', nombre: 'DESVINCULAR DISPOSITIVO', precio: 150, nss: true },
+                { id: 'CONTRA', nombre: 'LOCALIZAR CONTRASEÑA', precio: 170, nss: true }
+            ],
+            'AFO': [
+                { id: 'RETIRO', nombre: 'RETIRO DESEMPLEO', precio: 50, curp: true, extra: 'CLAVE AFORE WEB' },
+                { id: 'Contraseña', nombre: 'Cambio Contraseña', precio: 30, curp: true, extra: 'TELÉFONO' },
+                { id: 'REGISTRO', nombre: 'REGISTRO AFORE WEB', precio: 50, nss: true, curp: true, extra: 'CLAVE AW' }
+            ],
+            'CON': [
+                { id: 'ASESORIA', nombre: 'Asesoría Personalizada', precio: 0, extra: 'TEMA A TRATAR' }
+            ]
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) { userUID = user.uid; escucharSaldo(); escucharHistorial(); }
             else { window.location.href = "login/index.html"; }
@@ -149,21 +196,75 @@
             });
         }
 
+        window.mostrarTramites = (cat) => {
+            const listado = document.getElementById('listaServicios');
+            listado.classList.remove('hidden');
+            listado.innerHTML = TRAMITES[cat].map(t => `
+                <div onclick="prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss}, ${t.nac}, '${t.extra || ''}')" class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-blue-500 transition">
+                    <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
+                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00 MXN</p>
+                </div>
+            `).join('');
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        };
+
+        window.prepararTramite = (nombre, costo, prefijo, pideNss, pideNac, pideExtra) => {
+            const content = document.getElementById('formContent');
+            let camposExtra = "";
+            if(pideNss) camposExtra += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase font-bold">`;
+            if(pideNac) camposExtra += `<label class="text-[9px] ml-2 text-slate-500 font-bold uppercase">Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3">`;
+            if(pideExtra) camposExtra += `<input type="text" id="extra_p" placeholder="${pideExtra}" class="input-dark mb-3 uppercase font-bold">`;
+
+            content.innerHTML = `
+                <h2 class="text-2xl font-black text-white uppercase italic mb-6 gold-text">${nombre}</h2>
+                <div class="space-y-4">
+                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-bold">
+                    ${camposExtra}
+                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
+                    <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar: $${costo}</button>
+                </div>`;
+            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(nombre, costo, prefijo);
+            abrirModal('modalTramite');
+        };
+
+        window.confirmarCompra = async (nombre, costo, prefijo) => {
+            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p').value.trim();
+            if (curp.length < 10) return alert("CURP inválida.");
+            
+            const btn = document.getElementById('btnPagar');
+            btn.innerText = "PROCESANDO..."; btn.disabled = true;
+
+            try {
+                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                const folio = prefijo + "-" + Math.floor(10000 + Math.random() * 90000);
+                await addDoc(collection(db, "solicitudes"), {
+                    asesor_uid: userUID, origen: "ASESOR",
+                    nombre: auth.currentUser.email, // Registra quién lo hizo para el Admin
+                    tipo: nombre, folio: folio, curp: curp,
+                    nss: document.getElementById('nss_p')?.value || "N/A",
+                    nacimiento: document.getElementById('nac_p')?.value || "",
+                    infoExtra: document.getElementById('extra_p')?.value || document.getElementById('nota_p')?.value || "",
+                    estatus: "En Proceso", fecha: serverTimestamp()
+                });
+                alert("¡Solicitud enviada!"); cerrarModal();
+            } catch (e) { alert("Error en el sistema."); }
+        };
+
         function escucharHistorial() {
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
-                lista.innerHTML = snapshot.empty ? '<tr><td colspan="5" class="py-10 text-center text-slate-500 font-bold uppercase">Sin trámites</td></tr>' : "";
+                lista.innerHTML = snapshot.empty ? '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Sin historial</td></tr>' : "";
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     const fecha = d.fecha?.toDate().toLocaleDateString() || '...';
                     lista.innerHTML += `
-                        <tr class="border-b border-slate-800/50 hover:bg-white/5 transition text-xs">
-                            <td class="py-4 px-2 text-slate-400">${fecha}</td>
-                            <td class="py-4 px-2 font-black text-white">${d.tipo}<br><span class="text-blue-400 text-[10px]">${d.folio}</span></td>
-                            <td class="py-4 px-2 text-slate-300 font-bold">${d.curp}</td>
-                            <td class="py-4 px-2"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">${d.estatus}</span></td>
-                            <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black hover:underline">DESCARGAR</a>` : '<span class="text-slate-600">PROCESANDO</span>'}</td>
+                        <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
+                            <td class="py-4 px-2 text-slate-400 font-bold">${fecha}</td>
+                            <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}<br><span class="text-blue-400 text-[9px]">${d.folio}</span></td>
+                            <td class="py-4 px-2 text-center"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">${d.estatus}</span></td>
+                            <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">DESCARGAR</a>` : '--'}</td>
                         </tr>`;
                 });
             });
@@ -184,47 +285,12 @@
                     uid: userUID, asesorEmail: auth.currentUser.email, monto: m, rastreo: r,
                     comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente"
                 });
-                alert("Pago reportado."); cerrarModal();
-            } catch (e) { alert("Error al subir."); } finally { btn.innerText = "Informar Depósito"; btn.disabled = false; }
+                alert("¡Recarga reportada!"); cerrarModal();
+            } catch (e) { alert("Error."); } finally { btn.innerText = "Informar Depósito"; btn.disabled = false; }
         };
 
-        window.prepararTramite = (tipo, costo) => {
-            const content = document.getElementById('formContent');
-            let extra = (tipo === 'INF' || tipo === 'SC') ? `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase">` : "";
-            if(tipo === 'INF') extra += `<input type="date" id="nac_p" class="input-dark mb-3">`;
-            
-            content.innerHTML = `
-                <h2 class="text-3xl font-black text-white uppercase italic mb-6 gold-text">${tipo}</h2>
-                <div class="space-y-4 text-left">
-                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-black">
-                    ${extra}
-                    <textarea id="nota_p" placeholder="Instrucciones adicionales..." class="input-dark h-24 text-sm"></textarea>
-                    <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar Pago: $${costo}</button>
-                </div>`;
-            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(tipo, costo);
-            abrirModal('modalTramite');
-        };
-
-        window.confirmarCompra = async (tipo, costo) => {
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value.trim();
-            if (curp.length < 10) return alert("CURP inválida.");
-            const btn = document.getElementById('btnPagar');
-            btn.innerText = "PROCESANDO..."; btn.disabled = true;
-            try {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                const folio = tipo + "-" + Math.floor(10000 + Math.random() * 90000);
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: auth.currentUser.email,
-                    folio: folio, tipo: tipo, curp: curp, nss: document.getElementById('nss_p')?.value || "N/A",
-                    nacimiento: document.getElementById('nac_p')?.value || "", estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("¡Enviado! Folio: " + folio); cerrarModal();
-            } catch (e) { alert("Error."); } finally { btn.innerText = "Confirmar Pago"; btn.disabled = false; }
-        };
-
-        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.classList.add('modal-active'); };
-        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.classList.remove('modal-active'); };
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
+        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.style.overflow = 'auto'; };
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
     </script>
 </body>
