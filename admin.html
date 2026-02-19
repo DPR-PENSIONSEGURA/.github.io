@@ -49,10 +49,10 @@
                             <tr class="text-white text-[10px] uppercase font-black tracking-widest">
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Origen</th>
-                                <th class="p-4">Servicio</th>
+                                <th class="p-4 min-w-[150px]">Servicio / Docs</th>
                                 <th class="p-4">Cliente / Asesor</th>
                                 <th class="p-4">Estatus / Acción</th>
-                                <th class="p-4 text-right">Acción Documento</th>
+                                <th class="p-4 text-right">Acción Final</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
@@ -93,6 +93,8 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let idActual, folioActual;
+        // Objeto global para acceder fácilmente a los datos de la solicitud al actualizar el estado
+        window.solicitudesData = {};
 
         // 1. ESCUCHAR RECARGAS PENDIENTES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
@@ -105,29 +107,41 @@
                         <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail || 'S/C'}</td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
                         <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Ver Baucher</button></td>
-                        <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Aprobar</button></td>
+                        <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm hover:bg-blue-700">Aprobar</button></td>
                     </tr>`;
             });
         });
 
-        // 2. ESCUCHAR TODAS LAS SOLICITUDES (CON DETALLE DE DOCUMENTO)
+        // 2. ESCUCHAR SOLICITUDES
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
+                window.solicitudesData[d.id] = item; // Guardamos el objeto para usarlo en el reembolso
+
                 const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
                 const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
                 
-                // Muestra el nombre específico del documento solicitado (ej. Acta de Nacimiento)
-                const detalleServicio = (item.tipo === 'DOC' && item.infoExtra) 
+                // Muestra el tipo de documento específico o notas extra
+                const detalleExtra = item.infoExtra 
                     ? `<div class="text-[9px] text-blue-500 font-bold lowercase italic">${item.infoExtra}</div>` 
                     : "";
+
+                // Muestra las fotos si el asesor las envió (ej. Afore, Retiro)
+                let linksFotos = "";
+                if (item.documentacion) {
+                    linksFotos += `<div class="mt-2 pt-1 border-t border-slate-200/50 flex flex-col gap-1">`;
+                    for (const [nombreDoc, urlDoc] of Object.entries(item.documentacion)) {
+                        linksFotos += `<a href="${urlDoc}" target="_blank" class="text-[8px] font-black text-indigo-600 hover:text-indigo-800 underline uppercase flex items-center gap-1">📸 ${nombreDoc}</a>`;
+                    }
+                    linksFotos += `</div>`;
+                }
 
                 // Colores dinámicos para el menú de estatus
                 let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
-                if(item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
+                if(item.estatus === 'Error' || item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
 
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50/30 transition">
@@ -135,16 +149,19 @@
                         <td class="p-4">${origen}</td>
                         <td class="p-4">
                             <div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div>
-                            ${detalleServicio}
+                            ${detalleExtra}
+                            ${linksFotos}
                         </td>
                         <td class="p-4">
                             <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
-                            <div class="text-[9px] text-slate-400 font-bold">${item.curp}</div>
+                            <div class="text-[9px] text-slate-500 font-bold">${item.curp}</div>
+                            ${item.nss && item.nss !== 'N/A' ? `<div class="text-[9px] text-slate-400">NSS: ${item.nss}</div>` : ''}
                         </td>
                         <td class="p-4">
-                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold">
+                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold shadow-sm">
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado (Descarga)</option>
+                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                                <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
                                 <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
                                 <option value="CURP Incorrecto" ${item.estatus === 'CURP Incorrecto' ? 'selected' : ''}>CURP Incorrecto</option>
                                 <option value="NSS Incorrecto" ${item.estatus === 'NSS Incorrecto' ? 'selected' : ''}>NSS Incorrecto</option>
@@ -152,11 +169,11 @@
                             </select>
                         </td>
                         <td class="p-4 text-right">
-                            <div class="flex flex-col gap-1 items-end">
-                                <button onclick="window.open('${item.comprobante}', '_blank')" class="text-[9px] font-black text-red-600 underline uppercase hover:text-red-800">Ver Pago</button>
+                            <div class="flex flex-col gap-2 items-end">
+                                ${item.comprobante ? `<button onclick="window.open('${item.comprobante}', '_blank')" class="text-[9px] font-black text-red-600 underline uppercase hover:text-red-800">Ver Pago</button>` : ''}
                                 ${item.estatus !== 'Terminado' ? 
-                                    `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir PDF</button>` : 
-                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Ver Archivo</button>`
+                                    `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir Archivo</button>` : 
+                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Documento Final</button>`
                                 }
                             </div>
                         </td>
@@ -164,17 +181,43 @@
             });
         });
 
-        // ACTUALIZAR ESTATUS MANUALMENTE
+        // ACTUALIZAR ESTATUS (CON LÓGICA DE REEMBOLSO)
         window.actualizarEstatus = async (id, nuevoEstatus) => {
-            try {
-                await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
-                alert("Estado actualizado: " + nuevoEstatus);
-            } catch (e) { alert("Error al actualizar estado."); }
+            const item = window.solicitudesData[id];
+            
+            if (nuevoEstatus === "Error" && item.estatus !== "Error") {
+                // Flujo de Reembolso
+                const montoStr = prompt(`Trámite fallido. Ingresa la cantidad exacta a reembolsar al asesor ${item.nombre}:`);
+                if (montoStr === null) return; // Si cancela el prompt
+                
+                const monto = parseFloat(montoStr);
+                if (isNaN(monto) || monto <= 0) return alert("Monto inválido. Operación cancelada.");
+
+                try {
+                    // Si el trámite viene de un asesor, le sumamos el saldo a su billetera
+                    if (item.origen === "ASESOR" && item.asesor_uid) {
+                        await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(monto) });
+                    }
+                    // Actualizamos el estatus del trámite y guardamos registro del reembolso
+                    await updateDoc(doc(db, "solicitudes", id), { estatus: "Error", reembolso_otorgado: monto });
+                    alert(`¡Listo! Se ha devuelto el saldo de $${monto} al asesor y el trámite se marcó como Error.`);
+                } catch (e) {
+                    console.error(e);
+                    alert("Hubo un fallo al intentar hacer el reembolso.");
+                }
+            } else {
+                // Flujo normal de cambio de estatus
+                try {
+                    await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
+                } catch (e) { 
+                    alert("Error al actualizar estado."); 
+                }
+            }
         };
 
         // APROBAR RECARGA DE SALDO
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm("¿Confirmas el depósito?")) return;
+            if(!confirm(`¿Aprobar saldo de $${monto}?`)) return;
             try {
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
@@ -192,7 +235,7 @@
         // SUBIR ARCHIVO A CLOUDINARY Y MARCAR COMO TERMINADO
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Por favor selecciona un archivo PDF.");
+            if (!file) return alert("Por favor selecciona un archivo PDF o imagen.");
             
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
