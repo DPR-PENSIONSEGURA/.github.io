@@ -229,6 +229,7 @@
                 `;
             }
             else {
+                // Aquí caen Análisis Rápido, RFC Clon, RFC Verificable y CSF
                 const configs = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
                     'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
@@ -238,6 +239,7 @@
                 const c = configs[tipo];
                 if (!c) return;
                 
+                // Si es RFC o CSF no pedimos el nombre (lo pedimos si es análisis rápido)
                 const simplificado = (tipo === 'modalRFC' || tipo === 'modalRFCV' || tipo === 'modalCSF');
 
                 contenido.innerHTML = `
@@ -248,4 +250,6 @@
                         ${!simplificado ? `<input type="text" id="nombre_${c.prefix}" placeholder="Nombre completo" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
                         <input type="text" id="curp_${c.prefix}" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border">
                         ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
-                        ${!simplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl borde
+                        ${!simplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
+                        ${MSG_SUBE_PAGO}
+                        <inpu
