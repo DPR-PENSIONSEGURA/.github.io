@@ -332,25 +332,54 @@
                 btn.innerText = originalText; 
             }
         };
-function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
+        function escucharHistorial() {
+            // Le quitamos el orderBy a Firebase para que no nos pida el Índice
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
+            
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
-                lista.innerHTML = snapshot.empty ? '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Sin historial</td></tr>' : "";
+                
+                if (snapshot.empty) {
+                    lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Aún no hay solicitudes</td></tr>';
+                    return;
+                }
+
+                // 1. Guardamos los datos en una lista temporal
+                let historial = [];
                 snapshot.forEach(docSnap => {
-                    const d = docSnap.data();
+                    historial.push(docSnap.data());
+                });
+
+                // 2. Los ordenamos nosotros mismos (el más nuevo arriba)
+                historial.sort((a, b) => {
+                    const tiempoA = a.fecha ? a.fecha.toMillis() : 0;
+                    const tiempoB = b.fecha ? b.fecha.toMillis() : 0;
+                    return tiempoB - tiempoA; // Orden descendente
+                });
+
+                // 3. Pintamos la tabla
+                lista.innerHTML = "";
+                historial.forEach(d => {
                     const fecha = d.fecha?.toDate().toLocaleDateString() || '...';
+                    
+                    // Colores dinámicos según lo que marque el Admin
+                    let colorClase = "bg-yellow-500/10 text-yellow-500"; // En Proceso
+                    if(d.estatus === 'Terminado') colorClase = "bg-green-500/10 text-green-500";
+                    if(d.estatus === 'Error') colorClase = "bg-red-500/10 text-red-500";
+
                     lista.innerHTML += `
                         <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
                             <td class="py-4 px-2 text-slate-400 font-bold">${fecha}</td>
                             <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}<br><span class="text-blue-400 text-[9px]">${d.folio}</span></td>
-                            <td class="py-4 px-2 text-center"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : (d.estatus === 'Error' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500')}">${d.estatus}</span></td>
+                            <td class="py-4 px-2 text-center"><span class="status-badge ${colorClase}">${d.estatus}</span></td>
                             <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
                         </tr>`;
                 });
+            }, (error) => {
+                console.error("Error al cargar historial:", error);
             });
         }
-
+        
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const r = document.getElementById('depRef').value.trim();
