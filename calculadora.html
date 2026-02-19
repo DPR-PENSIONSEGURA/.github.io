@@ -12,7 +12,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .tab-active { border-bottom: 4px solid #C5A059; color: white; font-weight: 900; }
         @media print { .no-print { display: none; } body { background-color: white; } }
     </style>
 </head>
@@ -21,6 +20,7 @@
     <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 w-full max-w-lg rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            
             <h2 class="text-2xl font-black text-white uppercase italic mb-2">Herramientas Premium</h2>
             <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">✨ Oferta de Lanzamiento ✨</p>
             
@@ -30,6 +30,7 @@
                     <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Proyección de Pensión</p>
                     <p class="text-2xl font-black text-white">$25<span class="text-xs text-slate-500 font-bold">.00</span></p>
                 </button>
+
                 <button onclick="seleccionarHerramienta('CÁLCULO 250 SEMANAS', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
                     <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Calculadora</p>
                     <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Salario Promedio</p>
@@ -43,6 +44,7 @@
                     Selecciona una opción
                 </button>
             </div>
+            
             <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase hover:text-white transition">Cancelar y Salir</button>
         </div>
     </div>
@@ -62,12 +64,13 @@
             messagingSenderId: "169500313261",
             appId: "1:169500313261:web:15e2b662571df505d36824"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
-        let herramientaSeleccionada = null, costoSeleccionado = 0, tabDestino = 'pension';
+        let herramientaSeleccionada = null, costoSeleccionado = 0, tabDestino = '';
 
         onAuthStateChanged(auth, (user) => {
             if (user) { 
@@ -86,7 +89,8 @@
             document.getElementById('opt_pension').className = tab === 'pension' ? 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative' : 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
             document.getElementById('opt_salario').className = tab === 'salario' ? 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative' : 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
             const btn = document.getElementById('btnPagarAcceso');
-            btn.disabled = false; btn.classList.remove('opacity-50'); btn.innerText = `Desbloquear por $${costo}.00`;
+            btn.disabled = false; btn.classList.remove('opacity-50');
+            btn.innerText = `Desbloquear por $${costo}.00`;
         };
 
         window.confirmarCompraHerramienta = async () => {
@@ -101,8 +105,8 @@
                 });
                 document.getElementById('pantallaCobro').classList.add('hidden');
                 document.getElementById('root').classList.remove('hidden');
-                document.body.style.backgroundColor = "#f8fafc";
-                window.dispatchEvent(new CustomEvent('herramientaPagada', { detail: tabDestino }));
+                // IMPORTANTE: Informamos a React qué herramienta cargar
+                window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
             } catch (e) { alert("Error de conexión"); btn.disabled = false; }
         };
     </script>
@@ -111,61 +115,41 @@
         const { useState, useMemo, useEffect } = React;
 
         const App = () => {
-          const [tab, setTab] = useState('pension');
+          const [view, setView] = useState(null);
+
+          useEffect(() => {
+            const handleInit = (e) => setView(e.detail);
+            window.addEventListener('inicioApp', handleInit);
+            return () => window.removeEventListener('inicioApp', handleInit);
+          }, []);
+
+          // --- ESTADOS PENSIÓN ---
           const [edad, setEdad] = useState(60);
           const [semanas, setSemanas] = useState(1000);
           const [salarioPromedio, setSalarioPromedio] = useState(500);
           const [tieneEsposa, setTieneEsposa] = useState(true);
           const [numeroHijos, setNumeroHijos] = useState(0);
-          const uma = 113.14; const salarioMinimo = 248.93;
 
-          useEffect(() => {
-            const handleTab = (e) => setTab(e.detail);
-            window.addEventListener('herramientaPagada', handleTab);
-            return () => window.removeEventListener('herramientaPagada', handleTab);
-          }, []);
-
-          // --- DISEÑO ROBUSTO DE CÁLCULO ---
-          const obtenerFactores = (grupo) => {
-            if (grupo <= 1.0) return { cb: 80.00, ia: 0.563 };
-            if (grupo <= 1.25) return { cb: 77.11, ia: 0.814 };
-            if (grupo <= 1.50) return { cb: 58.18, ia: 1.178 };
-            if (grupo <= 1.75) return { cb: 49.23, ia: 1.430 };
-            if (grupo <= 2.00) return { cb: 42.67, ia: 1.615 };
-            if (grupo <= 2.25) return { cb: 37.65, ia: 1.756 };
-            if (grupo <= 2.50) return { cb: 33.68, ia: 1.858 };
-            if (grupo <= 3.00) return { cb: 27.83, ia: 2.004 };
-            if (grupo <= 4.00) return { cb: 20.65, ia: 2.167 };
-            if (grupo <= 5.00) return { cb: 16.41, ia: 2.259 };
-            if (grupo <= 6.00) return { cb: 13.62, ia: 2.316 };
-            return { cb: 13.00, ia: 2.450 };
-          };
-
-          const calculoPension = useMemo(() => {
-            if (semanas < 500) return { error: "Mínimo 500 semanas" };
-            const factores = obtenerFactores(salarioPromedio / uma);
-            const salarioAnual = salarioPromedio * 365;
-            const cuantiaBasica = salarioAnual * (factores.cb / 100);
-            const semExc = Math.max(0, semanas - 500);
-            let aniosExc = Math.floor(semExc / 52);
-            if (semExc % 52 > 26) aniosExc++;
-            const incrementoAnual = salarioAnual * (factores.ia / 100) * aniosExc;
-            
-            let porcentajeEdad = 0.75 + ((edad - 60) * 0.05);
-            if(edad >= 65) porcentajeEdad = 1;
-            
-            let asig = (tieneEsposa ? 0.15 : 0) + (numeroHijos * 0.10);
-            if (asig === 0) asig = 0.15; // Ayuda asistencial mínima
-
-            let total = ((cuantiaBasica + incrementoAnual) * porcentajeEdad) * (1 + asig) / 12 * 1.11;
-            const pmg = (salarioMinimo * 365 / 12) * 1.11;
-            return { monto: Math.max(total, pmg), esMínima: total < pmg, aniosExc };
-          }, [salarioPromedio, semanas, edad, tieneEsposa, numeroHijos]);
-
-          // --- LOGICA SALARIO PROMEDIO ---
+          // --- ESTADOS SALARIO ---
           const [filas, setFilas] = useState([{ desde: '', hasta: '', salario: 0 }]);
           const agregarFila = () => setFilas([...filas, { desde: '', hasta: '', salario: 0 }]);
           const actualizarFila = (idx, campo, val) => { const n = [...filas]; n[idx][campo] = val; setFilas(n); };
+
+          const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+
+          // Lógica Pensión Original
+          const calculoPension = useMemo(() => {
+            if (semanas < 500) return { monto: 0, esMin: false };
+            let porc = 0.75 + ((edad - 60) * 0.05);
+            if(edad >= 65) porc = 1;
+            let asig = (tieneEsposa ? 0.15 : 0) + (numeroHijos * 0.10);
+            if (asig === 0) asig = 0.15;
+            let total = (salarioPromedio * 30.4 * porc) * (1 + asig) * 1.11;
+            const pmg = (248.93 * 365 / 12) * 1.11;
+            return { monto: Math.max(total, pmg), esMin: total < pmg };
+          }, [semanas, edad, salarioPromedio, tieneEsposa, numeroHijos]);
+
+          // Lógica Salario
           const calculoSalario = useMemo(() => {
             let dTot = 0; let sPond = 0;
             filas.forEach(f => {
@@ -177,66 +161,64 @@
             return { promedio: dTot > 0 ? (sPond / dTot) : 0, semanas: (dTot / 7).toFixed(1) };
           }, [filas]);
 
-          const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+          if (!view) return null;
 
           return (
             <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen">
-              <nav className="flex gap-8 mb-10 border-b border-slate-200 no-print">
-                <button onClick={() => setTab('pension')} className={`pb-4 text-xs uppercase tracking-widest ${tab === 'pension' ? 'tab-active' : 'text-slate-400 font-bold'}`}>Simulador de Pensión</button>
-                <button onClick={() => setTab('salario')} className={`pb-4 text-xs uppercase tracking-widest ${tab === 'salario' ? 'tab-active' : 'text-slate-400 font-bold'}`}>Cálculo Salario Promedio</button>
-              </nav>
-
-              {tab === 'pension' ? (
+              {view === 'pension' ? (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-5 space-y-6 no-print">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
-                      <h2 className="text-lg font-black uppercase text-slate-800 mb-6 border-l-4 border-blue-600 pl-4 italic">Datos Base</h2>
+                      <h2 className="text-xl font-black uppercase text-slate-800 mb-6 italic border-l-4 border-blue-600 pl-4">Datos del Cliente</h2>
                       <div className="space-y-4">
-                        <div><label className="text-[10px] font-black text-slate-400 uppercase">Semanas Totales</label><input type="number" value={semanas} onChange={e => setSemanas(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg" /></div>
-                        <div><label className="text-[10px] font-black text-slate-400 uppercase">Salario Promedio Diario</label><input type="number" value={salarioPromedio} onChange={e => setSalarioPromedio(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg text-blue-600" /></div>
-                        <div><label className="text-[10px] font-black text-slate-400 uppercase">Edad Jubilación: {edad} años</label><input type="range" min="60" max="65" value={edad} onChange={e => setEdad(Number(e.target.value))} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" /></div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Semanas Cotizadas</label>
+                        <input type="number" value={semanas} onChange={e => setSemanas(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Salario Promedio Diario</label>
+                        <input type="number" value={salarioPromedio} onChange={e => setSalarioPromedio(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-blue-600" />
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Edad de Retiro: {edad} años</label>
+                        <input type="range" min="60" max="65" value={edad} onChange={e => setEdad(Number(e.target.value))} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                       </div>
                     </div>
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
-                      <h2 className="text-lg font-black uppercase text-slate-800 mb-6 italic">Carga Familiar</h2>
+                      <h2 className="text-xl font-black uppercase text-slate-800 mb-6 italic">Carga Familiar</h2>
                       <div className="space-y-4">
-                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl border font-bold text-slate-600"><input type="checkbox" checked={tieneEsposa} onChange={e => setTieneEsposa(e.target.checked)} className="w-5 h-5 accent-blue-600" />Esposa / Concubina (+15%)</label>
-                        <select value={numeroHijos} onChange={e => setNumeroHijos(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-slate-600"><option value="0">Sin hijos menores</option><option value="1">1 Hijo (+10%)</option><option value="2">2 Hijos (+20%)</option><option value="3">3 Hijos (+30%)</option></select>
+                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl border font-bold text-slate-600"><input type="checkbox" checked={tieneEsposa} onChange={e => setTieneEsposa(e.target.checked)} className="w-5 h-5" />Esposa / Concubina (+15%)</label>
+                        <select value={numeroHijos} onChange={e => setNumeroHijos(Number(e.target.value))} className="w-full p-4 bg-slate-50 border rounded-2xl font-bold"><option value="0">0 Hijos</option><option value="1">1 Hijo (+10%)</option><option value="2">2 Hijos (+20%)</option><option value="3">3 Hijos (+30%)</option></select>
                       </div>
                     </div>
                   </div>
-                  <div className="lg:col-span-7 space-y-6">
-                    <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden print:bg-white print:text-black print:border-2">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl print:hidden"></div>
-                        <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-2">Pensión Mensual Estimada</p>
-                        <h2 className="text-7xl font-black mb-6 tracking-tighter">{fmt(calculoPension.monto)}</h2>
-                        <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-6 print:border-black/10">
-                            <div><p className="text-[10px] text-slate-400 uppercase">Semanas</p><p className="font-black">{semanas}</p></div>
-                            <div><p className="text-[10px] text-slate-400 uppercase">Años Incremento</p><p className="font-black">{calculoPension.aniosExc || 0}</p></div>
+                  <div className="lg:col-span-7">
+                    <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center relative overflow-hidden print:bg-white print:text-slate-900 print:border-2">
+                        <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Mensual Estimada</p>
+                        <h2 className="text-7xl font-black mb-6">{fmt(calculoPension.monto)}</h2>
+                        {calculoPension.esMin && <p className="bg-red-500/20 text-red-400 px-4 py-1 rounded-full text-[10px] font-bold uppercase inline-block">Mínima Garantizada Aplicada</p>}
+                        <div className="mt-10 border-t border-white/10 pt-8 grid grid-cols-2 gap-4 print:border-slate-200">
+                            <div><p className="text-[10px] text-slate-500 uppercase font-bold">Semanas</p><p className="text-xl font-black">{semanas}</p></div>
+                            <div><p className="text-[10px] text-slate-500 uppercase font-bold">Promedio</p><p className="text-xl font-black">{fmt(salarioPromedio)}</p></div>
                         </div>
-                        {calculoPension.esMínima && <div className="mt-6 bg-red-500/20 text-red-300 p-3 rounded-2xl text-[10px] font-bold uppercase text-center border border-red-500/30 print:text-red-600">Se aplica Pensión Mínima Garantizada Ley 73</div>}
-                        <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase italic text-xs hover:scale-105 transition no-print">Imprimir Reporte PDF</button>
+                        <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print">Imprimir Reporte</button>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100">
-                    <h2 className="text-3xl font-black uppercase italic text-slate-800 mb-2">Calculador de Salario Promedio</h2>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-10">Ruta a las 250 semanas (4.8 años)</p>
+                <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 min-h-screen">
+                    <h2 className="text-3xl font-black uppercase italic text-slate-800 mb-2">Salario Promedio</h2>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-10 italic">Últimas 250 semanas</p>
                     <div className="space-y-4 mb-8">
                         {filas.map((f, i) => (
                             <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-slate-50 rounded-[2rem] border border-slate-100">
-                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Desde</label><input type="date" value={f.desde} onChange={e => actualizarFila(i, 'desde', e.target.value)} className="w-full p-3 rounded-xl border font-bold" /></div>
-                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Hasta</label><input type="date" value={f.hasta} onChange={e => actualizarFila(i, 'hasta', e.target.value)} className="w-full p-3 rounded-xl border font-bold" /></div>
-                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2 mb-1 block">Salario Diario</label><input type="number" placeholder="$0.00" value={f.salario} onChange={e => actualizarFila(i, 'salario', Number(e.target.value))} className="w-full p-3 rounded-xl border font-black text-blue-600" /></div>
+                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2">Desde</label><input type="date" value={f.desde} onChange={e => actualizarFila(i, 'desde', e.target.value)} className="w-full p-3 rounded-xl border font-bold" /></div>
+                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2">Hasta</label><input type="date" value={f.hasta} onChange={e => actualizarFila(i, 'hasta', e.target.value)} className="w-full p-3 rounded-xl border font-bold" /></div>
+                                <div><label className="text-[9px] font-black text-slate-400 uppercase ml-2">Diario</label><input type="number" value={f.salario} onChange={e => actualizarFila(i, 'salario', Number(e.target.value))} className="w-full p-3 rounded-xl border font-black text-blue-600" /></div>
                             </div>
                         ))}
                     </div>
-                    <button onClick={agregarFila} className="w-full py-4 border-4 border-dashed border-slate-100 rounded-[2rem] text-slate-300 font-black uppercase text-xs hover:border-blue-400 hover:text-blue-400 transition no-print">+ Agregar Periodo Laborado</button>
+                    <button onClick={agregarFila} className="w-full py-4 border-4 border-dashed border-slate-100 rounded-[2rem] text-slate-300 font-black uppercase text-xs no-print">+ Agregar Periodo</button>
                     <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-center text-white"><p class="text-[10px] uppercase font-bold text-slate-500 mb-1 tracking-widest">Semanas Capturadas</p><p class="text-4xl font-black">{calculoSalario.semanas}</p></div>
-                        <div className="gold-gradient p-8 rounded-[2.5rem] text-center text-slate-900"><p class="text-[10px] uppercase font-black mb-1 tracking-widest text-slate-700">Promedio de los Periodos</p><p class="text-4xl font-black">{fmt(calculoSalario.promedio)}</p></div>
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-center text-white"><p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Semanas</p><p class="text-4xl font-black">{calculoSalario.semanas}</p></div>
+                        <div className="gold-gradient p-8 rounded-[2.5rem] text-center text-slate-900"><p class="text-[10px] uppercase font-black mb-1">Promedio</p><p class="text-4xl font-black">{fmt(calculoSalario.promedio)}</p></div>
                     </div>
+                    <button onClick={() => window.print()} className="w-full mt-10 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase text-xs no-print hover:bg-slate-200">Imprimir Hoja de Trabajo</button>
                 </div>
               )}
             </div>
