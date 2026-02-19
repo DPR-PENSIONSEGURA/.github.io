@@ -116,11 +116,13 @@
             </div>
         </div>
     </div>
-
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // ATRAPA CUALQUIER ERROR PARA QUE LO VEAS
+        window.addEventListener('error', function(e) { console.error("Error detectado: ", e.message); });
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -208,6 +210,10 @@
                 }
             });
         }
+
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
+        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.style.overflow = 'auto'; };
+        window.cerrarSesion = () => { signOut(auth).then(() => window.location.href = "login/index.html"); };
 
         window.mostrarTramites = (cat) => {
             const listado = document.getElementById('listaServicios');
@@ -317,7 +323,8 @@
                 btn.disabled = false; 
                 btn.innerText = originalText; 
             }
-// HISTORIAL ACTUALIZADO Y SEGURO (Bypassa el error de índices de Firebase)
+        };
+
         function escucharHistorial() {
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
             
@@ -328,33 +335,20 @@
                     return;
                 }
 
-                    function escucharHistorial() {
-            // Le quitamos el orderBy a Firebase para que no nos pida el Índice
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
-            
-            onSnapshot(q, (snapshot) => {
-                const lista = document.getElementById('listaHistorial');
-
-                // 1. Guardamos los datos en una lista temporal
                 let historial = [];
-                snapshot.forEach(docSnap => {
-                    historial.push(docSnap.data());
-                });
+                snapshot.forEach(docSnap => historial.push(docSnap.data()));
 
-                // 2. Los ordenamos nosotros mismos (el más nuevo arriba)
                 historial.sort((a, b) => {
                     const tiempoA = a.fecha ? a.fecha.toMillis() : 0;
                     const tiempoB = b.fecha ? b.fecha.toMillis() : 0;
-                    return tiempoB - tiempoA; // Orden descendente
+                    return tiempoB - tiempoA;
                 });
 
-                // 3. Pintamos la tabla
                 lista.innerHTML = "";
                 historial.forEach(d => {
                     const fecha = d.fecha?.toDate().toLocaleDateString() || '...';
                     
-                    // Colores dinámicos según lo que marque el Admin
-                    let colorClase = "bg-yellow-500/10 text-yellow-500"; // En Proceso
+                    let colorClase = "bg-yellow-500/10 text-yellow-500";
                     if(d.estatus === 'Terminado') colorClase = "bg-green-500/10 text-green-500";
                     if(d.estatus === 'Error') colorClase = "bg-red-500/10 text-red-500";
 
@@ -366,8 +360,45 @@
                             <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
                         </tr>`;
                 });
-            }, (error) => {
-                console.error("Error al cargar historial:", error);
             });
         }
-        
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('depRef').value.trim();
+            const file = document.getElementById('fileRecarga').files[0];
+            if (!m || !r || !file) return alert("Completa los datos.");
+            
+            const btn = document.getElementById('btnNotificar');
+            btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            
+            try {
+                const fd = new FormData(); 
+                fd.append('file', file); 
+                fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID, 
+                    asesorEmail: auth.currentUser ? auth.currentUser.email : "Asesor", 
+                    monto: m, 
+                    rastreo: r,
+                    comprobante: data.secure_url, 
+                    fecha: serverTimestamp(), 
+                    estatus: "pendiente"
+                });
+                
+                alert("¡Recarga reportada!"); 
+                cerrarModal();
+            } catch (e) { 
+                alert("Error al subir el comprobante."); 
+            } finally { 
+                btn.innerText = "Informar Depósito"; 
+                btn.disabled = false; 
+            }
+        };
+
+    </script>
+</body>
+</html>
