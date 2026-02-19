@@ -41,9 +41,9 @@
                 <span class="text-2xl block mb-2">🏥</span>
                 <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
             </button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">⚖️</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">SAT</span>
+            <button onclick="mostrarTramites('CALCULADORAS')" class="category-card p-4 rounded-2xl text-center">
+                <span class="text-2xl block mb-2">🧮</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter">CALCULADORAS</span>
             </button>
             <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">
                 <span class="text-2xl block mb-2">📄</span>
@@ -94,7 +94,7 @@
         <div class="gold-gradient w-full max-w-md rounded-[3.1rem] p-[1px]">
             <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-                <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Billetera</h2>
+                <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Saldo</h2>
                 
                 <div class="bg-slate-800 p-6 rounded-3xl text-center mb-4 border border-white/5">
                     <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
@@ -187,6 +187,9 @@
             ],
             'CON': [
                 { id: 'ASESORIA', nombre: 'Asesoría Personalizada', precio: 0, extra: 'TEMA A TRATAR' }
+            ],
+             'CALCULADORAS': [
+                { id: 'SALPROM', nombre: 'SALARIO PROMEDIO', precio: 5 }
             ]
         };
 
@@ -239,6 +242,479 @@
             listado.innerHTML = htmlStr;
             window.scrollTo(0, 300);
         };
+            import React, { useState, useEffect, useMemo } from 'react';
+import { Calculator, Calendar, DollarSign, Users, Info, ArrowRight, Printer, ShieldCheck, Activity } from 'lucide-react';
+
+const App = () => {
+  // --- ESTADO: DATOS DEL CLIENTE ---
+  const [edad, setEdad] = useState(60);
+  const [semanas, setSemanas] = useState(1000);
+  const [salarioPromedio, setSalarioPromedio] = useState(500);
+  
+  // --- ESTADO: ASIGNACIONES FAMILIARES ---
+  const [tieneEsposa, setTieneEsposa] = useState(true);
+  const [numeroHijos, setNumeroHijos] = useState(0);
+  const [numeroPadres, setNumeroPadres] = useState(0); // Solo aplica si no hay esposa ni hijos
+
+  // --- ESTADO: VALORES FIJOS (Proyectados 2026 / Modificables) ---
+  const [uma, setUma] = useState(115.00); // Estimado 2026
+  const [salarioMinimo, setSalarioMinimo] = useState(248.93); // Referencia
+
+  // --- ESTADO: SIMULADOR MODALIDAD 40 ---
+  const [m40Anios, setM40Anios] = useState(2);
+  const [m40Topado, setM40Topado] = useState(true);
+  const [m40SalarioPersonalizado, setM40SalarioPersonalizado] = useState(1000);
+
+  // --- TABLA ARTÍCULO 167 ---
+  const obtenerFactoresLey73 = (grupo) => {
+    if (grupo <= 1.0) return { cb: 80.00, ia: 0.563 };
+    if (grupo <= 1.25) return { cb: 77.11, ia: 0.814 };
+    if (grupo <= 1.50) return { cb: 58.18, ia: 1.178 };
+    if (grupo <= 1.75) return { cb: 49.23, ia: 1.430 };
+    if (grupo <= 2.00) return { cb: 42.67, ia: 1.615 };
+    if (grupo <= 2.25) return { cb: 37.65, ia: 1.756 };
+    if (grupo <= 2.50) return { cb: 33.68, ia: 1.858 };
+    if (grupo <= 2.75) return { cb: 30.48, ia: 1.938 };
+    if (grupo <= 3.00) return { cb: 27.83, ia: 2.004 };
+    if (grupo <= 3.25) return { cb: 25.60, ia: 2.055 };
+    if (grupo <= 3.50) return { cb: 23.70, ia: 2.098 };
+    if (grupo <= 3.75) return { cb: 22.07, ia: 2.135 };
+    if (grupo <= 4.00) return { cb: 20.65, ia: 2.167 };
+    if (grupo <= 4.25) return { cb: 19.39, ia: 2.195 };
+    if (grupo <= 4.50) return { cb: 18.29, ia: 2.219 };
+    if (grupo <= 4.75) return { cb: 17.30, ia: 2.240 };
+    if (grupo <= 5.00) return { cb: 16.41, ia: 2.259 };
+    if (grupo <= 5.25) return { cb: 15.61, ia: 2.276 };
+    if (grupo <= 5.50) return { cb: 14.88, ia: 2.291 };
+    if (grupo <= 5.75) return { cb: 14.22, ia: 2.304 };
+    if (grupo <= 6.00) return { cb: 13.62, ia: 2.316 };
+    return { cb: 13.00, ia: 2.450 }; // Mayor a 6.01
+  };
+
+  const calcularPension = (salarioBase, semanasTotales, edadJubilacion) => {
+    // 1. Validar Mínimos
+    if (semanasTotales < 500) return { error: "No cumple las 500 semanas mínimas" };
+
+    // 2. Factores de la Tabla
+    const salarioEnUmas = salarioBase / uma;
+    const factores = obtenerFactoresLey73(salarioEnUmas);
+    
+    // 3. Cuantía Básica
+    const salarioAnual = salarioBase * 365;
+    const cuantiaBasica = salarioAnual * (factores.cb / 100);
+
+    // 4. Incrementos Anuales
+    const semanasExcedentes = Math.max(0, semanasTotales - 500);
+    let aniosExcedentes = Math.floor(semanasExcedentes / 52);
+    // Regla IMSS: Si el remanente es mayor a 26 semanas, se considera un año completo extra
+    if (semanasExcedentes % 52 > 26) aniosExcedentes++; 
+    
+    const incrementoAnual = salarioAnual * (factores.ia / 100) * aniosExcedentes;
+    
+    // 5. Cuantía Total
+    const cuantiaTotal = cuantiaBasica + incrementoAnual;
+
+    // 6. Porcentaje por Edad
+    let porcentajeEdad = 1.0;
+    if (edadJubilacion === 60) porcentajeEdad = 0.75;
+    else if (edadJubilacion === 61) porcentajeEdad = 0.80;
+    else if (edadJubilacion === 62) porcentajeEdad = 0.85;
+    else if (edadJubilacion === 63) porcentajeEdad = 0.90;
+    else if (edadJubilacion === 64) porcentajeEdad = 0.95;
+    else if (edadJubilacion >= 65) porcentajeEdad = 1.00;
+
+    // 7. Asignaciones Familiares
+    let porcentajeAsignaciones = 0;
+    if (tieneEsposa) porcentajeAsignaciones += 0.15;
+    porcentajeAsignaciones += (numeroHijos * 0.10);
+    
+    if (!tieneEsposa && numeroHijos === 0) {
+      if (numeroPadres > 0) {
+        porcentajeAsignaciones += (numeroPadres * 0.10);
+      } else {
+        porcentajeAsignaciones += 0.15; // Ayuda asistencial por soledad
+      }
+    }
+    // Asegurar mínimo 15% de ayuda asistencial
+    if (porcentajeAsignaciones === 0) porcentajeAsignaciones = 0.15;
+
+    // 8. Cálculo Final
+    let pensionAnualConAsignaciones = (cuantiaTotal * porcentajeEdad) * (1 + porcentajeAsignaciones);
+    let pensionMensual = (pensionAnualConAsignaciones / 12) * 1.11; // Decreto Fox (11%)
+
+    // Pensión Mínima Garantizada (Ley 73)
+    const pmgMensual = (salarioMinimo * 365 / 12) * 1.11;
+    let usaPMG = false;
+    if (pensionMensual < pmgMensual) {
+      pensionMensual = pmgMensual;
+      usaPMG = true;
+    }
+
+    // Tope legal: No puede superar el 100% del Salario Promedio mensualizado
+    const topeSalario = (salarioBase * 365 / 12);
+    if (pensionMensual > topeSalario) {
+        pensionMensual = topeSalario;
+    }
+
+    return {
+      pensionMensual,
+      usaPMG,
+      pmgMensual,
+      cuantiaBasica,
+      incrementoAnual,
+      aniosExcedentes,
+      factores
+    };
+  };
+
+  // Cálculos en tiempo real
+  const calculoActual = useMemo(() => calcularPension(salarioPromedio, semanas, edad), [salarioPromedio, semanas, edad, uma, salarioMinimo, tieneEsposa, numeroHijos, numeroPadres]);
+
+  // Simulador M40
+  const calculoM40 = useMemo(() => {
+    const salarioIngresadoM40 = m40Topado ? (uma * 25) : m40SalarioPersonalizado;
+    const semanasExtra = m40Anios * 52;
+    const nuevasSemanas = semanas + semanasExtra;
+    
+    // Proyección del nuevo Salario Promedio de las últimas 250 semanas (Aprox 4.8 años)
+    // Asumimos que los años de M40 reemplazan a los años más recientes.
+    const semanasM40 = Math.min(250, semanasExtra);
+    const semanasViejas = Math.max(0, 250 - semanasM40);
+    
+    const nuevoSalarioPromedio = ((salarioIngresadoM40 * semanasM40) + (salarioPromedio * semanasViejas)) / 250;
+    
+    // Costo para 2026 (13.347%)
+    const tasaM40_2026 = 0.13347;
+    const costoMensualM40 = salarioIngresadoM40 * 30.4 * tasaM40_2026;
+    const costoTotalM40 = costoMensualM40 * 12 * m40Anios;
+
+    const proyeccion = calcularPension(nuevoSalarioPromedio, nuevasSemanas, edad + m40Anios);
+
+    return {
+      nuevoSalarioPromedio,
+      nuevasSemanas,
+      costoMensualM40,
+      costoTotalM40,
+      proyeccion
+    };
+  }, [salarioPromedio, semanas, edad, m40Anios, m40Topado, m40SalarioPersonalizado, uma, calculoActual]);
+
+  const formatoMoneda = (valor) => {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(valor || 0);
+  };
+
+  const handleImprimir = () => {
+    window.print();
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans print:bg-white">
+      {/* HEADER */}
+      <header className="bg-blue-900 text-white p-6 shadow-md print:hidden">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Calculator className="w-8 h-8 text-blue-300" />
+            <h1 className="text-2xl font-bold">Simulador de Pensión IMSS (Ley 73) - 2026</h1>
+          </div>
+          <button onClick={handleImprimir} className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg transition">
+            <Printer className="w-5 h-5" />
+            Imprimir Reporte
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* COLUMNA IZQUIERDA: FORMULARIOS (No se imprime) */}
+        <div className="lg:col-span-5 space-y-6 print:hidden">
+          
+          {/* PANEL 1: DATOS BASE */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Datos Base del Asegurado
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Semanas Cotizadas (Actuales)</label>
+                <input 
+                  type="number" 
+                  value={semanas} 
+                  onChange={(e) => setSemanas(Number(e.target.value))}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Salario Diario Promedio (Últimas 250 sem.)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-slate-400">$</span>
+                  <input 
+                    type="number" 
+                    value={salarioPromedio} 
+                    onChange={(e) => setSalarioPromedio(Number(e.target.value))}
+                    className="w-full p-2.5 pl-8 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">
+                  Edad de Jubilación ({edad} años - {
+                    edad === 60 ? '75%' : 
+                    edad === 61 ? '80%' : 
+                    edad === 62 ? '85%' : 
+                    edad === 63 ? '90%' : 
+                    edad === 64 ? '95%' : '100%'
+                  })
+                </label>
+                <input 
+                  type="range" 
+                  min="60" max="65" 
+                  value={edad} 
+                  onChange={(e) => setEdad(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex justify-between text-xs text-slate-400 mt-1">
+                  <span>60</span><span>61</span><span>62</span><span>63</span><span>64</span><span>65+</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PANEL 2: ASIGNACIONES FAMILIARES */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              Asignaciones Familiares
+            </h2>
+            
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={tieneEsposa} 
+                  onChange={(e) => setTieneEsposa(e.target.checked)}
+                  className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                />
+                <span className="text-slate-700">Esposa(o) o Concubina(o) <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full ml-1">+15%</span></span>
+              </label>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-1">Hijos menores o estudiando (-25 años)</label>
+                <select 
+                  value={numeroHijos} 
+                  onChange={(e) => setNumeroHijos(Number(e.target.value))}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none"
+                >
+                  <option value="0">Ninguno</option>
+                  <option value="1">1 Hijo (+10%)</option>
+                  <option value="2">2 Hijos (+20%)</option>
+                  <option value="3">3 Hijos (+30%)</option>
+                  <option value="4">4 Hijos (+40%)</option>
+                </select>
+              </div>
+
+              {!tieneEsposa && numeroHijos === 0 && (
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Padres dependientes</label>
+                  <select 
+                    value={numeroPadres} 
+                    onChange={(e) => setNumeroPadres(Number(e.target.value))}
+                    className="w-full p-2 bg-white border border-amber-200 rounded-lg focus:outline-none"
+                  >
+                    <option value="0">Ninguno (Aplica ayuda asistencial 15%)</option>
+                    <option value="1">1 Padre (+10%)</option>
+                    <option value="2">2 Padres (+20%)</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* PANEL 3: CONFIGURACIÓN 2026 */}
+          <div className="bg-slate-100 p-4 rounded-xl border border-slate-200">
+            <h3 className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" /> Valores Base del Cálculo
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">UMA Estimada</label>
+                <input type="number" value={uma} onChange={(e) => setUma(Number(e.target.value))} className="w-full p-1.5 text-sm bg-white border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Salario Mín.</label>
+                <input type="number" value={salarioMinimo} onChange={(e) => setSalarioMinimo(Number(e.target.value))} className="w-full p-1.5 text-sm bg-white border border-slate-300 rounded" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* COLUMNA DERECHA: RESULTADOS Y M40 */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* TARJETA DE RESULTADO PRINCIPAL (Se imprime) */}
+          <div className="bg-gradient-to-br from-blue-900 to-blue-800 p-8 rounded-2xl shadow-lg text-white print:break-inside-avoid print:bg-white print:text-black print:border print:border-slate-300 print:shadow-none">
+            <h2 className="text-xl font-medium text-blue-100 mb-1 print:text-slate-500">Pensión Mensual Estimada (Actual)</h2>
+            <div className="text-5xl font-bold mb-6 print:text-blue-900">
+              {calculoActual.error ? (
+                 <span className="text-2xl text-red-300">{calculoActual.error}</span>
+              ) : (
+                 formatoMoneda(calculoActual.pensionMensual)
+              )}
+            </div>
+
+            {calculoActual.usaPMG && !calculoActual.error && (
+              <div className="mb-4 inline-flex items-center gap-1.5 bg-blue-800/50 text-blue-200 text-sm py-1 px-3 rounded-full print:bg-slate-100 print:text-slate-700">
+                <Info className="w-4 h-4" /> Pensión ajustada al Mínimo Garantizado
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-blue-700/50 print:border-slate-200">
+              <div>
+                <p className="text-blue-200 text-sm print:text-slate-500">Semanas</p>
+                <p className="text-xl font-semibold print:text-black">{semanas}</p>
+              </div>
+              <div>
+                <p className="text-blue-200 text-sm print:text-slate-500">Promedio</p>
+                <p className="text-xl font-semibold print:text-black">{formatoMoneda(salarioPromedio)}</p>
+              </div>
+              <div>
+                <p className="text-blue-200 text-sm print:text-slate-500">Edad</p>
+                <p className="text-xl font-semibold print:text-black">{edad} años</p>
+              </div>
+              <div>
+                <p className="text-blue-200 text-sm print:text-slate-500">Incrementos</p>
+                <p className="text-xl font-semibold print:text-black">{calculoActual.aniosExcedentes || 0} años</p>
+              </div>
+            </div>
+          </div>
+
+          {/* SIMULADOR MODALIDAD 40 */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 print:break-inside-avoid">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Activity className="w-6 h-6 text-green-600" />
+                Simulador Modalidad 40 (Proyección 2026)
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              
+              {/* Controles M40 */}
+              <div className="space-y-5 print:hidden">
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Años a Invertir ({m40Anios} años)</label>
+                  <input 
+                    type="range" 
+                    min="1" max="5" 
+                    value={m40Anios} 
+                    onChange={(e) => setM40Anios(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                  />
+                  <div className="flex justify-between text-xs text-slate-400 mt-1">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={m40Topado} 
+                      onChange={(e) => setM40Topado(e.target.checked)}
+                      className="w-4 h-4 text-green-600 rounded"
+                    />
+                    <span className="text-sm font-medium text-slate-700">Inversión Topada (25 UMAs)</span>
+                  </label>
+                  
+                  {!m40Topado && (
+                    <div>
+                      <label className="block text-xs text-slate-500 mb-1">Salario Diario M40 Personalizado</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-slate-400">$</span>
+                        <input 
+                          type="number" 
+                          value={m40SalarioPersonalizado} 
+                          onChange={(e) => setM40SalarioPersonalizado(Number(e.target.value))}
+                          className="w-full p-2 pl-8 text-sm bg-white border border-slate-300 rounded focus:ring-2 focus:ring-green-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {m40Topado && (
+                    <div className="text-sm text-slate-600">
+                      Salario Topado Diario: <strong className="text-slate-800">{formatoMoneda(uma * 25)}</strong>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-green-800">Costo Mensual M40 (2026):</span>
+                    <span className="font-bold text-green-700">{formatoMoneda(calculoM40.costoMensualM40)}</span>
+                  </div>
+                  <div className="text-xs text-green-600 text-right">Tasa aplicable: 13.347%</div>
+                </div>
+              </div>
+
+              {/* Resultados M40 */}
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 flex flex-col justify-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Pensión Proyectada</h3>
+                
+                <div className="text-4xl font-extrabold text-green-600 mb-4">
+                   {calculoM40.proyeccion.error ? (
+                     <span className="text-lg text-red-500">Faltan semanas</span>
+                   ) : (
+                     formatoMoneda(calculoM40.proyeccion.pensionMensual)
+                   )}
+                </div>
+
+                <div className="space-y-2 text-sm text-slate-600 mt-2">
+                  <div className="flex justify-between border-b border-slate-200 pb-1">
+                    <span>Nuevas Semanas:</span>
+                    <span className="font-semibold text-slate-800">{calculoM40.nuevasSemanas}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-1">
+                    <span>Nuevo Salario Promedio:</span>
+                    <span className="font-semibold text-slate-800">{formatoMoneda(calculoM40.nuevoSalarioPromedio)}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-1">
+                    <span>Nueva Edad Retiro:</span>
+                    <span className="font-semibold text-slate-800">{edad + m40Anios} años</span>
+                  </div>
+                  <div className="flex justify-between pt-2">
+                    <span className="font-medium text-slate-800">Inversión Total Aproximada:</span>
+                    <span className="font-bold text-slate-800">{formatoMoneda(calculoM40.costoTotalM40)}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* ESPACIO PARA NOTAS DEL ASESOR (Solo visible al imprimir o al final) */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hidden print:block">
+            <h2 className="text-lg font-bold text-slate-800 mb-2">Notas del Asesor:</h2>
+            <div className="border-b border-dashed border-slate-300 mt-8"></div>
+            <div className="border-b border-dashed border-slate-300 mt-8"></div>
+            <div className="border-b border-dashed border-slate-300 mt-8"></div>
+            <p className="text-xs text-slate-400 mt-4 text-center">
+              * Cálculo estimado basado en la Ley del Seguro Social de 1973. Los montos pueden variar ligeramente por ajustes inflacionarios y determinaciones finales del IMSS. Simulador actualizado para proyecciones 2026.
+            </p>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default App;
 
         window.prepararTramite = (nombre, costo, prefijo, pideNss, pideNac, pideExtra, listaFotos) => {
             const content = document.getElementById('formContent');
