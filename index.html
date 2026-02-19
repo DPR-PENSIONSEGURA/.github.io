@@ -22,7 +22,7 @@
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
                 <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
             </div>
-            <nav class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <nav class="flex gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500 items-center">
                 <button onclick="abrirModal('modalInfo')" class="hover:text-blue-600">¿Quiénes Somos?</button>
                 <button onclick="window.open('https://pensionsegura.org/blog', '_blank')" class="bg-slate-900 text-white px-3 py-1 rounded font-bold">BLOG</button>
             </nav>
@@ -31,7 +31,15 @@
 
     <section class="pt-16 pb-8 px-6 text-center text-white">
         <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight text-white">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
-        <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition">Consultar Estatus</button>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+            <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition w-full sm:w-auto">Consultar Estatus</button>
+            
+            <a href="https://wa.me/528131983700?text=Hola%20DPR%20Consultoría,%20me%20interesa%20registrarme%20como%20asesor." target="_blank" class="bg-green-500 text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-green-400 transition flex items-center justify-center gap-2 w-full sm:w-auto">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                ¿Eres asesor? ¡Regístrate aquí!
+            </a>
+        </div>
     </section>
 
     <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -229,7 +237,6 @@
                 `;
             }
             else {
-                // Aquí caen Análisis Rápido, RFC Clon, RFC Verificable y CSF
                 const configs = {
                     'modalRapido': { titulo: 'Análisis Rápido', precio: '$200', prefix: 'R', color: 'blue-600' },
                     'modalRFC': { titulo: 'RFC Clon', precio: '$35', prefix: 'RFC', color: 'blue-600' },
@@ -239,7 +246,6 @@
                 const c = configs[tipo];
                 if (!c) return;
                 
-                // Si es RFC o CSF no pedimos el nombre (lo pedimos si es análisis rápido)
                 const simplificado = (tipo === 'modalRFC' || tipo === 'modalRFCV' || tipo === 'modalCSF');
 
                 contenido.innerHTML = `
@@ -252,4 +258,110 @@
                         ${tipo === 'modalRapido' ? `<input type="text" id="nss_${c.prefix}" placeholder="NSS (11 dígitos)" class="w-full p-4 bg-slate-50 rounded-2xl border" maxlength="11">` : ''}
                         ${!simplificado ? `<input type="tel" id="tel_${c.prefix}" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 rounded-2xl border">` : ''}
                         ${MSG_SUBE_PAGO}
-                        <inpu
+                        <input type="file" id="file_${c.prefix}" class="mb-4 block w-full text-xs">
+                    </div>
+                    <button onclick="ejecutarEnvio('${c.prefix}')" id="btn_${c.prefix}" class="w-full bg-${c.color} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
+                    <div id="exito_${c.prefix}" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold italic">¡Enviado! Folio: <span id="folio_${c.prefix}"></span></div>
+                `;
+            }
+        };
+
+        async function ejecutarEnvio(prefix) {
+            const btn = document.getElementById(`btn_${prefix}`);
+            const fileInput = document.getElementById(`file_${prefix}`);
+            if (!fileInput || !fileInput.files[0]) return alert("Sube tu comprobante de pago.");
+
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('upload_preset', UPLOAD_PRESET);
+
+            try {
+                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+                const fileData = await resp.json();
+                const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+
+                await addDoc(collection(db, "solicitudes"), {
+                    uid: "CLIENTE_WEB",
+                    origen: "WEB",
+                    folio: folio,
+                    tipo: prefix,
+                    nombre: document.getElementById(`nombre_${prefix}`)?.value || "CLIENTE WEB",
+                    curp: document.getElementById(`curp_${prefix}`)?.value || "S/C",
+                    nss: document.getElementById(`nss_${prefix}`)?.value || "N/A",
+                    tel: document.getElementById(`tel_${prefix}`)?.value || "S/T",
+                    correo: document.getElementById(`correo_${prefix}`)?.value || "",
+                    salario: document.getElementById(`salario_${prefix}`)?.value || "",
+                    direccion: document.getElementById(`direccion_${prefix}`)?.value || "",
+                    frecuenciaPago: document.getElementById(`pago_${prefix}`)?.value || "",
+                    nacimiento: document.getElementById(`nac_${prefix}`)?.value || "",
+                    infoExtra: document.getElementById(`extra_${prefix}`)?.value || "",
+                    edadRetiro: document.getElementById(`edadRetiro_${prefix}`)?.value || "",
+                    ultimoAnio: document.getElementById(`ultimoAnio_${prefix}`)?.value || "",
+                    comprobante: fileData.secure_url,
+                    estatus: "En Proceso",
+                    fecha: serverTimestamp()
+                });
+
+                document.getElementById(`exito_${prefix}`).classList.remove("hidden");
+                document.getElementById(`folio_${prefix}`).innerText = folio;
+                btn.innerText = "¡LISTO!";
+            } catch(e) { 
+                console.error(e);
+                alert("Error al enviar."); 
+                btn.disabled = false; 
+                btn.innerText = "Reintentar"; 
+            }
+        }
+
+        async function buscarEstatus() {
+            const f = document.getElementById('folioBusqueda').value.trim();
+            const res = document.getElementById('resBus');
+            if(!f) return alert("Ingresa un folio");
+            res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
+            try {
+                const q = query(collection(db, "solicitudes"), where("folio", "==", f));
+                const querySnapshot = await getDocs(q);
+                if (querySnapshot.empty) { 
+                    res.innerText = "Folio no encontrado"; 
+                    res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-red-100 text-red-700"; 
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        if (data.archivoFinal) { 
+                            res.innerHTML = `<a href="${data.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black text-sm italic">📥 DESCARGAR RESULTADO</a>`; 
+                        } else { 
+                            res.innerText = "ESTATUS: " + data.estatus; 
+                            res.className = "mt-6 p-6 rounded-[2rem] text-center font-black uppercase bg-yellow-100 text-yellow-700 italic"; 
+                        }
+                    });
+                }
+            } catch (e) { res.innerText = "Error de conexión"; }
+        }
+
+        function verificarLey() {
+            const anio = document.getElementById('anioLey').value;
+            const res = document.getElementById('resLey');
+            res.classList.remove('hidden');
+            if (anio < 1997) { 
+                res.className = "mt-4 p-4 rounded-2xl bg-green-100 text-green-700 font-black uppercase text-xs"; 
+                res.innerHTML = "¡ERES LEY 73!"; 
+            } else { 
+                res.className = "mt-4 p-4 rounded-2xl bg-blue-100 text-blue-700 font-black uppercase text-xs"; 
+                res.innerHTML = "¡ERES LEY 97!"; 
+            }
+        }
+
+        window.abrirModal = abrirModal;
+        window.buscarEstatus = buscarEstatus;
+        window.verificarLey = verificarLey;
+        window.ejecutarEnvio = ejecutarEnvio;
+        window.cerrarModal = () => { 
+            document.getElementById('modalBase').classList.add('hidden'); 
+            document.body.classList.remove('modal-active'); 
+        }
+    </script>
+</body>
+</html>
