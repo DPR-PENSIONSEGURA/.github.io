@@ -114,6 +114,11 @@
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+        // ATRAPA CUALQUIER ERROR PARA QUE LO VEAS
+        window.addEventListener('error', function(e) {
+            console.error("Error detectado: ", e.message);
+        });
+
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -201,16 +206,46 @@
             });
         }
 
+        // FUNCIONES GLOBALES SEGURAS
+        window.abrirModal = (id) => { 
+            document.getElementById(id).classList.remove('hidden'); 
+            document.body.style.overflow = 'hidden'; 
+        };
+
+        window.cerrarModal = () => { 
+            document.getElementById('modalTramite').classList.add('hidden'); 
+            document.getElementById('modalSaldo').classList.add('hidden'); 
+            document.body.style.overflow = 'auto'; 
+        };
+
+        window.cerrarSesion = () => {
+            signOut(auth).then(() => window.location.href = "login/index.html");
+        };
+
         window.mostrarTramites = (cat) => {
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
-            listado.innerHTML = TRAMITES[cat].map(t => `
-                <div onclick="prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss}, ${t.nac}, '${t.extra || ''}', '${t.fotos || ''}')" class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-blue-500 transition shadow-lg">
+            
+            let htmlStr = '';
+            const lista = TRAMITES[cat];
+            
+            if (!lista) return;
+
+            for(let i = 0; i < lista.length; i++) {
+                const t = lista[i];
+                const pNss = t.nss ? true : false;
+                const pNac = t.nac ? true : false;
+                const pExtra = t.extra ? t.extra : '';
+                const pFotos = t.fotos ? t.fotos.join(',') : '';
+                
+                htmlStr += `<div onclick="prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${pNss}, ${pNac}, '${pExtra}', '${pFotos}')" class="bg-slate-800/50 p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-blue-500 transition shadow-lg">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
                     <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00 MXN</p>
-                </div>
-            `).join('');
-            window.scrollTo({ top: 300, behavior: 'smooth' });
+                </div>`;
+            }
+            
+            listado.innerHTML = htmlStr;
+            window.scrollTo(0, 300);
         };
 
         window.prepararTramite = (nombre, costo, prefijo, pideNss, pideNac, pideExtra, listaFotos) => {
@@ -224,9 +259,9 @@
             if(listaFotos && listaFotos !== 'undefined' && listaFotos !== '') {
                 const arrayFotos = listaFotos.split(',');
                 camposFotos = `<div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 mb-4"><p class="text-[9px] font-black text-blue-400 uppercase mb-3 italic">Adjuntar Documentación:</p>`;
-                arrayFotos.forEach((f, i) => {
-                    camposFotos += `<label class="block text-[8px] text-slate-400 font-bold uppercase mb-1">${f}</label><input type="file" id="foto_${i}" class="block w-full text-[10px] text-slate-500 mb-3">`;
-                });
+                for(let i=0; i<arrayFotos.length; i++) {
+                    camposFotos += `<label class="block text-[8px] text-slate-400 font-bold uppercase mb-1">${arrayFotos[i]}</label><input type="file" id="foto_${i}" class="block w-full text-[10px] text-slate-500 mb-3">`;
+                }
                 camposFotos += `</div>`;
             }
 
@@ -239,6 +274,7 @@
                     <textarea id="nota_p" placeholder="Notas..." class="input-dark h-20 text-sm"></textarea>
                     <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar Pago: $${costo}</button>
                 </div>`;
+            
             document.getElementById('btnPagar').onclick = () => window.confirmarCompra(nombre, costo, prefijo, listaFotos);
             abrirModal('modalTramite');
         };
@@ -259,7 +295,9 @@
                     for(let i=0; i < arrayFotos.length; i++) {
                         const file = document.getElementById(`foto_${i}`).files[0];
                         if(!file) throw new Error("Falta archivo obligatorio: " + arrayFotos[i]);
-                        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+                        const fd = new FormData(); 
+                        fd.append('file', file); 
+                        fd.append('upload_preset', UPLOAD_PRESET);
                         const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                         const data = await res.json();
                         docLinks[arrayFotos[i]] = data.secure_url;
@@ -268,29 +306,33 @@
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
                 const folio = prefijo + "-" + Math.floor(10000 + Math.random() * 90000);
+                
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, 
                     origen: "ASESOR", 
-                    nombre: auth.currentUser.email,
+                    nombre: auth.currentUser ? auth.currentUser.email : "Asesor",
                     tipo: nombre, 
                     folio: folio, 
                     curp: curp,
-                    nss: document.getElementById('nss_p')?.value || "N/A",
-                    nacimiento: document.getElementById('nac_p')?.value || "",
-                    infoExtra: document.getElementById('extra_p')?.value || document.getElementById('nota_p')?.value || "",
+                    nss: document.getElementById('nss_p') ? document.getElementById('nss_p').value : "N/A",
+                    nacimiento: document.getElementById('nac_p') ? document.getElementById('nac_p').value : "",
+                    infoExtra: document.getElementById('extra_p') ? document.getElementById('extra_p').value : "",
+                    nota: document.getElementById('nota_p') ? document.getElementById('nota_p').value : "",
                     documentacion: docLinks,
                     estatus: "En Proceso", 
                     fecha: serverTimestamp()
                 });
-                alert("¡Trámite enviado con éxito!"); cerrarModal();
+                
+                alert("¡Trámite enviado con éxito!"); 
+                cerrarModal();
             } catch (e) { 
                 alert(e.message); 
             } finally { 
-                btn.disabled = false; btn.innerText = originalText; 
+                btn.disabled = false; 
+                btn.innerText = originalText; 
             }
         };
-
-        function escucharHistorial() {
+function escucharHistorial() {
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
@@ -302,7 +344,7 @@
                         <tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
                             <td class="py-4 px-2 text-slate-400 font-bold">${fecha}</td>
                             <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}<br><span class="text-blue-400 text-[9px]">${d.folio}</span></td>
-                            <td class="py-4 px-2 text-center"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}">${d.estatus}</span></td>
+                            <td class="py-4 px-2 text-center"><span class="status-badge ${d.estatus === 'Terminado' ? 'bg-green-500/10 text-green-500' : (d.estatus === 'Error' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500')}">${d.estatus}</span></td>
                             <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
                         </tr>`;
                 });
@@ -314,4 +356,37 @@
             const r = document.getElementById('depRef').value.trim();
             const file = document.getElementById('fileRecarga').files[0];
             if (!m || !r || !file) return alert("Completa los datos.");
-      
+            
+            const btn = document.getElementById('btnNotificar');
+            btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            
+            try {
+                const fd = new FormData(); 
+                fd.append('file', file); 
+                fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID, 
+                    asesorEmail: auth.currentUser ? auth.currentUser.email : "Asesor", 
+                    monto: m, 
+                    rastreo: r,
+                    comprobante: data.secure_url, 
+                    fecha: serverTimestamp(), 
+                    estatus: "pendiente"
+                });
+                
+                alert("¡Recarga reportada!"); 
+                cerrarModal();
+            } catch (e) { 
+                alert("Error al subir el comprobante."); 
+            } finally { 
+                btn.innerText = "Informar Depósito"; 
+                btn.disabled = false; 
+            }
+        };
+
+    </script>
+</body>
+</html>
