@@ -266,7 +266,6 @@
                     }
                 }
 
-                // CORRECCIÓN CLAVE: El campo se debe llamar 'asesor_uid' para que coincida con la búsqueda
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
                 const folio = prefijo + "-" + Math.floor(10000 + Math.random() * 90000);
                 await addDoc(collection(db, "solicitudes"), {
@@ -292,7 +291,6 @@
         };
 
         function escucharHistorial() {
-            // Buscamos donde 'asesor_uid' coincida con el usuario actual
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"));
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
@@ -313,4 +311,7 @@
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElemen
+            const r = document.getElementById('depRef').value.trim();
+            const file = document.getElementById('fileRecarga').files[0];
+            if (!m || !r || !file) return alert("Completa los datos.");
+      
