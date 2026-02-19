@@ -95,10 +95,18 @@
             <div class="bg-slate-900 w-full rounded-[3rem] p-10 relative">
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
                 <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Billetera</h2>
-                <div class="bg-slate-800 p-6 rounded-3xl text-center mb-6 border border-white/5">
+                
+                <div class="bg-slate-800 p-6 rounded-3xl text-center mb-4 border border-white/5">
                     <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
                     <p id="txtSaldoGrande" class="text-4xl font-black text-white">...</p>
                 </div>
+
+                <div class="bg-slate-800/80 p-4 rounded-2xl text-center mb-6 border border-slate-700">
+                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Datos para Recarga</p>
+                    <p class="text-lg font-black text-white tracking-widest my-1">4915 6630 4036 4896</p>
+                    <p class="text-[10px] font-bold text-red-500 uppercase mt-1">Banorte | DPR Pensión Segura</p>
+                </div>
+
                 <div class="space-y-3">
                     <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
                     <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase">
@@ -113,11 +121,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // ATRAPA CUALQUIER ERROR PARA QUE LO VEAS
-        window.addEventListener('error', function(e) {
-            console.error("Error detectado: ", e.message);
-        });
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -178,7 +181,7 @@
             'AFO': [
                 { id: 'RETIRO', nombre: 'RETIRO DESEMPLEO', precio: 50, curp: true, extra: 'CLAVE AFORE WEB', fotos: ['INE FRENTE', 'INE REVERSO', 'FOTO GAFFET', 'ESTADO CUENTA'] },
                 { id: 'CONTRASENA', nombre: 'Cambio Contraseña', precio: 30, curp: true, extra: 'TELÉFONO', fotos: ['FOTO DEL CLIENTE'] },
-                { id: 'REGISTRO', nombre: 'REGISTRO AFORE WEB', precio: 90, nss: true, curp: true, extra: 'CLAVE AW', fotos: ['FOTO GAFFET', 'INE FRENTE', 'INE REVERSO'] }
+                { id: 'REGISTRO', nombre: 'REGISTRO AFORE WEB', precio: 50, nss: true, curp: true, extra: 'CLAVE AW', fotos: ['FOTO GAFFET', 'INE FRENTE', 'INE REVERSO'] }
             ],
             'CON': [
                 { id: 'ASESORIA', nombre: 'Asesoría Personalizada', precio: 0, extra: 'TEMA A TRATAR' }
@@ -206,29 +209,12 @@
             });
         }
 
-        // FUNCIONES GLOBALES SEGURAS
-        window.abrirModal = (id) => { 
-            document.getElementById(id).classList.remove('hidden'); 
-            document.body.style.overflow = 'hidden'; 
-        };
-
-        window.cerrarModal = () => { 
-            document.getElementById('modalTramite').classList.add('hidden'); 
-            document.getElementById('modalSaldo').classList.add('hidden'); 
-            document.body.style.overflow = 'auto'; 
-        };
-
-        window.cerrarSesion = () => {
-            signOut(auth).then(() => window.location.href = "login/index.html");
-        };
-
         window.mostrarTramites = (cat) => {
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
             
             let htmlStr = '';
             const lista = TRAMITES[cat];
-            
             if (!lista) return;
 
             for(let i = 0; i < lista.length; i++) {
@@ -331,18 +317,23 @@
                 btn.disabled = false; 
                 btn.innerText = originalText; 
             }
-        };
+// HISTORIAL ACTUALIZADO Y SEGURO (Bypassa el error de índices de Firebase)
         function escucharHistorial() {
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
+            
+            onSnapshot(q, (snapshot) => {
+                const lista = document.getElementById('listaHistorial');
+                if (snapshot.empty) {
+                    lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Aún no hay solicitudes</td></tr>';
+                    return;
+                }
+
+                    function escucharHistorial() {
             // Le quitamos el orderBy a Firebase para que no nos pida el Índice
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
             
             onSnapshot(q, (snapshot) => {
                 const lista = document.getElementById('listaHistorial');
-                
-                if (snapshot.empty) {
-                    lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Aún no hay solicitudes</td></tr>';
-                    return;
-                }
 
                 // 1. Guardamos los datos en una lista temporal
                 let historial = [];
@@ -380,42 +371,3 @@
             });
         }
         
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value.trim();
-            const file = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !file) return alert("Completa los datos.");
-            
-            const btn = document.getElementById('btnNotificar');
-            btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            
-            try {
-                const fd = new FormData(); 
-                fd.append('file', file); 
-                fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                
-                await addDoc(collection(db, "notificaciones_pago"), {
-                    uid: userUID, 
-                    asesorEmail: auth.currentUser ? auth.currentUser.email : "Asesor", 
-                    monto: m, 
-                    rastreo: r,
-                    comprobante: data.secure_url, 
-                    fecha: serverTimestamp(), 
-                    estatus: "pendiente"
-                });
-                
-                alert("¡Recarga reportada!"); 
-                cerrarModal();
-            } catch (e) { 
-                alert("Error al subir el comprobante."); 
-            } finally { 
-                btn.innerText = "Informar Depósito"; 
-                btn.disabled = false; 
-            }
-        };
-
-    </script>
-</body>
-</html>
