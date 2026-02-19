@@ -18,23 +18,29 @@
 <body>
 
     <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-lg rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             
             <h2 class="text-2xl font-black text-white uppercase italic mb-2">Herramientas Premium</h2>
             <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">✨ Oferta de Lanzamiento ✨</p>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <button onclick="seleccionarHerramienta('SIMULADOR DE PENSIÓN', 25, 'pension')" id="opt_pension" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
-                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Calculadora</p>
-                    <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Proyección de Pensión</p>
-                    <p class="text-2xl font-black text-white">$25<span class="text-xs text-slate-500 font-bold">.00</span></p>
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Simulador</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Pensión Ley 73</p>
+                    <p class="text-xl font-black text-white">$25.00</p>
                 </button>
 
                 <button onclick="seleccionarHerramienta('CÁLCULO 250 SEMANAS', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
                     <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Calculadora</p>
-                    <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Salario Promedio</p>
-                    <p class="text-2xl font-black text-white">$25<span class="text-xs text-slate-500 font-bold">.00</span></p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Salario Promedio</p>
+                    <p class="text-xl font-black text-white">$25.00</p>
+                </button>
+
+                <button onclick="seleccionarHerramienta('ESTRATEGIA MOD 40', 25, 'mod40')" id="opt_mod40" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-green-500 uppercase mb-1">Estrategia</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Modalidad 40</p>
+                    <p class="text-xl font-black text-white">$25.00</p>
                 </button>
             </div>
 
@@ -86,8 +92,11 @@
 
         window.seleccionarHerramienta = (nombre, costo, tab) => {
             herramientaSeleccionada = nombre; costoSeleccionado = costo; tabDestino = tab;
-            document.getElementById('opt_pension').className = tab === 'pension' ? 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative' : 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
-            document.getElementById('opt_salario').className = tab === 'salario' ? 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative' : 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
+            ['opt_pension', 'opt_salario', 'opt_mod40'].forEach(id => {
+                document.getElementById(id).className = 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
+            });
+            const selectedId = `opt_${tab}`;
+            document.getElementById(selectedId).className = 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative';
             const btn = document.getElementById('btnPagarAcceso');
             btn.disabled = false; btn.classList.remove('opacity-50');
             btn.innerText = `Desbloquear por $${costo}.00`;
@@ -105,7 +114,6 @@
                 });
                 document.getElementById('pantallaCobro').classList.add('hidden');
                 document.getElementById('root').classList.remove('hidden');
-                // IMPORTANTE: Informamos a React qué herramienta cargar
                 window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
             } catch (e) { alert("Error de conexión"); btn.disabled = false; }
         };
@@ -116,28 +124,45 @@
 
         const App = () => {
           const [view, setView] = useState(null);
-
           useEffect(() => {
             const handleInit = (e) => setView(e.detail);
             window.addEventListener('inicioApp', handleInit);
             return () => window.removeEventListener('inicioApp', handleInit);
           }, []);
 
-          // --- ESTADOS PENSIÓN ---
+          const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+
+          // --- LOGICA MODALIDAD 40 ---
+          const [m40Anios, setM40Anios] = useState(1);
+          const [m40Semanas, setM40Semanas] = useState(1000);
+          const [m40SalarioActual, setM40SalarioActual] = useState(500);
+          const [m40SalarioNuevo, setM40SalarioNuevo] = useState(2823.50); // Tope 2025 aprox
+          const [m40Edad, setM40Edad] = useState(60);
+
+          const calculoMod40 = useMemo(() => {
+            const semanasExtras = m40Anios * 52;
+            const semanasFinales = m40Semanas + semanasExtras;
+            
+            // Simulación simplificada de promedio ponderado:
+            // Tomamos los últimos 5 años (250 semanas)
+            const semanasNuevas = Math.min(250, semanasExtras);
+            const semanasViejas = Math.max(0, 250 - semanasNuevas);
+            const nuevoPromedio = ((m40SalarioNuevo * semanasNuevas) + (m40SalarioActual * semanasViejas)) / 250;
+
+            const tasa2026 = 0.13347;
+            const costoMensual = m40SalarioNuevo * 30.4 * tasa2026;
+            const inversionTotal = costoMensual * 12 * m40Anios;
+
+            return { semanasFinales, nuevoPromedio, costoMensual, inversionTotal };
+          }, [m40Anios, m40Semanas, m40SalarioActual, m40SalarioNuevo]);
+
+          // --- LOGICA PENSION ORIGINAL ---
           const [edad, setEdad] = useState(60);
           const [semanas, setSemanas] = useState(1000);
           const [salarioPromedio, setSalarioPromedio] = useState(500);
           const [tieneEsposa, setTieneEsposa] = useState(true);
           const [numeroHijos, setNumeroHijos] = useState(0);
 
-          // --- ESTADOS SALARIO ---
-          const [filas, setFilas] = useState([{ desde: '', hasta: '', salario: 0 }]);
-          const agregarFila = () => setFilas([...filas, { desde: '', hasta: '', salario: 0 }]);
-          const actualizarFila = (idx, campo, val) => { const n = [...filas]; n[idx][campo] = val; setFilas(n); };
-
-          const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
-
-          // Lógica Pensión Original
           const calculoPension = useMemo(() => {
             if (semanas < 500) return { monto: 0, esMin: false };
             let porc = 0.75 + ((edad - 60) * 0.05);
@@ -149,8 +174,11 @@
             return { monto: Math.max(total, pmg), esMin: total < pmg };
           }, [semanas, edad, salarioPromedio, tieneEsposa, numeroHijos]);
 
-          // Lógica Salario
-          const calculoSalario = useMemo(() => {
+          // --- LOGICA SALARIO 250 SEMANAS ---
+          const [filas, setFilas] = useState([{ desde: '', hasta: '', salario: 0 }]);
+          const agregarFila = () => setFilas([...filas, { desde: '', hasta: '', salario: 0 }]);
+          const actualizarFila = (idx, campo, val) => { const n = [...filas]; n[idx][campo] = val; setFilas(n); };
+          const resultSalario = useMemo(() => {
             let dTot = 0; let sPond = 0;
             filas.forEach(f => {
               if(f.desde && f.hasta && f.salario > 0) {
@@ -165,7 +193,7 @@
 
           return (
             <div className="max-w-6xl mx-auto p-4 md:p-8 min-h-screen">
-              {view === 'pension' ? (
+              {view === 'pension' && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                   <div className="lg:col-span-5 space-y-6 no-print">
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
@@ -191,16 +219,13 @@
                     <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center relative overflow-hidden print:bg-white print:text-slate-900 print:border-2">
                         <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Mensual Estimada</p>
                         <h2 className="text-7xl font-black mb-6">{fmt(calculoPension.monto)}</h2>
-                        {calculoPension.esMin && <p className="bg-red-500/20 text-red-400 px-4 py-1 rounded-full text-[10px] font-bold uppercase inline-block">Mínima Garantizada Aplicada</p>}
-                        <div className="mt-10 border-t border-white/10 pt-8 grid grid-cols-2 gap-4 print:border-slate-200">
-                            <div><p className="text-[10px] text-slate-500 uppercase font-bold">Semanas</p><p className="text-xl font-black">{semanas}</p></div>
-                            <div><p className="text-[10px] text-slate-500 uppercase font-bold">Promedio</p><p className="text-xl font-black">{fmt(salarioPromedio)}</p></div>
-                        </div>
                         <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print">Imprimir Reporte</button>
                     </div>
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {view === 'salario' && (
                 <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 min-h-screen">
                     <h2 className="text-3xl font-black uppercase italic text-slate-800 mb-2">Salario Promedio</h2>
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-10 italic">Últimas 250 semanas</p>
@@ -215,10 +240,50 @@
                     </div>
                     <button onClick={agregarFila} className="w-full py-4 border-4 border-dashed border-slate-100 rounded-[2rem] text-slate-300 font-black uppercase text-xs no-print">+ Agregar Periodo</button>
                     <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-center text-white"><p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Semanas</p><p class="text-4xl font-black">{calculoSalario.semanas}</p></div>
-                        <div className="gold-gradient p-8 rounded-[2.5rem] text-center text-slate-900"><p class="text-[10px] uppercase font-black mb-1">Promedio</p><p class="text-4xl font-black">{fmt(calculoSalario.promedio)}</p></div>
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-center text-white"><p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Semanas</p><p class="text-4xl font-black">{resultSalario.semanas}</p></div>
+                        <div className="gold-gradient p-8 rounded-[2.5rem] text-center text-slate-900"><p class="text-[10px] uppercase font-black mb-1">Promedio</p><p class="text-4xl font-black">{fmt(resultSalario.promedio)}</p></div>
                     </div>
-                    <button onClick={() => window.print()} className="w-full mt-10 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase text-xs no-print hover:bg-slate-200">Imprimir Hoja de Trabajo</button>
+                </div>
+              )}
+
+              {view === 'mod40' && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-5 space-y-6 no-print">
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 text-slate-800">
+                      <h2 className="text-xl font-black uppercase italic mb-6 border-l-4 border-green-500 pl-4">Simulador de Inversión</h2>
+                      <div className="space-y-4">
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Semanas Actuales</label>
+                        <input type="number" value={m40Semanas} onChange={e => setM40Semanas(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black" />
+                        
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Salario Diario Actual</label>
+                        <input type="number" value={m40SalarioActual} onChange={e => setM40SalarioActual(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black" />
+                        
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Salario a Cotizar en Mod 40</label>
+                        <input type="number" value={m40SalarioNuevo} onChange={e => setM40SalarioNuevo(Number(e.target.value))} className="w-full p-3 bg-green-50 border-green-200 border rounded-xl font-black text-green-700" />
+                        
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase">Años de Inversión: {m40Anios}</label>
+                        <input type="range" min="1" max="5" value={m40Anios} onChange={e => setM40Anios(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="lg:col-span-7 space-y-6">
+                    <div className="bg-slate-900 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                        <p className="text-green-400 font-black uppercase text-[10px] tracking-widest mb-1">Costo de Inversión</p>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div><p className="text-xs text-slate-400 uppercase font-bold">Mensual</p><p className="text-2xl font-black">{fmt(calculoMod40.costoMensual)}</p></div>
+                            <div><p className="text-xs text-slate-400 uppercase font-bold">Total Proyectado</p><p className="text-2xl font-black">{fmt(calculoMod40.inversionTotal)}</p></div>
+                        </div>
+                        <div className="border-t border-white/10 pt-6">
+                            <p className="text-blue-400 font-black uppercase text-[10px] tracking-widest mb-1">Impacto en Pensión</p>
+                            <p className="text-xs text-slate-400 uppercase font-bold mb-1">Nuevo Salario Promedio Proyectado</p>
+                            <p className="text-4xl font-black text-white">{fmt(calculoMod40.nuevoPromedio)}</p>
+                            <p className="text-[10px] text-slate-500 mt-2 italic">Basado en el reemplazo de semanas actuales por semanas de inversión.</p>
+                        </div>
+                        <button onClick={() => window.print()} className="w-full mt-8 bg-green-600 hover:bg-green-500 text-white py-4 rounded-2xl font-black uppercase text-xs transition no-print">Imprimir Plan de Inversión</button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
