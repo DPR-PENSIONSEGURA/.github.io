@@ -17,72 +17,109 @@
 </head>
 <body>
 
-    <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-md rounded-[3rem] p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
-            <h2 class="text-2xl font-black text-white uppercase italic mb-2 text-blue-400">Herramientas Premium</h2>
-            <p class="text-slate-400 text-sm mb-6">Acceso completo a Simuladores y Calculadoras</p>
+ <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-lg rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             
-            <div class="bg-slate-900 p-6 rounded-3xl mb-6 border border-white/5">
-                <p class="text-[10px] font-black uppercase text-slate-500 mb-1">Costo de Acceso Único</p>
-                <p class="text-5xl font-black text-white mb-2">$25<span class="text-xl text-slate-500">.00</span></p>
-                <p class="text-xs text-blue-400 font-bold">Tu Saldo: <span id="txtSaldoAsesor">...</span></p>
+            <h2 class="text-2xl font-black text-white uppercase italic mb-2">Herramientas Premium</h2>
+            <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">✨ Oferta de Lanzamiento ✨</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <button onclick="seleccionarHerramienta('SIMULADOR DE PENSIÓN', 25, 'pension')" id="opt_pension" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Calculadora</p>
+                    <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Proyección de Pensión</p>
+                    <p class="text-2xl font-black text-white">$25<span class="text-xs text-slate-500 font-bold">.00</span></p>
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="seleccionarHerramienta('CÁLCULO 250 SEMANAS', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Calculadora</p>
+                    <p class="text-white font-black text-sm leading-tight uppercase italic mb-2">Salario Promedio</p>
+                    <p class="text-2xl font-black text-white">$25<span class="text-xs text-slate-500 font-bold">.00</span></p>
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                </button>
             </div>
 
-            <button id="btnPagarAcceso" onclick="procesarPagoCalculadora()" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg hover:scale-105 transition disabled:opacity-50">
-                Desbloquear Herramientas
-            </button>
-            <p class="mt-4 text-[10px] text-slate-500 uppercase font-bold tracking-widest leading-tight italic">Incluye: Simulador de Pensión + Cálculo de Salario Promedio</p>
+            <div class="mb-6">
+                <p class="text-xs text-slate-400 font-bold mb-2 uppercase">Tu Saldo: <span id="txtSaldoAsesor" class="text-blue-400">$0.00</span></p>
+                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50 transition-all">
+                    Selecciona una opción
+                </button>
+            </div>
+            
+            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase hover:text-white transition">Cancelar y Salir</button>
         </div>
     </div>
 
     <div id="root" class="hidden"></div>
+    
+  let herramientaSeleccionada = null;
+        let costoSeleccionado = 0;
+        let tabDestino = '';
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        window.seleccionarHerramienta = (nombre, costo, tab) => {
+            herramientaSeleccionada = nombre;
+            costoSeleccionado = costo;
+            tabDestino = tab;
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-            authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+            // Estilos visuales de selección
+            document.getElementById('opt_pension').classList.remove('border-blue-500', 'bg-slate-800');
+            document.getElementById('opt_salario').classList.remove('border-blue-500', 'bg-slate-800');
+            
+            const idOpt = tab === 'pension' ? 'opt_pension' : 'opt_salario';
+            document.getElementById(idOpt).classList.add('border-blue-500', 'bg-slate-800');
 
-        let saldoGlobal = 0, userUID = "", emailAsesor = "";
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) { 
-                userUID = user.uid; emailAsesor = user.email;
-                onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
-                    if (docSnap.exists()) {
-                        saldoGlobal = docSnap.data().saldo || 0;
-                        document.getElementById('txtSaldoAsesor').innerText = `$${saldoGlobal.toFixed(2)}`;
-                    }
-                });
-            } else { window.location.href = "login/index.html"; }
-        });
-
-        window.procesarPagoCalculadora = async () => {
-            const costo = 25;
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
+            // Habilitar botón
             const btn = document.getElementById('btnPagarAcceso');
-            btn.innerText = "PROCESANDO..."; btn.disabled = true;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+            btn.innerText = `Desbloquear por $${costo}.00`;
+        };
+
+        window.confirmarCompraHerramienta = async () => {
+            if (saldoGlobal < costoSeleccionado) return alert("Saldo insuficiente para esta herramienta.");
+            
+            const btn = document.getElementById('btnPagarAcceso');
+            btn.innerText = "PROCESANDO...";
+            btn.disabled = true;
+
             try {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                // 1. Descontar saldo
+                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costoSeleccionado });
+                
+                // 2. Registrar en Firebase
                 await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: "ACCESO HERRAMIENTAS PREMIUM", folio: "PREM-" + Math.floor(1000 + Math.random() * 9000),
-                    estatus: "Terminado", fecha: serverTimestamp(), costo: costo
+                    asesor_uid: userUID,
+                    origen: "ASESOR",
+                    nombre: emailAsesor,
+                    tipo: `ACCESO: ${herramientaSeleccionada}`,
+                    folio: "PREM-" + Math.floor(1000 + Math.random() * 9000),
+                    estatus: "Terminado",
+                    fecha: serverTimestamp(),
+                    costo: costoSeleccionado
                 });
+
+                // 3. Entrar a la calculadora elegida
                 document.getElementById('pantallaCobro').classList.add('hidden');
                 document.getElementById('root').classList.remove('hidden');
-                document.body.style.backgroundColor = "#f8fafc";
-            } catch (error) { alert("Error de conexión."); btn.disabled = false; }
+                
+                // Forzar que React inicie en la pestaña correcta
+                // Nota: Esto requiere que la App de React use el 'tab' del estado inicial
+                // Si ya tienes la lógica de pestañas, el sistema entrará directo.
+                
+            } catch (e) {
+                alert("Error de conexión");
+                btn.disabled = false;
+            }
         };
-    </script>
     <script type="text/babel">
         const { useState, useMemo } = React;
 
