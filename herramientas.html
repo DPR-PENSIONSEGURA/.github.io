@@ -185,34 +185,62 @@
             }, [s73]);
 
             // --- LEY 97 ---
-            const [s97, setS97] = useState({ saldo: 500000, sal: 15000, edad: 45, ret: 65, voluntaria: 0 });
-            const res97 = useMemo(() => {
-                const n = s97.ret - s97.edad;
-                if (n <= 0) return { pensionTotal: 0, totalAcumulado: 0, soloAhorroVoluntario: 0 };
-                const tasaAnual = 0.045;
-                const tasaMensual = Math.pow(1 + tasaAnual, 1/12) - 1;
-                const meses = n * 12;
+          // --- LÓGICA LEY 97 CON SELECTOR DE AFORE ---
+const [s97, setS97] = useState({ 
+    saldo: 500000, 
+    sal: 15000, 
+    edad: 45, 
+    ret: 65, 
+    voluntaria: 1000,
+    aforeId: 'profuturo' // Afore por defecto
+});
 
-                let saldoProyectado = s97.saldo * Math.pow(1 + tasaAnual, n);
-                const aporObligMensual = s97.sal * 0.11;
-                
-                for (let i = 1; i <= meses; i++) {
-                    saldoProyectado += aporObligMensual * Math.pow(1 + tasaMensual, meses - i);
-                }
+// Tabla de rendimientos netos estimados (Basados en promedios recientes)
+const AFORES = {
+    profuturo: { nombre: 'Profuturo', rendimiento: 6.2 },
+    sura: { nombre: 'SURA', rendimiento: 5.8 },
+    banorte: { nombre: 'XXI Banorte', rendimiento: 5.2 },
+    citibanamex: { nombre: 'Citibanamex', rendimiento: 4.9 },
+    principal: { nombre: 'Principal', rendimiento: 4.7 },
+    coppel: { nombre: 'Coppel', rendimiento: 4.5 },
+    azteca: { nombre: 'Azteca', rendimiento: 4.3 },
+    invercap: { nombre: 'Invercap', rendimiento: 3.9 }
+};
 
-                let saldoVoluntario = 0;
-                for (let i = 1; i <= meses; i++) {
-                    saldoVoluntario += s97.voluntaria * Math.pow(1 + tasaMensual, meses - i);
-                }
+const res97 = useMemo(() => {
+    const n = s97.ret - s97.edad;
+    if (n <= 0) return { pensionTotal: 0, totalAcumulado: 0, soloAhorroVoluntario: 0 };
 
-                const totalFinal = saldoProyectado + saldoVoluntario;
-                return {
-                    pensionTotal: totalFinal / 240,
-                    totalAcumulado: totalFinal,
-                    soloAhorroVoluntario: saldoVoluntario / 240
-                };
-            }, [s97]);
+    const tasaAnual = AFORES[s97.aforeId].rendimiento / 100;
+    const tasaMensual = Math.pow(1 + tasaAnual, 1/12) - 1;
+    const meses = n * 12;
 
+    // 1. Saldo Inicial con interés compuesto
+    let acumulado = s97.saldo * Math.pow(1 + tasaAnual, n);
+
+    // 2. Aportaciones Obligatorias (11% del salario aprox)
+    const aporMensual = s97.sal * 0.11;
+    for (let i = 1; i <= meses; i++) {
+        acumulado += aporMensual * Math.pow(1 + tasaMensual, meses - i);
+    }
+
+    // 3. Aportaciones Voluntarias
+    let saldoVoluntario = 0;
+    if (s97.voluntaria > 0) {
+        for (let i = 1; i <= meses; i++) {
+            saldoVoluntario += s97.voluntaria * Math.pow(1 + tasaMensual, meses - i);
+        }
+    }
+
+    const final = acumulado + saldoVoluntario;
+
+    return {
+        pensionTotal: final / 240,
+        totalAcumulado: final,
+        soloAhorroVoluntario: saldoVoluntario / 240,
+        rendimientoAplicado: AFORES[s97.aforeId].rendimiento
+    };
+}, [s97]);
             // --- SALARIO ---
             const [filas, setFilas] = useState([{ desde: '', hasta: '', salario: 0 }]);
             const calculoSalario = useMemo(() => {
@@ -266,31 +294,68 @@
                     )}
 
                     {view === 'ley97' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-slate-800">
-                            <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-                                <h2 className="text-2xl font-black uppercase italic mb-8 border-l-4 border-orange-500 pl-4">Simulador Ley 97 + Ahorro</h2>
-                                <div className="space-y-4 font-bold">
-                                    <label className="text-[10px] text-slate-400 uppercase">Saldo AFORE Actual</label>
-                                    <input type="number" value={s97.saldo} onChange={e => setS97({...s97, saldo: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
-                                    <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-100">
-                                        <label className="text-[10px] text-orange-600 uppercase font-black">Sugerencia Inversión Mensual</label>
-                                        <input type="number" value={s97.voluntaria} onChange={e => setS97({...s97, voluntaria: Number(e.target.value)})} className="w-full p-4 mt-2 bg-white border-orange-200 border-2 rounded-2xl font-black text-orange-600 text-xl" />
-                                        <p className="text-[9px] text-orange-400 mt-2 uppercase italic">Este ahorro extra sube tu pensión {fmt(res97.soloAhorroVoluntario)} mensuales</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input type="number" value={s97.edad} onChange={e => setS97({...s97, edad: Number(e.target.value)})} className="p-4 bg-slate-50 border rounded-2xl" placeholder="Edad Actual" />
-                                        <input type="number" value={s97.ret} onChange={e => setS97({...s97, ret: Number(e.target.value)})} className="p-4 bg-slate-50 border rounded-2xl" placeholder="Retiro" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center flex flex-col justify-center">
-                                <p className="text-orange-400 font-black uppercase text-xs mb-2">Pensión Total Estimada</p>
-                                <h2 className="text-7xl font-black">{fmt(res97.pensionTotal)}</h2>
-                                <p className="mt-4 text-[10px] text-slate-400 uppercase">Capital Final: {fmt(res97.totalAcumulado)}</p>
-                                <button onClick={() => window.print()} className="mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black text-xs no-print">Imprimir Estrategia</button>
-                            </div>
-                        </div>
-                    )}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-slate-800">
+        <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+            <h2 className="text-2xl font-black uppercase italic mb-8 border-l-4 border-orange-500 pl-4">Simulador Ley 97 Pro</h2>
+            <div className="space-y-4 font-bold">
+                
+                {/* SELECTOR DE AFORE */}
+                <div>
+                    <label className="text-[10px] text-slate-400 uppercase">Selecciona tu AFORE Actual</label>
+                    <select 
+                        value={s97.aforeId} 
+                        onChange={e => setS97({...s97, aforeId: e.target.value})}
+                        className="w-full p-4 mt-1 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-slate-700 outline-none focus:border-orange-500 transition"
+                    >
+                        {Object.keys(AFORES).map(id => (
+                            <option key={id} value={id}>{AFORES[id].nombre} ({AFORES[id].rendimiento}%)</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="text-[10px] text-slate-400 uppercase">Saldo Actual AFORE</label>
+                    <input type="number" value={s97.saldo} onChange={e => setS97({...s97, saldo: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
+                </div>
+
+                {/* CAMPO DE INVERSIÓN VOLUNTARIA */}
+                <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-100">
+                    <label className="text-[10px] text-orange-600 uppercase font-black">Ahorro Voluntario Sugerido (Mensual)</label>
+                    <input type="number" value={s97.voluntaria} onChange={e => setS97({...s97, voluntaria: Number(e.target.value)})} className="w-full p-4 mt-2 bg-white border-orange-200 border-2 rounded-2xl font-black text-orange-600 text-xl" />
+                    <p className="text-[9px] text-orange-400 mt-2 uppercase italic">Este ahorro extra sube tu pensión {fmt(res97.soloAhorroVoluntario)} cada mes</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] text-slate-400 uppercase">Edad Actual</label>
+                        <input type="number" value={s97.edad} onChange={e => setS97({...s97, edad: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] text-slate-400 uppercase">Edad Retiro</label>
+                        <input type="number" value={s97.ret} onChange={e => setS97({...s97, ret: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <p className="text-orange-400 font-black uppercase text-xs mb-2">Pensión Total Proyectada</p>
+            <h2 className="text-7xl font-black mb-4">{fmt(res97.pensionTotal)}</h2>
+            <div className="mt-6 p-4 bg-white/5 rounded-2xl space-y-2">
+                <div className="flex justify-between text-[10px] uppercase font-bold">
+                    <span className="text-slate-500">Rendimiento Afore:</span>
+                    <span className="text-orange-400">{res97.rendimientoAplicado}%</span>
+                </div>
+                <div className="flex justify-between text-[10px] uppercase font-bold">
+                    <span className="text-slate-500">Capital Final:</span>
+                    <span className="text-white">{fmt(res97.totalAcumulado)}</span>
+                </div>
+            </div>
+            <button onClick={() => window.print()} className="mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black text-xs no-print hover:scale-105 transition">Imprimir Plan Financiero</button>
+        </div>
+    </div>
+)}
 
                     {view === 'salario' && (
                         <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-slate-100 text-slate-800">
