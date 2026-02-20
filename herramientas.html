@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herramientas Premium | DPR Consultoría</title>
+    <title>Calculadora Oficial Ley 73 | DPR Consultoría</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -19,29 +19,33 @@
 
     <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 w-full max-w-2xl rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
-            <h2 class="text-2xl font-black text-white uppercase italic mb-2">Panel de Herramientas</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <button onclick="seleccionarHerramienta('LEY 73 + MOD 40', 60, 'pension')" id="opt_pension" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left">
-                    <p class="text-[9px] font-black text-blue-500 uppercase">Premium</p>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            <h2 class="text-2xl font-black text-white uppercase italic mb-2">Calculadoras DPR</h2>
+            <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">Selecciona la herramienta a desbloquear</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-left">
+                <button onclick="seleccionarHerramienta('LEY 73 (OFICIAL)', 60, 'pension')" id="opt_pension" class="bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all">
+                    <p class="text-[9px] font-black text-slate-500 uppercase">Premium</p>
                     <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Ley 73 + Mod 40</p>
                     <p class="text-xl font-black text-white">$60.00</p>
                 </button>
-                <button onclick="seleccionarHerramienta('SIMULADOR LEY 97', 30, 'ley97')" id="opt_ley97" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-orange-500 transition-all text-left">
+                <button onclick="seleccionarHerramienta('LEY 97', 30, 'ley97')" id="opt_ley97" class="bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-orange-500 transition-all">
                     <p class="text-[9px] font-black text-orange-500 uppercase">Afore</p>
                     <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Pensión Ley 97</p>
                     <p class="text-xl font-black text-white">$30.00</p>
                 </button>
-                <button onclick="seleccionarHerramienta('SALARIO PROMEDIO', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left">
-                    <p class="text-[9px] font-black text-slate-500 uppercase">Carpintería</p>
-                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Salario Promedio</p>
+                <button onclick="seleccionarHerramienta('SALARIO PROMEDIO', 25, 'salario')" id="opt_salario" class="bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all">
+                    <p class="text-[9px] font-black text-slate-500 uppercase">Auxiliar</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Promedio 250 Sem</p>
                     <p class="text-xl font-black text-white">$25.00</p>
                 </button>
             </div>
+
             <div class="mb-6">
-                <p class="text-xs text-slate-400 font-bold mb-2 uppercase">Saldo Asesor: <span id="txtSaldoAsesor" class="text-blue-400">...</span></p>
-                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50">Selecciona una opción</button>
+                <p class="text-xs text-slate-400 font-bold mb-2 uppercase">Tu Saldo: <span id="txtSaldoAsesor" class="text-blue-400">...</span></p>
+                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50">Desbloquear</button>
             </div>
-            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase">Salir</button>
+            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase">Cerrar</button>
         </div>
     </div>
 
@@ -65,7 +69,8 @@
         let herramientaSeleccionada = null, costoSeleccionado = 0, tabDestino = '';
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email;
+            if (user) { 
+                userUID = user.uid; emailAsesor = user.email;
                 onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
                     if (docSnap.exists()) {
                         saldoGlobal = docSnap.data().saldo || 0;
@@ -89,96 +94,175 @@
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costoSeleccionado });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: `ACCESO: ${herramientaSeleccionada}`, folio: "PREM-" + Math.floor(1000 + Math.random() * 9000),
-                    estatus: "Terminado", fecha: serverTimestamp(), costo: costoSeleccionado
+                    tipo: herramientaSeleccionada, folio: "CALC-" + Math.floor(1000 + Math.random() * 9000),
+                    estatus: "Terminado", fecha: serverTimestamp()
                 });
                 document.getElementById('pantallaCobro').style.display = 'none';
                 window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
-            } catch (e) { alert("Error"); }
+            } catch (e) { alert("Error al cobrar"); }
         };
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+       const { useState, useMemo, useEffect } = React;
 
         const App = () => {
-            const [vista, setVista] = useState(null);
-            useEffect(() => {
-                const handle = (e) => setVista(e.detail);
-                window.addEventListener('inicioApp', handle);
-                return () => window.removeEventListener('inicioApp', handle);
-            }, []);
+          const [view, setView] = useState(null);
+          useEffect(() => {
+            const handleInit = (e) => setView(e.detail);
+            window.addEventListener('inicioApp', handleInit);
+            return () => window.removeEventListener('inicioApp', handleInit);
+          }, []);
 
-            const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
+          const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
-            // ESTADOS LEY 73
-            const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823 });
-            
-            const calculo73 = useMemo(() => {
-                const pmg2026 = 9895.43; 
-                let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
-                if(porcActual > 1) porcActual = 1;
+          // --- TABLA ART 167 ---
+          const obtenerFactoresLey73 = (grupo) => {
+            if (grupo <= 1.0) return { cb: 80.00, ia: 0.563 };
+            if (grupo <= 1.25) return { cb: 77.11, ia: 0.814 };
+            if (grupo <= 1.50) return { cb: 58.18, ia: 1.178 };
+            if (grupo <= 1.75) return { cb: 49.23, ia: 1.430 };
+            if (grupo <= 2.00) return { cb: 42.67, ia: 1.615 };
+            if (grupo <= 2.25) return { cb: 37.65, ia: 1.756 };
+            if (grupo <= 2.50) return { cb: 33.68, ia: 1.858 };
+            if (grupo <= 2.75) return { cb: 30.48, ia: 1.938 };
+            if (grupo <= 3.00) return { cb: 27.83, ia: 2.004 };
+            if (grupo <= 3.25) return { cb: 25.60, ia: 2.055 };
+            if (grupo <= 3.50) return { cb: 23.70, ia: 2.098 };
+            if (grupo <= 3.75) return { cb: 22.07, ia: 2.135 };
+            if (grupo <= 4.00) return { cb: 20.65, ia: 2.167 };
+            if (grupo <= 4.25) return { cb: 19.39, ia: 2.195 };
+            if (grupo <= 4.50) return { cb: 18.29, ia: 2.219 };
+            if (grupo <= 4.75) return { cb: 17.30, ia: 2.240 };
+            if (grupo <= 5.00) return { cb: 16.41, ia: 2.259 };
+            if (grupo <= 5.25) return { cb: 15.61, ia: 2.276 };
+            if (grupo <= 5.50) return { cb: 14.88, ia: 2.291 };
+            if (grupo <= 5.75) return { cb: 14.22, ia: 2.304 };
+            if (grupo <= 6.00) return { cb: 13.62, ia: 2.316 };
+            return { cb: 13.00, ia: 2.450 };
+          };
+
+          // --- ESTADOS LEY 73 ---
+          const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823, tieneEsposa: true, hijos: 0 });
+
+          const res73 = useMemo(() => {
+            const uma = 113.14; const salarioMinimo = 248.93;
+            const pmg = (salarioMinimo * 365 / 12) * 1.11;
+
+            const calcularCifras = (sem, sal, ed) => {
+                if (sem < 500) return { total: 0, aguinaldo: 0 };
+                const grupo = sal / uma;
+                const f = obtenerFactoresLey73(grupo);
+                const salAnual = sal * 365;
+                const cuantiaBasica = salAnual * (f.cb / 100);
                 
-                // Cálculo base simplificado para visualización
-                const baseReal = (s73.sal * 30.4 * porcActual) * 1.15 * 1.11;
-                let esPMGActual = baseReal < pmg2026;
+                const semExc = Math.max(0, sem - 500);
+                let aniosExc = Math.floor(semExc / 52);
+                if (semExc % 52 > 26) aniosExc++;
+                const incrementoAnual = salAnual * (f.ia / 100) * aniosExc;
+                
+                let porcEdad = 0.75 + ((ed - 60) * 0.05);
+                if (porcEdad > 1) porcEdad = 1;
 
-                let proyectadaM40 = 0;
-                if(s73.usaM40) {
-                    const semNuevas = Math.min(250, s73.aniosM40 * 52);
-                    const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
-                    let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
-                    if(porcM40 > 1) porcM40 = 1;
-                    proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
-                }
+                // El aguinaldo es la pensión básica (cuantía + incrementos) x factor edad x 1.11 (Fox), SIN ASIGNACIONES.
+                const aguinaldo = ((cuantiaBasica + incrementoAnual) * porcEdad) / 12 * 1.11;
 
-                return { actual: Math.max(baseReal, pmg2026), baseReal, esPMGActual, proyectadaM40, montoPMG: pmg2026 };
-            }, [s73]);
+                let asig = (s73.tieneEsposa ? 0.15 : 0) + (s73.hijos * 0.10);
+                if (asig === 0) asig = 0.15;
 
-            if (!vista) return null;
+                const totalMensual = aguinaldo * (1 + asig);
+                return { total: totalMensual, aguinaldo: aguinaldo };
+            };
 
-            return (
-                <div className="max-w-6xl mx-auto p-4 md:p-8">
-                    {vista === 'pension' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div className="lg:col-span-5 space-y-6 no-print">
-                                <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 text-slate-800">
-                                    <h2 className="text-xl font-black uppercase mb-6 border-l-4 border-blue-600 pl-4 italic">Simulador Ley 73</h2>
-                                    <div className="space-y-4 font-bold">
-                                        <label className="text-[10px] uppercase text-slate-400">Semanas Actuales</label>
-                                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
-                                        <label className="text-[10px] uppercase text-slate-400">Salario Diario Actual</label>
-                                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-blue-600" />
-                                        <label className="text-[10px] uppercase text-slate-400">Edad de Retiro: {s73.edad} años</label>
-                                        <input type="range" min="60" max="65" value={s73.edad} onChange={e => setS73({...s73, edad: Number(e.target.value)})} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-                                    </div>
-                                </div>
-                                <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-green-500/20 text-slate-800">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-sm font-black text-green-600 uppercase italic">¿Simular Modalidad 40?</h2>
-                                        <button onClick={() => setS73({...s73, usaM40: !s73.usaM40})} className={`w-12 h-6 rounded-full transition-colors ${s73.usaM40 ? 'bg-green-500' : 'bg-slate-300'} relative`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s73.usaM40 ? 'left-7' : 'left-1'}`}></div></button>
-                                    </div>
-                                    {s73.usaM40 && <div className="space-y-4"><input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años" /><input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 border rounded-xl font-black text-green-700" placeholder="Salario a Cotizar" /></div>}
-                                </div>
-                            </div>
-                            <div className="lg:col-span-7 space-y-6">
-                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center relative overflow-hidden print:bg-white print:text-slate-900 print:border-2">
-                                    <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Mensual Actual</p>
-                                    <h2 className="text-6xl font-black mb-4">{fmt(calculo73.actual)}</h2>
-                                    {calculo73.esPMGActual && <div className="bg-amber-500/10 border border-amber-500/40 p-5 rounded-3xl mb-6"><p className="text-amber-500 text-[10px] font-black uppercase mb-1">⚠️ Aviso de Ley:</p><p className="text-sm text-white leading-tight">El cálculo base es {fmt(calculo73.baseReal)}. Por ley, el cliente es acreedor a la **PMG** de **{fmt(calculo73.montoPMG)}**.</p></div>}
-                                    {s73.usaM40 && <div className="mt-6 pt-6 border-t border-white/10"><p className="text-green-400 font-black uppercase text-xs tracking-widest mb-2 italic">Proyectada con Modalidad 40</p><h2 className="text-7xl font-black text-green-400">{fmt(calculo73.proyectadaM40)}</h2></div>}
-                                    <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print">Imprimir Reporte</button>
-                                </div>
-                            </div>
+            const actual = calcularCifras(s73.sem, s73.sal, s73.edad);
+            let proyectadaM40 = { total: 0, aguinaldo: 0 };
+            
+            if (s73.usaM40) {
+                const sF = s73.sem + (s73.aniosM40 * 52);
+                const nS = Math.min(250, s73.aniosM40 * 52);
+                const pF = ((s73.salM40 * nS) + (s73.sal * (250 - nS))) / 250;
+                proyectadaM40 = calcularCifras(sF, pF, s73.edad + s73.aniosM40);
+            }
+
+            return { 
+                montoActual: Math.max(actual.total, pmg), 
+                aguinaldoActual: Math.max(actual.aguinaldo, pmg / 1.15), // Ajuste proporcional si es mínima
+                esPMG: actual.total < pmg,
+                montoM40: proyectadaM40.total,
+                aguinaldoM40: proyectadaM40.aguinaldo,
+                montoPMG: pmg
+            };
+          }, [s73]);
+
+          if (!view) return null;
+
+          return (
+            <div className="max-w-6xl mx-auto p-4 md:p-8">
+              {view === 'pension' && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-slate-800">
+                  <div className="lg:col-span-5 space-y-6 no-print">
+                    <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+                      <h2 className="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4">Parámetros Ley 73</h2>
+                      <div className="space-y-4 font-bold text-slate-600">
+                        <label className="text-[10px] uppercase">Semanas Actuales</label>
+                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
+                        <label className="text-[10px] uppercase">Salario Promedio Diario</label>
+                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-blue-600" />
+                        <label className="text-[10px] uppercase">Edad de Retiro: {s73.edad} años</label>
+                        <input type="range" min="60" max="65" value={s73.edad} onChange={e => setS73({...s73, edad: Number(e.target.value)})} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600 mb-4" />
+                        
+                        <h3 className="text-xs uppercase text-slate-400 mt-6 mb-2">Asignaciones Familiares</h3>
+                        <label className="flex items-center gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl border mb-2">
+                            <input type="checkbox" checked={s73.tieneEsposa} onChange={e => setS73({...s73, tieneEsposa: e.target.checked})} className="w-5 h-5 accent-blue-600" />
+                            Esposa / Concubina (+15%)
+                        </label>
+                        <select value={s73.hijos} onChange={e => setS73({...s73, hijos: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl">
+                            <option value="0">Sin hijos menores</option>
+                            <option value="1">1 Hijo (+10%)</option>
+                            <option value="2">2 Hijos (+20%)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-green-500/20">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-sm font-black text-green-600 uppercase italic">Modalidad 40</h2>
+                            <button onClick={() => setS73({...s73, usaM40: !s73.usaM40})} className={`w-12 h-6 rounded-full transition-colors ${s73.usaM40 ? 'bg-green-500' : 'bg-slate-300'} relative`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s73.usaM40 ? 'left-7' : 'left-1'}`}></div></button>
                         </div>
-                    )}
-                    {vista === 'ley97' && <div className="text-white p-10 bg-slate-800 rounded-3xl text-center">Módulo Ley 97 Cargado - Agrega aquí tu diseño de Ley 97</div>}
-                    {vista === 'salario' && <div className="text-white p-10 bg-slate-800 rounded-3xl text-center">Módulo Salario Cargado - Agrega aquí tu diseño de Salario</div>}
+                        {s73.usaM40 && <div className="space-y-4 animate-fade-in">
+                            <input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años Inversión" />
+                            <input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 border rounded-xl font-black text-green-700" placeholder="Salario a Cotizar" />
+                        </div>}
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-7 space-y-6">
+                    <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden print:border-2">
+                        {/* RESULTADO ACTUAL */}
+                        <div className="mb-10">
+                            <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Actual Estimada</p>
+                            <h2 className="text-6xl font-black mb-2">{fmt(res73.montoActual)}</h2>
+                            <p className="text-[10px] text-slate-400 uppercase font-bold italic">Aguinaldo Nov: {fmt(res73.aguinaldoActual)}</p>
+                            
+                            {res73.esPMG && <div className="mt-4 bg-amber-500/10 border border-amber-500/40 p-4 rounded-2xl text-[10px] uppercase font-black text-amber-400">⚠️ Acreedor a Pensión Mínima Garantizada ({fmt(res73.montoPMG)})</div>}
+                        </div>
+
+                        {/* RESULTADO M40 */}
+                        {s73.usaM40 && (
+                            <div className="mt-8 pt-8 border-t border-white/10 animate-fade-in">
+                                <p className="text-green-400 font-black uppercase text-xs mb-4">Proyectada con Modalidad 40</p>
+                                <h2 className="text-7xl font-black text-green-400 tracking-tighter mb-2">{fmt(res73.montoM40)}</h2>
+                                <p className="text-[10px] text-green-700 uppercase font-bold italic">Aguinaldo Nov: {fmt(res73.aguinaldoM40)}</p>
+                            </div>
+                        )}
+                        
+                        <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print hover:scale-105 transition">Imprimir Reporte DPR</button>
+                    </div>
+                  </div>
                 </div>
-            );
+              )}
+            </div>
+          );
         };
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
     </script>
 </body>
 </html>
