@@ -80,12 +80,11 @@
             ['opt_pension', 'opt_salario', 'opt_ley97'].forEach(id => document.getElementById(id).style.borderColor = 'transparent');
             document.getElementById(`opt_${tab}`).style.borderColor = '#3b82f6';
             const btn = document.getElementById('btnPagarAcceso');
-            btn.disabled = false; btn.classList.remove('opacity-50'); btn.innerText = `Desbloquear por $${costo}.00`;
+            btn.disabled = false; btn.classList.remove('opacity-50'); btn.innerText = `Pagar $${costo}.00`;
         };
 
         window.confirmarCompraHerramienta = async () => {
             if (saldoGlobal < costoSeleccionado) return alert("Saldo insuficiente.");
-            const btn = document.getElementById('btnPagarAcceso'); btn.innerText = "PROCESANDO..."; btn.disabled = true;
             try {
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costoSeleccionado });
                 await addDoc(collection(db, "solicitudes"), {
@@ -95,7 +94,7 @@
                 });
                 document.getElementById('pantallaCobro').style.display = 'none';
                 window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
-            } catch (e) { alert("Error"); btn.disabled = false; }
+            } catch (e) { alert("Error"); }
         };
     </script>
 
@@ -112,47 +111,72 @@
 
             const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
- // --- LÓGICA LEY 73 MEJORADA (Copia esto dentro de tu App de React) ---
-          const calculo73Completo = useMemo(() => {
-            // Salario Mínimo 2026 Proyectado (Aprox. $248.93 + incremento esperado)
-            const salarioMinimo2026 = 248.93; 
-            const pmg2026 = (salarioMinimo2026 * 365 / 12) * 1.11; // Pensión Mínima Garantizada con Factor Fox
-
-            // 1. Cálculo Pensión Actual (Sin M40)
-            let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
-            if(porcActual > 1) porcActual = 1;
+            // ESTADOS LEY 73
+            const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823 });
             
-            // Cálculo simplificado de la base (Semanas e incrementos)
-            const basica = s73.sal * 30.4 * 0.13; // Ejemplo base
-            const incremento = (s73.sem > 500) ? (basica * 0.0245 * ((s73.sem - 500)/52)) : 0;
-            
-            let actualBase = (basica + incremento) * porcActual * 1.11;
-            let esPMGActual = actualBase < pmg2026;
+            const calculo73 = useMemo(() => {
+                const pmg2026 = 9895.43; 
+                let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
+                if(porcActual > 1) porcActual = 1;
+                
+                // Cálculo base simplificado para visualización
+                const baseReal = (s73.sal * 30.4 * porcActual) * 1.15 * 1.11;
+                let esPMGActual = baseReal < pmg2026;
 
-            // 2. Cálculo Pensión con M40 (Si el switch está activo)
-            let proyectadaM40 = 0;
-            if(s73.usaM40) {
-                const semExtra = s73.aniosM40 * 52;
-                const semNuevas = Math.min(250, semExtra);
-                const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
-                let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
-                if(porcM40 > 1) porcM40 = 1;
-                proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
-            }
+                let proyectadaM40 = 0;
+                if(s73.usaM40) {
+                    const semNuevas = Math.min(250, s73.aniosM40 * 52);
+                    const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
+                    let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
+                    if(porcM40 > 1) porcM40 = 1;
+                    proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
+                }
 
-            return { 
-                actual: Math.max(actualBase, pmg2026), 
-                esPMGActual, 
-                proyectadaM40, 
-                montoPMG: pmg2026 
-            };
-          }, [s73]);
+                return { actual: Math.max(baseReal, pmg2026), baseReal, esPMGActual, proyectadaM40, montoPMG: pmg2026 };
+            }, [s73]);
 
-                    {/* VISTAS LEY 97 Y SALARIO (IGUALES A LA ANTERIOR) */}
+            if (!vista) return null;
+
+            return (
+                <div className="max-w-6xl mx-auto p-4 md:p-8">
+                    {vista === 'pension' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-5 space-y-6 no-print">
+                                <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 text-slate-800">
+                                    <h2 className="text-xl font-black uppercase mb-6 border-l-4 border-blue-600 pl-4 italic">Simulador Ley 73</h2>
+                                    <div className="space-y-4 font-bold">
+                                        <label className="text-[10px] uppercase text-slate-400">Semanas Actuales</label>
+                                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
+                                        <label className="text-[10px] uppercase text-slate-400">Salario Diario Actual</label>
+                                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-blue-600" />
+                                        <label className="text-[10px] uppercase text-slate-400">Edad de Retiro: {s73.edad} años</label>
+                                        <input type="range" min="60" max="65" value={s73.edad} onChange={e => setS73({...s73, edad: Number(e.target.value)})} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                                    </div>
+                                </div>
+                                <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-green-500/20 text-slate-800">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-sm font-black text-green-600 uppercase italic">¿Simular Modalidad 40?</h2>
+                                        <button onClick={() => setS73({...s73, usaM40: !s73.usaM40})} className={`w-12 h-6 rounded-full transition-colors ${s73.usaM40 ? 'bg-green-500' : 'bg-slate-300'} relative`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s73.usaM40 ? 'left-7' : 'left-1'}`}></div></button>
+                                    </div>
+                                    {s73.usaM40 && <div className="space-y-4"><input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años" /><input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 border rounded-xl font-black text-green-700" placeholder="Salario a Cotizar" /></div>}
+                                </div>
+                            </div>
+                            <div className="lg:col-span-7 space-y-6">
+                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center relative overflow-hidden print:bg-white print:text-slate-900 print:border-2">
+                                    <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Mensual Actual</p>
+                                    <h2 className="text-6xl font-black mb-4">{fmt(calculo73.actual)}</h2>
+                                    {calculo73.esPMGActual && <div className="bg-amber-500/10 border border-amber-500/40 p-5 rounded-3xl mb-6"><p className="text-amber-500 text-[10px] font-black uppercase mb-1">⚠️ Aviso de Ley:</p><p className="text-sm text-white leading-tight">El cálculo base es {fmt(calculo73.baseReal)}. Por ley, el cliente es acreedor a la **PMG** de **{fmt(calculo73.montoPMG)}**.</p></div>}
+                                    {s73.usaM40 && <div className="mt-6 pt-6 border-t border-white/10"><p className="text-green-400 font-black uppercase text-xs tracking-widest mb-2 italic">Proyectada con Modalidad 40</p><h2 className="text-7xl font-black text-green-400">{fmt(calculo73.proyectadaM40)}</h2></div>}
+                                    <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print">Imprimir Reporte</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {vista === 'ley97' && <div className="text-white p-10 bg-slate-800 rounded-3xl text-center">Módulo Ley 97 Cargado - Agrega aquí tu diseño de Ley 97</div>}
+                    {vista === 'salario' && <div className="text-white p-10 bg-slate-800 rounded-3xl text-center">Módulo Salario Cargado - Agrega aquí tu diseño de Salario</div>}
                 </div>
             );
         };
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
