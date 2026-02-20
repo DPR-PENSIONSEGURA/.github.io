@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramientas Premium | DPR Consultoría</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
+        .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
+        @media print { .no-print { display: none; } body { background-color: white; color: black; } }
+    </style>
+</head>
+<body>
+
+    <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+            <h2 class="text-2xl font-black text-white uppercase italic mb-2">Herramientas Pro</h2>
+            <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">✨ Oferta de Lanzamiento ✨</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <button onclick="seleccionarHerramienta('LEY 73 + MOD 40', 60, 'pension')" id="opt_pension" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Simulador</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Ley 73 + Mod 40</p>
+                    <p class="text-xl font-black text-white">$60.00</p>
+                </button>
+
+                <button onclick="seleccionarHerramienta('SIMULADOR LEY 97', 30, 'ley97')" id="opt_ley97" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-orange-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-orange-500 uppercase mb-1">Afore</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Pensión Ley 97</p>
+                    <p class="text-xl font-black text-white">$30.00</p>
+                </button>
+
+                <button onclick="seleccionarHerramienta('SALARIO PROMEDIO', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative">
+                    <p class="text-[9px] font-black text-slate-500 uppercase mb-1">Periodos</p>
+                    <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Salario Promedio</p>
+                    <p class="text-xl font-black text-white">$25.00</p>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-xs text-slate-400 font-bold mb-2 uppercase">Tu Saldo: <span id="txtSaldoAsesor" class="text-blue-400">$0.00</span></p>
+                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50 transition-all">
+                    Selecciona una opción
+                </button>
+            </div>
+            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase hover:text-white transition">Cancelar y Salir</button>
+        </div>
+    </div>
+
+    <div id="root" class="hidden"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let saldoGlobal = 0, userUID = "", emailAsesor = "";
+        let herramientaSeleccionada = null, costoSeleccionado = 0, tabDestino = '';
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                userUID = user.uid; emailAsesor = user.email;
+                onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
+                    if (docSnap.exists()) {
+                        saldoGlobal = docSnap.data().saldo || 0;
+                        document.getElementById('txtSaldoAsesor').innerText = `$${saldoGlobal.toFixed(2)}`;
+                    }
+                });
+            } else { window.location.href = "login/index.html"; }
+        });
+
+        window.seleccionarHerramienta = (nombre, costo, tab) => {
+            herramientaSeleccionada = nombre; costoSeleccionado = costo; tabDestino = tab;
+            ['opt_pension', 'opt_salario', 'opt_ley97'].forEach(id => {
+                document.getElementById(id).className = 'group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left relative';
+            });
+            document.getElementById(`opt_${tab}`).className = 'group bg-slate-800 p-6 rounded-3xl border-2 border-blue-500 transition-all text-left relative';
+            const btn = document.getElementById('btnPagarAcceso');
+            btn.disabled = false; btn.classList.remove('opacity-50'); btn.innerText = `Desbloquear por $${costo}.00`;
+        };
+
+        window.confirmarCompraHerramienta = async () => {
+            if (saldoGlobal < costoSeleccionado) return alert("Saldo insuficiente.");
+            const btn = document.getElementById('btnPagarAcceso'); btn.innerText = "PROCESANDO..."; btn.disabled = true;
+            try {
+                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costoSeleccionado });
+                await addDoc(collection(db, "solicitudes"), {
+                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                    tipo: `ACCESO: ${herramientaSeleccionada}`, folio: "PREM-" + Math.floor(1000 + Math.random() * 9000),
+                    estatus: "Terminado", fecha: serverTimestamp(), costo: costoSeleccionado
+                });
+                document.getElementById('pantallaCobro').classList.add('hidden');
+                document.getElementById('root').classList.remove('hidden');
+                window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
+            } catch (e) { alert("Error de conexión"); btn.disabled = false; }
+        };
+    </script>
+
+    <script type="text/babel">
+        // (Aquí va todo el bloque de React de la respuesta anterior, el que maneja las vistas)
+    </script>
+</body>
+</html>
