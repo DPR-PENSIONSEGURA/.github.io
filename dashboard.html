@@ -50,7 +50,7 @@
             </button>
             <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center border-orange-500/30">
                 <span class="text-2xl block mb-2">⚖️</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter text-orange-400">SAT (RFC)</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter text-orange-400">SAT (RFC_CLON)</span>
             </button>
             <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">
                 <span class="text-2xl block mb-2">🧮</span>
@@ -114,10 +114,10 @@
                     <p class="text-[10px] font-bold text-red-500 uppercase mt-1">Banorte | DPR Pensión Segura</p>
                 </div>
                 <div class="space-y-3">
-                    <input type="number" id="depMonto" placeholder="Monto (Mín. $200)" class="input-dark">
+                    <input type="number" id="depMonto" placeholder="Monto (Mínimo $200, no hacemos devoluciones)" class="input-dark">
                     <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase">
                     <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                    <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4">Informar Depósito</button>
+                    <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg mt-4"> Informar Depósito</button>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 { id: 'SINDO COMP', nombre: 'SINDO COMPLETO', precio: 220, nss: true }
             ],
             'SAT': [
-                { id: 'RFC', nombre: 'RFC Clon', precio: 35, curp: true },
+                { id: 'RFC_CLON', nombre: 'RFC Clon', precio: 35, curp: true },
                 { id: 'RFCV', nombre: 'RFC Verificable', precio: 140, curp: true },
                 { id: 'CSF', nombre: 'Constancia Fiscal', precio: 230, curp: true },
                 { id: 'RFC CON IDCIF', nombre: 'RFC CON IDCIF', precio: 40, curp: true, extra: 'IDCIF' },
