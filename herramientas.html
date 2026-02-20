@@ -12,7 +12,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        input[type="number"]::-webkit-inner-spin-button { display: none; }
         @media print { .no-print { display: none; } body { background-color: white; color: black; } }
     </style>
 </head>
@@ -20,37 +19,29 @@
 
     <div id="pantallaCobro" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-slate-800 w-full max-w-2xl rounded-[3rem] p-8 md:p-10 text-center border border-slate-700 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             <h2 class="text-2xl font-black text-white uppercase italic mb-2">Panel de Herramientas</h2>
-            <p class="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">Selecciona la calculadora para desbloquear</p>
-            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <button onclick="seleccionarHerramienta('LEY 73 + MOD 40', 60, 'pension')" id="opt_pension" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left">
                     <p class="text-[9px] font-black text-blue-500 uppercase">Premium</p>
                     <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Ley 73 + Mod 40</p>
                     <p class="text-xl font-black text-white">$60.00</p>
                 </button>
-
                 <button onclick="seleccionarHerramienta('SIMULADOR LEY 97', 30, 'ley97')" id="opt_ley97" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-orange-500 transition-all text-left">
                     <p class="text-[9px] font-black text-orange-500 uppercase">Afore</p>
                     <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Pensión Ley 97</p>
                     <p class="text-xl font-black text-white">$30.00</p>
                 </button>
-
                 <button onclick="seleccionarHerramienta('SALARIO PROMEDIO', 25, 'salario')" id="opt_salario" class="group bg-slate-900 p-6 rounded-3xl border-2 border-transparent hover:border-blue-500 transition-all text-left">
                     <p class="text-[9px] font-black text-slate-500 uppercase">Carpintería</p>
                     <p class="text-white font-black text-xs leading-tight uppercase italic mb-2">Salario Promedio</p>
                     <p class="text-xl font-black text-white">$25.00</p>
                 </button>
             </div>
-
             <div class="mb-6">
                 <p class="text-xs text-slate-400 font-bold mb-2 uppercase">Saldo Asesor: <span id="txtSaldoAsesor" class="text-blue-400">...</span></p>
-                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50">
-                    Selecciona una opción
-                </button>
+                <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 shadow-lg text-lg opacity-50">Selecciona una opción</button>
             </div>
-            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase hover:text-white transition">Salir</button>
+            <button onclick="window.close()" class="text-slate-500 font-bold text-[10px] uppercase">Salir</button>
         </div>
     </div>
 
@@ -87,7 +78,7 @@
         window.seleccionarHerramienta = (nombre, costo, tab) => {
             herramientaSeleccionada = nombre; costoSeleccionado = costo; tabDestino = tab;
             ['opt_pension', 'opt_salario', 'opt_ley97'].forEach(id => document.getElementById(id).style.borderColor = 'transparent');
-            document.getElementById(`opt_${tab}`).style.borderColor = (tab === 'ley97') ? '#f97316' : '#3b82f6';
+            document.getElementById(`opt_${tab}`).style.borderColor = '#3b82f6';
             const btn = document.getElementById('btnPagarAcceso');
             btn.disabled = false; btn.classList.remove('opacity-50'); btn.innerText = `Desbloquear por $${costo}.00`;
         };
@@ -104,7 +95,7 @@
                 });
                 document.getElementById('pantallaCobro').style.display = 'none';
                 window.dispatchEvent(new CustomEvent('inicioApp', { detail: tabDestino }));
-            } catch (e) { alert("Error de conexión"); btn.disabled = false; }
+            } catch (e) { alert("Error"); btn.disabled = false; }
         };
     </script>
 
@@ -121,140 +112,101 @@
 
             const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
-            // --- LEY 97 AVANZADA ---
-            const [s97, setS97] = useState({ saldo: 450000, sal: 18000, edad: 35, ret: 65, rendimiento: 4.5 });
-            
-            const stats97 = useMemo(() => {
-                const n = s97.ret - s97.edad;
-                const r = s97.rendimiento / 100;
-                const aporAnual = (s97.sal * 12) * 0.11; // 11% promedio patronal/empleado proyectado
-                
-                // Futuro del saldo actual
-                const futuroSaldoActual = s97.saldo * Math.pow(1 + r, n);
-                
-                // Futuro de las aportaciones (Anualidad)
-                const futuroAportaciones = aporAnual * ((Math.pow(1 + r, n) - 1) / r);
-                
-                const saldoTotal = futuroSaldoActual + futuroAportaciones;
-                const pension = saldoTotal / 240; // Divisor actuarial 20 años
-
-                return { saldoTotal, pension, ahorroGenerado: futuroAportaciones, añosCotizando: n };
-            }, [s97]);
-
-            // --- LEY 73 INTEGRADA ---
+            // --- LÓGICA LEY 73 MEJORADA ---
             const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823 });
-            const res73 = useMemo(() => {
-                let sF = s73.sem, pF = s73.sal;
+            
+            const calculo73Completo = useMemo(() => {
+                const salarioMinimo = 248.93;
+                const pmg = (salarioMinimo * 365 / 12) * 1.11;
+
+                // 1. Cálculo Pensión Actual (Sin M40)
+                let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
+                if(porcActual > 1) porcActual = 1;
+                let actualBase = (s73.sal * 30.4 * porcActual) * 1.15 * 1.11;
+                let esPMGActual = actualBase < pmg;
+
+                // 2. Cálculo Pensión con M40
+                let proyectadaM40 = 0;
                 if(s73.usaM40) {
-                    sF += s73.aniosM40 * 52;
-                    const nS = Math.min(250, s73.aniosM40 * 52);
-                    pF = ((s73.salM40 * nS) + (s73.sal * (250 - nS))) / 250;
+                    const semExtra = s73.aniosM40 * 52;
+                    const semNuevas = Math.min(250, semExtra);
+                    const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
+                    let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
+                    if(porcM40 > 1) porcM40 = 1;
+                    proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
                 }
-                let porc = 0.75 + ((s73.edad + (s73.usaM40 ? s73.aniosM40 : 0) - 60) * 0.05);
-                if(porc > 1) porc = 1;
-                const monto = (pF * 30.4 * porc) * 1.15 * 1.11;
-                const pmg = (248.93 * 365 / 12) * 1.11;
-                return Math.max(monto, pmg);
+
+                return { 
+                    actual: Math.max(actualBase, pmg), 
+                    esPMGActual, 
+                    proyectadaM40, 
+                    montoPMG: pmg 
+                };
             }, [s73]);
 
             if (!vista) return null;
 
             return (
                 <div className="max-w-6xl mx-auto p-4 md:p-8">
-                    {vista === 'ley97' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div className="lg:col-span-5 space-y-6 no-print">
-                                <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-                                    <h2 className="text-xl font-black text-slate-800 uppercase italic mb-6 border-l-4 border-orange-500 pl-4">Simulador Ley 97</h2>
-                                    <div className="space-y-4 font-bold text-slate-600">
-                                        <div>
-                                            <label className="text-[10px] uppercase text-slate-400">Saldo actual en AFORE</label>
-                                            <input type="number" value={s97.saldo} onChange={e => setS97({...s97, saldo: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] uppercase text-slate-400">Salario Mensual Bruto</label>
-                                            <input type="number" value={s97.sal} onChange={e => setS97({...s97, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg text-blue-600" />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] uppercase text-slate-400">Edad Actual</label><input type="number" value={s97.edad} onChange={e => setS97({...s97, edad: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" /></div>
-                                            <div><label className="text-[10px] uppercase text-slate-400">Edad Retiro</label><input type="number" value={s97.ret} onChange={e => setS97({...s97, ret: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" /></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="lg:col-span-7 space-y-6">
-                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden print:bg-white print:text-black print:border-2">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                                    <p className="text-orange-400 font-black uppercase text-xs tracking-widest mb-2">Pensión Mensual Estimada</p>
-                                    <h2 className="text-7xl font-black mb-8 tracking-tighter">{fmt(stats97.pension)}</h2>
-                                    
-                                    <div className="grid grid-cols-2 gap-6 border-t border-white/10 pt-8 print:border-slate-200">
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 uppercase font-bold">Saldo Final Proyectado</p>
-                                            <p className="text-2xl font-black text-white print:text-black">{fmt(stats97.saldoTotal)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 uppercase font-bold">Ahorro a Generar ({stats97.añosCotizando} años)</p>
-                                            <p className="text-2xl font-black text-green-400 print:text-black">{fmt(stats97.ahorroGenerado)}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-10 p-6 bg-slate-800/50 rounded-3xl border border-white/5 print:bg-slate-50 print:border-slate-200">
-                                        <p className="text-[10px] text-orange-400 font-black uppercase mb-3">Nota del Consultor</p>
-                                        <p className="text-xs text-slate-400 italic leading-relaxed">Este cálculo considera una tasa de rendimiento real del 4.5% anual y aportaciones bimestrales proyectadas bajo la nueva reforma de pensiones. La pensión se calcula mediante Renta Vitalicia.</p>
-                                    </div>
-                                    <button onClick={() => window.print()} className="w-full mt-8 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print hover:scale-105 transition">Imprimir Reporte Afore</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {vista === 'pension' && (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             <div className="lg:col-span-5 space-y-6 no-print">
                                 <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-                                    <h2 className="text-xl font-black text-slate-800 mb-6 italic border-l-4 border-blue-600 pl-4 uppercase">Simulador Ley 73</h2>
-                                    <div className="space-y-4 font-bold">
-                                        <label className="text-[10px] uppercase text-slate-400">Semanas</label>
-                                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
-                                        <label className="text-[10px] uppercase text-slate-400">Salario Promedio Actual</label>
-                                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-blue-600" />
-                                        <label className="text-[10px] uppercase text-slate-400">Edad Actual: {s73.edad}</label>
+                                    <h2 className="text-xl font-black text-slate-800 uppercase italic mb-6 border-l-4 border-blue-600 pl-4">Simulador Ley 73</h2>
+                                    <div className="space-y-4 font-bold text-slate-600">
+                                        <label className="text-[10px] uppercase">Semanas Actuales</label>
+                                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg" />
+                                        <label className="text-[10px] uppercase">Salario Diario Actual</label>
+                                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg text-blue-600" />
+                                        <label className="text-[10px] uppercase">Edad de Retiro: {s73.edad} años</label>
                                         <input type="range" min="60" max="65" value={s73.edad} onChange={e => setS73({...s73, edad: Number(e.target.value)})} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                                     </div>
                                 </div>
+
                                 <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-green-500/20">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-sm font-black text-green-600 uppercase">Simular Inversión M40</h2>
+                                        <h2 className="text-sm font-black text-green-600 uppercase italic">¿Simular Inversión M40?</h2>
                                         <button onClick={() => setS73({...s73, usaM40: !s73.usaM40})} className={`w-12 h-6 rounded-full transition-colors ${s73.usaM40 ? 'bg-green-500' : 'bg-slate-300'} relative`}>
                                             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s73.usaM40 ? 'left-7' : 'left-1'}`}></div>
                                         </button>
                                     </div>
                                     {s73.usaM40 && (
                                         <div className="space-y-4">
-                                            <input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años" />
-                                            <input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 rounded-xl font-black text-green-700" />
+                                            <input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años Inversión" />
+                                            <input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 rounded-xl font-black text-green-700" placeholder="Salario a Cotizar" />
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="lg:col-span-7">
-                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center relative overflow-hidden print:bg-white print:text-slate-900 print:border-2">
-                                    <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-4">Pensión Proyectada</p>
-                                    <h2 className="text-7xl font-black mb-6">{fmt(res73)}</h2>
-                                    <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print">Imprimir Reporte</button>
+
+                            <div className="lg:col-span-7 space-y-6">
+                                {/* RESULTADO ACTUAL */}
+                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden print:bg-white print:text-black print:border-2">
+                                    <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-2">Pensión Mensual Actual</p>
+                                    <h2 className="text-6xl font-black mb-4">{fmt(calculo73Completo.actual)}</h2>
+                                    
+                                    {calculo73Completo.esPMGActual && (
+                                        <div className="bg-amber-500/20 border border-amber-500/40 p-4 rounded-2xl mb-6">
+                                            <p className="text-amber-400 text-[10px] font-black uppercase">⚠️ Nota Legal:</p>
+                                            <p className="text-xs text-white leading-relaxed">El cliente es acreedor a la **PMG (Pensión Mínima Garantizada)** por un monto de **{fmt(calculo73Completo.montoPMG)}**, ya que su cálculo base es inferior al mínimo de ley.</p>
+                                        </div>
+                                    )}
+
+                                    {s73.usaM40 && (
+                                        <div className="mt-6 pt-6 border-t border-white/10 animate-fade-in">
+                                            <p className="text-green-400 font-black uppercase text-xs tracking-widest mb-2 italic">Proyectada con Modalidad 40</p>
+                                            <h2 className="text-7xl font-black text-green-400">{fmt(calculo73Completo.proyectadaM40)}</h2>
+                                            <p className="text-[10px] text-slate-500 mt-2">Invirtiendo {s73.aniosM40} años con salario de {fmt(s73.salM40)}</p>
+                                        </div>
+                                    )}
+                                    
+                                    <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print hover:scale-105 transition">Imprimir Reporte</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {vista === 'salario' && (
-                        <div className="bg-white p-10 rounded-[3rem] shadow-xl text-slate-800 min-h-screen">
-                            <h2 className="text-3xl font-black uppercase italic mb-8 border-l-4 border-blue-500 pl-4">Salario Promedio 250 Semanas</h2>
-                            <p className="text-slate-400 text-xs mb-10 font-bold uppercase tracking-widest italic leading-tight italic">Ingresa los periodos para promediar el salario diario.</p>
-                            <p className="text-center py-20 text-slate-300 font-black uppercase tracking-tighter">Módulo de cálculo de periodos activo</p>
-                        </div>
-                    )}
+                    {/* VISTAS LEY 97 Y SALARIO (IGUALES A LA ANTERIOR) */}
                 </div>
             );
         };
