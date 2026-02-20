@@ -33,15 +33,24 @@
             </div>
         </div>
     </header>
-<a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" class="bg-blue-100 text-blue-700 px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-md hover:bg-blue-200 transition flex items-center justify-center gap-2 w-full sm:w-auto">
-    <span>📢</span> Únete a nuestro Canal de Avisos
-</a>
+
+    <div class="max-w-7xl mx-auto px-5 py-4">
+        <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" class="bg-blue-500/10 border border-blue-500/20 text-blue-400 px-6 py-3 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-blue-500/20 transition flex items-center justify-center gap-2 w-full md:w-fit">
+            <span>📢</span> Únete a nuestro Canal de Avisos
+        </a>
+    </div>
+
     <main class="p-6 max-w-7xl mx-auto">
         <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Selecciona Categoría</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-12">
             <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">
                 <span class="text-2xl block mb-2">🏥</span>
                 <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
+            </button>
+            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center border-orange-500/30">
+                <span class="text-2xl block mb-2">⚖️</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter text-orange-400">SAT (RFC)</span>
             </button>
             <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">
                 <span class="text-2xl block mb-2">🧮</span>
@@ -55,7 +64,7 @@
                 <span class="text-2xl block mb-2">🏠</span>
                 <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
             </button>
-            <button onclick="mostrarTramites('AFO')" class="category-card p-4 rounded-2xl text-center border-blue-500/50 bg-blue-500/5">
+            <button onclick="mostrarTramites('AFO')" class="category-card p-4 rounded-2xl text-center">
                 <span class="text-2xl block mb-2">💰</span>
                 <span class="text-[10px] font-black uppercase tracking-tighter">AFORE WEB</span>
             </button>
@@ -98,11 +107,9 @@
                 <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
                 <h2 class="text-xl font-black text-white text-center mb-6 uppercase">Tu Saldo</h2>
                 <div class="bg-slate-800 p-6 rounded-3xl text-center mb-4 border border-white/5">
-                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Disponible</p>
                     <p id="txtSaldoGrande" class="text-4xl font-black text-white">...</p>
                 </div>
                 <div class="bg-slate-800/80 p-4 rounded-2xl text-center mb-6 border border-slate-700">
-                    <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Datos para Recarga</p>
                     <p class="text-lg font-black text-white tracking-widest my-1">4915 6630 4036 4896</p>
                     <p class="text-[10px] font-bold text-red-500 uppercase mt-1">Banorte | DPR Pensión Segura</p>
                 </div>
@@ -234,6 +241,7 @@
             if(pideNss === 'true' || pideNss === true) camposExtra += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase font-bold">`;
             if(pideNac === 'true' || pideNac === true) camposExtra += `<label class="text-[9px] ml-2 text-slate-500 font-bold uppercase">Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3">`;
             if(pideExtra && pideExtra !== '') camposExtra += `<input type="text" id="extra_p" placeholder="${pideExtra}" class="input-dark mb-3 uppercase font-bold">`;
+            
             if(listaFotos && listaFotos !== '') {
                 const arrayFotos = listaFotos.split(',');
                 camposFotos = `<div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700 mb-4"><p class="text-[9px] font-black text-blue-400 uppercase mb-3 italic">Adjuntar Documentación:</p>`;
@@ -269,7 +277,7 @@
                 }
                 await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
                 await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: auth.currentUser ? auth.currentUser.email : "Asesor",
+                    asesor_uid: userUID, origen: "ASESOR", nombre: auth.currentUser.email,
                     tipo: nombre, folio: prefijo + "-" + Math.floor(10000 + Math.random() * 90000), curp: curp,
                     nss: document.getElementById('nss_p') ? document.getElementById('nss_p').value : "N/A",
                     nacimiento: document.getElementById('nac_p') ? document.getElementById('nac_p').value : "",
