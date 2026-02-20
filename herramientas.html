@@ -202,6 +202,45 @@
                         const diff = Math.ceil((new Date(f.hasta) - new Date(f.desde)) / (1000 * 60 * 60 * 24)) + 1;
                         if(diff > 0) { dTot += diff; sPond += (diff * f.salario); }
                     }
+                    // --- LEY 97 CON APORTACIÓN VOLUNTARIA ---
+const [s97, setS97] = useState({ 
+    saldo: 500000, 
+    sal: 15000, 
+    edad: 45, 
+    ret: 65, 
+    voluntaria: 1000 // Nuevo campo: Aportación mensual sugerida
+});
+
+const res97 = useMemo(() => {
+    const n = s97.ret - s97.edad; // Años restantes
+    const tasaMensual = Math.pow(1.045, 1/12) - 1; // 4.5% anual a tasa mensual
+    const meses = n * 12;
+
+    // 1. Crecimiento del Saldo Actual
+    let saldoProyectado = s97.saldo * Math.pow(1.045, n);
+
+    // 2. Crecimiento de Aportaciones Obligatorias (aprox 11%)
+    const aporObligMensual = s97.sal * 0.11;
+    for (let i = 1; i <= meses; i++) {
+        saldoProyectado += aporObligMensual * Math.pow(1 + tasaMensual, meses - i);
+    }
+
+    // 3. Crecimiento de Aportación Voluntaria (Sugerida)
+    let saldoSoloVoluntario = 0;
+    if (s97.voluntaria > 0) {
+        for (let i = 1; i <= meses; i++) {
+            saldoSoloVoluntario += s97.voluntaria * Math.pow(1 + tasaMensual, meses - i);
+        }
+    }
+
+    const totalFinal = saldoProyectado + saldoSoloVoluntario;
+
+    return {
+        pensionTotal: totalFinal / 240, // Estimado por esperanza de vida
+        soloAhorroVoluntario: saldoSoloVoluntario / 240,
+        totalAcumulado: totalFinal
+    };
+}, [s97]);
                 });
                 return { promedio: dTot > 0 ? (sPond / dTot) : 0, semanas: (dTot / 7).toFixed(1) };
             }, [filas]);
@@ -278,6 +317,44 @@
                 </div>
             );
         };
+        {view === 'ley97' && (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-slate-800">
+        <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+            <h2 className="text-2xl font-black text-slate-800 uppercase italic mb-8 border-l-4 border-orange-500 pl-4">Simulador Ley 97 + Ahorro</h2>
+            <div className="space-y-4 font-bold">
+                <label className="text-[10px] text-slate-400 uppercase">Saldo AFORE Actual</label>
+                <input type="number" value={s97.saldo} onChange={e => setS97({...s97, saldo: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black" />
+                
+                <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-100">
+                    <label className="text-[10px] text-orange-600 uppercase font-black">Sugerencia de Inversión Mensual</label>
+                    <input type="number" value={s97.voluntaria} onChange={e => setS97({...s97, voluntaria: Number(e.target.value)})} className="w-full p-4 mt-2 bg-white border-orange-200 border-2 rounded-2xl font-black text-orange-600 text-xl" placeholder="¿Cuánto quieres ahorrar?" />
+                    <p className="text-[9px] text-orange-400 mt-2 uppercase">Este ahorro aumenta tu pensión en {fmt(res97.soloAhorroVoluntario)} mensuales</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] text-slate-400 uppercase">Edad Actual</label>
+                        <input type="number" value={s97.edad} onChange={e => setS97({...s97, edad: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] text-slate-400 uppercase">Edad Retiro</label>
+                        <input type="number" value={s97.ret} onChange={e => setS97({...s97, ret: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center flex flex-col justify-center">
+            <p className="text-orange-400 font-black uppercase text-xs mb-2">Pensión Total Estimada</p>
+            <h2 className="text-7xl font-black">{fmt(res97.pensionTotal)}</h2>
+            <div className="mt-6 p-4 bg-white/5 rounded-2xl">
+                <p className="text-[10px] text-slate-400 uppercase">Capital Final Proyectado</p>
+                <p className="text-xl font-bold text-white">{fmt(res97.totalAcumulado)}</p>
+            </div>
+            <button onClick={() => window.print()} className="mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black text-xs no-print">Imprimir Estrategia Ley 97</button>
+        </div>
+    </div>
+)}
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
