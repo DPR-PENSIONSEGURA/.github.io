@@ -112,99 +112,41 @@
 
             const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
-            // --- LÓGICA LEY 73 MEJORADA ---
-            const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823 });
+ // --- LÓGICA LEY 73 MEJORADA (Copia esto dentro de tu App de React) ---
+          const calculo73Completo = useMemo(() => {
+            // Salario Mínimo 2026 Proyectado (Aprox. $248.93 + incremento esperado)
+            const salarioMinimo2026 = 248.93; 
+            const pmg2026 = (salarioMinimo2026 * 365 / 12) * 1.11; // Pensión Mínima Garantizada con Factor Fox
+
+            // 1. Cálculo Pensión Actual (Sin M40)
+            let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
+            if(porcActual > 1) porcActual = 1;
             
-            const calculo73Completo = useMemo(() => {
-                const salarioMinimo = 248.93;
-                const pmg = (salarioMinimo * 365 / 12) * 1.11;
+            // Cálculo simplificado de la base (Semanas e incrementos)
+            const basica = s73.sal * 30.4 * 0.13; // Ejemplo base
+            const incremento = (s73.sem > 500) ? (basica * 0.0245 * ((s73.sem - 500)/52)) : 0;
+            
+            let actualBase = (basica + incremento) * porcActual * 1.11;
+            let esPMGActual = actualBase < pmg2026;
 
-                // 1. Cálculo Pensión Actual (Sin M40)
-                let porcActual = 0.75 + ((s73.edad - 60) * 0.05);
-                if(porcActual > 1) porcActual = 1;
-                let actualBase = (s73.sal * 30.4 * porcActual) * 1.15 * 1.11;
-                let esPMGActual = actualBase < pmg;
+            // 2. Cálculo Pensión con M40 (Si el switch está activo)
+            let proyectadaM40 = 0;
+            if(s73.usaM40) {
+                const semExtra = s73.aniosM40 * 52;
+                const semNuevas = Math.min(250, semExtra);
+                const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
+                let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
+                if(porcM40 > 1) porcM40 = 1;
+                proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
+            }
 
-                // 2. Cálculo Pensión con M40
-                let proyectadaM40 = 0;
-                if(s73.usaM40) {
-                    const semExtra = s73.aniosM40 * 52;
-                    const semNuevas = Math.min(250, semExtra);
-                    const pF = ((s73.salM40 * semNuevas) + (s73.sal * (250 - semNuevas))) / 250;
-                    let porcM40 = 0.75 + ((s73.edad + s73.aniosM40 - 60) * 0.05);
-                    if(porcM40 > 1) porcM40 = 1;
-                    proyectadaM40 = (pF * 30.4 * porcM40) * 1.15 * 1.11;
-                }
-
-                return { 
-                    actual: Math.max(actualBase, pmg), 
-                    esPMGActual, 
-                    proyectadaM40, 
-                    montoPMG: pmg 
-                };
-            }, [s73]);
-
-            if (!vista) return null;
-
-            return (
-                <div className="max-w-6xl mx-auto p-4 md:p-8">
-                    {vista === 'pension' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div className="lg:col-span-5 space-y-6 no-print">
-                                <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-                                    <h2 className="text-xl font-black text-slate-800 uppercase italic mb-6 border-l-4 border-blue-600 pl-4">Simulador Ley 73</h2>
-                                    <div className="space-y-4 font-bold text-slate-600">
-                                        <label className="text-[10px] uppercase">Semanas Actuales</label>
-                                        <input type="number" value={s73.sem} onChange={e => setS73({...s73, sem: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg" />
-                                        <label className="text-[10px] uppercase">Salario Diario Actual</label>
-                                        <input type="number" value={s73.sal} onChange={e => setS73({...s73, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl font-black text-lg text-blue-600" />
-                                        <label className="text-[10px] uppercase">Edad de Retiro: {s73.edad} años</label>
-                                        <input type="range" min="60" max="65" value={s73.edad} onChange={e => setS73({...s73, edad: Number(e.target.value)})} className="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
-                                    </div>
-                                </div>
-
-                                <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-green-500/20">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-sm font-black text-green-600 uppercase italic">¿Simular Inversión M40?</h2>
-                                        <button onClick={() => setS73({...s73, usaM40: !s73.usaM40})} className={`w-12 h-6 rounded-full transition-colors ${s73.usaM40 ? 'bg-green-500' : 'bg-slate-300'} relative`}>
-                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s73.usaM40 ? 'left-7' : 'left-1'}`}></div>
-                                        </button>
-                                    </div>
-                                    {s73.usaM40 && (
-                                        <div className="space-y-4">
-                                            <input type="number" value={s73.aniosM40} onChange={e => setS73({...s73, aniosM40: Number(e.target.value)})} className="w-full p-3 bg-slate-50 border rounded-xl font-black" placeholder="Años Inversión" />
-                                            <input type="number" value={s73.salM40} onChange={e => setS73({...s73, salM40: Number(e.target.value)})} className="w-full p-3 bg-green-50 border-green-200 rounded-xl font-black text-green-700" placeholder="Salario a Cotizar" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="lg:col-span-7 space-y-6">
-                                {/* RESULTADO ACTUAL */}
-                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden print:bg-white print:text-black print:border-2">
-                                    <p className="text-blue-400 font-black uppercase text-xs tracking-widest mb-2">Pensión Mensual Actual</p>
-                                    <h2 className="text-6xl font-black mb-4">{fmt(calculo73Completo.actual)}</h2>
-                                    
-                                    {calculo73Completo.esPMGActual && (
-                                        <div className="bg-amber-500/20 border border-amber-500/40 p-4 rounded-2xl mb-6">
-                                            <p className="text-amber-400 text-[10px] font-black uppercase">⚠️ Nota Legal:</p>
-                                            <p className="text-xs text-white leading-relaxed">El cliente es acreedor a la **PMG (Pensión Mínima Garantizada)** por un monto de **{fmt(calculo73Completo.montoPMG)}**, ya que su cálculo base es inferior al mínimo de ley.</p>
-                                        </div>
-                                    )}
-
-                                    {s73.usaM40 && (
-                                        <div className="mt-6 pt-6 border-t border-white/10 animate-fade-in">
-                                            <p className="text-green-400 font-black uppercase text-xs tracking-widest mb-2 italic">Proyectada con Modalidad 40</p>
-                                            <h2 className="text-7xl font-black text-green-400">{fmt(calculo73Completo.proyectadaM40)}</h2>
-                                            <p className="text-[10px] text-slate-500 mt-2">Invirtiendo {s73.aniosM40} años con salario de {fmt(s73.salM40)}</p>
-                                        </div>
-                                    )}
-                                    
-                                    <button onClick={() => window.print()} className="w-full mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black uppercase text-xs no-print hover:scale-105 transition">Imprimir Reporte</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+            return { 
+                actual: Math.max(actualBase, pmg2026), 
+                esPMGActual, 
+                proyectadaM40, 
+                montoPMG: pmg2026 
+            };
+          }, [s73]);
 
                     {/* VISTAS LEY 97 Y SALARIO (IGUALES A LA ANTERIOR) */}
                 </div>
