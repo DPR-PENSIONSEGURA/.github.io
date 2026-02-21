@@ -75,6 +75,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -92,8 +93,38 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let idActual, folioActual;
-        // Objeto global para acceder fácilmente a los datos de la solicitud al actualizar el estado
         window.solicitudesData = {};
+
+        // --- SISTEMA DE NOTIFICACIONES ---
+        const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        let cargaInicial = true;
+
+        function activarEscuchaSonora() {
+            // Solo escuchamos el último cambio para activar el sonido
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
+            onSnapshot(q, (snapshot) => {
+                if (cargaInicial) {
+                    cargaInicial = false;
+                    return; 
+                }
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        sonidoAlerta.play().catch(e => console.log("Audio pausado por navegador. Interactúa con la página."));
+                        if (Notification.permission === "granted") {
+                            new Notification("🔔 Nueva Solicitud DPR", {
+                                body: `Nuevo trámite de: ${change.doc.data().tipo}`,
+                                icon: "https://pensionsegura.org/logo.png"
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        if (Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+        activarEscuchaSonora();
 
         // 1. ESCUCHAR RECARGAS PENDIENTES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
@@ -106,87 +137,35 @@
                         <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail || 'S/C'}</td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
                         <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Ver Baucher</button></td>
-                        <td class="p-5 text-center"><button onclick="aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm hover:bg-blue-700">Aprobar</button></td>
+                        <td class="p-5 text-center"><button onclick="window.aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm hover:bg-blue-700">Aprobar</button></td>
                     </tr>`;
             });
         });
 
-        // 2. ESCUCHAR SOLICITUDES
+        // 2. ESCUCHAR SOLICITUDES PARA TABLA
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-      // 2. LÓGICA DE NOTIFICACIONES Y SONIDO
-const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-let cargaInicial = true;
-
-// Esta función es la que hace la magia
-function iniciarEscuchaActiva() {
-    const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
-    
-    onSnapshot(q, (snapshot) => {
-        if (cargaInicial) {
-            cargaInicial = false;
-            return; 
-        }
-
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === "added") {
-                // REPRODUCIR SONIDO
-                sonidoAlerta.play().catch(e => console.log("Audio bloqueado por el navegador. Haz clic en la página."));
-                
-                // NOTIFICACIÓN VISUAL
-                if (Notification.permission === "granted") {
-                    new Notification("🔔 Nueva Solicitud en DPR", {
-                        body: `Servicio: ${change.doc.data().tipo}`,
-                        icon: "https://pensionsegura.org/logo.png" // Asegúrate de que esta URL sea válida
-                    });
-                }
-            }
-        });
-    });
-}
-
-// PEDIR PERMISOS Y ARRANCAR
-if (Notification.permission !== "denied") {
-    Notification.requestPermission();
-}
-iniciarEscuchaActiva(); // <--- ESTA LÍNEA ES LA QUE TE FALTABA PARA QUE FUNCIONARA
-
-// 3. ESCUCHAR Y LLENAR TABLA (TU CÓDIGO ACTUAL)
-onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-    const tabla = document.getElementById('tablaSolicitudes');
-    tabla.innerHTML = "";
-    // ... resto de tu código para llenar la tabla ...
-
-// 3. Pedir permiso al cargar la página
-if (Notification.permission !== "denied") {
-    Notification.requestPermission();
-}
+            const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
-                window.solicitudesData[d.id] = item; // Guardamos el objeto para usarlo en el reembolso
+                window.solicitudesData[d.id] = item;
 
                 const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
                 const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
-                
-                // Muestra el tipo de documento específico o notas extra
-                const detalleExtra = item.infoExtra 
-                    ? `<div class="text-[9px] text-blue-500 font-bold lowercase italic">${item.infoExtra}</div>` 
-                    : "";
+                const detalleExtra = item.infoExtra ? `<div class="text-[9px] text-blue-500 font-bold italic">${item.infoExtra}</div>` : "";
 
-                // Muestra las fotos si el asesor las envió (ej. Afore, Retiro)
                 let linksFotos = "";
                 if (item.documentacion) {
                     linksFotos += `<div class="mt-2 pt-1 border-t border-slate-200/50 flex flex-col gap-1">`;
                     for (const [nombreDoc, urlDoc] of Object.entries(item.documentacion)) {
-                        linksFotos += `<a href="${urlDoc}" target="_blank" class="text-[8px] font-black text-indigo-600 hover:text-indigo-800 underline uppercase flex items-center gap-1">📸 ${nombreDoc}</a>`;
+                        linksFotos += `<a href="${urlDoc}" target="_blank" class="text-[8px] font-black text-indigo-600 underline uppercase">📸 ${nombreDoc}</a>`;
                     }
                     linksFotos += `</div>`;
                 }
 
-                // Colores dinámicos para el menú de estatus
                 let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
-                if(item.estatus === 'Error' || item.estatus?.includes('Incorrecto') || item.estatus?.includes('Duplicado')) colorClase = "bg-red-50 text-red-600 border-red-200";
+                if(item.estatus === 'Error' || item.estatus?.includes('Incorrecto')) colorClase = "bg-red-50 text-red-600 border-red-200";
 
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50/30 transition">
@@ -203,21 +182,18 @@ if (Notification.permission !== "denied") {
                             ${item.nss && item.nss !== 'N/A' ? `<div class="text-[9px] text-slate-400">NSS: ${item.nss}</div>` : ''}
                         </td>
                         <td class="p-4">
-                            <select onchange="actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold shadow-sm">
+                            <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold shadow-sm">
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
                                 <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
                                 <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
                                 <option value="CURP Incorrecto" ${item.estatus === 'CURP Incorrecto' ? 'selected' : ''}>CURP Incorrecto</option>
-                                <option value="NSS Incorrecto" ${item.estatus === 'NSS Incorrecto' ? 'selected' : ''}>NSS Incorrecto</option>
-                                <option value="Pedido Duplicado" ${item.estatus === 'Pedido Duplicado' ? 'selected' : ''}>Pedido Duplicado</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex flex-col gap-2 items-end">
-                                ${item.comprobante ? `<button onclick="window.open('${item.comprobante}', '_blank')" class="text-[9px] font-black text-red-600 underline uppercase hover:text-red-800">Ver Pago</button>` : ''}
                                 ${item.estatus !== 'Terminado' ? 
-                                    `<button onclick="prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir Archivo</button>` : 
+                                    `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir Archivo</button>` : 
                                     `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Documento Final</button>`
                                 }
                             </div>
@@ -226,89 +202,56 @@ if (Notification.permission !== "denied") {
             });
         });
 
-        // ACTUALIZAR ESTATUS (CON LÓGICA DE REEMBOLSO)
+        // FUNCIONES GLOBALES ASIGNADAS A WINDOW
         window.actualizarEstatus = async (id, nuevoEstatus) => {
             const item = window.solicitudesData[id];
-            
-            if (nuevoEstatus === "Error" && item.estatus !== "Error") {
-                // Flujo de Reembolso
-                const montoStr = prompt(`Trámite fallido. Ingresa la cantidad exacta a reembolsar al asesor ${item.nombre}:`);
-                if (montoStr === null) return; // Si cancela el prompt
-                
+            if (nuevoEstatus === "Error") {
+                const montoStr = prompt(`Ingresa el monto a reembolsar a ${item.nombre}:`);
+                if (montoStr === null) return;
                 const monto = parseFloat(montoStr);
-                if (isNaN(monto) || monto <= 0) return alert("Monto inválido. Operación cancelada.");
-
+                if (isNaN(monto) || monto <= 0) return alert("Monto no válido.");
                 try {
-                    // Si el trámite viene de un asesor, le sumamos el saldo a su billetera
                     if (item.origen === "ASESOR" && item.asesor_uid) {
                         await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(monto) });
                     }
-                    // Actualizamos el estatus del trámite y guardamos registro del reembolso
                     await updateDoc(doc(db, "solicitudes", id), { estatus: "Error", reembolso_otorgado: monto });
-                    alert(`¡Listo! Se ha devuelto el saldo de $${monto} al asesor y el trámite se marcó como Error.`);
-                } catch (e) {
-                    console.error(e);
-                    alert("Hubo un fallo al intentar hacer el reembolso.");
-                }
+                    alert("Reembolso procesado.");
+                } catch (e) { alert("Error al procesar reembolso."); }
             } else {
-                // Flujo normal de cambio de estatus
-                try {
-                    await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus });
-                } catch (e) { 
-                    alert("Error al actualizar estado."); 
-                }
+                try { await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus }); } catch (e) { alert("Error al actualizar."); }
             }
         };
 
-        // APROBAR RECARGA DE SALDO
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm(`¿Aprobar saldo de $${monto}?`)) return;
+            if(!confirm(`¿Aprobar $${monto}?`)) return;
             try {
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo cargado con éxito!");
-            } catch (e) { alert("Error al cargar saldo."); }
+                alert("¡Saldo aprobado!");
+            } catch (e) { alert("Error."); }
         };
 
-        // PREPARAR EL MODAL PARA SUBIR EL RESULTADO
         window.prepararSubida = (id, folio) => { 
             idActual = id; folioActual = folio; 
-            document.getElementById('txtFolioFinal').innerText = "Subiendo archivo para: " + folio;
+            document.getElementById('txtFolioFinal').innerText = "Folio: " + folio;
             document.getElementById('modalSubir').classList.remove('hidden'); 
         };
 
-        // SUBIR ARCHIVO A CLOUDINARY Y MARCAR COMO TERMINADO
+        window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
+
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Por favor selecciona un archivo PDF o imagen.");
-            
+            if (!file) return alert("Selecciona archivo.");
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            
-            const fd = new FormData(); 
-            fd.append('file', file); 
-            fd.append('upload_preset', UPLOAD_PRESET);
-            
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
-                
-                await updateDoc(doc(db, "solicitudes", idActual), { 
-                    archivoFinal: d.secure_url, 
-                    estatus: "Terminado" 
-                });
-                
-                alert("¡Trámite finalizado!"); 
-                cerrarSubida();
-            } catch(e) { 
-                console.error(e);
-                alert("Error al subir el archivo."); 
-            } finally { 
-                btn.innerText = "Subir y Finalizar"; btn.disabled = false; 
-            }
+                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
+                alert("¡Completado!"); cerrarSubida();
+            } catch(e) { alert("Error de subida."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
         };
-
-        window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
     </script>
 </body>
 </html>
