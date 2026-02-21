@@ -74,8 +74,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -114,43 +113,48 @@
 
         // 2. ESCUCHAR SOLICITUDES
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-            const tabla = document.getElementById('tablaSolicitudes');
-            // 1. Definir el sonido
+      // 2. LÓGICA DE NOTIFICACIONES Y SONIDO
 const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-
-// 2. Variable para evitar que suene mil veces al cargar la página por primera vez
 let cargaInicial = true;
 
-function escucharNuevasSolicitudes() {
+// Esta función es la que hace la magia
+function iniciarEscuchaActiva() {
     const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
     
     onSnapshot(q, (snapshot) => {
         if (cargaInicial) {
             cargaInicial = false;
-            return; // No suena la primera vez que entras
+            return; 
         }
 
         snapshot.docChanges().forEach((change) => {
             if (change.type === "added") {
-                // ¡SOLICITUD NUEVA DETECTADA!
-                ejecutarNotificacion(change.doc.data());
+                // REPRODUCIR SONIDO
+                sonidoAlerta.play().catch(e => console.log("Audio bloqueado por el navegador. Haz clic en la página."));
+                
+                // NOTIFICACIÓN VISUAL
+                if (Notification.permission === "granted") {
+                    new Notification("🔔 Nueva Solicitud en DPR", {
+                        body: `Servicio: ${change.doc.data().tipo}`,
+                        icon: "https://pensionsegura.org/logo.png" // Asegúrate de que esta URL sea válida
+                    });
+                }
             }
         });
     });
 }
 
-function ejecutarNotificacion(datos) {
-    // A) Reproducir Sonido
-    sonidoAlerta.play().catch(e => console.log("El navegador bloqueó el audio hasta que hagas click en la página"));
-
-    // B) Notificación de Escritorio (Si el navegador lo permite)
-    if (Notification.permission === "granted") {
-        new Notification("🔔 Nueva Solicitud en DPR", {
-            body: `Servicio: ${datos.tipo} \nCliente: ${datos.curp}`,
-            icon: "logo.png"
-        });
-    }
+// PEDIR PERMISOS Y ARRANCAR
+if (Notification.permission !== "denied") {
+    Notification.requestPermission();
 }
+iniciarEscuchaActiva(); // <--- ESTA LÍNEA ES LA QUE TE FALTABA PARA QUE FUNCIONARA
+
+// 3. ESCUCHAR Y LLENAR TABLA (TU CÓDIGO ACTUAL)
+onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
+    const tabla = document.getElementById('tablaSolicitudes');
+    tabla.innerHTML = "";
+    // ... resto de tu código para llenar la tabla ...
 
 // 3. Pedir permiso al cargar la página
 if (Notification.permission !== "denied") {
