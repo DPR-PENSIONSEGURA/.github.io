@@ -115,6 +115,47 @@
         // 2. ESCUCHAR SOLICITUDES
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
+            // 1. Definir el sonido
+const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+// 2. Variable para evitar que suene mil veces al cargar la página por primera vez
+let cargaInicial = true;
+
+function escucharNuevasSolicitudes() {
+    const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
+    
+    onSnapshot(q, (snapshot) => {
+        if (cargaInicial) {
+            cargaInicial = false;
+            return; // No suena la primera vez que entras
+        }
+
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                // ¡SOLICITUD NUEVA DETECTADA!
+                ejecutarNotificacion(change.doc.data());
+            }
+        });
+    });
+}
+
+function ejecutarNotificacion(datos) {
+    // A) Reproducir Sonido
+    sonidoAlerta.play().catch(e => console.log("El navegador bloqueó el audio hasta que hagas click en la página"));
+
+    // B) Notificación de Escritorio (Si el navegador lo permite)
+    if (Notification.permission === "granted") {
+        new Notification("🔔 Nueva Solicitud en DPR", {
+            body: `Servicio: ${datos.tipo} \nCliente: ${datos.curp}`,
+            icon: "logo.png"
+        });
+    }
+}
+
+// 3. Pedir permiso al cargar la página
+if (Notification.permission !== "denied") {
+    Notification.requestPermission();
+}
             tabla.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
