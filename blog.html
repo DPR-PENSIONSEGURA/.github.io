@@ -3,137 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ley 73 vs Ley 97: Lo que debes saber | Pensión Segura</title>
+    <title>Blog de Pensión Segura | Noticias y Guías IMSS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1a365d; /* Azul profesional */
-            --accent: #27ae60;  /* Verde WhatsApp/Confianza */
-            --text: #333;
-            --light: #f8fafc;
+            --primary: #1a365d;
+            --accent: #d97706;
+            --bg: #f8fafc;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            color: var(--text);
-            margin: 0;
-            background-color: #fff;
-        }
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
-        h1 { color: var(--primary); font-size: 2.5rem; line-height: 1.2; }
-        h2 { color: var(--primary); border-left: 5px solid var(--accent); padding-left: 15px; margin-top: 2rem; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #334155; }
         
-        .hero-img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .badge {
-            background: var(--accent);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: inline-block;
-            margin-bottom: 1rem;
+        header { background: var(--primary); color: white; padding: 1.5rem; text-align: center; }
+
+        .blog-wrapper {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Columna grande para noticia, chica para anteriores */
+            gap: 30px;
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
-        .comparison-card {
-            background: var(--light);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
+        /* La Noticia Principal (La Última) */
+        .main-post {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .main-post img { width: 100%; border-radius: 10px; margin-bottom: 20px; }
+        .main-post h1 { color: var(--primary); font-size: 2rem; }
+
+        /* La Pestaña de Noticias Anteriores (Sidebar) */
+        .sidebar {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            height: fit-content;
             border: 1px solid #e2e8f0;
         }
-
-        .cta-box {
-            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
-            color: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            text-align: center;
-            margin-top: 3rem;
+        .sidebar h2 { font-size: 1.2rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        
+        .recent-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
         }
+        .recent-item a { 
+            text-decoration: none; 
+            color: #475569; 
+            font-weight: 600; 
+            transition: 0.3s;
+        }
+        .recent-item a:hover { color: var(--accent); }
+        .recent-item small { display: block; color: #94a3b8; margin-top: 5px; }
 
-        .btn-wa {
-            background: var(--accent);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
+        .btn-leer {
             display: inline-block;
-            transition: transform 0.3s;
-            margin-top: 1rem;
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
         }
-        .btn-wa:hover { transform: scale(1.05); }
 
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            .hero-img { height: 250px; }
+        @media (max-width: 850px) {
+            .blog-wrapper { grid-template-columns: 1fr; } /* En celular se pone uno arriba del otro */
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: bold; font-size: 1.2rem;">Pensión Segura</div>
-    <nav>
-        <a href="/" style="color: white; text-decoration: none; margin-left: 15px;">Inicio</a>
-        <a href="/blog" style="color: white; text-decoration: none; margin-left: 15px;">Blog</a>
-    </nav>
+    <div style="font-size: 1.5rem; font-weight: bold;">Pensión Segura - Blog Informativo</div>
 </header>
 
-<div class="container">
-    <span class="badge">Guía de Retiro 2026</span>
-    <h1>¿Ley 73 o Ley 97? Descubre a qué régimen perteneces</h1>
+<div class="blog-wrapper">
     
-    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80" alt="Asesoría Pensión Segura" class="hero-img">
+    <main class="main-post">
+        <span style="color: var(--accent); font-weight: bold; text-transform: uppercase;">Nuevo Artículo</span>
+        <h1>Ley 97 del IMSS: ¿Cómo asegurar un retiro digno si eres generación AFORE?</h1>
+        <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80" alt="Ley 97">
+        <p>¿Empezaste a cotizar después de julio de 1997? Tu futuro depende de tu cuenta individual. Descubre cómo las semanas cotizadas y el saldo de tu AFORE definirán tu calidad de vida...</p>
+        <a href="/blog/guia-ley-97.html" class="btn-leer">Seguir leyendo →</a>
+    </main>
 
-    <p style="font-size: 1.2rem; color: #555;">La diferencia entre ambas leyes no es solo una fecha; es el modelo de vida que tendrás en tu retiro. En <strong>DPR Consultoría</strong>, te ayudamos a entender cuál es tu mejor camino.</p>
+    <aside class="sidebar">
+        <h2>Temas Anteriores</h2>
+        
+        <div class="recent-item">
+            <a href="/blog/ley-73-vs-97.html">Ley 73 vs 97: ¿Cuál es tu régimen?</a>
+            <small>Publicado: Febrero 2026</small>
+        </div>
 
-    <h2>1. El origen: ¿Cuándo empezaste?</h2>
-    <p>Todo se resume a un día clave: <strong>1 de julio de 1997</strong>. Si cotizaste un solo día antes de esa fecha, eres Ley 73.</p>
+        <div class="recent-item">
+            <a href="#">¿Qué es la Modalidad 40? (Próximamente)</a>
+            <small>Publicado: Enero 2026</small>
+        </div>
 
-    <div class="comparison-card">
-        <h3>¿Por qué la Ley 73 es "oro"?</h3>
-        <p>Porque permite el uso de la <strong>Modalidad 40</strong> con el valor de la UMA actual ($113.14). Esto puede elevar tu pensión de forma exponencial si se planea correctamente.</p>
-    </div>
+        <div style="margin-top: 30px; padding: 15px; background: #fff7ed; border-radius: 10px;">
+            <p style="font-size: 0.9rem; margin: 0;"><strong>¿Necesitas asesoría en García?</strong></p>
+            <p style="font-size: 0.8rem;">Estamos en Calle Lerdo de Tejada #113.</p>
+        </div>
+    </aside>
 
-    <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=800&q=80" alt="Planeación Financiera" class="hero-img" style="height: 300px;">
-
-    <h2>2. Los requisitos han cambiado</h2>
-    <p>Recuerda que para Ley 97, las semanas necesarias están subiendo cada año. En este 2026, necesitas tener tus documentos en regla (RFC, CURP y CSF) para evitar contratiempos en tu trámite.</p>
-
-    <div class="cta-box">
-        <h2>¿Dudas con tu caso particular?</h2>
-        <p>No dejes tu futuro al azar. Soy Diana Puente y junto a mi equipo en García, N.L., te ayudaremos a proyectar tu pensión ideal.</p>
-        <p>📍 Calle Lerdo de Tejada #113, Col. Centro, García.</p>
-        <a href="https://wa.me/528131983700" class="btn-wa">Chatear por WhatsApp ahora</a>
-    </div>
 </div>
 
-<footer style="text-align: center; padding: 2rem; color: #888; font-size: 0.8rem;">
-    © 2026 DPR Consultoría | pensionsegura.org
+<footer style="text-align: center; padding: 2rem; color: #94a3b8;">
+    © 2026 DPR Consultoría
 </footer>
 
 </body>
