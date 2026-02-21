@@ -95,38 +95,47 @@
         let idActual, folioActual;
         window.solicitudesData = {};
 
-        // --- SISTEMA DE NOTIFICACIONES ---
+        // --- SISTEMA DE SONIDO Y NOTIFICACIÓN ---
         const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-        let cargaInicial = true;
+        let sistemaListo = false;
+        let ignoreFirst = true;
 
-        function activarEscuchaSonora() {
-            // Solo escuchamos el último cambio para activar el sonido
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
-            onSnapshot(q, (snapshot) => {
-                if (cargaInicial) {
-                    cargaInicial = false;
-                    return; 
-                }
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        sonidoAlerta.play().catch(e => console.log("Audio pausado por navegador. Interactúa con la página."));
-                        if (Notification.permission === "granted") {
-                            new Notification("🔔 Nueva Solicitud DPR", {
-                                body: `Nuevo trámite de: ${change.doc.data().tipo}`,
-                                icon: "https://pensionsegura.org/logo.png"
-                            });
-                        }
-                    }
-                });
-            });
-        }
+        // Desbloquear audio con un clic
+        window.addEventListener('click', () => {
+            if(!sistemaListo) {
+                sistemaListo = true;
+                sonidoAlerta.play().then(() => {
+                    sonidoAlerta.pause();
+                    sonidoAlerta.currentTime = 0;
+                }).catch(e => console.log("Audio en espera..."));
+            }
+        }, { once: true });
 
-        if (Notification.permission !== "denied") {
+        if (Notification.permission !== "granted") {
             Notification.requestPermission();
         }
-        activarEscuchaSonora();
 
-        // 1. ESCUCHAR RECARGAS PENDIENTES
+        // Escucha activa para nuevas solicitudes
+        const qNuevos = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
+        onSnapshot(qNuevos, (snapshot) => {
+            if (ignoreFirst) {
+                ignoreFirst = false;
+                return; 
+            }
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added" && sistemaListo) {
+                    sonidoAlerta.play().catch(e => console.log("Interacción requerida para sonido"));
+                    if (Notification.permission === "granted") {
+                        new Notification("🔔 Nueva Solicitud DPR", {
+                            body: `Servicio: ${change.doc.data().tipo}`,
+                            icon: "https://pensionsegura.org/logo.png"
+                        });
+                    }
+                }
+            });
+        });
+
+        // --- 1. ESCUCHAR RECARGAS PENDIENTES ---
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
             tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase">Sin recargas pendientes</td></tr>' : "";
@@ -142,7 +151,7 @@
             });
         });
 
-        // 2. ESCUCHAR SOLICITUDES PARA TABLA
+        // --- 2. ESCUCHAR SOLICITUDES PARA TABLA ---
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
@@ -178,8 +187,7 @@
                         </td>
                         <td class="p-4">
                             <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
-                            <div class="text-[9px] text-slate-500 font-bold">${item.curp}</div>
-                            ${item.nss && item.nss !== 'N/A' ? `<div class="text-[9px] text-slate-400">NSS: ${item.nss}</div>` : ''}
+                            <div class="text-[9px] text-slate-500 font-bold italic">${item.curp}</div>
                         </td>
                         <td class="p-4">
                             <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold shadow-sm">
@@ -187,14 +195,13 @@
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
                                 <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
                                 <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
-                                <option value="CURP Incorrecto" ${item.estatus === 'CURP Incorrecto' ? 'selected' : ''}>CURP Incorrecto</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex flex-col gap-2 items-end">
                                 ${item.estatus !== 'Terminado' ? 
                                     `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-blue-700 transition">Subir Archivo</button>` : 
-                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Documento Final</button>`
+                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm hover:bg-green-600 transition">Ver Final</button>`
                                 }
                             </div>
                         </td>
@@ -202,38 +209,38 @@
             });
         });
 
-        // FUNCIONES GLOBALES ASIGNADAS A WINDOW
+        // --- FUNCIONES GLOBALES ---
         window.actualizarEstatus = async (id, nuevoEstatus) => {
             const item = window.solicitudesData[id];
             if (nuevoEstatus === "Error") {
-                const montoStr = prompt(`Ingresa el monto a reembolsar a ${item.nombre}:`);
+                const montoStr = prompt(`Trámite fallido. ¿Monto a reembolsar a ${item.nombre}?`);
                 if (montoStr === null) return;
                 const monto = parseFloat(montoStr);
-                if (isNaN(monto) || monto <= 0) return alert("Monto no válido.");
+                if (isNaN(monto) || monto <= 0) return alert("Monto inválido.");
                 try {
                     if (item.origen === "ASESOR" && item.asesor_uid) {
                         await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(monto) });
                     }
                     await updateDoc(doc(db, "solicitudes", id), { estatus: "Error", reembolso_otorgado: monto });
-                    alert("Reembolso procesado.");
-                } catch (e) { alert("Error al procesar reembolso."); }
+                    alert("Reembolso listo.");
+                } catch (e) { alert("Fallo al reembolsar."); }
             } else {
-                try { await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus }); } catch (e) { alert("Error al actualizar."); }
+                try { await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus }); } catch (e) { alert("Error."); }
             }
         };
 
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm(`¿Aprobar $${monto}?`)) return;
+            if(!confirm(`¿Cargar $${monto} a cuenta?`)) return;
             try {
                 await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo aprobado!");
-            } catch (e) { alert("Error."); }
+                alert("¡Saldo actualizado!");
+            } catch (e) { alert("Fallo en recarga."); }
         };
 
         window.prepararSubida = (id, folio) => { 
             idActual = id; folioActual = folio; 
-            document.getElementById('txtFolioFinal').innerText = "Folio: " + folio;
+            document.getElementById('txtFolioFinal').innerText = "Archivo para: " + folio;
             document.getElementById('modalSubir').classList.remove('hidden'); 
         };
 
@@ -249,8 +256,8 @@
                 const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await r.json();
                 await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("¡Completado!"); cerrarSubida();
-            } catch(e) { alert("Error de subida."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
+                alert("¡Trámite terminado!"); cerrarSubida();
+            } catch(e) { alert("Error al subir archivo."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
         };
     </script>
 </body>
