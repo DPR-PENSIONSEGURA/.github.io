@@ -114,66 +114,127 @@
             const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
             // --- LÓGICA LEY 73 ---
-            const [s73, setS73] = useState({ sem: 1000, sal: 500, edad: 60, usaM40: false, aniosM40: 2, salM40: 2823, tieneEsposa: true, hijos: 0 });
+// --- LÓGICA LEY 97 ACTUALIZADA (Semanas y Etiquetas) ---
+const [s97, setS97] = useState({ 
+    saldo: 500000, 
+    sal: 15000, 
+    edad: 45, 
+    ret: 65, 
+    voluntaria: 1000,
+    semanas: 800, // Nuevo campo
+    aforeId: 'profuturo' 
+});
+
+const AFORES = {
+    profuturo: { nombre: 'Profuturo', r: 6.2 }, 
+    sura: { nombre: 'SURA', r: 5.8 }, 
+    banorte: { nombre: 'XXI Banorte', r: 5.2 }, 
+    citibanamex: { nombre: 'Citibanamex', r: 4.9 }, 
+    principal: { nombre: 'Principal', r: 4.7 }
+    coppel: { nombre: 'Coppel', r: 5.5 }
+    invercap: { nombre: 'Invercap', r: 7.5 }
+};
+
+const res97 = useMemo(() => {
+    const n = s97.ret - s97.edad;
+    const semanasFinales = s97.semanas + (n * 52);
+    const cumpleSemanas = semanasFinales >= 875; // Requisito 2026
+
+    if (n <= 0) return { total: 0, ac: 0, sv: 0, cumpleSemanas };
+
+    const tasaAnual = AFORES[s97.aforeId]?.r / 100 || 0.045;
+    const tasaMensual = Math.pow(1 + tasaAnual, 1/12) - 1;
+    const meses = n * 12;
+
+    // Cálculo del ahorro acumulado
+    let acBase = s97.saldo * Math.pow(1 + tasaAnual, n);
+    const aporMensual = s97.sal * 0.11;
+    for (let i = 1; i <= meses; i++) acBase += aporMensual * Math.pow(1 + tasaMensual, meses - i);
+
+    let svTotal = 0;
+    for (let i = 1; i <= meses; i++) svTotal += s97.voluntaria * Math.pow(1 + tasaMensual, meses - i);
+
+    const inversionTotal = s97.voluntaria * meses;
+    const pensionFinal = (acBase + svTotal) / 240;
+    const pensionSinAhorro = acBase / 240;
+    const gananciaExtra = pensionFinal - pensionSinAhorro;
+    const recuperacionMeses = gananciaExtra > 0 ? (inversionTotal / gananciaExtra) : 0;
+
+    return { 
+        total: pensionFinal, 
+        ac: acBase + svTotal, 
+        sv: gananciaExtra, 
+        rend: AFORES[s97.aforeId]?.r,
+        cumpleSemanas,
+        semanasFinales,
+        recuperacion: Math.ceil(recuperacionMeses / 12)
+    };
+}, [s97]);
+
+// --- RENDERIZADO LEY 97 ---
+{view === 'ley97' && (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-slate-800 font-bold">
+        <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+            <h2 className="text-2xl font-black uppercase italic mb-8 border-l-4 border-orange-500 pl-4 tracking-tighter">Plan de Retiro Ley 97</h2>
+            <div className="space-y-4">
+                <label className="text-[10px] uppercase text-slate-400">Seleccionar AFORE</label>
+                <select value={s97.aforeId} onChange={e => setS97({...s97, aforeId: e.target.value})} className="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:border-orange-500">
+                    {Object.keys(AFORES).map(k => <option key={k} value={k}>{AFORES[k].nombre} ({AFORES[k].r}%)</option>)}
+                </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] uppercase text-slate-400">Semanas Actuales</label>
+                        <input type="number" value={s97.semanas} onChange={e => setS97({...s97, semanas: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] uppercase text-slate-400">Salario Mensual</label>
+                        <input type="number" value={s97.sal} onChange={e => setS97({...s97, sal: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                </div>
+
+                <div className="bg-orange-50 p-6 rounded-[2rem] border border-orange-100">
+                    <label className="text-[10px] uppercase font-black text-orange-600">Ahorro Voluntario Mensual</label>
+                    <input type="number" value={s97.voluntaria} onChange={e => setS97({...s97, voluntaria: Number(e.target.value)})} className="w-full p-4 mt-2 border-2 border-orange-200 rounded-2xl font-black text-orange-600 text-xl outline-none" />
+                    <p className="text-[9px] mt-2 uppercase italic text-orange-400 leading-tight">Tu pensión sube {fmt(res97.sv)} al mes. Recuperas esta inversión en {res97.recuperacion} años.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] uppercase text-slate-400">Edad Actual</label>
+                        <input type="number" value={s97.edad} onChange={e => setS97({...s97, edad: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                    <div>
+                        <label className="text-[10px] uppercase text-slate-400">Edad Retiro</label>
+                        <input type="number" value={s97.ret} onChange={e => setS97({...s97, ret: Number(e.target.value)})} className="w-full p-4 bg-slate-50 border rounded-2xl" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl text-center flex flex-col justify-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <p className="text-orange-400 font-black uppercase text-xs mb-2 tracking-widest">Pensión Mensual Proyectada</p>
+            <h2 className="text-7xl font-black mb-4">{fmt(res97.total)}</h2>
             
-            const obtenerFactoresLey73 = (grupo) => {
-                if (grupo <= 1.0) return { cb: 80.00, ia: 0.563 };
-                if (grupo <= 1.25) return { cb: 77.11, ia: 0.814 };
-                if (grupo <= 1.50) return { cb: 58.18, ia: 1.178 };
-                if (grupo <= 1.75) return { cb: 49.23, ia: 1.430 };
-                if (grupo <= 2.00) return { cb: 42.67, ia: 1.615 };
-                if (grupo <= 2.25) return { cb: 37.65, ia: 1.756 };
-                if (grupo <= 2.50) return { cb: 33.68, ia: 1.858 };
-                if (grupo <= 2.75) return { cb: 30.48, ia: 1.938 };
-                if (grupo <= 3.00) return { cb: 27.83, ia: 2.004 };
-                if (grupo <= 3.25) return { cb: 25.60, ia: 2.055 };
-                if (grupo <= 3.50) return { cb: 23.70, ia: 2.098 };
-                if (grupo <= 3.75) return { cb: 22.07, ia: 2.135 };
-                if (grupo <= 4.00) return { cb: 20.65, ia: 2.167 };
-                if (grupo <= 4.25) return { cb: 19.39, ia: 2.195 };
-                if (grupo <= 4.50) return { cb: 18.29, ia: 2.219 };
-                if (grupo <= 4.75) return { cb: 17.30, ia: 2.240 };
-                if (grupo <= 5.00) return { cb: 16.41, ia: 2.259 };
-                if (grupo <= 5.25) return { cb: 15.61, ia: 2.276 };
-                if (grupo <= 5.50) return { cb: 14.88, ia: 2.291 };
-                if (grupo <= 5.75) return { cb: 14.22, ia: 2.304 };
-                if (grupo <= 6.00) return { cb: 13.62, ia: 2.316 };
-                return { cb: 13.00, ia: 2.450 };
-            };
+            <div className="space-y-3 mt-4">
+                <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                    <span className="text-[10px] uppercase text-slate-400">Semanas al Retiro</span>
+                    <span className={`text-sm ${res97.cumpleSemanas ? 'text-green-400' : 'text-red-400'}`}>{res97.semanasFinales}</span>
+                </div>
+                {!res97.cumpleSemanas && (
+                    <p className="text-[9px] text-red-400 uppercase italic">⚠️ No cumple con las semanas mínimas (875)</p>
+                )}
+                <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                    <span className="text-[10px] uppercase text-slate-400">Capital Acumulado</span>
+                    <span className="text-sm">{fmt(res97.ac)}</span>
+                </div>
+            </div>
 
-            const res73 = useMemo(() => {
-                const pmg2026 = 11085.00;
-                const uma2026 = 113.14;
-                const topeSalarial = uma2026 * 25;
-
-                const calcularCifras = (sem, sal, ed) => {
-                    if (sem < 500) return { total: 0, aguinaldo: 0 };
-                    const salT = Math.min(sal, topeSalarial);
-                    const f = obtenerFactoresLey73(salT / uma2026);
-                    const salAnual = salT * 365;
-                    const basica = salAnual * (f.cb / 100);
-                    const semExc = Math.max(0, sem - 500);
-                    let aniosExc = Math.floor(semExc / 52);
-                    if (semExc % 52 > 26) aniosExc++;
-                    const incremento = salAnual * (f.ia / 100) * aniosExc;
-                    let porcEdad = 0.75 + ((ed - 60) * 0.05);
-                    if (porcEdad > 1) porcEdad = 1;
-                    const aguinaldo = ((basica + incremento) * porcEdad) / 12 * 1.11;
-                    let asig = (s73.tieneEsposa ? 0.15 : 0) + (s73.hijos * 0.10);
-                    if (asig === 0) asig = 0.15;
-                    return { total: aguinaldo * (1 + asig), aguinaldo };
-                };
-
-                const actual = calcularCifras(s73.sem, s73.sal, s73.edad);
-                let proyectadaM40 = { total: 0, aguinaldo: 0 };
-                if (s73.usaM40) {
-                    const sF = s73.sem + (s73.aniosM40 * 52);
-                    const nS = Math.min(250, s73.aniosM40 * 52);
-                    const pF = Math.min(((s73.salM40 * nS) + (s73.sal * (250 - nS))) / 250, topeSalarial);
-                    proyectadaM40 = calcularCifras(sF, pF, s73.edad + s73.aniosM40);
-                }
-                return { montoActual: Math.max(actual.total, pmg2026), aguiActual: Math.max(actual.aguinaldo, pmg2026 / 1.15), esPMG: actual.total < pmg2026, montoM40: proyectadaM40.total, aguiM40: proyectadaM40.aguinaldo, pmg2026 };
-            }, [s73]);
+            <button onClick={() => window.print()} className="mt-10 bg-white text-slate-900 py-4 rounded-2xl font-black text-xs no-print hover:scale-105 transition-all">Imprimir Plan Financiero</button>
+        </div>
+    </div>
+)}
 
             // --- LEY 97 ---
               const [s97, setS97] = useState({ saldo: 500000, sal: 15000, edad: 45, ret: 65, voluntaria: 0, aforeId: 'profuturo' });
