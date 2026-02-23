@@ -21,21 +21,26 @@
                 <h1 class="text-3xl font-black uppercase italic text-slate-800">Panel <span class="text-blue-600">DPR Admin</span></h1>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">García, Nuevo León</p>
             </div>
-            <div class="bg-blue-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-blue-800">
-                <span class="text-2xl">📋</span>
-                <div>
-                    <p class="text-[9px] font-black uppercase opacity-80">Trámites en Proceso</p>
-                    <p id="contadorPendientes" class="text-2xl font-black">0</p>
+            
+            <div class="flex gap-4">
+                <div class="bg-blue-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-blue-800">
+                    <span class="text-2xl">📋</span>
+                    <div>
+                        <p class="text-[9px] font-black uppercase opacity-80">En Proceso</p>
+                        <p id="contadorPendientes" class="text-2xl font-black">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-emerald-800">
+                    <span class="text-2xl">💰</span>
+                    <div>
+                        <p class="text-[9px] font-black uppercase opacity-80">Ganancia de Hoy</p>
+                        <p id="gananciaHoy" class="text-2xl font-black">$0.00</p>
+                    </div>
                 </div>
             </div>
         </header>
-<div class="bg-emerald-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-emerald-800">
-    <span class="text-2xl">💰</span>
-    <div>
-        <p class="text-[9px] font-black uppercase opacity-80">Ganancia de Hoy</p>
-        <p id="gananciaHoy" class="text-2xl font-black">$0.00</p>
-    </div>
-</div>
+
         <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas Asesores</span></h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
@@ -121,11 +126,16 @@
 
         window.addEventListener('click', () => { if(!sistemaListo) sistemaListo = true; }, { once: true });
 
-        // --- TABLA MAESTRA CON LÓGICA DE COMPROBANTE WEB ---
+        // --- LÓGICA UNIFICADA: TABLA, CONTADORES Y CORTE DIARIO ---
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             const contadorPendientes = document.getElementById('contadorPendientes');
-            let count = 0;
+            const txtGanancia = document.getElementById('gananciaHoy');
+            
+            let countPendientes = 0;
+            let totalHoy = 0;
+            const hoy = new Date().toLocaleDateString();
+
             tabla.innerHTML = "";
 
             if (!ignoreFirst && sistemaListo && snap.docChanges().some(c => c.type === "added")) {
@@ -136,65 +146,37 @@
             snap.forEach(d => {
                 const item = d.data();
                 window.solicitudesData[d.id] = item;
-                if(item.estatus === 'En Proceso') count++;
 
-                // --- LÓGICA DE DOCUMENTOS Y COMPROBANTES ---
-                let htmlDocs = "";
-                
-                // 1. Si es CLIENTE WEB, mostrar su comprobante de pago morado
-                if (item.origen === "WEB" && item.comprobante) {
-                    htmlDocs += `
-                        <button onclick="window.open('${item.comprobante}','_blank')" 
-                                class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-[8px] font-black border border-purple-800 shadow-sm mb-2 block w-fit transition-colors">
-                            💰 VER COMPROBANTE WEB
-                        </button>`;
-                // --- LÓGICA DE CORTE DIARIO ---
-onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-    const txtGanancia = document.getElementById('gananciaHoy');
-    let totalHoy = 0;
-    
-    // Obtenemos la fecha de hoy en formato local (Día/Mes/Año)
-    const hoy = new Date().toLocaleDateString();
+                // Contar pendientes
+                if(item.estatus === 'En Proceso') countPendientes++;
 
-    snap.forEach(d => {
-        const item = d.data();
-        const fechaItem = item.fecha?.toDate().toLocaleDateString();
-
-        // Si el trámite es de hoy y no es un error (opcional), lo sumamos
-        if (fechaItem === hoy && item.estatus !== 'Error') {
-            totalHoy += Number(item.costo || 0);
-        }
-    });
-
-    // Formateamos a moneda MXN
-    txtGanancia.innerText = new Intl.NumberFormat('es-MX', { 
-        style: 'currency', 
-        currency: 'MXN' 
-    }).format(totalHoy);
-    
-    // ... (aquí sigue el resto de tu código de la tabla y contadores)
-});
+                // Sumar ganancia del día
+                const fechaItem = item.fecha?.toDate().toLocaleDateString();
+                if (fechaItem === hoy && item.estatus !== 'Error') {
+                    totalHoy += Number(item.costo || 0);
                 }
 
-                
-
-                // 2. Mostrar la documentación adjunta (INE, NSS, etc.)
+                // Generar HTML de documentos
+                let htmlDocs = "";
+                if (item.origen === "WEB" && item.comprobante) {
+                    htmlDocs += `<button onclick="window.open('${item.comprobante}','_blank')" class="bg-purple-600 text-white px-2 py-1 rounded text-[8px] font-black mb-2 block w-fit">💰 PAGO WEB</button>`;
+                }
                 if (item.documentacion) {
                     htmlDocs += `<div class="flex flex-wrap gap-1 mt-1">`;
                     Object.keys(item.documentacion).forEach(k => {
-                        htmlDocs += `<button onclick="window.open('${item.documentacion[k]}','_blank')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded text-[8px] font-black border border-slate-300">📄 ${k}</button>`;
+                        htmlDocs += `<button onclick="window.open('${item.documentacion[k]}','_blank')" class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[8px] font-black border border-slate-300">📄 ${k}</button>`;
                     });
                     htmlDocs += `</div>`;
                 }
 
-                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
+                const fechaStr = item.fecha?.toDate().toLocaleDateString() || '...';
                 const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
                 let colorClase = item.estatus === 'Terminado' ? "bg-green-50 text-green-600 border-green-200" : "bg-yellow-50 text-yellow-600 border-yellow-200";
                 if(item.estatus === 'Error') colorClase = "bg-red-50 text-red-600 border-red-200";
 
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50/20 transition">
-                        <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
+                        <td class="p-4 text-[10px] font-bold text-slate-400">${fechaStr}</td>
                         <td class="p-4">${origen}</td>
                         <td class="p-4">
                             <div class="font-black text-slate-700 uppercase text-[11px] mb-1">${item.tipo}</div>
@@ -215,19 +197,22 @@ onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap
                         </td>
                         <td class="p-4 text-right">
                             ${item.estatus !== 'Terminado' ? 
-                                `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm hover:bg-blue-700">Subir Final</button>` : 
-                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm hover:bg-green-600">Ver Final</button>`
+                                `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Subir Final</button>` : 
+                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Ver Final</button>`
                             }
                         </td>
                     </tr>`;
             });
-            contadorPendientes.innerText = count;
+
+            // Actualizar visualmente los contadores arriba
+            contadorPendientes.innerText = countPendientes;
+            txtGanancia.innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalHoy);
         });
 
         // RECARGAS ASESORES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
-            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">Sin recargas pendientes de asesores</td></tr>' : "";
+            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">Sin recargas pendientes</td></tr>' : "";
             snap.forEach(d => {
                 const r = d.data();
                 tabla.innerHTML += `
@@ -245,24 +230,22 @@ onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap
 
         // FUNCIONES GLOBALES
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm(`¿Aprobar saldo de $${monto} para este asesor?`)) return;
+            if(!confirm(`¿Aprobar saldo de $${monto}?`)) return;
             await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
             await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-            alert("Saldo cargado con éxito.");
+            alert("Saldo cargado.");
         };
 
         window.rechazarRecarga = async (docId, monto) => {
-            let msg = "¿Deseas eliminar este reporte de depósito?";
-            if(monto < 200) msg = "Este depósito es menor al mínimo de $200. ¿Confirmas su eliminación?";
-            if(!confirm(msg)) return;
+            if(!confirm("¿Eliminar este reporte?")) return;
             await deleteDoc(doc(db, "notificaciones_pago", docId));
-            alert("Reporte eliminado.");
+            alert("Eliminado.");
         };
 
         window.actualizarEstatus = async (id, est) => {
             const item = window.solicitudesData[id];
             if(est === "Error") {
-                const r = prompt("Trámite con error. Monto a reembolsar al asesor:");
+                const r = prompt("Monto a reembolsar:");
                 if(r === null) return;
                 if(item.asesor_uid && Number(r) > 0) await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(Number(r)) });
             }
@@ -274,7 +257,7 @@ onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap
 
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if(!file) return alert("Por favor selecciona el archivo final del trámite.");
+            if(!file) return alert("Selecciona el archivo.");
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
@@ -282,8 +265,8 @@ onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                alert("¡Trámite finalizado y enviado!"); cerrarSubida();
-            } catch(e) { alert("Error al subir archivo."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
+                alert("¡Finalizado!"); cerrarSubida();
+            } catch(e) { alert("Error."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
         };
 
         window.filtrarTabla = () => {
