@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Maestro | DPR Consultoría</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
@@ -40,7 +41,42 @@
                 </div>
             </div>
         </header>
+<header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+    <div>
+        <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">García, Nuevo León | Control Financiero</p>
+    </div>
+    
+    <div class="flex flex-wrap gap-4 w-full lg:w-auto">
+        <div class="flex-1 lg:flex-none bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl flex items-center gap-4 border-b-4 border-blue-800">
+            <span class="text-3xl">📋</span>
+            <div>
+                <p class="text-[9px] font-black uppercase opacity-70 mb-1">Pendientes</p>
+                <p id="contadorPendientes" class="text-2xl font-black">0</p>
+            </div>
+        </div>
 
+        <div class="flex-1 lg:flex-none bg-emerald-600 text-white p-5 rounded-[2rem] shadow-xl flex items-center gap-4 border-b-4 border-emerald-800">
+            <span class="text-3xl">💰</span>
+            <div>
+                <p class="text-[9px] font-black uppercase opacity-70 mb-1">Ganancia Hoy</p>
+                <p id="gananciaHoy" class="text-2xl font-black">$0.00</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="mb-12">
+    <div class="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden">
+        <h2 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+            Rendimiento Últimos 7 Días
+        </h2>
+        <div class="h-[250px] w-full">
+            <canvas id="graficoSemanal"></canvas>
+        </div>
+    </div>
+</section>
         <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas Asesores</span></h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
@@ -118,6 +154,7 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let idActual;
+        let miGrafico = null; // Pégalo junto a let idActual;
         window.solicitudesData = {};
 
         const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
@@ -140,6 +177,10 @@
 
             if (!ignoreFirst && sistemaListo && snap.docChanges().some(c => c.type === "added")) {
                 sonidoAlerta.play().catch(() => {});
+                const todasLasSolicitudes = [];
+    snap.forEach(doc => todasLasSolicitudes.push(doc.data()));
+    actualizarGrafico(todasLasSolicitudes);
+});
             }
             ignoreFirst = false;
 
@@ -274,7 +315,57 @@
             const rows = document.getElementById("tablaSolicitudes").getElementsByTagName("tr");
             for (let r of rows) {
                 r.style.display = r.innerText.toUpperCase().includes(val) ? "" : "none";
+           
+            function actualizarGrafico(solicitudes) {
+    const ctx = document.getElementById('graficoSemanal').getContext('2d');
+    const ultimos7Dias = [];
+    const montosPorDia = {};
+
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const fechaStr = d.toLocaleDateString();
+        ultimos7Dias.push(fechaStr);
+        montosPorDia[fechaStr] = 0;
+    }
+
+    solicitudes.forEach(s => {
+        const fechaS = s.fecha?.toDate().toLocaleDateString();
+        if (montosPorDia.hasOwnProperty(fechaS) && s.estatus !== 'Error') {
+            montosPorDia[fechaS] += Number(s.costo || 0);
+        }
+    });
+
+    if (miGrafico) miGrafico.destroy();
+    
+    miGrafico = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ultimos7Dias.map(f => f.split('/')[0] + ' Feb'), 
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: ultimos7Dias.map(f => montosPorDia[f]),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 4,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 3,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { font: { size: 10, weight: 'bold' } } },
+                x: { ticks: { font: { size: 10, weight: 'bold' } } }
             }
+        }
+    });
+}}
         };
     </script>
 </body>
