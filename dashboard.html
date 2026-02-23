@@ -60,18 +60,18 @@
                 <span class="text-2xl block mb-2">🏠</span>
                 <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
             </button>
-            <button onclick="mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">
+            <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">
                 <span class="text-2xl block mb-2">💰</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter text-blue-400 font-bold tracking-widest">ESTADOS CUENTA</span>
+                <span class="text-[10px] font-black uppercase tracking-tighter text-blue-400 font-bold">ESTADOS CUENTA</span>
             </button>
         </div>
 
         <div id="seccionAfore" class="hidden bg-slate-800/40 p-8 rounded-[2.5rem] border border-blue-500/20 mb-12 animate-fade">
-            <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Solicitud: Estado de Cuenta Afore</h2>
+            <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2 tracking-widest">1. Administradora</label>
-                    <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark text-sm font-bold">
+                <div>
+                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2">1. Administradora</label>
+                    <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark text-sm font-bold mt-1">
                         <option value="">-- Seleccionar Afore --</option>
                         <option value="Sura">Sura ($750)</option>
                         <option value="Invercap">Invercap ($1400)</option>
@@ -83,25 +83,20 @@
                         <option value="Banamex">Banamex ($1200)</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2 tracking-widest">2. NSS</label>
-                        <input type="text" id="nssAfore" maxlength="11" placeholder="11 DÍGITOS" class="input-dark font-black tracking-widest">
+                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2">2. NSS</label>
+                        <input type="text" id="nssAfore" maxlength="11" class="input-dark font-black">
                     </div>
                     <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2 tracking-widest">3. CURP</label>
-                        <input type="text" id="curpAfore" placeholder="CURP CLIENTE" class="input-dark uppercase font-black tracking-tighter">
+                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2">3. CURP</label>
+                        <input type="text" id="curpAfore" class="input-dark uppercase font-black">
                     </div>
                 </div>
             </div>
-            <div class="mt-8 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="text-center md:text-left">
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Costo del servicio</p>
-                    <p id="txtPrecioAfore" class="text-4xl font-black gold-text">$0.00</p>
-                </div>
-                <button onclick="window.pagarEstadoCuenta()" class="w-full md:w-auto bg-white text-slate-900 px-12 py-5 rounded-2xl font-black uppercase italic shadow-2xl hover:scale-105 transition active:scale-95">
-                    Confirmar Trámite
-                </button>
+            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
+                <div><p class="text-[10px] text-slate-500 uppercase">Costo</p><p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p></div>
+                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl hover:scale-105 transition">Confirmar</button>
             </div>
         </div>
 
@@ -135,13 +130,8 @@
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <h2 class="text-xl font-black text-white uppercase mb-6">Tu Saldo Disponible</h2>
+            <h2 class="text-xl font-black text-white uppercase mb-6">Tu Saldo</h2>
             <p id="txtSaldoGrande" class="text-5xl font-black gold-text mb-10">...</p>
-            <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 mb-6">
-                <p class="text-[9px] font-bold text-slate-400 uppercase mb-2 italic">Datos para recarga:</p>
-                <p class="text-lg font-black text-white tracking-widest">4915 6630 4036 4896</p>
-                <p class="text-[10px] font-bold text-red-500 uppercase mt-1">Banorte | DPR Consultoría</p>
-            </div>
             <div class="space-y-3">
                 <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark">
                 <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase font-bold text-center">
@@ -159,10 +149,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817",
-            storageBucket: "pensionsegura-9c817.firebasestorage.app",
-            messagingSenderId: "169500313261",
-            appId: "1:169500313261:web:15e2b662571df505d36824"
+            projectId: "pensionsegura-9c817"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -174,7 +161,6 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
-
         const PRECIOS_AFORE = { "Sura": 750, "Invercap": 1400, "Profuturo": 500, "Banorte": 600, "Coppel": 350, "Azteca": 350, "Principal": 750, "Banamex": 1200 };
 
         const TRAMITES = {
@@ -199,25 +185,24 @@
                 { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
                 { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
                 { id: 'MATRIMONIO', nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { id: 'DIVORCIO', nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { id: 'DEFUNCIÓN', nombre: 'Acta de Defunción', precio: 15, curp: true },
-                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true },
-                { id: 'CFE', nombre: 'RECIBO CFE', precio: 15, extra: 'NUMERO SERVICIO' }
+                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }
             ],
             'INF': [
                 { id: 'PRECA MEJVT', nombre: 'Mejoravit', precio: 120, nss: true, nac: true },
-                { id: 'PRECA LINEA II', nombre: 'Linea II', precio: 120, nss: true, nac: true },
                 { id: 'CUENTA', nombre: 'Crear cuenta Infonavit', precio: 150, nss: true, extra: 'TEL Y CORREO' },
-                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true },
-                { id: 'ESTADO DE CUENTA H', nombre: 'HISTÓRICO DE CUENTA', precio: 150, nss: true },
-                { id: 'DESVINC', nombre: 'DESVINCULAR DISPOSITIVO', precio: 150, nss: true },
-                { id: 'CONTRA', nombre: 'LOCALIZAR CONTRASEÑA', precio: 170, nss: true }
+                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true }
             ]
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
+            if (user) { 
+                userUID = user.uid; 
+                emailAsesor = user.email; 
+                escucharSaldo(); 
+                escucharHistorial(); 
+            } else { 
+                window.location.href = "login/index.html"; 
+            }
         });
 
         function escucharSaldo() {
@@ -234,13 +219,11 @@
         window.mostrarSeccionAfore = () => {
             document.getElementById('seccionAfore').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
-            window.scrollTo(0, 300);
         };
 
         window.actualizarPrecioAfore = () => {
             const afore = document.getElementById('selectAfore').value;
-            const precio = PRECIOS_AFORE[afore] || 0;
-            document.getElementById('txtPrecioAfore').innerText = `$${precio}.00`;
+            document.getElementById('txtPrecioAfore').innerText = `$${PRECIOS_AFORE[afore] || 0}.00`;
         };
 
         window.pagarEstadoCuenta = async () => {
@@ -248,21 +231,16 @@
             const nss = document.getElementById('nssAfore').value;
             const curp = document.getElementById('curpAfore').value;
             const costo = PRECIOS_AFORE[afore];
-
-            if (!afore || nss.length < 11 || curp.length < 10) return alert("Verifica los datos (NSS 11 dígitos y CURP válida).");
+            if (!afore || nss.length < 11 || curp.length < 10) return alert("Datos incompletos.");
             if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-
-            if (confirm(`¿Pagar $${costo} por Estado de Cuenta ${afore}?`)) {
-                try {
-                    await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                    await addDoc(collection(db, "solicitudes"), {
-                        asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                        tipo: `ESTADO DE CUENTA: ${afore}`, curp: curp.toUpperCase(),
-                        nss: nss, costo: costo, estatus: "En Proceso", fecha: serverTimestamp()
-                    });
-                    alert("Solicitud enviada.");
-                    document.getElementById('seccionAfore').classList.add('hidden');
-                } catch (e) { alert("Error."); }
+            if (confirm(`¿Pagar $${costo}?`)) {
+                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                await addDoc(collection(db, "solicitudes"), {
+                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                    tipo: `ECTA: ${afore}`, curp: curp.toUpperCase(), nss, costo, estatus: "En Proceso", fecha: serverTimestamp()
+                });
+                alert("Enviado.");
+                document.getElementById('seccionAfore').classList.add('hidden');
             }
         };
 
@@ -270,68 +248,58 @@
             document.getElementById('seccionAfore').classList.add('hidden');
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
-            let htmlStr = '';
-            const lista = TRAMITES[cat];
-            lista.forEach(t => {
-                htmlStr += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer hover:border-blue-500 transition shadow-lg">
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1 tracking-widest">$${t.precio}.00 MXN</p>
+                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
             });
-            listado.innerHTML = htmlStr;
-            window.scrollTo(0, 300);
+            listado.innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, prefijo, pideNss, pideNac, pideExtra) => {
+        window.prepararTramite = (nombre, costo, pref, pideNss, pideNac, pideEx) => {
             const content = document.getElementById('formContent');
-            let camposExtra = "";
-            if(pideNss) camposExtra += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-3 uppercase font-bold">`;
-            if(pideNac) camposExtra += `<label class="text-[9px] ml-2 text-slate-500 font-bold uppercase">Nacimiento:</label><input type="date" id="nac_p" class="input-dark mb-3">`;
-            if(pideExtra) camposExtra += `<input type="text" id="extra_p" placeholder="${pideExtra}" class="input-dark mb-3 uppercase font-bold">`;
-            
-            content.innerHTML = `<h2 class="text-2xl font-black text-white uppercase italic mb-6 gold-text">${nombre}</h2>
-                <div class="space-y-4">
-                    <input type="text" id="curp_p" placeholder="CURP DEL CLIENTE" class="input-dark uppercase font-bold">
-                    ${camposExtra}
-                    <textarea id="nota_p" placeholder="Notas adicionales..." class="input-dark h-20 text-sm"></textarea>
-                    <button id="btnPagar" class="w-full gold-gradient py-5 rounded-2xl font-black uppercase italic text-slate-900 shadow-xl">Confirmar Pago: $${costo}</button>
-                </div>`;
-            document.getElementById('btnPagar').onclick = () => window.confirmarCompra(nombre, costo, prefijo);
+            let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">`;
+            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
+            if(pideNac) fields += `<input type="date" id="nac_p" class="input-dark mb-4 w-full">`;
+            if(pideEx) fields += `<input type="text" id="extra_p" placeholder="${pideEx}" class="input-dark mb-4 w-full">`;
+            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl">Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (nombre, costo, prefijo) => {
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value.trim();
-            if (curp.length < 10) return alert("CURP inválida.");
-            const btn = document.getElementById('btnPagar');
-            btn.innerText = "PROCESANDO..."; btn.disabled = true;
-            try {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: nombre, folio: prefijo + "-" + Math.floor(1000 + Math.random() * 9000),
-                    curp: curp.toUpperCase(), nss: document.getElementById('nss_p')?.value || "N/A",
-                    nacimiento: document.getElementById('nac_p')?.value || "",
-                    infoExtra: document.getElementById('extra_p')?.value || "",
-                    estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("¡Trámite enviado!"); cerrarModal();
-            } catch (e) { alert("Error."); } finally { btn.disabled = false; btn.innerText = "Confirmar Pago"; }
+        window.confirmarCompra = async (n, c, p) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p').value;
+            await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - c });
+            await addDoc(collection(db, "solicitudes"), {
+                asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                tipo: n, folio: p + "-" + Math.floor(Math.random()*9000), curp: curp.toUpperCase(),
+                nss: document.getElementById('nss_p')?.value || "N/A", estatus: "En Proceso", fecha: serverTimestamp()
+            });
+            alert("Enviado."); cerrarModal();
         };
 
         function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(10));
+            // Quitamos el ORDER BY para evitar el error de índice y que se muestre siempre
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
             onSnapshot(q, (snap) => {
                 const lista = document.getElementById('listaHistorial');
+                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase tracking-widest">Aún no tienes solicitudes</td></tr>'; return; }
+                
+                let solicitudes = [];
+                snap.forEach(docSnap => solicitudes.push(docSnap.data()));
+                
+                // Ordenamos manualmente por fecha para que no falle Firebase
+                solicitudes.sort((a, b) => (b.fecha?.toMillis() || 0) - (a.fecha?.toMillis() || 0));
+
                 lista.innerHTML = "";
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase">Sin trámites</td></tr>'; return; }
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
+                solicitudes.forEach(d => {
                     let color = d.estatus === 'Terminado' ? "bg-green-500/10 text-green-500" : (d.estatus === 'Error' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500");
                     lista.innerHTML += `<tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
                         <td class="py-4 px-2 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                        <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}<br><span class="text-blue-400 text-[9px] tracking-widest">${d.folio || ''}</span></td>
+                        <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}</td>
                         <td class="py-4 px-2 text-center"><span class="status-badge ${color}">${d.estatus}</span></td>
                         <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
                     </tr>`;
@@ -341,22 +309,18 @@
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value.trim();
+            const r = document.getElementById('depRef').value;
             const f = document.getElementById('fileRecarga').files[0];
             if (!m || !r || !f) return alert("Faltan datos.");
-            const btn = document.getElementById('btnNotificar');
-            btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r, comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); cerrarModal();
-            } catch (e) { alert("Error."); } finally { btn.disabled = false; btn.innerText = "Informar Pago"; }
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+            const data = await res.json();
+            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+            alert("Reportado."); cerrarModal();
         };
 
-        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); document.body.style.overflow = 'auto'; };
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); };
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
     </script>
 </body>
