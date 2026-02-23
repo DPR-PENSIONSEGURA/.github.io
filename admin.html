@@ -16,10 +16,17 @@
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800">Panel <span class="text-blue-600">DPR Admin</span></h1>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">García, Nuevo León</p>
+            </div>
+            <div class="bg-blue-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-blue-800">
+                <span class="text-2xl">📋</span>
+                <div>
+                    <p class="text-[9px] font-black uppercase opacity-80">Trámites en Proceso</p>
+                    <p id="contadorPendientes" class="text-2xl font-black">0</p>
+                </div>
             </div>
         </header>
 
@@ -42,8 +49,7 @@
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-6 gap-4">
-                <h2 class="text-xl font-black uppercase italic text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites Realizados</span></h2>
-                
+                <h2 class="text-xl font-black uppercase italic text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites</span></h2>
                 <div class="relative w-full md:w-72">
                     <input type="text" id="buscadorInput" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR CURP O NOMBRE..." class="w-full p-3 pl-10 rounded-2xl border border-slate-200 shadow-sm text-[10px] font-bold uppercase outline-none focus:border-blue-500 transition-all">
                     <span class="absolute left-4 top-3.5 text-slate-400">🔍</span>
@@ -57,10 +63,10 @@
                             <tr class="text-white text-[10px] uppercase font-black tracking-widest">
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Origen</th>
-                                <th class="p-4 min-w-[150px]">Servicio / Docs</th>
-                                <th class="p-4">Cliente / Asesor</th>
-                                <th class="p-4">Estatus / Acción</th>
-                                <th class="p-4 text-right">Acción Final</th>
+                                <th class="p-4 min-w-[200px]">Servicio / Docs</th>
+                                <th class="p-4">Cliente / Info</th>
+                                <th class="p-4">Estatus</th>
+                                <th class="p-4 text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
@@ -73,8 +79,8 @@
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center border-t-8 border-blue-600">
             <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
-            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600"></p>
-            <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6">
+            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600 text-xs"></p>
+            <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6 border p-2 rounded-lg">
             <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Finalizar</button>
             <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
@@ -82,7 +88,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -103,173 +109,138 @@
         let idActual, folioActual;
         window.solicitudesData = {};
 
-        // --- SISTEMA DE SONIDO ACTUALIZADO ---
-        // He configurado el audio que solicitaste (Aplausos)
-        const sonidoAlerta = new Audio('http://googleusercontent.com/file_content/0');
+        // SONIDO Y NOTIFICACIONES
+        const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
         let sistemaListo = false;
         let ignoreFirst = true;
 
-        // Desbloquear audio tras el primer clic del administrador
-        window.addEventListener('click', () => {
-            if(!sistemaListo) {
-                sistemaListo = true;
-                sonidoAlerta.play().then(() => {
-                    sonidoAlerta.pause();
-                    sonidoAlerta.currentTime = 0;
-                }).catch(e => console.log("Audio desbloqueado"));
-            }
-        }, { once: true });
+        window.addEventListener('click', () => { if(!sistemaListo) sistemaListo = true; }, { once: true });
 
-        // Notificación de permisos
-        if (Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+        // ESCUCHA DE TRÁMITES EN TIEMPO REAL
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
+            const tabla = document.getElementById('tablaSolicitudes');
+            const contadorPendientes = document.getElementById('contadorPendientes');
+            let count = 0;
+            tabla.innerHTML = "";
 
-        // Escucha en tiempo real para activar el sonido
-        const qNotif = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1));
-        onSnapshot(qNotif, (snapshot) => {
-            if (ignoreFirst) {
-                ignoreFirst = false;
-                return; 
+            if (!ignoreFirst && sistemaListo && snap.docChanges().some(c => c.type === "added")) {
+                sonidoAlerta.play().catch(() => {});
             }
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added" && sistemaListo) {
-                    sonidoAlerta.play().catch(e => console.log("Interactúe con la página para activar sonido"));
-                    if (Notification.permission === "granted") {
-                        new Notification("🔔 Nueva Solicitud en DPR", {
-                            body: `Servicio: ${change.doc.data().tipo}`,
-                            icon: "https://pensionsegura.org/logo.png"
-                        });
-                    }
+            ignoreFirst = false;
+
+            snap.forEach(d => {
+                const item = d.data();
+                window.solicitudesData[d.id] = item;
+                if(item.estatus === 'En Proceso') count++;
+
+                // LÓGICA DE DOCUMENTOS
+                let htmlDocs = "";
+                if (item.documentacion) {
+                    htmlDocs = `<div class="flex flex-wrap gap-1 mt-2">`;
+                    Object.keys(item.documentacion).forEach(k => {
+                        htmlDocs += `<button onclick="window.open('${item.documentacion[k]}','_blank')" class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[8px] font-black border border-slate-200">📄 ${k}</button>`;
+                    });
+                    htmlDocs += `</div>`;
                 }
+
+                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
+                const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
+                let colorClase = item.estatus === 'Terminado' ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600";
+
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50/30 transition">
+                        <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
+                        <td class="p-4">${origen}</td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div>
+                            ${htmlDocs}
+                        </td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
+                            <div class="text-[9px] text-slate-500 font-bold italic">${item.curp || ''}</div>
+                            ${item.nss ? `<div class="text-[9px] text-blue-500 font-bold uppercase">NSS: ${item.nss}</div>` : ''}
+                        </td>
+                        <td class="p-4">
+                            <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold">
+                                <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
+                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                                <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-right">
+                            ${item.estatus !== 'Terminado' ? 
+                                `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Subir Final</button>` : 
+                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Ver Final</button>`
+                            }
+                        </td>
+                    </tr>`;
             });
+            contadorPendientes.innerText = count;
         });
 
-        // --- BUSCADOR ---
-        window.filtrarTabla = () => {
-            const input = document.getElementById("buscadorInput");
-            const filter = input.value.toUpperCase();
-            const tableBody = document.getElementById("tablaSolicitudes");
-            const tr = tableBody.getElementsByTagName("tr");
-
-            for (let i = 0; i < tr.length; i++) {
-                const td = tr[i].getElementsByTagName("td")[3]; // Celda de Cliente/CURP
-                if (td) {
-                    const txtValue = td.textContent || td.innerText;
-                    tr[i].style.display = txtValue.toUpperCase().includes(filter) ? "" : "none";
-                }
-            }
-        };
-
-        // --- RECARGAS ---
+        // LÓGICA DE RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
             tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">Sin recargas pendientes</td></tr>' : "";
             snap.forEach(d => {
                 const r = d.data();
                 tabla.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition">
-                        <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail || 'S/C'}</td>
+                    <tr class="border-b">
+                        <td class="p-5 font-black text-xs text-slate-700">${r.asesorEmail}</td>
                         <td class="p-5 font-black text-green-600 text-lg">$${r.monto}</td>
                         <td class="p-5"><button onclick="window.open('${r.comprobante}', '_blank')" class="text-blue-600 text-xs font-black uppercase underline">Ver Baucher</button></td>
-                        <td class="p-5 text-center"><button onclick="window.aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-sm">Aprobar</button></td>
-                    </tr>`;
-            });
-        });
-
-        // --- TABLA MAESTRA ---
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = "";
-            snap.forEach(d => {
-                const item = d.data();
-                window.solicitudesData[d.id] = item;
-                const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
-                const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
-                
-                let colorClase = "bg-yellow-50 text-yellow-600 border-yellow-200";
-                if(item.estatus === 'Terminado') colorClase = "bg-green-50 text-green-600 border-green-200";
-                if(item.estatus === 'Error' || item.estatus?.includes('Incorrecto')) colorClase = "bg-red-50 text-red-600 border-red-200";
-
-                tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50/30 transition">
-                        <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
-                        <td class="p-4">${origen}</td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div></td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
-                            <div class="text-[9px] text-slate-500 font-bold italic">${item.curp || ''}</div>
-                        </td>
-                        <td class="p-4">
-                            <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold shadow-sm">
-                                <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                                <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
-                                <option value="Pago Pendiente" ${item.estatus === 'Pago Pendiente' ? 'selected' : ''}>Pago Pendiente</option>
-                            </select>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex flex-col gap-2 items-end">
-                                ${item.estatus !== 'Terminado' ? 
-                                    `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm">Subir Archivo</button>` : 
-                                    `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase italic shadow-sm">Ver Final</button>`
-                                }
-                            </div>
+                        <td class="p-5 text-center flex gap-2 justify-center">
+                            <button onclick="window.aprobarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Aprobar</button>
+                            <button onclick="window.rechazarRecarga('${d.id}', ${r.monto})" class="bg-red-500 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase">Rechazar</button>
                         </td>
                     </tr>`;
             });
-            window.filtrarTabla(); // Mantiene el filtro si hay algo escrito
         });
 
         // FUNCIONES GLOBALES
-        window.actualizarEstatus = async (id, nuevoEstatus) => {
-            const item = window.solicitudesData[id];
-            if (nuevoEstatus === "Error") {
-                const montoStr = prompt(`Trámite fallido. ¿Cuánto reembolsar a ${item.nombre}?`);
-                if (montoStr === null) return;
-                const monto = parseFloat(montoStr);
-                if (isNaN(monto) || monto <= 0) return alert("Monto inválido.");
-                try {
-                    if (item.origen === "ASESOR" && item.asesor_uid) {
-                        await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(monto) });
-                    }
-                    await updateDoc(doc(db, "solicitudes", id), { estatus: "Error", reembolso: monto });
-                    alert("Reembolso listo.");
-                } catch (e) { alert("Error al procesar."); }
-            } else {
-                try { await updateDoc(doc(db, "solicitudes", id), { estatus: nuevoEstatus }); } catch (e) { alert("Error."); }
-            }
-        };
-
         window.aprobarRecarga = async (docId, asesorId, monto) => {
             if(!confirm(`¿Aprobar $${monto}?`)) return;
-            try {
-                await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo aprobado!");
-            } catch (e) { alert("Error en Firebase."); }
+            await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
+            await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+            alert("Saldo cargado.");
         };
 
-        window.prepararSubida = (id, folio) => { 
-            idActual = id; folioActual = folio; 
-            document.getElementById('txtFolioFinal').innerText = "Subiendo archivo para: " + folio;
-            document.getElementById('modalSubir').classList.remove('hidden'); 
+        window.rechazarRecarga = async (docId, monto) => {
+            let msg = monto < 200 ? "Esta recarga es menor al mínimo de $200. ¿Deseas eliminarla?" : "¿Deseas rechazar esta recarga?";
+            if(!confirm(msg)) return;
+            await deleteDoc(doc(db, "notificaciones_pago", docId));
+            alert("Recarga eliminada.");
         };
 
+        window.actualizarEstatus = async (id, est) => {
+            const item = window.solicitudesData[id];
+            if(est === "Error") {
+                const r = prompt("Monto a reembolsar:");
+                if(!r) return;
+                if(item.asesor_uid) await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(Number(r)) });
+            }
+            await updateDoc(doc(db, "solicitudes", id), { estatus: est });
+        };
+
+        window.prepararSubida = (id, fol) => { idActual = id; document.getElementById('txtFolioFinal').innerText = fol; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
 
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if (!file) return alert("Selecciona un archivo.");
-            const btn = document.getElementById('btnGuardarFinal');
-            btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            if(!file) return alert("Sube el archivo.");
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            try {
-                const r = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await r.json();
-                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-                alert("¡Finalizado!"); cerrarSubida();
-            } catch(e) { alert("Error de subida."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
+            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+            const data = await res.json();
+            await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
+            alert("Listo."); cerrarSubida();
+        };
+
+        window.filtrarTabla = () => {
+            const val = document.getElementById("buscadorInput").value.toUpperCase();
+            const rows = document.getElementById("tablaSolicitudes").getElementsByTagName("tr");
+            for (let r of rows) {
+                r.style.display = r.innerText.toUpperCase().includes(val) ? "" : "none";
+            }
         };
     </script>
 </body>
