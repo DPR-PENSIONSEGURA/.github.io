@@ -29,7 +29,13 @@
                 </div>
             </div>
         </header>
-
+<div class="bg-emerald-600 text-white p-4 rounded-3xl shadow-xl flex items-center gap-4 border-b-4 border-emerald-800">
+    <span class="text-2xl">💰</span>
+    <div>
+        <p class="text-[9px] font-black uppercase opacity-80">Ganancia de Hoy</p>
+        <p id="gananciaHoy" class="text-2xl font-black">$0.00</p>
+    </div>
+</div>
         <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas Asesores</span></h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
@@ -142,7 +148,35 @@
                                 class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-[8px] font-black border border-purple-800 shadow-sm mb-2 block w-fit transition-colors">
                             💰 VER COMPROBANTE WEB
                         </button>`;
+                // --- LÓGICA DE CORTE DIARIO ---
+onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
+    const txtGanancia = document.getElementById('gananciaHoy');
+    let totalHoy = 0;
+    
+    // Obtenemos la fecha de hoy en formato local (Día/Mes/Año)
+    const hoy = new Date().toLocaleDateString();
+
+    snap.forEach(d => {
+        const item = d.data();
+        const fechaItem = item.fecha?.toDate().toLocaleDateString();
+
+        // Si el trámite es de hoy y no es un error (opcional), lo sumamos
+        if (fechaItem === hoy && item.estatus !== 'Error') {
+            totalHoy += Number(item.costo || 0);
+        }
+    });
+
+    // Formateamos a moneda MXN
+    txtGanancia.innerText = new Intl.NumberFormat('es-MX', { 
+        style: 'currency', 
+        currency: 'MXN' 
+    }).format(totalHoy);
+    
+    // ... (aquí sigue el resto de tu código de la tabla y contadores)
+});
                 }
+
+                
 
                 // 2. Mostrar la documentación adjunta (INE, NSS, etc.)
                 if (item.documentacion) {
