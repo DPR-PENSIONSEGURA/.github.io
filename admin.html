@@ -31,8 +31,8 @@
         </header>
 
         <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas</span></h2>
-            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 seccion-titulo">Validación de <span class="text-blue-600">Recargas Asesores</span></h2>
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
                 <table class="w-full text-left">
                     <thead class="bg-slate-900 text-white uppercase text-[10px] tracking-widest">
                         <tr>
@@ -49,24 +49,24 @@
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-end md:items-center mb-6 gap-4">
-                <h2 class="text-xl font-black uppercase italic text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites</span></h2>
+                <h2 class="text-xl font-black uppercase italic text-slate-700 seccion-titulo">Gestión de <span class="text-blue-600">Trámites (Web y Asesores)</span></h2>
                 <div class="relative w-full md:w-72">
                     <input type="text" id="buscadorInput" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR CURP O NOMBRE..." class="w-full p-3 pl-10 rounded-2xl border border-slate-200 shadow-sm text-[10px] font-bold uppercase outline-none focus:border-blue-500 transition-all">
                     <span class="absolute left-4 top-3.5 text-slate-400">🔍</span>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto max-h-[750px] overflow-y-auto">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto max-h-[800px] overflow-y-auto">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-900 sticky top-0 z-10">
                             <tr class="text-white text-[10px] uppercase font-black tracking-widest">
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Origen</th>
-                                <th class="p-4 min-w-[200px]">Servicio / Docs</th>
+                                <th class="p-4 min-w-[220px]">Servicio / Documentación</th>
                                 <th class="p-4">Cliente / Info</th>
-                                <th class="p-4">Estatus</th>
-                                <th class="p-4 text-right">Acción</th>
+                                <th class="p-4 text-center">Estatus</th>
+                                <th class="p-4 text-right">Resultado Final</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-sm font-medium"></tbody>
@@ -78,17 +78,17 @@
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl text-center border-t-8 border-blue-600">
-            <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Finalizar Trámite</h2>
-            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600 text-xs"></p>
+            <h2 class="text-xl font-black mb-4 uppercase italic text-slate-800">Enviar Documento Final</h2>
+            <p id="txtFolioFinal" class="mb-4 font-bold text-blue-600 text-xs tracking-tighter"></p>
             <input type="file" id="archivoFinalInput" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir y Finalizar</button>
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-all">Subir y Finalizar</button>
             <button onclick="cerrarSubida()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -106,17 +106,16 @@
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let idActual, folioActual;
+        let idActual;
         window.solicitudesData = {};
 
-        // SONIDO Y NOTIFICACIONES
         const sonidoAlerta = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
         let sistemaListo = false;
         let ignoreFirst = true;
 
         window.addEventListener('click', () => { if(!sistemaListo) sistemaListo = true; }, { once: true });
 
-        // ESCUCHA DE TRÁMITES EN TIEMPO REAL
+        // --- TABLA MAESTRA CON LÓGICA DE COMPROBANTE WEB ---
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             const contadorPendientes = document.getElementById('contadorPendientes');
@@ -133,44 +132,57 @@
                 window.solicitudesData[d.id] = item;
                 if(item.estatus === 'En Proceso') count++;
 
-                // LÓGICA DE DOCUMENTOS
+                // --- LÓGICA DE DOCUMENTOS Y COMPROBANTES ---
                 let htmlDocs = "";
+                
+                // 1. Si es CLIENTE WEB, mostrar su comprobante de pago morado
+                if (item.origen === "WEB" && item.comprobante) {
+                    htmlDocs += `
+                        <button onclick="window.open('${item.comprobante}','_blank')" 
+                                class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-[8px] font-black border border-purple-800 shadow-sm mb-2 block w-fit transition-colors">
+                            💰 VER COMPROBANTE WEB
+                        </button>`;
+                }
+
+                // 2. Mostrar la documentación adjunta (INE, NSS, etc.)
                 if (item.documentacion) {
-                    htmlDocs = `<div class="flex flex-wrap gap-1 mt-2">`;
+                    htmlDocs += `<div class="flex flex-wrap gap-1 mt-1">`;
                     Object.keys(item.documentacion).forEach(k => {
-                        htmlDocs += `<button onclick="window.open('${item.documentacion[k]}','_blank')" class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[8px] font-black border border-slate-200">📄 ${k}</button>`;
+                        htmlDocs += `<button onclick="window.open('${item.documentacion[k]}','_blank')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded text-[8px] font-black border border-slate-300">📄 ${k}</button>`;
                     });
                     htmlDocs += `</div>`;
                 }
 
                 const fecha = item.fecha?.toDate().toLocaleDateString() || '...';
                 const origen = item.origen === "ASESOR" ? `<span class="badge-asesor">ASESOR</span>` : `<span class="badge-web">WEB</span>`;
-                let colorClase = item.estatus === 'Terminado' ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600";
+                let colorClase = item.estatus === 'Terminado' ? "bg-green-50 text-green-600 border-green-200" : "bg-yellow-50 text-yellow-600 border-yellow-200";
+                if(item.estatus === 'Error') colorClase = "bg-red-50 text-red-600 border-red-200";
 
                 tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50/30 transition">
+                    <tr class="border-b hover:bg-blue-50/20 transition">
                         <td class="p-4 text-[10px] font-bold text-slate-400">${fecha}</td>
                         <td class="p-4">${origen}</td>
                         <td class="p-4">
-                            <div class="font-black text-slate-700 uppercase text-xs">${item.tipo}</div>
+                            <div class="font-black text-slate-700 uppercase text-[11px] mb-1">${item.tipo}</div>
                             ${htmlDocs}
+                            ${item.infoExtra ? `<div class="text-[8px] text-blue-600 font-bold mt-1 uppercase italic bg-blue-50 p-1 rounded">Nota: ${item.infoExtra}</div>` : ''}
                         </td>
                         <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Sin Nombre'}</div>
+                            <div class="font-black text-slate-900 uppercase text-xs">${item.nombre || 'Cliente Web'}</div>
                             <div class="text-[9px] text-slate-500 font-bold italic">${item.curp || ''}</div>
-                            ${item.nss ? `<div class="text-[9px] text-blue-500 font-bold uppercase">NSS: ${item.nss}</div>` : ''}
+                            ${item.nss && item.nss !== 'N/A' ? `<div class="text-[9px] text-blue-500 font-bold uppercase">NSS: ${item.nss}</div>` : ''}
                         </td>
-                        <td class="p-4">
-                            <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1 rounded-md font-bold">
+                        <td class="p-4 text-center">
+                            <select onchange="window.actualizarEstatus('${d.id}', this.value)" class="${colorClase} border p-1.5 rounded-md font-bold text-[10px]">
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error (Reembolsar)</option>
+                                <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
                             ${item.estatus !== 'Terminado' ? 
-                                `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Subir Final</button>` : 
-                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm">Ver Final</button>`
+                                `<button onclick="window.prepararSubida('${d.id}', '${item.folio}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm hover:bg-blue-700">Subir Final</button>` : 
+                                `<button onclick="window.open('${item.archivoFinal}', '_blank')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black text-[9px] uppercase shadow-sm hover:bg-green-600">Ver Final</button>`
                             }
                         </td>
                     </tr>`;
@@ -178,10 +190,10 @@
             contadorPendientes.innerText = count;
         });
 
-        // LÓGICA DE RECARGAS
+        // RECARGAS ASESORES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const tabla = document.getElementById("tablaRecargas");
-            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">Sin recargas pendientes</td></tr>' : "";
+            tabla.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[9px]">Sin recargas pendientes de asesores</td></tr>' : "";
             snap.forEach(d => {
                 const r = d.data();
                 tabla.innerHTML += `
@@ -199,40 +211,45 @@
 
         // FUNCIONES GLOBALES
         window.aprobarRecarga = async (docId, asesorId, monto) => {
-            if(!confirm(`¿Aprobar $${monto}?`)) return;
+            if(!confirm(`¿Aprobar saldo de $${monto} para este asesor?`)) return;
             await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(monto) });
             await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-            alert("Saldo cargado.");
+            alert("Saldo cargado con éxito.");
         };
 
         window.rechazarRecarga = async (docId, monto) => {
-            let msg = monto < 200 ? "Esta recarga es menor al mínimo de $200. ¿Deseas eliminarla?" : "¿Deseas rechazar esta recarga?";
+            let msg = "¿Deseas eliminar este reporte de depósito?";
+            if(monto < 200) msg = "Este depósito es menor al mínimo de $200. ¿Confirmas su eliminación?";
             if(!confirm(msg)) return;
             await deleteDoc(doc(db, "notificaciones_pago", docId));
-            alert("Recarga eliminada.");
+            alert("Reporte eliminado.");
         };
 
         window.actualizarEstatus = async (id, est) => {
             const item = window.solicitudesData[id];
             if(est === "Error") {
-                const r = prompt("Monto a reembolsar:");
-                if(!r) return;
-                if(item.asesor_uid) await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(Number(r)) });
+                const r = prompt("Trámite con error. Monto a reembolsar al asesor:");
+                if(r === null) return;
+                if(item.asesor_uid && Number(r) > 0) await updateDoc(doc(db, "asesores", item.asesor_uid), { saldo: increment(Number(r)) });
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
-        window.prepararSubida = (id, fol) => { idActual = id; document.getElementById('txtFolioFinal').innerText = fol; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.prepararSubida = (id, fol) => { idActual = id; document.getElementById('txtFolioFinal').innerText = "TRÁMITE: " + fol; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarSubida = () => document.getElementById('modalSubir').classList.add('hidden');
 
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const file = document.getElementById('archivoFinalInput').files[0];
-            if(!file) return alert("Sube el archivo.");
+            if(!file) return alert("Por favor selecciona el archivo final del trámite.");
+            const btn = document.getElementById('btnGuardarFinal');
+            btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-            const data = await res.json();
-            await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-            alert("Listo."); cerrarSubida();
+            try {
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await updateDoc(doc(db, "solicitudes", idActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
+                alert("¡Trámite finalizado y enviado!"); cerrarSubida();
+            } catch(e) { alert("Error al subir archivo."); } finally { btn.innerText = "Subir y Finalizar"; btn.disabled = false; }
         };
 
         window.filtrarTabla = () => {
