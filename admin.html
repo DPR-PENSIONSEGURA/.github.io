@@ -111,7 +111,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, addDoc, where, orderBy, doc, updateDoc, increment, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -129,19 +129,27 @@
         let miGrafico = null, idTramiteActual = "";
         window.solicitudesCache = {};
 
+        // Función auxiliar para normalizar fechas y evitar errores de comparación
+        const obtenerFechaSimple = (fecha) => {
+            if (!fecha) return null;
+            const d = fecha instanceof Date ? fecha : (fecha.toDate ? fecha.toDate() : new Date(fecha));
+            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+        };
+
         // 1. ESCUCHAR VISITAS DE HOY
         const hoyISO = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyISO), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
 
-        // 2. ESCUCHAR TRÁMITES, GANANCIAS Y GRÁFICO
+        // 2. ESCUCHAR TRÁMITES Y GANANCIAS
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             const txtGanancia = document.getElementById('gananciaHoy');
             const txtPendientes = document.getElementById('contadorPendientes');
             
-            let totalHoy = 0, pendientes = 0, hoyLocal = new Date().toLocaleDateString();
+            let totalHoy = 0, pendientes = 0;
+            const hoyNormalizado = obtenerFechaSimple(new Date());
             const dataGrafico = {};
 
             tabla.innerHTML = "";
@@ -150,16 +158,21 @@
                 const id = d.id;
                 window.solicitudesCache[id] = item;
 
-                if(item.estatus === 'En Proceso') pendientes++;
                 const fechaItem = item.fecha?.toDate().toLocaleDateString();
-                if(fechaItem === hoyLocal && item.estatus !== 'Error') totalHoy += Number(item.costo || 0);
+                const fechaNormalizada = obtenerFechaSimple(item.fecha);
 
-                // Lógica Gráfico (últimos 7 días)
+                if(item.estatus === 'En Proceso') pendientes++;
+                
+                // Sumar si la fecha normalizada coincide y no es error
+                if(fechaNormalizada === hoyNormalizado && item.estatus !== 'Error') {
+                    totalHoy += Number(item.costo || 0);
+                }
+
+                // Lógica Gráfico
                 if(item.estatus !== 'Error') {
                     dataGrafico[fechaItem] = (dataGrafico[fechaItem] || 0) + Number(item.costo || 0);
                 }
 
-                // Render Tabla
                 let docs = item.comprobante ? `<button onclick="window.open('${item.comprobante}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[8px] font-bold mr-1">PAGO WEB</button>` : "";
                 if(item.documentacion) {
                     Object.keys(item.documentacion).forEach(k => {
@@ -193,7 +206,7 @@
             dibujarGrafico(dataGrafico);
         });
 
-        // 3. ESCUCHAR RECARGAS PENDIENTES
+        // 3. VALIDAR RECARGAS Y SUMARLAS A INGRESOS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas');
             t.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Sin recargas pendientes</td></tr>' : "";
@@ -202,6 +215,31 @@
                 t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-slate-700">${r.asesorEmail}</td><td class="p-5 font-black text-green-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-bold">Ver Baucher</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td></tr>`;
             });
         });
+
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if(est === 'aprobado') {
+                try {
+                    await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                    await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                    
+                    // Crear registro en solicitudes para que sume a la ganancia de hoy
+                    await addDoc(collection(db, "solicitudes"), {
+                        tipo: "RECARGA SALDO",
+                        costo: Number(monto),
+                        fecha: Timestamp.now(),
+                        nombre: "ABONO DE ASESOR",
+                        curp: "SISTEMA",
+                        estatus: "Terminado"
+                    });
+                    
+                    alert("Saldo cargado e ingreso registrado correctamente.");
+                } catch (e) { alert("Error al procesar: " + e.message); }
+            } else {
+                if(confirm("¿Eliminar este reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
+            }
+        };
+
+        // --- FUNCIONES DE APOYO ---
 
         function dibujarGrafico(datos) {
             const ctx = document.getElementById('graficoSemanal').getContext('2d');
@@ -219,16 +257,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
-
-        window.validarRecarga = async (docId, uid, monto, est) => {
-            if(est === 'aprobado') {
-                await updateDoc(doc(db, "asesores", uid), { saldo: increment(monto) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("Saldo cargado.");
-            } else {
-                if(confirm("¿Eliminar este reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
-            }
-        };
 
         window.cambiarEstatus = async (id, est) => {
             if(est === 'Error') {
