@@ -143,15 +143,21 @@
 
         const MSG_SUBE_PAGO = `<h2 class="block text-[10px] font-black mb-1 uppercase text-red-600 italic">SUBE TU COMPROBANTE DE PAGO</h2>`;
 
-        async function registrarVisita() {
-    const visitaRef = doc(db, "estadisticas", "visitas_totales");
+        async function registrarVisitaDiaria() {
+    // Obtenemos la fecha de hoy en formato AAAA-MM-DD
+    const hoy = new Date().toISOString().split('T')[0]; 
+    const visitaRef = doc(db, "visitas_diarias", hoy);
+
     try {
-        // Intentamos incrementar el contador
         await updateDoc(visitaRef, { 
-            contador: increment(1),
-            ultima_visita: new Date()
+            contador: increment(1) 
         });
     } catch (e) {
+        // Si es la primera visita del día, el documento no existe, así que lo creamos
+        await setDoc(visitaRef, { contador: 1, fecha: hoy });
+    
+}
+registrarVisitaDiaria();{
         // Si el documento no existe (primera vez), lo creamos
         await setDoc(visitaRef, { contador: 1, ultima_visita: new Date() });
     }
@@ -395,6 +401,7 @@
     </script>
 </body>
 </html>
+
 
 
 
