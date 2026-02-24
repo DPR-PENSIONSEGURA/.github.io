@@ -15,11 +15,35 @@
         .banorte-box { background-color: #EB0029; color: white; padding: 1.25rem; border-radius: 1.5rem; margin-bottom: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2); }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* ESTILOS DEL AVISO DESLIZANTE */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: inline-flex;
+            animation: marquee 20s linear infinite;
+        }
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+    <div class="bg-yellow-400 py-2 overflow-hidden border-b border-yellow-600 shadow-lg fixed top-0 w-full z-50">
+        <div class="whitespace-nowrap animate-marquee flex items-center">
+            <span class="text-slate-900 font-black uppercase italic text-[10px] mx-4">
+                ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
+            </span>
+            <span class="text-slate-900 font-black uppercase italic text-[10px] mx-4">
+                ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
+            </span>
+        </div>
+    </div>
+
+    <header class="sticky top-10 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 mt-10">
         <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
@@ -137,20 +161,19 @@
             };
 
             if (tipo === 'modalInfo') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic text-center">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4 text-center">Asesoría profesional en pensiones e IMSS.</p>`;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic text-center">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4 text-center">Asesoría profesional en pensiones.</p>`;
             } else if (tipo === 'modalEstatus') {
                 contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">Estatus</h2><input type="text" id="folioBusqueda" placeholder="FOLIO" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2 uppercase"><button onclick="buscarEstatus()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button><div id="resBus" class="mt-6 hidden p-6 text-center font-black border-2"></div>`;
             } else if (tipo === 'modalLey') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año alta" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
             } else if (tipo === 'modalDocs') {
                 contenido.innerHTML = `
-                <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic text-center">Documentos</h2>
-                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic text-center">$15 MXN</p>
+                <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Documentos</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">$15 MXN</p>
                 ${HTML_PAGO}
                 <div class="space-y-3">
-                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border font-bold uppercase">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border uppercase font-bold">
                     <input type="text" id="curp_p" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 uppercase font-bold">
-                    
                     <select id="extra_p" onchange="window.toggleNssDoc()" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black uppercase text-xs">
                         <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
                         <option value="Acta de Matrimonio">Acta de Matrimonio</option>
@@ -158,16 +181,13 @@
                         <option value="Acta de Divorcio">Acta de Divorcio</option>
                         <option value="Acta de Defunción">Acta de Defunción</option>
                         <option value="Vigencia de Derechos">Vigencia de Derechos</option>
-                        <option value="Tarjeta NSS">Tarjeta NSS / Localizar NSS</option>
+                        <option value="Tarjeta NSS">Tarjeta NSS</option>
                         <option value="Localizar Afore">Localizar AFORE</option>
                     </select>
-
-                    <div id="contenedorNssDoc" class="hidden animate-fade">
+                    <div id="contenedorNssDoc" class="hidden">
                         <input type="text" id="nss_p_doc" placeholder="NSS (REQUERIDO)" class="w-full p-4 bg-blue-50 rounded-2xl border-2 border-blue-400 font-black" maxlength="11">
-                        <p class="text-[8px] text-blue-600 font-black uppercase mt-1 ml-2 italic">* Este trámite requiere NSS</p>
                     </div>
-
-                    <h2 class="text-[10px] font-black text-red-600 italic uppercase ml-2">Sube comprobante</h2>
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
                     <input type="file" id="file_p" class="block w-full text-xs">
                 </div>
                 <button onclick="ejecutarEnvio('DOC', 15)" id="btn_envio" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar</button>
@@ -175,15 +195,15 @@
             } else {
                 const s = confs[tipo];
                 contenido.innerHTML = `
-                <h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic text-center">${s.t}</h2>
-                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic text-center">Costo: $${s.p}</p>
+                <h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic">${s.t}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: $${s.p}</p>
                 ${HTML_PAGO}
                 <div class="space-y-2">
-                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border font-bold uppercase">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border uppercase font-bold">
                     <input type="text" id="curp_p" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border uppercase font-bold">
                     <input type="text" id="nss_p" placeholder="NSS (Si aplica)" class="w-full p-3 bg-slate-50 rounded-xl border font-bold" maxlength="11">
                     <input type="tel" id="tel_p" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border font-bold">
-                    <h2 class="text-[10px] font-black text-red-600 italic uppercase ml-2">Sube comprobante</h2>
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
                     <input type="file" id="file_p" class="block w-full text-xs">
                 </div>
                 <button onclick="ejecutarEnvio('${s.x}', ${s.p})" id="btn_envio" class="w-full bg-${s.c} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
@@ -204,19 +224,16 @@
         window.ejecutarEnvio = async (prefix, costo) => {
             const btn = document.getElementById('btn_envio');
             const file = document.getElementById('file_p').files[0];
-            if (!file) return alert("Sube el comprobante de pago.");
+            if (!file) return alert("Sube el comprobante.");
             
             let tipoServicio = prefix;
             let nssFinal = document.getElementById('nss_p')?.value || "N/A";
 
-            // Validar NSS si es DOC especial
             if(prefix === 'DOC') {
                 tipoServicio = document.getElementById('extra_p').value;
-                if(!tipoServicio) return alert("Selecciona el tipo de documento.");
-                
                 if (tipoServicio === 'Vigencia de Derechos' || tipoServicio === 'Tarjeta NSS') {
                     nssFinal = document.getElementById('nss_p_doc').value;
-                    if (!nssFinal || nssFinal.length < 11) return alert("Por favor ingresa un NSS válido (11 dígitos).");
+                    if (!nssFinal || nssFinal.length < 11) return alert("NSS requerido.");
                 }
             }
 
@@ -225,42 +242,33 @@
                 const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
                 const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const dImg = await resp.json();
-                
                 const folioStr = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
-
                 await addDoc(collection(db, "solicitudes"), {
-                    origen: "WEB", 
-                    folio: folioStr, 
-                    tipo: tipoServicio,
-                    costo: Number(costo),
+                    origen: "WEB", folio: folioStr, tipo: tipoServicio, costo: Number(costo),
                     nombre: document.getElementById('nombre_p')?.value || "CLIENTE WEB",
                     curp: document.getElementById('curp_p').value.toUpperCase(),
-                    nss: nssFinal,
-                    tel: document.getElementById('tel_p')?.value || "N/A",
-                    comprobante: dImg.secure_url, 
-                    estatus: "En Proceso", 
-                    fecha: serverTimestamp()
+                    nss: nssFinal, tel: document.getElementById('tel_p')?.value || "N/A",
+                    comprobante: dImg.secure_url, estatus: "En Proceso", fecha: serverTimestamp()
                 });
-                
                 document.getElementById('exito_p').classList.remove('hidden');
-                btn.innerText = "¡FOLIO: " + folioStr + "!";
-                alert("¡Solicitud enviada! Tu folio es: " + folioStr);
-            } catch(e) { alert("Error al enviar."); btn.disabled = false; btn.innerText = "Reintentar"; }
+                btn.innerText = "¡ENVIADO!";
+                alert("Enviado con Folio: " + folioStr);
+            } catch(e) { alert("Error."); btn.disabled = false; btn.innerText = "Reintentar"; }
         };
 
         window.buscarEstatus = async () => {
             const f = document.getElementById('folioBusqueda').value.trim().toUpperCase();
             const res = document.getElementById('resBus');
-            if(!f) return alert("Ingresa tu folio");
+            if(!f) return alert("Ingresa folio");
             res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
             const q = query(collection(db, "solicitudes"), where("folio", "==", f));
             const snap = await getDocs(q);
-            if (snap.empty) { res.innerText = "NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700 rounded-[2rem]"; }
+            if (snap.empty) { res.innerText = "NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700"; }
             else {
                 snap.forEach(doc => {
                     const d = doc.data();
-                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black italic block">📥 BAJAR RESULTADO</a>`;
-                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 rounded-[2rem] italic uppercase"; }
+                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black italic block uppercase">📥 Descargar</a>`;
+                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 italic"; }
                 });
             }
         };
@@ -268,10 +276,9 @@
         window.verificarLey = () => {
             const a = document.getElementById('anioLey').value;
             const r = document.getElementById('resLey');
-            if(!a) return;
             r.classList.remove('hidden');
-            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
-            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
+            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 font-black"; }
+            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 font-black"; }
         };
 
         window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); };
