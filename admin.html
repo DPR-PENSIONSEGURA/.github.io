@@ -22,7 +22,14 @@
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">García, Nuevo León | Control Financiero</p>
             </div>
-            
+
+            <div class="flex-1 lg:flex-none bg-slate-800 text-white p-5 rounded-[2rem] shadow-xl flex items-center gap-4 border-b-4 border-slate-900">
+    <span class="text-3xl">👥</span>
+    <div>
+        <p class="text-[9px] font-black uppercase opacity-70 mb-1">Visitas Totales</p>
+        <p id="txtVisitas" class="text-2xl font-black">0</p>
+    </div>
+</div>
             <div class="flex flex-wrap gap-4 w-full lg:w-auto">
                 <div class="flex-1 lg:flex-none bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl flex items-center gap-4 border-b-4 border-blue-800">
                     <span class="text-3xl">📋</span>
@@ -149,7 +156,31 @@
             const solicitudesParaGrafico = [];
 
             tabla.innerHTML = "";
+// Escuchar el contador de visitas en tiempo real
+onSnapshot(doc(db, "estadisticas", "visitas_totales"), (docSnap) => {
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById('txtVisitas').innerText = data.contador.toLocaleString();
+    }
+    <div class="flex-1 lg:flex-none bg-orange-500 text-white p-5 rounded-[2rem] shadow-xl flex items-center gap-4 border-b-4 border-orange-700">
+    <span class="text-3xl">🔥</span>
+    <div>
+        <p class="text-[9px] font-black uppercase opacity-70 mb-1">Visitas de Hoy</p>
+        <p id="txtVisitas" class="text-2xl font-black">0</p>
+    </div>
+</div>
+           // Obtener fecha de hoy para filtrar la visita
+const fechaHoy = new Date().toISOString().split('T')[0];
 
+onSnapshot(doc(db, "visitas_diarias", fechaHoy), (docSnap) => {
+    const txt = document.getElementById('txtVisitas');
+    if (docSnap.exists()) {
+        txt.innerText = docSnap.data().contador;
+    } else {
+        txt.innerText = "0";
+    }
+});
+});
             if (!ignoreFirst && sistemaListo && snap.docChanges().some(c => c.type === "added")) {
                 sonidoAlerta.play().catch(() => {});
             }
