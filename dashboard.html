@@ -70,7 +70,7 @@
             <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2">1. Administradora</label>
+                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2">Administradora</label>
                     <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark text-sm font-bold mt-1">
                         <option value="">-- Seleccionar Afore --</option>
                         <option value="Sura">Sura ($750)</option>
@@ -84,19 +84,13 @@
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2">2. NSS</label>
-                        <input type="text" id="nssAfore" maxlength="11" class="input-dark font-black">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-slate-500 font-black ml-2">3. CURP</label>
-                        <input type="text" id="curpAfore" class="input-dark uppercase font-black">
-                    </div>
+                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS (11 DÍGITOS)" class="input-dark font-black">
+                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase font-black">
                 </div>
             </div>
             <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
                 <div><p class="text-[10px] text-slate-500 uppercase">Costo</p><p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p></div>
-                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl hover:scale-105 transition">Confirmar</button>
+                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl hover:scale-105 transition">Confirmar Pago</button>
             </div>
         </div>
 
@@ -130,7 +124,7 @@
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <h2 class="text-xl font-black text-white uppercase mb-6">Tu Saldo</h2>
+            <h2 class="text-xl font-black text-white uppercase mb-6 tracking-tighter">Recargar Saldo</h2>
             <p id="txtSaldoGrande" class="text-5xl font-black gold-text mb-10">...</p>
             <div class="space-y-3">
                 <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark">
@@ -143,7 +137,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -184,7 +178,6 @@
                 { id: 'VIGENCIA', nombre: 'Vigencia de Derechos', precio: 13, curp: true },
                 { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
                 { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { id: 'MATRIMONIO', nombre: 'Acta de Matrimonio', precio: 15, curp: true },
                 { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }
             ],
             'INF': [
@@ -195,14 +188,8 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { 
-                userUID = user.uid; 
-                emailAsesor = user.email; 
-                escucharSaldo(); 
-                escucharHistorial(); 
-            } else { 
-                window.location.href = "login/index.html"; 
-            }
+            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
+            else { window.location.href = "login/index.html"; }
         });
 
         function escucharSaldo() {
@@ -234,13 +221,12 @@
             if (!afore || nss.length < 11 || curp.length < 10) return alert("Datos incompletos.");
             if (saldoGlobal < costo) return alert("Saldo insuficiente.");
             if (confirm(`¿Pagar $${costo}?`)) {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - costo });
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-costo) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
                     tipo: `ECTA: ${afore}`, curp: curp.toUpperCase(), nss, costo, estatus: "En Proceso", fecha: serverTimestamp()
                 });
-                alert("Enviado.");
-                document.getElementById('seccionAfore').classList.add('hidden');
+                alert("Enviado."); document.getElementById('seccionAfore').classList.add('hidden');
             }
         };
 
@@ -250,7 +236,7 @@
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer">
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer transition-all">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
                     <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
@@ -261,39 +247,35 @@
         window.prepararTramite = (nombre, costo, pref, pideNss, pideNac, pideEx) => {
             const content = document.getElementById('formContent');
             let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">`;
-            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
-            if(pideNac) fields += `<input type="date" id="nac_p" class="input-dark mb-4 w-full">`;
+            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">`;
+            if(pideNac) fields += `<label class="text-[9px] ml-2 text-slate-500 uppercase font-bold">Nacimiento</label><input type="date" id="nac_p" class="input-dark mb-4 w-full">`;
             if(pideEx) fields += `<input type="text" id="extra_p" placeholder="${pideEx}" class="input-dark mb-4 w-full">`;
-            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl">Confirmar y Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (n, c, p) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const curp = document.getElementById('curp_p').value;
-            await updateDoc(doc(db, "asesores", userUID), { saldo: saldoGlobal - c });
+            if(!curp) return alert("Ingresa la CURP.");
+            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
             await addDoc(collection(db, "solicitudes"), {
                 asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                tipo: n, folio: p + "-" + Math.floor(Math.random()*9000), curp: curp.toUpperCase(),
+                tipo: n, costo: c, folio: p + "-" + Math.floor(Math.random()*9000), curp: curp.toUpperCase(),
                 nss: document.getElementById('nss_p')?.value || "N/A", estatus: "En Proceso", fecha: serverTimestamp()
             });
-            alert("Enviado."); cerrarModal();
+            alert("Enviado con éxito."); cerrarModal();
         };
 
         function escucharHistorial() {
-            // Quitamos el ORDER BY para evitar el error de índice y que se muestre siempre
             const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
             onSnapshot(q, (snap) => {
                 const lista = document.getElementById('listaHistorial');
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase tracking-widest">Aún no tienes solicitudes</td></tr>'; return; }
-                
+                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase tracking-widest">Sin solicitudes</td></tr>'; return; }
                 let solicitudes = [];
                 snap.forEach(docSnap => solicitudes.push(docSnap.data()));
-                
-                // Ordenamos manualmente por fecha para que no falle Firebase
                 solicitudes.sort((a, b) => (b.fecha?.toMillis() || 0) - (a.fecha?.toMillis() || 0));
-
                 lista.innerHTML = "";
                 solicitudes.forEach(d => {
                     let color = d.estatus === 'Terminado' ? "bg-green-500/10 text-green-500" : (d.estatus === 'Error' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500");
