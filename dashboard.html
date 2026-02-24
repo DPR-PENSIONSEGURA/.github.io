@@ -18,6 +18,31 @@
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
+    <div class="bg-yellow-400 py-2 overflow-hidden border-b border-yellow-600 shadow-lg">
+    <div class="whitespace-nowrap animate-marquee flex items-center">
+        <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
+            ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
+        </span>
+        <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
+            ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
+        </span>
+    </div>
+</div>
+
+<style>
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+        display: inline-flex;
+        animation: marquee 20s linear infinite;
+    }
+    /* Pausar al pasar el ratón para que puedan leer bien */
+    .animate-marquee:hover {
+        animation-play-state: paused;
+    }
+</style>
 </head>
 <body>
 
