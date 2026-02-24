@@ -114,6 +114,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, updateDoc, increment, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -142,6 +143,20 @@
 
         const MSG_SUBE_PAGO = `<h2 class="block text-[10px] font-black mb-1 uppercase text-red-600 italic">SUBE TU COMPROBANTE DE PAGO</h2>`;
 
+        async function registrarVisita() {
+    const visitaRef = doc(db, "estadisticas", "visitas_totales");
+    try {
+        // Intentamos incrementar el contador
+        await updateDoc(visitaRef, { 
+            contador: increment(1),
+            ultima_visita: new Date()
+        });
+    } catch (e) {
+        // Si el documento no existe (primera vez), lo creamos
+        await setDoc(visitaRef, { contador: 1, ultima_visita: new Date() });
+    }
+}
+        
         window.abrirModal = (tipo) => {
             const modal = document.getElementById('modalBase');
             const contenido = document.getElementById('contenidoModal');
@@ -380,6 +395,7 @@
     </script>
 </body>
 </html>
+
 
 
 
