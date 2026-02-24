@@ -177,6 +177,10 @@
                             <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase">
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
+                                <option value="EL NSS NO COICIDE CON LA CURP" ${item.estatus === 'NSS NO COINCIDE CON CURP' ? 'selected' : ''}>EL NSS NO COICIDE CON LA CURP</option>
+                                <option value="SOLO SE PUEDE HACER UNA CONSULTA AL DIA" ${item.estatus === 'SOLO SE PUEDE HACER UNA CONSULTA AL DIA' ? 'selected' : ''}>SOLO SE PUEDE HACER UNA CONSULTA AL DIA</option>
+                                
+                                <option value="ERROR EN LOS DATOS" ${item.estatus === 'ERROR EN LOS DATOS' ? 'selected' : ''}>ERROR EN LOS DATOS</option>
                                 <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error</option>
                             </select>
                         </td>
