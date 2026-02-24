@@ -44,46 +44,39 @@
             <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
             <p class="text-blue-600 font-bold text-[10px] uppercase">Gratis</p>
         </button>
-
         <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">⚡</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Rápido</h3>
+            <h3 class="font-black text-xl uppercase italic">Análisis Rápido</h3>
             <p class="text-blue-600 font-bold text-[10px] uppercase">$200 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📊</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Detallado</h3>
+            <h3 class="font-black text-xl uppercase italic">Análisis Detallado</h3>
             <p class="text-blue-200 font-bold text-[10px] uppercase">$800 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">🏠</span>
             <h3 class="font-black text-xl uppercase italic">Precalificación Infonavit</h3>
             <p class="text-red-200 font-bold text-[10px] uppercase">$210 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">🆔</span>
             <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
             <p class="text-blue-600 font-bold text-[10px] uppercase">$35 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">✅</span>
             <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
             <p class="text-blue-600 font-bold text-[10px] uppercase">$140 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📜</span>
             <h3 class="font-black text-xl uppercase italic">CSF Original</h3>
             <p class="text-blue-200 font-bold text-[10px] uppercase">$230 MXN</p>
         </button>
-
         <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">📄</span>
-            <h3 class="font-black text-xl uppercase italic">Documentos (Actas/Vigencia)</h3>
+            <h3 class="font-black text-xl uppercase italic">Documentos</h3>
             <p class="text-blue-600 font-bold text-[10px] uppercase">$15 MXN</p>
         </button>
     </main>
@@ -115,7 +108,6 @@
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // REGISTRO DE VISITAS DIARIAS
         async function registrarVisitaDiaria() {
             const hoy = new Date().toISOString().split('T')[0]; 
             const visitaRef = doc(db, "visitas_diarias", hoy);
@@ -124,7 +116,7 @@
         }
         registrarVisitaDiaria();
 
-        const HTML_PAGO = `<div class="banorte-box"><p class="text-[10px] font-black uppercase mb-1 opacity-80">Transferencia Banorte</p><p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p><p class="text-[11px] font-bold uppercase italic">DPR Consultoría</p></div>`;
+        const HTML_PAGO = `<div class="banorte-box"><p class="text-[10px] font-black uppercase mb-1 opacity-80">Transferencia Banorte</p><p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p><p class="text-[11px] font-bold uppercase italic text-white">Diana Puente Rodriguez</p></div>`;
 
         window.abrirModal = (tipo) => {
             const modal = document.getElementById('modalBase');
@@ -133,50 +125,126 @@
             modal.classList.remove('hidden');
             contenido.innerHTML = "";
 
+            const confs = {
+                'modalRapido': { t: 'Análisis Rápido', p: 200, x: 'R', c: 'blue-600' },
+                'modalDetallado': { t: 'Análisis Detallado', p: 800, x: 'D', c: 'blue-600' },
+                'modalInfonavit': { t: 'Precalificación Infonavit', p: 210, x: 'INF', c: 'red-600' },
+                'modalRFC': { t: 'RFC Clon', p: 35, x: 'RFC', c: 'blue-600' },
+                'modalRFCV': { t: 'RFC Verificable', p: 140, x: 'RFCV', c: 'blue-600' },
+                'modalCSF': { t: 'CSF Original', p: 230, x: 'CSF', c: 'blue-800' }
+            };
+
             if (tipo === 'modalInfo') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4">Especialistas en pensiones IMSS e Infonavit.</p><p class="text-xs font-bold text-blue-600">García, N.L. - Calle Lerdo de Tejada #113</p>`;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic text-center">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4 text-center">Asesoría profesional en pensiones.</p>`;
             } else if (tipo === 'modalEstatus') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">Estatus</h2><input type="text" id="folioBusqueda" placeholder="FOLIO (EJ: R-1234)" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black uppercase border-2"><button onclick="buscarEstatus()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button><div id="resBus" class="mt-6 hidden p-6 rounded-[2rem] text-center font-black border-2"></div>`;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">Estatus</h2><input type="text" id="folioBusqueda" placeholder="FOLIO" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2"><button onclick="buscarEstatus()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button><div id="resBus" class="mt-6 hidden p-6 text-center font-black border-2"></div>`;
             } else if (tipo === 'modalLey') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año de primer alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
             } else if (tipo === 'modalDocs') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Documentos</h2><p class="text-[10px] font-black text-slate-400 mb-4 uppercase">$15 MXN</p>${HTML_PAGO}<div class="space-y-3"><input type="text" id="curp_p" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 uppercase font-bold"><select id="extra_p" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black uppercase text-xs"><option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option><option value="Matrimonio">Acta de Matrimonio</option><option value="Nacimiento">Acta de Nacimiento</option><option value="Divorcio">Acta de Divorcio</option<option value="Defuncion">Acta de Defunción</option><option value="Vigencia">Vigencia de Derechos</option><option value="NSS">Localizar NSS</option><option value="Afore">Localizar AFORE</option></select><h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube tu comprobante</h2><input type="file" id="file_p" class="block w-full text-xs"></div><button onclick="ejecutarEnvio('DOC')" id="btn_envio" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar</button><div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
+                contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Documentos</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">$15 MXN</p>
+                ${HTML_PAGO}
+                <div class="space-y-3">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
+                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 uppercase font-bold">
+                    
+                    <select id="extra_p" onchange="window.toggleNssDoc()" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black uppercase text-xs">
+                        <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
+                        <option value="Acta de Matrimonio">Acta de Matrimonio</option>
+                        <option value="Acta de Nacimiento">Acta de Nacimiento</option>
+                        <option value="Acta de Divorcio">Acta de Divorcio</option>
+                        <option value="Acta de Defunción">Acta de Defunción</option>
+                        <option value="Vigencia de Derechos">Vigencia de Derechos</option>
+                        <option value="Tarjeta NSS">Localizar NSS</option>
+                        <option value="Localizar Afore">Localizar AFORE</option>
+                    </select>
+
+                    <div id="contenedorNssDoc" class="hidden animate-fade">
+                        <input type="text" id="nss_p_doc" placeholder="NSS (REQUERIDO)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 font-bold" maxlength="11">
+                    </div>
+
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
+                    <input type="file" id="file_p" class="block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('DOC', 15)" id="btn_envio" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar</button>
+                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
             } else {
-                // Lógica para todos los demás servicios (Análisis, SAT, Infonavit)
-                const confs = {
-                    'modalRapido': { t: 'Análisis Rápido', p: '$200', x: 'R', c: 'blue-600' },
-                    'modalDetallado': { t: 'Análisis Detallado', p: '$800', x: 'D', c: 'blue-600' },
-                    'modalInfonavit': { t: 'Precalificación', p: '$210', x: 'INF', c: 'red-600' },
-                    'modalRFC': { t: 'RFC Clon', p: '$35', x: 'RFC', c: 'blue-600' },
-                    'modalRFCV': { t: 'RFC Verificable', p: '$140', x: 'RFCV', c: 'blue-600' },
-                    'modalCSF': { t: 'CSF Original', p: '$230', x: 'CSF', c: 'blue-800' }
-                };
                 const s = confs[tipo];
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic">${s.t}</h2><p class="text-[10px] font-black text-slate-400 mb-4 uppercase">Costo: ${s.p}</p>${HTML_PAGO}<div class="space-y-2"><input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border"><input type="text" id="curp_p" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border uppercase"><input type="text" id="nss_p" placeholder="NSS (Si aplica)" class="w-full p-3 bg-slate-50 rounded-xl border"><input type="tel" id="tel_p" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border"><h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube tu comprobante</h2><input type="file" id="file_p" class="block w-full text-xs"></div><button onclick="ejecutarEnvio('${s.x}')" id="btn_envio" class="w-full bg-${s.c} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button><div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
+                contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic">${s.t}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: $${s.p}</p>
+                ${HTML_PAGO}
+                <div class="space-y-2">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
+                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border uppercase">
+                    <input type="text" id="nss_p" placeholder="NSS (Si aplica)" class="w-full p-3 bg-slate-50 rounded-xl border">
+                    <input type="tel" id="tel_p" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
+                    <input type="file" id="file_p" class="block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('${s.x}', ${s.p})" id="btn_envio" class="w-full bg-${s.c} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
+                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
             }
         };
 
-        window.ejecutarEnvio = async (prefix) => {
+        window.toggleNssDoc = () => {
+            const docSel = document.getElementById('extra_p').value;
+            const cont = document.getElementById('contenedorNssDoc');
+            // Si es Vigencia de Derechos o Tarjeta NSS, mostrar el campo NSS
+            if (docSel === 'Vigencia de Derechos' || docSel === 'Tarjeta NSS') {
+                cont.classList.remove('hidden');
+            } else {
+                cont.classList.add('hidden');
+            }
+        };
+
+        window.ejecutarEnvio = async (prefix, costo) => {
             const btn = document.getElementById('btn_envio');
             const file = document.getElementById('file_p').files[0];
-            if (!file) return alert("Sube tu comprobante.");
+            if (!file) return alert("Sube comprobante.");
+            
+            // Validar NSS si es Vigencia
+            const docSel = document.getElementById('extra_p')?.value;
+            if (prefix === 'DOC' && (docSel === 'Vigencia de Derechos' || docSel === 'Tarjeta NSS')) {
+                const nssDoc = document.getElementById('nss_p_doc').value;
+                if (!nssDoc || nssDoc.length < 11) return alert("Por favor ingresa un NSS válido para este trámite.");
+            }
+
             btn.innerText = "ENVIANDO..."; btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
                 const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const dImg = await resp.json();
-                const folio = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+                
+                let tipoServicio = prefix;
+                let nssFinal = document.getElementById('nss_p')?.value || "N/A";
+
+                if(prefix === 'DOC') {
+                    tipoServicio = document.getElementById('extra_p').value;
+                    if (tipoServicio === 'Vigencia de Derechos' || tipoServicio === 'Tarjeta NSS') {
+                        nssFinal = document.getElementById('nss_p_doc').value;
+                    }
+                }
+
+                const folioStr = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+
                 await addDoc(collection(db, "solicitudes"), {
-                    origen: "WEB", folio, tipo: prefix,
+                    origen: "WEB", 
+                    folio: folioStr, 
+                    tipo: tipoServicio,
+                    costo: Number(costo),
                     nombre: document.getElementById('nombre_p')?.value || "CLIENTE WEB",
                     curp: document.getElementById('curp_p').value.toUpperCase(),
-                    nss: document.getElementById('nss_p')?.value || "N/A",
+                    nss: nssFinal,
                     tel: document.getElementById('tel_p')?.value || "N/A",
-                    infoExtra: document.getElementById('extra_p')?.value || "",
-                    comprobante: dImg.secure_url, estatus: "En Proceso", fecha: serverTimestamp()
+                    comprobante: dImg.secure_url, 
+                    estatus: "En Proceso", 
+                    fecha: serverTimestamp()
                 });
+                
                 document.getElementById('exito_p').classList.remove('hidden');
-                document.getElementById('folio_p').innerText = folio;
+                document.getElementById('folio_p').innerText = folioStr;
                 btn.innerText = "¡LISTO!";
             } catch(e) { alert("Error."); btn.disabled = false; btn.innerText = "Reintentar"; }
         };
@@ -187,12 +255,12 @@
             res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
             const q = query(collection(db, "solicitudes"), where("folio", "==", f));
             const snap = await getDocs(q);
-            if (snap.empty) { res.innerText = "FOLIO NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700 rounded-[2rem]"; }
+            if (snap.empty) { res.innerText = "NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700 rounded-[2rem]"; }
             else {
                 snap.forEach(doc => {
                     const d = doc.data();
-                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black">📥 BAJAR RESULTADO</a>`;
-                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 rounded-[2rem] italic"; }
+                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black italic">📥 BAJAR RESULTADO</a>`;
+                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 rounded-[2rem] italic uppercase"; }
                 });
             }
         };
@@ -201,13 +269,11 @@
             const a = document.getElementById('anioLey').value;
             const r = document.getElementById('resLey');
             r.classList.remove('hidden');
-            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black"; }
-            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black"; }
+            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
+            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
         };
 
         window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); };
     </script>
 </body>
 </html>
-
-
