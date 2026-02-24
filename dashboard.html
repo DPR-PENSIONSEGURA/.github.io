@@ -3,338 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Panel Ejecutivo</title>
+    <title>DPR Consultoría | Pensiones e Infonavit</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; scroll-behavior: smooth; }
-        .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
-        .category-card:hover { border-color: #C5A059; background: rgba(255, 255, 255, 0.07); }
-        .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
-        .input-dark:focus { border-color: #C5A059; }
-        .gold-text { color: #C5A059; }
-        .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+        body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
+        .modal-active { overflow: hidden; }
+        .service-card { transition: all 0.3s ease; }
+        .service-card:hover { transform: translateY(-5px); }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; }
+        .banorte-box { background-color: #EB0029; color: white; padding: 1.25rem; border-radius: 1.5rem; margin-bottom: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2); }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <div class="bg-yellow-400 py-2 overflow-hidden border-b border-yellow-600 shadow-lg">
-    <div class="whitespace-nowrap animate-marquee flex items-center">
-        <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
-            ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
-        </span>
-        <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
-            ⚠️ SEMANAS SALIENDO LENTO PARA EVITAR BLOQUEOS DE IP, DISCULPE LAS MOLESTIAS. LOS INVITAMOS A UNIRSE AL CANAL DEL PORTAL PARA MÁS AVISOS. ⚠️
-        </span>
-    </div>
-</div>
-
-<style>
-    @keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-    .animate-marquee {
-        display: inline-flex;
-        animation: marquee 20s linear infinite;
-    }
-    /* Pausar al pasar el ratón para que puedan leer bien */
-    .animate-marquee:hover {
-        animation-play-state: paused;
-    }
-</style>
 </head>
-<body>
+<body class="text-slate-900">
 
-    <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="gold-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-slate-900">DP</div>
-                <h1 class="font-black uppercase tracking-tighter text-xl text-white">DPR <span class="gold-text italic">Consultoría</span></h1>
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-4">
-                <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 hover:bg-slate-700 transition">
-                    <span id="txtSaldoHeader" class="font-black text-white">...</span>
-                </button>
-                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 tracking-widest">Salir</button>
+                <button onclick="abrirModal('modalInfo')" class="text-[10px] font-black uppercase text-slate-500 hover:text-blue-600">¿Quiénes Somos?</button>
+                <a href="blog.html" class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase">BLOG</a>
             </div>
         </div>
     </header>
 
-    <main class="p-6 max-w-7xl mx-auto">
-        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Servicios Disponibles</h2>
-        
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏥</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
-            </button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">⚖️</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">SAT</span>
-            </button>
-            <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🧮</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">CALCULADORAS</span>
-            </button>
-            <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">📄</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">DOCUMENTOS</span>
-            </button>
-            <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏠</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
-            </button>
-            <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">
-                <span class="text-2xl block mb-2">💰</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter text-blue-400 font-bold">ESTADOS CUENTA</span>
-            </button>
+    <section class="pt-16 pb-12 px-6 text-center text-white">
+        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition w-full sm:w-auto">Consultar Estatus</button>
+            <a href="https://wa.me/528131983700" target="_blank" class="bg-green-500 text-white px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg w-full sm:w-auto text-center">Registrarme como Asesor</a>
         </div>
+    </section>
 
-        <div id="seccionAfore" class="hidden bg-slate-800/40 p-8 rounded-[2.5rem] border border-blue-500/20 mb-12 animate-fade">
-            <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2">Administradora</label>
-                    <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark text-sm font-bold mt-1">
-                        <option value="">-- Seleccionar Afore --</option>
-                        <option value="Sura">Sura ($750)</option>
-                        <option value="Invercap">Invercap ($1400)</option>
-                        <option value="Profuturo">Profuturo ($500)</option>
-                        <option value="Banorte">Banorte ($600)</option>
-                        <option value="Coppel">Coppel ($350)</option>
-                        <option value="Azteca">Azteca ($350)</option>
-                        <option value="Principal">Principal ($750)</option>
-                        <option value="Banamex">Banamex ($1200)</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS (11 DÍGITOS)" class="input-dark font-black">
-                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase font-black">
-                </div>
-            </div>
-            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
-                <div><p class="text-[10px] text-slate-500 uppercase">Costo</p><p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p></div>
-                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl hover:scale-105 transition">Confirmar Pago</button>
-            </div>
-        </div>
-
-        <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
-
-        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl">
-            <h2 class="text-xl font-black text-white uppercase italic mb-6">Mis Solicitudes Recientes</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
-                            <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-2">Servicio</th>
-                            <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Documento</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaHistorial" class="text-xs"></tbody>
-                </table>
-            </div>
-        </section>
+    <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🔍</span>
+            <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">Gratis</p>
+        </button>
+        <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">⚡</span>
+            <h3 class="font-black text-xl uppercase italic">Análisis Rápido</h3>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$200 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📊</span>
+            <h3 class="font-black text-xl uppercase italic text-white">Análisis Detallado</h3>
+            <p class="text-blue-200 font-bold text-[10px] uppercase">$800 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">🏠</span>
+            <h3 class="font-black text-xl uppercase italic text-white">Precalificación Infonavit</h3>
+            <p class="text-red-200 font-bold text-[10px] uppercase">$210 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">🆔</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$35 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">✅</span>
+            <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$140 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
+            <span class="text-3xl mb-4 block">📜</span>
+            <h3 class="font-black text-xl uppercase italic text-white">CSF Original</h3>
+            <p class="text-blue-200 font-bold text-[10px] uppercase">$230 MXN</p>
+        </button>
+        <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
+            <span class="text-3xl mb-4 block">📄</span>
+            <h3 class="font-black text-xl uppercase italic">Documentos</h3>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$15 MXN</p>
+        </button>
     </main>
 
-    <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <div id="formContent"></div>
-        </div>
-    </div>
-
-    <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl text-center">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <h2 class="text-xl font-black text-white uppercase mb-6 tracking-tighter">Recargar Saldo</h2>
-            
-            <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8">
-                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2 italic">Datos para transferencia</p>
-                <p class="text-2xl font-black text-white tracking-widest mb-1">4915 6630 4036 4896</p>
-                <p class="text-xs font-bold text-white uppercase opacity-80">Banorte | Diana Puente</p>
-            </div>
-
-            <div class="space-y-3">
-                <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark text-center font-black">
-                <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase font-bold text-center">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 shadow-lg mt-4">Informar Pago</button>
-            </div>
+    <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">×</button>
+            <div id="contenidoModal"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, updateDoc, increment, setDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
             authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817"
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app",
+            messagingSenderId: "169500313261",
+            appId: "1:169500313261:web:15e2b662571df505d36824"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; 
+        const CLOUD_NAME = "de5abnhul";
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let saldoGlobal = 0, userUID = "", emailAsesor = "";
-        const PRECIOS_AFORE = { "Sura": 750, "Invercap": 1400, "Profuturo": 500, "Banorte": 600, "Coppel": 350, "Azteca": 350, "Principal": 750, "Banamex": 1200 };
-
-        const TRAMITES = {
-            'IMSS': [
-                { id: 'M10', nombre: 'Modalidad 10', precio: 200, nss: true, extra: 'DIRECCIÓN' },
-                { id: 'ALTA MENSUAL', nombre: 'ALTA MENSUAL', precio: 600, nss: true, curp: true },
-                { id: 'SINDO UR', nombre: 'SINDO ULTIMO RETIRO', precio: 40, nss: true },    
-                { id: 'SINDO ALFA', nombre: 'SINDO ALFA NUMERICO', precio: 80, curp: true },
-                { id: 'SINDO COMP', nombre: 'SINDO COMPLETO', precio: 220, nss: true }
-            ],
-            'SAT': [
-                { id: 'RFC_CLON', nombre: 'RFC Clon', precio: 35, curp: true },
-                { id: 'RFCV', nombre: 'RFC Verificable', precio: 140, curp: true },
-                { id: 'CSF', nombre: 'Constancia Fiscal', precio: 230, curp: true },
-                { id: 'RFC CON IDCIF', nombre: 'RFC CON IDCIF', precio: 40, curp: true, extra: 'IDCIF' },
-                { id: 'Loc idcif', nombre: 'LOCALIZAR IDCIF', precio: 60, extra: 'DATOS ACCESO' },
-                { id: 'op. cumplimiento', nombre: 'OPINION CUMPLIMIENTO', precio: 30, curp: true }
-            ],
-            'DOC': [
-                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-                { id: 'VIGENCIA', nombre: 'Vigencia de Derechos', precio: 13, curp: true },
-                { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
-                { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }
-            ],
-            'INF': [
-                { id: 'PRECA MEJVT', nombre: 'Mejoravit', precio: 120, nss: true, nac: true },
-                { id: 'CUENTA', nombre: 'Crear cuenta Infonavit', precio: 150, nss: true, extra: 'TEL Y CORREO' },
-                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true }
-            ]
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
-        });
-
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
-                if (docSnap.exists()) {
-                    saldoGlobal = docSnap.data().saldo || 0;
-                    const f = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
-                    document.getElementById('txtSaldoHeader').innerText = f;
-                    document.getElementById('txtSaldoGrande').innerText = f;
-                }
-            });
+        async function registrarVisitaDiaria() {
+            const hoy = new Date().toISOString().split('T')[0]; 
+            const visitaRef = doc(db, "visitas_diarias", hoy);
+            try { await updateDoc(visitaRef, { contador: increment(1) }); }
+            catch (e) { await setDoc(visitaRef, { contador: 1, fecha: hoy }); }
         }
+        registrarVisitaDiaria();
 
-        window.mostrarSeccionAfore = () => {
-            document.getElementById('seccionAfore').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-        };
+        const HTML_PAGO = `<div class="banorte-box"><p class="text-[10px] font-black uppercase mb-1 opacity-80">Transferencia Banorte</p><p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p><p class="text-[11px] font-bold uppercase italic text-white">Diana Puente Rodriguez</p></div>`;
 
-        window.actualizarPrecioAfore = () => {
-            const afore = document.getElementById('selectAfore').value;
-            document.getElementById('txtPrecioAfore').innerText = `$${PRECIOS_AFORE[afore] || 0}.00`;
-        };
+        window.abrirModal = (tipo) => {
+            const modal = document.getElementById('modalBase');
+            const contenido = document.getElementById('contenidoModal');
+            document.body.classList.add('modal-active');
+            modal.classList.remove('hidden');
+            contenido.innerHTML = "";
 
-        window.pagarEstadoCuenta = async () => {
-            const afore = document.getElementById('selectAfore').value;
-            const nss = document.getElementById('nssAfore').value;
-            const curp = document.getElementById('curpAfore').value;
-            const costo = PRECIOS_AFORE[afore];
-            if (!afore || nss.length < 11 || curp.length < 10) return alert("Datos incompletos.");
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-            if (confirm(`¿Pagar $${costo}?`)) {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-costo) });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: `ECTA: ${afore}`, curp: curp.toUpperCase(), nss, costo, estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("Enviado."); document.getElementById('seccionAfore').classList.add('hidden');
+            const confs = {
+                'modalRapido': { t: 'Análisis Rápido', p: 200, x: 'R', c: 'blue-600' },
+                'modalDetallado': { t: 'Análisis Detallado', p: 800, x: 'D', c: 'blue-600' },
+                'modalInfonavit': { t: 'Precalificación Infonavit', p: 210, x: 'INF', c: 'red-600' },
+                'modalRFC': { t: 'RFC Clon', p: 35, x: 'RFC', c: 'blue-600' },
+                'modalRFCV': { t: 'RFC Verificable', p: 140, x: 'RFCV', c: 'blue-600' },
+                'modalCSF': { t: 'CSF Original', p: 230, x: 'CSF', c: 'blue-800' }
+            };
+
+            if (tipo === 'modalInfo') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic text-center">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4 text-center">Asesoría profesional en pensiones e IMSS.</p>`;
+            } else if (tipo === 'modalEstatus') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">Estatus</h2><input type="text" id="folioBusqueda" placeholder="FOLIO" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2 uppercase"><button onclick="buscarEstatus()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button><div id="resBus" class="mt-6 hidden p-6 text-center font-black border-2"></div>`;
+            } else if (tipo === 'modalLey') {
+                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
+            } else if (tipo === 'modalDocs') {
+                contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic text-center">Documentos</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic text-center">$15 MXN</p>
+                ${HTML_PAGO}
+                <div class="space-y-3">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border font-bold uppercase">
+                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 uppercase font-bold">
+                    
+                    <select id="extra_p" onchange="window.toggleNssDoc()" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black uppercase text-xs">
+                        <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
+                        <option value="Acta de Matrimonio">Acta de Matrimonio</option>
+                        <option value="Acta de Nacimiento">Acta de Nacimiento</option>
+                        <option value="Acta de Divorcio">Acta de Divorcio</option>
+                        <option value="Acta de Defunción">Acta de Defunción</option>
+                        <option value="Vigencia de Derechos">Vigencia de Derechos</option>
+                        <option value="Tarjeta NSS">Tarjeta NSS / Localizar NSS</option>
+                        <option value="Localizar Afore">Localizar AFORE</option>
+                    </select>
+
+                    <div id="contenedorNssDoc" class="hidden animate-fade">
+                        <input type="text" id="nss_p_doc" placeholder="NSS (REQUERIDO)" class="w-full p-4 bg-blue-50 rounded-2xl border-2 border-blue-400 font-black" maxlength="11">
+                        <p class="text-[8px] text-blue-600 font-black uppercase mt-1 ml-2 italic">* Este trámite requiere NSS</p>
+                    </div>
+
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase ml-2">Sube comprobante</h2>
+                    <input type="file" id="file_p" class="block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('DOC', 15)" id="btn_envio" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar</button>
+                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado!</div>`;
+            } else {
+                const s = confs[tipo];
+                contenido.innerHTML = `
+                <h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic text-center">${s.t}</h2>
+                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic text-center">Costo: $${s.p}</p>
+                ${HTML_PAGO}
+                <div class="space-y-2">
+                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border font-bold uppercase">
+                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border uppercase font-bold">
+                    <input type="text" id="nss_p" placeholder="NSS (Si aplica)" class="w-full p-3 bg-slate-50 rounded-xl border font-bold" maxlength="11">
+                    <input type="tel" id="tel_p" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border font-bold">
+                    <h2 class="text-[10px] font-black text-red-600 italic uppercase ml-2">Sube comprobante</h2>
+                    <input type="file" id="file_p" class="block w-full text-xs">
+                </div>
+                <button onclick="ejecutarEnvio('${s.x}', ${s.p})" id="btn_envio" class="w-full bg-${s.c} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
+                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado!</div>`;
             }
         };
 
-        window.mostrarTramites = (cat) => {
-            document.getElementById('seccionAfore').classList.add('hidden');
-            const listado = document.getElementById('listaServicios');
-            listado.classList.remove('hidden');
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer transition-all">
-                    <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
-                </div>`;
-            });
-            listado.innerHTML = html;
+        window.toggleNssDoc = () => {
+            const docSel = document.getElementById('extra_p').value;
+            const cont = document.getElementById('contenedorNssDoc');
+            if (docSel === 'Vigencia de Derechos' || docSel === 'Tarjeta NSS') {
+                cont.classList.remove('hidden');
+            } else {
+                cont.classList.add('hidden');
+            }
         };
 
-        window.prepararTramite = (nombre, costo, pref, pideNss, pideNac, pideEx) => {
-            const content = document.getElementById('formContent');
-            let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">`;
-            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">`;
-            if(pideNac) fields += `<label class="text-[9px] ml-2 text-slate-500 uppercase font-bold">Nacimiento</label><input type="date" id="nac_p" class="input-dark mb-4 w-full">`;
-            if(pideEx) fields += `<input type="text" id="extra_p" placeholder="${pideEx}" class="input-dark mb-4 w-full">`;
-            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl">Confirmar y Pagar $${costo}</button>`;
-            abrirModal('modalTramite');
-        };
+        window.ejecutarEnvio = async (prefix, costo) => {
+            const btn = document.getElementById('btn_envio');
+            const file = document.getElementById('file_p').files[0];
+            if (!file) return alert("Sube el comprobante de pago.");
+            
+            let tipoServicio = prefix;
+            let nssFinal = document.getElementById('nss_p')?.value || "N/A";
 
-        window.confirmarCompra = async (n, c, p) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value;
-            if(!curp) return alert("Ingresa la CURP.");
-            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-            await addDoc(collection(db, "solicitudes"), {
-                asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                tipo: n, costo: c, folio: p + "-" + Math.floor(Math.random()*9000), curp: curp.toUpperCase(),
-                nss: document.getElementById('nss_p')?.value || "N/A", estatus: "En Proceso", fecha: serverTimestamp()
-            });
-            alert("Enviado con éxito."); cerrarModal();
-        };
+            // Validar NSS si es DOC especial
+            if(prefix === 'DOC') {
+                tipoServicio = document.getElementById('extra_p').value;
+                if(!tipoServicio) return alert("Selecciona el tipo de documento.");
+                
+                if (tipoServicio === 'Vigencia de Derechos' || tipoServicio === 'Tarjeta NSS') {
+                    nssFinal = document.getElementById('nss_p_doc').value;
+                    if (!nssFinal || nssFinal.length < 11) return alert("Por favor ingresa un NSS válido (11 dígitos).");
+                }
+            }
 
-        function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
-            onSnapshot(q, (snap) => {
-                const lista = document.getElementById('listaHistorial');
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase tracking-widest">Sin solicitudes</td></tr>'; return; }
-                let solicitudes = [];
-                snap.forEach(docSnap => solicitudes.push(docSnap.data()));
-                solicitudes.sort((a, b) => (b.fecha?.toMillis() || 0) - (a.fecha?.toMillis() || 0));
-                lista.innerHTML = "";
-                solicitudes.forEach(d => {
-                    let color = d.estatus === 'Terminado' ? "bg-green-500/10 text-green-500" : (d.estatus === 'Error' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500");
-                    lista.innerHTML += `<tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
-                        <td class="py-4 px-2 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                        <td class="py-4 px-2 font-black text-white uppercase">${d.tipo}</td>
-                        <td class="py-4 px-2 text-center"><span class="status-badge ${color}">${d.estatus}</span></td>
-                        <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
-                    </tr>`;
+            btn.innerText = "ENVIANDO..."; btn.disabled = true;
+            try {
+                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const dImg = await resp.json();
+                
+                const folioStr = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+
+                await addDoc(collection(db, "solicitudes"), {
+                    origen: "WEB", 
+                    folio: folioStr, 
+                    tipo: tipoServicio,
+                    costo: Number(costo),
+                    nombre: document.getElementById('nombre_p')?.value || "CLIENTE WEB",
+                    curp: document.getElementById('curp_p').value.toUpperCase(),
+                    nss: nssFinal,
+                    tel: document.getElementById('tel_p')?.value || "N/A",
+                    comprobante: dImg.secure_url, 
+                    estatus: "En Proceso", 
+                    fecha: serverTimestamp()
                 });
-            });
-        }
-
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value;
-            const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !f) return alert("Faltan datos.");
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-            const data = await res.json();
-            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-            alert("Reportado."); cerrarModal();
+                
+                document.getElementById('exito_p').classList.remove('hidden');
+                btn.innerText = "¡FOLIO: " + folioStr + "!";
+                alert("¡Solicitud enviada! Tu folio es: " + folioStr);
+            } catch(e) { alert("Error al enviar."); btn.disabled = false; btn.innerText = "Reintentar"; }
         };
 
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); };
-        window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
+        window.buscarEstatus = async () => {
+            const f = document.getElementById('folioBusqueda').value.trim().toUpperCase();
+            const res = document.getElementById('resBus');
+            if(!f) return alert("Ingresa tu folio");
+            res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
+            const q = query(collection(db, "solicitudes"), where("folio", "==", f));
+            const snap = await getDocs(q);
+            if (snap.empty) { res.innerText = "NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700 rounded-[2rem]"; }
+            else {
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black italic block">📥 BAJAR RESULTADO</a>`;
+                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 rounded-[2rem] italic uppercase"; }
+                });
+            }
+        };
+
+        window.verificarLey = () => {
+            const a = document.getElementById('anioLey').value;
+            const r = document.getElementById('resLey');
+            if(!a) return;
+            r.classList.remove('hidden');
+            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
+            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
+        };
+
+        window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); };
     </script>
 </body>
 </html>
