@@ -60,7 +60,10 @@
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Gestión de Trámites</h2>
+                <div class="flex flex-col">
+                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Gestión de Trámites</h2>
+                    <span class="text-[9px] font-bold text-blue-600 ml-4 uppercase">Mostrando: Ayer y Hoy</span>
+                </div>
                 <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase">
             </div>
 
@@ -113,7 +116,6 @@
         let miGrafico = null, idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // Mapeo para nombres legibles
         const NOMBRES_SERVICIOS = {
             'R': 'Análisis de Pensión Rápido',
             'D': 'Análisis de Pensión Detallado',
@@ -132,14 +134,27 @@
             return d.toLocaleDateString();
         };
 
+        // --- LÓGICA DE FILTRADO POR FECHA ---
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const ayer = new Date(hoy);
+        ayer.setDate(hoy.getDate() - 1);
+        const inicioAyer = Timestamp.fromDate(ayer);
+
         // 1. VISITAS
         const hoyISO = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyISO), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
 
-        // 2. SOLICITUDES Y GRÁFICA
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
+        // 2. SOLICITUDES (Filtradas desde el servidor para rapidez)
+        const qSolicitudes = query(
+            collection(db, "solicitudes"), 
+            where("fecha", ">=", inicioAyer),
+            orderBy("fecha", "desc")
+        );
+
+        onSnapshot(qSolicitudes, (snap) => {
             const tabla = document.getElementById('tablaSolicitudes');
             const txtGanancia = document.getElementById('gananciaHoy');
             const txtPendientes = document.getElementById('contadorPendientes');
@@ -158,9 +173,7 @@
                 if(fechaStr === hoyActual && item.estatus !== 'Error') totalHoy += Number(item.costo || 0);
                 if(item.estatus !== 'Error') dataGrafico[fechaStr] = (dataGrafico[fechaStr] || 0) + Number(item.costo || 0);
 
-                // Lógica de nombre de servicio
-                let nombreServicio = item.tipo;
-                if (NOMBRES_SERVICIOS[item.tipo]) nombreServicio = NOMBRES_SERVICIOS[item.tipo];
+                let nombreServicio = NOMBRES_SERVICIOS[item.tipo] || item.tipo;
                 if (item.tipo.includes('ECTA')) nombreServicio = "Estado de Cuenta " + item.tipo.split(':')[1];
 
                 let docs = item.comprobante ? `<button onclick="window.open('${item.comprobante}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black mr-1 mt-1 uppercase">Pago Web</button>` : "";
@@ -179,7 +192,6 @@
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
                                 <option value="EL NSS NO COICIDE CON LA CURP" ${item.estatus === 'NSS NO COINCIDE CON CURP' ? 'selected' : ''}>EL NSS NO COICIDE CON LA CURP</option>
                                 <option value="SOLO SE PUEDE HACER UNA CONSULTA AL DIA" ${item.estatus === 'SOLO SE PUEDE HACER UNA CONSULTA AL DIA' ? 'selected' : ''}>SOLO SE PUEDE HACER UNA CONSULTA AL DIA</option>
-                                
                                 <option value="ERROR EN LOS DATOS" ${item.estatus === 'ERROR EN LOS DATOS' ? 'selected' : ''}>ERROR EN LOS DATOS</option>
                                 <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error</option>
                             </select>
@@ -210,7 +222,6 @@
             if(est === 'aprobado') {
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                // Registrar como ingreso para la gráfica
                 await addDoc(collection(db, "solicitudes"), { tipo: "RECARGA ASESOR", costo: Number(monto), fecha: Timestamp.now(), nombre: "ABONO DE SALDO", curp: "SISTEMA", estatus: "Terminado" });
                 alert("Saldo cargado.");
             } else { if(confirm("¿Borrar?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
