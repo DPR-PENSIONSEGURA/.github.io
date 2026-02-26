@@ -138,7 +138,7 @@
             await updateProfile(user, { displayName: name });
 
             // 2. Crear documento en Firestore con saldo $0.00
-            await setDoc(doc(db, "usuarios", user.uid), {
+            await setDoc(doc(db, "asesores", user.uid), {
                 nombre: name,
                 email: email,
                 saldo: 0.00,
