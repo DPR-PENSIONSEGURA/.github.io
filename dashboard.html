@@ -228,7 +228,7 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
+            else { window.location.href = "login/"; }
         });
 
         function escucharSaldo() {
