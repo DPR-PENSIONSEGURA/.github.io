@@ -3,38 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Asesores | Pensión Segura</title>
+    <title>Acceso | Pensión Segura</title>
     <style>
-        :root { --azul: #003366; --dorado: #C5A059; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 380px; text-align: center; }
-        .logo { font-size: 1.5rem; font-weight: bold; color: var(--azul); margin-bottom: 1rem; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { background: var(--azul); color: white; border: none; padding: 14px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #002244; }
-        #error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 10px; }
+        :root { --azul: #003366; --dorado: #C5A059; --oscuro: #1a1a1a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
+        
+        /* Contenedor principal estilo pantalla dividida */
+        .main-container { display: flex; width: 900px; height: 600px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        
+        /* Lado izquierdo: Arte y Mensaje */
+        .side-art { flex: 1; background: linear-gradient(135deg, rgba(0,51,102,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80'); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; padding: 40px; color: white; }
+        .side-art h1 { font-size: 2.5rem; margin: 0; }
+        .side-art p { font-size: 1.1rem; opacity: 0.8; margin-top: 10px; }
+
+        /* Lado derecho: Formulario */
+        .form-container { flex: 1.2; padding: 50px; display: flex; flex-direction: column; justify-content: center; }
+        .logo-text { font-size: 1.2rem; font-weight: bold; color: var(--azul); margin-bottom: 20px; }
+        h2 { margin: 0 0 10px 0; font-size: 1.8rem; }
+        p.subtitle { color: #666; margin-bottom: 30px; font-size: 0.9rem; }
+        
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; transition: 0.3s; }
+        input:focus { border-color: var(--azul); outline: none; box-shadow: 0 0 0 3px rgba(0,51,102,0.1); }
+        
+        button { background: var(--oscuro); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #333; transform: translateY(-1px); }
+        
+        .toggle-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #666; }
+        .toggle-link span { color: var(--azul); cursor: pointer; font-weight: bold; }
+        #error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 15px; text-align: center; min-height: 1.2rem; }
+        
+        @media (max-width: 800px) { .side-art { display: none; } .main-container { width: 95%; height: auto; } }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="logo">DPR Consultoría</div>
-    <h3>Panel de Asesores</h3>
-    <p style="color: #666; font-size: 0.9rem;">Ingresa para gestionar saldos y documentos.</p>
-    
-    <input type="email" id="email" placeholder="Correo electrónico">
-    <input type="password" id="password" placeholder="Contraseña">
-    <button onclick="login()">Entrar al Sistema</button>
-    
-    <div id="error-msg"></div>
+<div class="main-container">
+    <div class="side-art">
+        <h1>PensionSegura</h1>
+        <p>Tu futuro financiero, diseñado por expertos.</p>
+    </div>
+
+    <div class="form-container">
+        <div class="logo-text">DPR Consultoría</div>
+        
+        <div id="login-form">
+            <h2>Bienvenida</h2>
+            <p class="subtitle">Ingresa para gestionar tu cuenta.</p>
+            <div class="input-group">
+                <label>CORREO ELECTRÓNICO</label>
+                <input type="email" id="email" placeholder="ejemplo@correo.com">
+            </div>
+            <div class="input-group">
+                <label>CONTRASEÑA</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button onclick="login()">Entrar al Sistema</button>
+            <div class="toggle-link">¿No tienes cuenta? <span onclick="toggleForms()">Regístrate aquí</span></div>
+        </div>
+
+        <div id="register-form" style="display: none;">
+            <h2>Crear Cuenta</h2>
+            <p class="subtitle">Únete a nuestra plataforma de asesoría.</p>
+            <div class="input-group">
+                <label>NOMBRE COMPLETO</label>
+                <input type="text" id="reg-name" placeholder="Tu nombre">
+            </div>
+            <div class="input-group">
+                <label>CORREO ELECTRÓNICO</label>
+                <input type="email" id="reg-email" placeholder="ejemplo@correo.com">
+            </div>
+            <div class="input-group">
+                <label>CONTRASEÑA</label>
+                <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+            </div>
+            <button onclick="registrar()">Crear cuenta</button>
+            <div class="toggle-link">¿Ya tienes cuenta? <span onclick="toggleForms()">Inicia sesión</span></div>
+        </div>
+
+        <div id="error-msg"></div>
+    </div>
 </div>
 
 <script type="module">
-    // 1. IMPORTACIONES MODERNAS (Igual que en tus otros archivos)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 2. CONFIGURACIÓN DEL PROYECTO NUEVO (9c817)
     const firebaseConfig = {
         apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
         authDomain: "pensionsegura-9c817.firebaseapp.com",
@@ -44,44 +100,66 @@
         appId: "1:169500313261:web:15e2b662571df505d36824"
     };
 
-    // 3. INICIALIZAR APP
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // 4. FUNCIÓN DE LOGIN
+    // Alternar entre formularios
+    window.toggleForms = () => {
+        const loginF = document.getElementById('login-form');
+        const registerF = document.getElementById('register-form');
+        document.getElementById('error-msg').innerText = "";
+        if(loginF.style.display === "none") {
+            loginF.style.display = "block";
+            registerF.style.display = "none";
+        } else {
+            loginF.style.display = "none";
+            registerF.style.display = "block";
+        }
+    }
+
+    // Función de Registro + Saldo Inicial
+    window.registrar = async () => {
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const errorMsg = document.getElementById('error-msg');
+
+        if(!name || !email || !password) {
+            errorMsg.innerText = "Todos los campos son obligatorios.";
+            return;
+        }
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // 1. Guardar nombre en el perfil de Auth
+            await updateProfile(user, { displayName: name });
+
+            // 2. Crear documento en Firestore con saldo $0.00
+            await setDoc(doc(db, "usuarios", user.uid), {
+                nombre: name,
+                email: email,
+                saldo: 0.00,
+                fechaRegistro: new Date()
+            });
+
+            window.location.href = "../dashboard.html";
+        } catch (error) {
+            errorMsg.innerText = "Error: " + error.message;
+        }
+    }
+
+    // Función de Login
     window.login = () => {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const errorMsg = document.getElementById('error-msg');
-        const btn = document.querySelector('button');
-
-        if(!email || !password) {
-            errorMsg.innerText = "Por favor, llena todos los campos.";
-            return;
-        }
-
-        btn.innerText = "Verificando...";
-        btn.disabled = true;
 
         signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // Éxito: Redirigir al dashboard
-                window.location.href = "../dashboard.html"; 
-            })
-            .catch((error) => {
-                console.error(error);
-                btn.innerText = "Entrar al Sistema";
-                btn.disabled = false;
-                
-                // Mensajes de error amigables
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMsg.innerText = "Correo o contraseña incorrectos.";
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMsg.innerText = "Muchos intentos fallidos. Espera un momento.";
-                } else {
-                    errorMsg.innerText = "Error de conexión: " + error.code;
-                }
-            });
+            .then(() => window.location.href = "../dashboard.html")
+            .catch(error => errorMsg.innerText = "Credenciales incorrectas.");
     }
 </script>
 
