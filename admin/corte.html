@@ -211,21 +211,59 @@
             document.getElementById('clienteManual').value = ""; document.getElementById('nombreProducto').value = ""; document.getElementById('costoProducto').value = ""; document.getElementById('precioVenta').value = "";
         };
 
-        window.generarReporteCobranza = () => {
-            const agrupar = {};
-            registroCompleto.forEach(v => {
-                const nombre = v.nombre || "CLIENTE GENERAL";
-                if(!agrupar[nombre]) agrupar[nombre] = { items: [], total: 0 };
-                agrupar[nombre].items.push(`${v.tipo} ($${v.costo})`);
-                agrupar[nombre].total += v.costo;
-            });
-            const contenedor = document.getElementById('contenidoCobranza');
-            contenedor.innerHTML = "";
-            Object.keys(agrupar).forEach(cliente => {
-                contenedor.innerHTML += `<div class="p-6 bg-slate-50 rounded-3xl border border-slate-200 mb-3"><div class="flex justify-between items-start mb-2"><h3 class="font-black uppercase text-blue-600">${cliente}</h3><p class="text-xl font-black text-slate-800">$${agrupar[cliente].total.toFixed(2)}</p></div><p class="text-[10px] text-slate-500 font-bold">${agrupar[cliente].items.join(' + ')}</p></div>`;
-            });
-            document.getElementById('modalCobranza').classList.remove('hidden');
-        };
+window.generarReporteCobranza = () => {
+    const agrupar = {};
+    let textoWppTodo = "*REPORTE DE COBRANZA DPR - " + new Date().toLocaleDateString() + "*\n\n";
+
+    registroActual.forEach(v => {
+        const nombre = v.nombre || "CLIENTE GENERAL";
+        if(!agrupar[nombre]) agrupar[nombre] = { items: [], total: 0 };
+        agrupar[nombre].items.push(`${v.tipo} ($${v.costo})`);
+        agrupar[nombre].total += v.costo;
+    });
+
+    const contenedor = document.getElementById('contenidoCobranza');
+    contenedor.innerHTML = "";
+
+    Object.keys(agrupar).forEach(cliente => {
+        const totalFmt = agrupar[cliente].total.toFixed(2);
+        const detalleFmt = agrupar[cliente].items.join(' + ');
+        
+        // Acumular para el botón de "Copiar Todo"
+        textoWppTodo += `👤 *${cliente}*\n▫️ Detalle: ${detalleFmt}\n💰 *Total: $${totalFmt}*\n\n`;
+        
+        // Crear recuadro visual con botón individual
+        contenedor.innerHTML += `
+        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="font-black uppercase text-blue-600 tracking-tighter">${cliente}</h3>
+                <p class="text-xl font-black text-slate-800">$${totalFmt}</p>
+            </div>
+            <p class="text-[10px] text-slate-500 font-bold mb-4">${detalleFmt}</p>
+            
+            <button onclick="window.copiarClienteIndividual('${cliente}', '${totalFmt}', '${detalleFmt}')" 
+                    class="w-full bg-emerald-50 text-emerald-600 py-2 rounded-xl font-black uppercase text-[9px] border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all">
+                Copiar mensaje para WhatsApp
+            </button>
+        </div>`;
+    });
+
+    // Configurar el botón de Copiar Todo el reporte
+    document.getElementById('btnCopiarTodo').onclick = () => {
+        navigator.clipboard.writeText(textoWppTodo);
+        alert("Reporte completo copiado.");
+    };
+
+    if(Object.keys(agrupar).length === 0) contenedor.innerHTML = "<p class='text-center p-10 font-bold opacity-30'>Sin movimientos hoy</p>";
+    document.getElementById('modalCobranza').classList.remove('hidden');
+};
+
+// Nueva función para el copiado individual personalizado
+window.copiarClienteIndividual = (nom, tot, det) => {
+    const mensaje = `*DPR CONSULTORÍA*\n\nHola *${nom}*, este es el resumen de tus trámites de hoy:\n\n📝 ${det}\n💰 *TOTAL A PAGAR: $${tot}*\n\n_Favor de confirmar de recibido. ¡Gracias!_`;
+    navigator.clipboard.writeText(mensaje);
+    alert("Resumen de " + nom + " copiado para WhatsApp.");
+};
 
         window.cerrarModalCobranza = () => document.getElementById('modalCobranza').classList.add('hidden');
         window.eliminarVenta = async (id) => { if(confirm("¿Borrar?")) await deleteDoc(doc(db, "solicitudes", id)); };
