@@ -13,6 +13,7 @@
         .input-dark { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1.25rem; padding: 14px; outline: none; transition: all 0.3s; font-weight: 700; }
         .input-dark:focus { border-color: #2563eb; background: white; }
         .stat-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; }
+        .input-disabled { background-color: #e5e7eb; cursor: not-allowed; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -20,28 +21,28 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div>
-                <h1 class="text-3xl font-black uppercase italic text-slate-800">Corte <span class="text-blue-600">Financiero</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión de Rendimiento Diario, Semanal y Mensual</p>
+                <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Corte <span class="text-blue-600">Unificado</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría | Rendimiento Real del Negocio</p>
             </div>
             <div class="flex gap-3">
                 <a href="../admin.html" class="bg-slate-200 text-slate-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-slate-300 transition">Panel Admin</a>
-                <button onclick="window.cerrarCorteMaestro()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl hover:bg-blue-600 transition">Cerrar Corte del Día</button>
+                <button onclick="window.cerrarCorteMaestro()" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase shadow-xl hover:bg-blue-600 transition">Cerrar Corte Diario</button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="card p-8 border-l-8 border-blue-500">
-                <p class="stat-label">Hoy</p>
+                <p class="stat-label">Ventas Hoy</p>
                 <p id="totalHoy" class="text-4xl font-black text-slate-800 mt-2">$ 0.00</p>
                 <p id="utilidadHoy" class="text-xs font-bold text-emerald-500 mt-1">Utilidad: $ 0.00</p>
             </div>
             <div class="card p-8 border-l-8 border-purple-500">
-                <p class="stat-label">Esta Semana</p>
+                <p class="stat-label">Últimos 7 Días</p>
                 <p id="totalSemana" class="text-4xl font-black text-slate-800 mt-2">$ 0.00</p>
-                <p class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">Últimos 7 días naturales</p>
+                <p id="utilidadSemana" class="text-xs font-bold text-emerald-500 mt-1">Utilidad: $ 0.00</p>
             </div>
             <div class="card p-8 border-l-8 border-orange-500">
-                <p class="stat-label">Este Mes</p>
+                <p class="stat-label">Mes Actual</p>
                 <p id="totalMes" class="text-4xl font-black text-slate-800 mt-2">$ 0.00</p>
                 <p id="utilidadMes" class="text-xs font-bold text-emerald-500 mt-1">Utilidad: $ 0.00</p>
             </div>
@@ -50,20 +51,23 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <section class="lg:col-span-1">
                 <div class="card p-8 sticky top-24">
-                    <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700">Nueva Venta Directa</h2>
+                    <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-blue-600 pl-4">Venta Directa</h2>
                     <div class="space-y-4">
-                        <input type="text" id="nombreProducto" oninput="window.verificarCatalogo()" class="w-full input-dark uppercase" placeholder="PRODUCTO / SERVICIO">
+                        <div>
+                            <label class="stat-label ml-2">Producto / Servicio</label>
+                            <input type="text" id="nombreProducto" oninput="window.verificarProductoExistente()" class="w-full input-dark uppercase" placeholder="EJ: ANÁLISIS COMPLETO">
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="stat-label ml-2">Costo Base</label>
+                                <label class="stat-label ml-2">Costo ($)</label>
                                 <input type="number" id="costoProducto" class="w-full input-dark" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="stat-label ml-2">Precio Venta</label>
+                                <label class="stat-label ml-2">Venta ($)</label>
                                 <input type="number" id="precioVenta" class="w-full input-dark" placeholder="0.00">
                             </div>
                         </div>
-                        <button onclick="window.registrarVentaManual()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:scale-[1.02] transition">Registrar Movimiento</button>
+                        <button onclick="window.registrarVentaManual()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:scale-[1.02] transition">Registrar Venta</button>
                     </div>
                 </div>
             </section>
@@ -71,8 +75,8 @@
             <section class="lg:col-span-2">
                 <div class="card overflow-hidden">
                     <div class="p-8 border-b flex justify-between items-center bg-slate-50/50">
-                        <h2 class="text-xl font-black uppercase italic text-slate-700">Movimientos Recientes</h2>
-                        <button onclick="window.descargarReporte()" class="text-[10px] font-black text-blue-600 uppercase border-b-2 border-blue-600">Descargar TXT</button>
+                        <h2 class="text-xl font-black uppercase italic text-slate-700">Bitácora de Movimientos</h2>
+                        <button onclick="window.descargarReporte()" class="text-[10px] font-black text-blue-600 uppercase border-b-2 border-blue-600 tracking-widest">Generar Reporte TXT</button>
                     </div>
                     <div class="overflow-x-auto max-h-[600px]">
                         <table class="w-full text-left">
@@ -80,8 +84,8 @@
                                 <tr>
                                     <th class="p-5">Origen</th>
                                     <th class="p-5">Detalle</th>
-                                    <th class="p-5">Ingreso</th>
-                                    <th class="p-5">Utilidad</th>
+                                    <th class="p-5">Venta</th>
+                                    <th class="p-5">Ganancia</th>
                                     <th class="p-5 text-right">Acción</th>
                                 </tr>
                             </thead>
@@ -95,7 +99,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -105,121 +109,142 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let catalogo = JSON.parse(localStorage.getItem('dpr_cat') || '{}');
-        let todasVentas = [];
+        // Catálogo persistente (tu lógica original)
+        let productosMaestros = JSON.parse(localStorage.getItem('catalogoProductos') || '{}');
+        let registroActual = [];
 
-        // 1. CARGAR DATOS (HOY, SEMANA, MES)
-        const cargarFinanzas = () => {
+        // 1. CARGAR DATOS Y ESCUCHAR CAMBIOS
+        const cargarFinanzasUnificadas = () => {
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             const semana = new Date(); semana.setDate(semana.getDate() - 7);
             const mes = new Date(); mes.setDate(1); mes.setHours(0,0,0,0);
 
             onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
-                todasVentas = [];
-                let h_bruto = 0, h_util = 0, s_bruto = 0, m_bruto = 0, m_util = 0;
+                registroActual = [];
+                let h_bruto = 0, h_util = 0, s_bruto = 0, s_util = 0, m_bruto = 0, m_util = 0;
                 
                 const tabla = document.getElementById('tablaVentas');
                 tabla.innerHTML = "";
 
                 snap.forEach(d => {
                     const v = d.data();
-                    if(v.tipo === "RECARGA ASESOR") return;
+                    if(v.tipo === "RECARGA ASESOR") return; // Ignorar contablemente las recargas
                     
                     const fecha = v.fecha?.toDate() || new Date();
                     const ingreso = Number(v.costo || 0);
                     const costoBase = Number(v.costo_base || 0);
-                    const util = ingreso - costoBase;
+                    const gananciaItem = ingreso - costoBase;
 
-                    // Acumuladores
-                    if(fecha >= hoy) { h_bruto += ingreso; h_util += util; }
-                    if(fecha >= semana) { s_bruto += ingreso; }
-                    if(fecha >= mes) { m_bruto += ingreso; m_util += util; }
+                    // Acumuladores Financieros
+                    if(fecha >= hoy) { h_bruto += ingreso; h_util += gananciaItem; }
+                    if(fecha >= semana) { s_bruto += ingreso; s_util += gananciaItem; }
+                    if(fecha >= mes) { m_bruto += ingreso; m_util += gananciaItem; }
 
-                    // Llenar tabla (solo los de los últimos 3 días para no saturar)
-                    const limiteVista = new Date(); limiteVista.setDate(limiteVista.getDate() - 3);
+                    // Llenar bitácora (últimos movimientos)
+                    const limiteVista = new Date(); limiteVista.setDate(limiteVista.getDate() - 5);
                     if(fecha >= limiteVista) {
-                        todasVentas.push({ ...v, id: d.id, util });
+                        registroActual.push({ ...v, id: d.id, gananciaItem });
                         tabla.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="p-5"><span class="px-2 py-1 rounded text-[8px] font-black ${v.origen === 'MANUAL' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}">${v.origen || 'WEB'}</span></td>
+                        <tr class="border-b hover:bg-slate-50 transition">
+                            <td class="p-5"><span class="px-2 py-1 rounded text-[8px] font-black ${v.origen === 'MANUAL' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'} uppercase">${v.origen || 'WEB'}</span></td>
                             <td class="p-5 font-black uppercase text-slate-700">${v.tipo}</td>
-                            <td class="p-5">$${ingreso.toFixed(2)}</td>
-                            <td class="p-5 text-emerald-600">$${util.toFixed(2)}</td>
-                            <td class="p-5 text-right"><button onclick="window.eliminarMovimiento('${d.id}')" class="text-red-300 hover:text-red-600">✕</button></td>
+                            <td class="p-5 text-slate-900">$${ingreso.toFixed(2)}</td>
+                            <td class="p-5 text-emerald-600 font-black">$${gananciaItem.toFixed(2)}</td>
+                            <td class="p-5 text-right"><button onclick="window.eliminarVenta('${d.id}')" class="text-red-300 hover:text-red-600 transition">✕</button></td>
                         </tr>`;
                     }
                 });
 
-                // Actualizar Pantalla
-                const f = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
-                document.getElementById('totalHoy').innerText = f.format(h_bruto);
-                document.getElementById('utilidadHoy').innerText = `Utilidad: ${f.format(h_util)}`;
-                document.getElementById('totalSemana').innerText = f.format(s_bruto);
-                document.getElementById('totalMes').innerText = f.format(m_bruto);
-                document.getElementById('utilidadMes').innerText = `Utilidad: ${f.format(m_util)}`;
+                // Renderizar Contadores
+                const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+                document.getElementById('totalHoy').innerText = fmt.format(h_bruto);
+                document.getElementById('utilidadHoy').innerText = `Utilidad: ${fmt.format(h_util)}`;
+                document.getElementById('totalSemana').innerText = fmt.format(s_bruto);
+                document.getElementById('utilidadSemana').innerText = `Utilidad: ${fmt.format(s_util)}`;
+                document.getElementById('totalMes').innerText = fmt.format(m_bruto);
+                document.getElementById('utilidadMes').innerText = `Utilidad: ${fmt.format(m_util)}`;
             });
         };
 
-        // 2. REGISTRO MANUAL
+        // 2. LÓGICA DE AUTOCOMPLETADO (De tu archivo DPR VENTAS.txt)
+        window.verificarProductoExistente = () => {
+            const nombreInput = document.getElementById('nombreProducto');
+            const costoInput = document.getElementById('costoProducto');
+            const precioInput = document.getElementById('precioVenta');
+            const nombre = nombreInput.value.trim().toUpperCase();
+
+            if (productosMaestros[nombre]) {
+                costoInput.value = productosMaestros[nombre].costo;
+                precioInput.value = productosMaestros[nombre].precio;
+                costoInput.disabled = true;
+                precioInput.disabled = true;
+                costoInput.classList.add('input-disabled');
+                precioInput.classList.add('input-disabled');
+            } else {
+                costoInput.disabled = false;
+                precioInput.disabled = false;
+                costoInput.classList.remove('input-disabled');
+                precioInput.classList.remove('input-disabled');
+                if (nombre === '') { costoInput.value = ''; precioInput.value = ''; }
+            }
+        };
+
+        // 3. REGISTRAR VENTA MANUAL
         window.registrarVentaManual = async () => {
             const nom = document.getElementById('nombreProducto').value.trim().toUpperCase();
             const cost = parseFloat(document.getElementById('costoProducto').value) || 0;
             const prec = parseFloat(document.getElementById('precioVenta').value) || 0;
 
-            if(!nom || prec <= 0) return alert("Completa los datos");
+            if(!nom || prec <= 0) return alert("Por favor completa los datos de venta.");
 
-            if(!catalogo[nom]) {
-                catalogo[nom] = { costo: cost, precio: prec };
-                localStorage.setItem('dpr_cat', JSON.stringify(catalogo));
+            // Guardar en catálogo si es nuevo (localStorage)
+            if(!productosMaestros[nom]) {
+                productosMaestros[nom] = { costo: cost, precio: prec };
+                localStorage.setItem('catalogoProductos', JSON.stringify(productosMaestros));
             }
 
             await addDoc(collection(db, "solicitudes"), {
                 tipo: nom, costo: prec, costo_base: cost,
-                origen: "MANUAL", fecha: serverTimestamp(), estatus: "Terminado"
+                origen: "MANUAL", fecha: serverTimestamp(), estatus: "Terminado", nombre: "VENTA DIRECTA"
             });
 
             document.getElementById('nombreProducto').value = "";
             document.getElementById('costoProducto').value = "";
             document.getElementById('precioVenta').value = "";
+            window.verificarProductoExistente();
         };
 
-        window.verificarCatalogo = () => {
-            const nom = document.getElementById('nombreProducto').value.toUpperCase();
-            if(catalogo[nom]) {
-                document.getElementById('costoProducto').value = catalogo[nom].costo;
-                document.getElementById('precioVenta').value = catalogo[nom].precio;
-            }
-        };
-
+        // 4. CIERRE HISTÓRICO
         window.cerrarCorteMaestro = async () => {
-            if(!confirm("¿Deseas cerrar el corte de hoy y guardar el histórico?")) return;
-            const hoy = new Date().toLocaleDateString();
+            if(!confirm("¿Confirmas cerrar el corte? Esto guardará un respaldo histórico del ingreso hoy.")) return;
             await addDoc(collection(db, "cortes_historicos"), {
-                fecha_corte: hoy,
-                ingreso: document.getElementById('totalHoy').innerText,
-                utilidad: document.getElementById('utilidadHoy').innerText,
-                timestamp: serverTimestamp()
+                fecha: serverTimestamp(),
+                ingreso_bruto: document.getElementById('totalHoy').innerText,
+                utilidad_neta: document.getElementById('utilidadHoy').innerText
             });
-            alert("¡Corte guardado en la base de datos histórica!");
+            alert("¡Corte guardado exitosamente!");
         };
 
-        window.eliminarMovimiento = async (id) => {
-            if(confirm("¿Borrar permanentemente?")) await deleteDoc(doc(db, "solicitudes", id));
+        window.eliminarVenta = async (id) => {
+            if(confirm("¿Eliminar registro permanentemente?")) await deleteDoc(doc(db, "solicitudes", id));
         };
 
         window.descargarReporte = () => {
-            let txt = `DPR CONSULTORIA - CORTE ${new Date().toLocaleDateString()}\n\n`;
-            txt += `RESUMEN:\n- Hoy: ${document.getElementById('totalHoy').innerText}\n- Mes: ${document.getElementById('totalMes').innerText}\n\nDETALLE:\n`;
-            todasVentas.forEach(v => {
-                txt += `[${v.origen || 'WEB'}] ${v.tipo} | Venta: $${v.costo} | Utilidad: $${v.util}\n`;
+            let txt = `DPR CONSULTORIA - CORTE ${new Date().toLocaleDateString()}\n`;
+            txt += `-------------------------------------------\n`;
+            txt += `TOTAL HOY: ${document.getElementById('totalHoy').innerText}\n`;
+            txt += `UTILIDAD: ${document.getElementById('utilidadHoy').innerText}\n\n`;
+            txt += `DETALLE DE MOVIMIENTOS:\n`;
+            registroActual.forEach(v => {
+                txt += `[${v.origen || 'WEB'}] ${v.tipo.padEnd(15)} | Venta: $${v.costo} | Utilidad: $${v.gananciaItem}\n`;
             });
             const blob = new Blob([txt], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = `Corte_DPR.txt`; a.click();
+            a.href = url; a.download = `Reporte_Corte_DPR.txt`; a.click();
         };
 
-        cargarFinanzas();
+        cargarFinanzasUnificadas();
     </script>
 </body>
 </html>
