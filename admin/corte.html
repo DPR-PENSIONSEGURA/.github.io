@@ -9,12 +9,14 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .card { background: white; border-radius: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         .input-dark { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1.25rem; padding: 14px; outline: none; transition: all 0.3s; font-weight: 700; }
         .input-dark:focus { border-color: #2563eb; background: white; }
         .stat-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; }
         .filter-btn { padding: 8px 16px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; border: 2px solid transparent; }
         .filter-active { background: #1e293b; color: white; border-color: #1e293b; }
         .filter-inactive { background: white; color: #64748b; border-color: #e2e8f0; }
+        .input-disabled { background-color: #e5e7eb; cursor: not-allowed; }
     </style>
 </head>
 <body class="p-4 md:p-8 pb-24">
@@ -105,7 +107,24 @@
             <div id="contenidoCobranza" class="overflow-y-auto space-y-4 pr-2"></div>
             <div class="grid grid-cols-2 gap-4 mt-6">
                 <button onclick="window.print()" class="bg-slate-100 text-slate-500 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest">Imprimir</button>
-                <button id="btnCopiarTodo" class="bg-emerald-500 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">Copiar WhatsApp</button>
+                <button id="btnCopiarTodo" class="bg-emerald-500 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">Copiar Todo WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalInventario" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] p-8 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter">Mi <span class="text-blue-600">Catálogo</span></h2>
+                <button onclick="window.cerrarModalInventario()" class="text-slate-400 text-4xl font-light">×</button>
+            </div>
+            <div class="overflow-y-auto flex-1">
+                <table class="w-full text-left">
+                    <thead class="text-[10px] uppercase text-slate-400 border-b">
+                        <tr><th class="pb-2">Servicio</th><th class="pb-2 text-center">Costo</th><th class="pb-2 text-center">Venta</th><th class="pb-2 text-right">Acción</th></tr>
+                    </thead>
+                    <tbody id="listaInventario" class="text-xs"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -128,15 +147,12 @@
 
         const cargarFinanzas = () => {
             const hoyInicio = new Date(); hoyInicio.setHours(0,0,0,0);
-            
             onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
                 registroCompleto = [];
                 let h_bruto = 0, h_util = 0, s_bruto = 0, m_bruto = 0;
-                
                 snap.forEach(d => {
                     const v = d.data();
                     if(v.tipo === "RECARGA ASESOR") return;
-                    
                     const fecha = v.fecha?.toDate() || new Date();
                     const ingreso = Number(v.costo || 0);
                     const costoBase = Number(v.costo_base || 0);
@@ -146,7 +162,6 @@
                         h_bruto += ingreso; h_util += ganancia; 
                         registroCompleto.push({ ...v, id: d.id, ganancia });
                     }
-                    // Conteos rápidos para tarjetas (Semana/Mes)
                     const ahora = new Date();
                     if(fecha >= (new Date().setDate(ahora.getDate() - 7))) s_bruto += ingreso;
                     if(fecha >= (new Date(ahora.getFullYear(), ahora.getMonth(), 1))) m_bruto += ingreso;
@@ -157,7 +172,6 @@
                 document.getElementById('utilidadHoy').innerText = `Utilidad: ${fmt.format(h_util)}`;
                 document.getElementById('totalSemana').innerText = fmt.format(s_bruto);
                 document.getElementById('totalMes').innerText = fmt.format(m_bruto);
-                
                 renderizarTabla();
             });
         };
@@ -176,14 +190,12 @@
         function renderizarTabla() {
             const tabla = document.getElementById('tablaVentas');
             tabla.innerHTML = "";
-            
             const filtrados = registroCompleto.filter(v => {
                 if(filtroActual === "TODAS") return true;
                 if(filtroActual === "MANUAL") return v.origen === "MANUAL";
                 if(filtroActual === "PORTAL") return v.origen !== "MANUAL";
                 return true;
             });
-
             filtrados.forEach(v => {
                 tabla.innerHTML += `
                 <tr class="border-b hover:bg-slate-50 transition">
@@ -196,76 +208,78 @@
             });
         }
 
-        // Lógica de Registro, Reporte y Catálogo (Igual a la anterior)
         window.registrarVentaManual = async () => {
             const cliente = document.getElementById('clienteManual').value.trim().toUpperCase();
             const nom = document.getElementById('nombreProducto').value.trim().toUpperCase();
             const cost = parseFloat(document.getElementById('costoProducto').value) || 0;
             const prec = parseFloat(document.getElementById('precioVenta').value) || 0;
             if(!cliente || !nom || prec <= 0) return alert("Faltan datos.");
-            if(!productosMaestros[nom]) {
-                productosMaestros[nom] = { costo: cost, precio: prec };
-                localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros));
+            if(!productosMaestros[nom] || productosMaestros[nom].precio !== prec || productosMaestros[nom].costo !== cost) {
+                if (confirm(`¿Deseas guardar '${nom}' en el catálogo?`)) {
+                    productosMaestros[nom] = { costo: cost, precio: prec };
+                    localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros));
+                }
             }
             await addDoc(collection(db, "solicitudes"), { tipo: nom, costo: prec, costo_base: cost, origen: "MANUAL", fecha: serverTimestamp(), estatus: "Terminado", nombre: cliente });
             document.getElementById('clienteManual').value = ""; document.getElementById('nombreProducto').value = ""; document.getElementById('costoProducto').value = ""; document.getElementById('precioVenta').value = "";
+            window.verificarProductoExistente();
         };
 
-window.generarReporteCobranza = () => {
-    const agrupar = {};
-    let textoWppTodo = "*REPORTE DE COBRANZA DPR - " + new Date().toLocaleDateString() + "*\n\n";
+        window.verificarProductoExistente = () => {
+            const nom = document.getElementById('nombreProducto').value.trim().toUpperCase();
+            const cI = document.getElementById('costoProducto');
+            const pI = document.getElementById('precioVenta');
+            if (productosMaestros[nom]) {
+                cI.value = productosMaestros[nom].costo; 
+                pI.value = productosMaestros[nom].precio;
+            }
+        };
 
-    registroActual.forEach(v => {
-        const nombre = v.nombre || "CLIENTE GENERAL";
-        if(!agrupar[nombre]) agrupar[nombre] = { items: [], total: 0 };
-        agrupar[nombre].items.push(`${v.tipo} ($${v.costo})`);
-        agrupar[nombre].total += v.costo;
-    });
+        window.generarReporteCobranza = () => {
+            const agrupar = {};
+            let textoWppTodo = "*REPORTE DE COBRANZA DPR - " + new Date().toLocaleDateString() + "*\n\n";
+            registroCompleto.forEach(v => {
+                const nombre = v.nombre || "CLIENTE GENERAL";
+                if(!agrupar[nombre]) agrupar[nombre] = { items: [], total: 0 };
+                agrupar[nombre].items.push(`${v.tipo} ($${v.costo})`);
+                agrupar[nombre].total += v.costo;
+            });
+            const contenedor = document.getElementById('contenidoCobranza');
+            contenedor.innerHTML = "";
+            Object.keys(agrupar).forEach(cliente => {
+                const totalFmt = agrupar[cliente].total.toFixed(2);
+                const detalleFmt = agrupar[cliente].items.join(' + ');
+                textoWppTodo += `👤 *${cliente}*\n▫️ Detalle: ${detalleFmt}\n💰 *Total: $${totalFmt}*\n\n`;
+                contenedor.innerHTML += `<div class="p-6 bg-slate-50 rounded-3xl border border-slate-200 mb-3"><div class="flex justify-between items-start mb-2"><h3 class="font-black uppercase text-blue-600">${cliente}</h3><p class="text-xl font-black text-slate-800">$${totalFmt}</p></div><p class="text-[10px] text-slate-500 font-bold mb-4">${detalleFmt}</p><button onclick="window.copiarClienteIndividual('${cliente}', '${totalFmt}', '${detalleFmt}')" class="w-full bg-emerald-50 text-emerald-600 py-2 rounded-xl font-black uppercase text-[9px] border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all">Copiar WhatsApp</button></div>`;
+            });
+            document.getElementById('btnCopiarTodo').onclick = () => { navigator.clipboard.writeText(textoWppTodo); alert("Reporte copiado."); };
+            document.getElementById('modalCobranza').classList.remove('hidden');
+        };
 
-    const contenedor = document.getElementById('contenidoCobranza');
-    contenedor.innerHTML = "";
+        window.copiarClienteIndividual = (nom, tot, det) => {
+            const mensaje = `*DPR CONSULTORÍA*\n\nHola *${nom}*, este es el resumen de tus trámites de hoy:\n\n📝 ${det}\n💰 *TOTAL A PAGAR: $${tot}*\n\n_Favor de confirmar de recibido. ¡Gracias!_`;
+            navigator.clipboard.writeText(mensaje); alert("Copiado para WhatsApp.");
+        };
 
-    Object.keys(agrupar).forEach(cliente => {
-        const totalFmt = agrupar[cliente].total.toFixed(2);
-        const detalleFmt = agrupar[cliente].items.join(' + ');
-        
-        // Acumular para el botón de "Copiar Todo"
-        textoWppTodo += `👤 *${cliente}*\n▫️ Detalle: ${detalleFmt}\n💰 *Total: $${totalFmt}*\n\n`;
-        
-        // Crear recuadro visual con botón individual
-        contenedor.innerHTML += `
-        <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-start mb-2">
-                <h3 class="font-black uppercase text-blue-600 tracking-tighter">${cliente}</h3>
-                <p class="text-xl font-black text-slate-800">$${totalFmt}</p>
-            </div>
-            <p class="text-[10px] text-slate-500 font-bold mb-4">${detalleFmt}</p>
-            
-            <button onclick="window.copiarClienteIndividual('${cliente}', '${totalFmt}', '${detalleFmt}')" 
-                    class="w-full bg-emerald-50 text-emerald-600 py-2 rounded-xl font-black uppercase text-[9px] border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all">
-                Copiar mensaje para WhatsApp
-            </button>
-        </div>`;
-    });
+        window.abrirModalInventario = () => {
+            const lista = document.getElementById('listaInventario');
+            lista.innerHTML = "";
+            Object.keys(productosMaestros).forEach(key => {
+                const p = productosMaestros[key];
+                lista.innerHTML += `<tr class="border-b"><td class="py-4 font-black uppercase text-slate-700">${key}</td><td class="py-4 text-center"><input type="number" onchange="window.modCatalogo('${key}','costo',this.value)" value="${p.costo}" class="w-20 border rounded p-1 text-center font-bold"></td><td class="py-4 text-center"><input type="number" onchange="window.modCatalogo('${key}','precio',this.value)" value="${p.precio}" class="w-20 border rounded p-1 text-center font-bold"></td><td class="py-4 text-right"><button onclick="window.borrarProd('${key}')" class="text-red-500 font-black text-[9px]">BORRAR</button></td></tr>`;
+            });
+            document.getElementById('modalInventario').classList.remove('hidden');
+        };
 
-    // Configurar el botón de Copiar Todo el reporte
-    document.getElementById('btnCopiarTodo').onclick = () => {
-        navigator.clipboard.writeText(textoWppTodo);
-        alert("Reporte completo copiado.");
-    };
-
-    if(Object.keys(agrupar).length === 0) contenedor.innerHTML = "<p class='text-center p-10 font-bold opacity-30'>Sin movimientos hoy</p>";
-    document.getElementById('modalCobranza').classList.remove('hidden');
-};
-
-// Nueva función para el copiado individual personalizado
-window.copiarClienteIndividual = (nom, tot, det) => {
-    const mensaje = `*DPR CONSULTORÍA*\n\nHola *${nom}*, este es el resumen de tus trámites de hoy:\n\n📝 ${det}\n💰 *TOTAL A PAGAR: $${tot}*\n\n_Favor de confirmar de recibido. ¡Gracias!_`;
-    navigator.clipboard.writeText(mensaje);
-    alert("Resumen de " + nom + " copiado para WhatsApp.");
-};
-
+        window.modCatalogo = (key, campo, val) => { productosMaestros[key][campo] = parseFloat(val); localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros)); };
+        window.borrarProd = (key) => { if(confirm("¿Borrar?")) { delete productosMaestros[key]; localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros)); window.abrirModalInventario(); } };
+        window.cerrarModalInventario = () => document.getElementById('modalInventario').classList.add('hidden');
         window.cerrarModalCobranza = () => document.getElementById('modalCobranza').classList.add('hidden');
+        window.cerrarCorteMaestro = async () => {
+            if(!confirm("¿Cerrar corte?")) return;
+            await addDoc(collection(db, "cortes_historicos"), { fecha: serverTimestamp(), ingreso: document.getElementById('totalHoy').innerText, utilidad: document.getElementById('utilidadHoy').innerText });
+            alert("Corte guardado.");
+        };
         window.eliminarVenta = async (id) => { if(confirm("¿Borrar?")) await deleteDoc(doc(db, "solicitudes", id)); };
         
         cargarFinanzas();
