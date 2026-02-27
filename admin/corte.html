@@ -99,15 +99,17 @@
         </div>
     </div>
 
-    <div id="modalCobranza" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+    <div id="modalCobranza" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-3xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-black uppercase italic tracking-tighter">Resumen de <span class="text-emerald-600">Cobranza</span></h2>
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter text-slate-800">Corte de <span class="text-emerald-600">Cobranza</span></h2>
                 <button onclick="window.cerrarModalCobranza()" class="text-slate-400 text-4xl font-light">×</button>
             </div>
-            <div id="contenidoCobranza" class="overflow-y-auto space-y-4 pr-2">
-                </div>
-            <button onclick="window.print()" class="mt-6 bg-slate-100 text-slate-500 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest">Imprimir Pantalla</button>
+            <div id="contenidoCobranza" class="overflow-y-auto space-y-4 pr-2"></div>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="window.print()" class="bg-slate-100 text-slate-500 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest">Imprimir</button>
+                <button id="btnCopiarTodo" class="bg-emerald-500 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-200">Copiar para WhatsApp</button>
+            </div>
         </div>
     </div>
 
@@ -137,9 +139,11 @@
         let registroActual = [];
 
         const cargarFinanzas = () => {
-            const hoy = new Date(); hoy.setHours(0,0,0,0);
-            const semana = new Date(); semana.setDate(semana.getDate() - 7);
-            const mes = new Date(); mes.setDate(1); mes.setHours(0,0,0,0);
+            // CORRECCIÓN DE FECHAS PARA FIREBASE
+            const ahora = new Date();
+            const hoyInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+            const semanaInicio = new Date(); semanaInicio.setDate(ahora.getDate() - 7);
+            const mesInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
 
             onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc")), (snap) => {
                 registroActual = [];
@@ -150,25 +154,27 @@
                 snap.forEach(d => {
                     const v = d.data();
                     if(v.tipo === "RECARGA ASESOR") return;
+                    
                     const fecha = v.fecha?.toDate() || new Date();
                     const ingreso = Number(v.costo || 0);
                     const costoBase = Number(v.costo_base || 0);
                     const ganancia = ingreso - costoBase;
 
-                    if(fecha >= hoy) { 
+                    // Filtro Hoy (independiente del origen)
+                    if(fecha >= hoyInicio) { 
                         h_bruto += ingreso; h_util += ganancia; 
                         registroActual.push({ ...v, id: d.id, ganancia });
                         tabla.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50">
+                        <tr class="border-b hover:bg-slate-50 transition">
                             <td class="p-5"><span class="px-2 py-1 rounded text-[8px] font-black ${v.origen === 'MANUAL' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'} uppercase">${v.origen || 'WEB'}</span></td>
-                            <td class="p-5 text-slate-500 uppercase">${v.nombre || 'N/A'}</td>
-                            <td class="p-5 font-black uppercase">${v.tipo}</td>
-                            <td class="p-5">$${ingreso.toFixed(2)}</td>
-                            <td class="p-5 text-right"><button onclick="window.eliminarVenta('${d.id}')" class="text-red-300 hover:text-red-500">✕</button></td>
+                            <td class="p-5 text-slate-500 uppercase truncate max-w-[100px]">${v.nombre || 'N/A'}</td>
+                            <td class="p-5 font-black uppercase text-slate-700">${v.tipo}</td>
+                            <td class="p-5 text-slate-900">$${ingreso.toFixed(2)}</td>
+                            <td class="p-5 text-right"><button onclick="window.eliminarVenta('${d.id}')" class="text-red-300 hover:text-red-500 font-black">✕</button></td>
                         </tr>`;
                     }
-                    if(fecha >= semana) { s_bruto += ingreso; }
-                    if(fecha >= mes) { m_bruto += ingreso; }
+                    if(fecha >= semanaInicio) s_bruto += ingreso;
+                    if(fecha >= mesInicio) m_bruto += ingreso;
                 });
 
                 const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
@@ -185,7 +191,7 @@
             const cost = parseFloat(document.getElementById('costoProducto').value) || 0;
             const prec = parseFloat(document.getElementById('precioVenta').value) || 0;
 
-            if(!cliente || !nom || prec <= 0) return alert("Por favor completa: Cliente, Producto y Venta.");
+            if(!cliente || !nom || prec <= 0) return alert("Faltan datos.");
 
             if(!productosMaestros[nom]) {
                 productosMaestros[nom] = { costo: cost, precio: prec };
@@ -207,6 +213,8 @@
 
         window.generarReporteCobranza = () => {
             const agrupar = {};
+            let textoWpp = "*REPORTE DE COBRANZA DPR - " + new Date().toLocaleDateString() + "*\n\n";
+
             registroActual.forEach(v => {
                 const nombre = v.nombre || "CLIENTE GENERAL";
                 if(!agrupar[nombre]) agrupar[nombre] = { items: [], total: 0 };
@@ -218,21 +226,35 @@
             contenedor.innerHTML = "";
 
             Object.keys(agrupar).forEach(cliente => {
+                textoWpp += `👤 *${cliente}*\n▫️ Detalle: ${agrupar[cliente].items.join(' + ')}\n💰 *Total: $${agrupar[cliente].total.toFixed(2)}*\n\n`;
+                
                 contenedor.innerHTML += `
                 <div class="p-6 bg-slate-50 rounded-3xl border border-slate-200">
-                    <div class="flex justify-between items-start mb-3">
+                    <div class="flex justify-between items-start mb-2">
                         <h3 class="font-black uppercase text-blue-600">${cliente}</h3>
                         <p class="text-xl font-black text-slate-800">$${agrupar[cliente].total.toFixed(2)}</p>
                     </div>
-                    <p class="text-[10px] text-slate-500 font-medium leading-relaxed">${agrupar[cliente].items.join(' + ')}</p>
+                    <p class="text-[10px] text-slate-500 font-bold">${agrupar[cliente].items.join(' + ')}</p>
+                    <button onclick="window.copiarCliente('${cliente}', '$${agrupar[cliente].total.toFixed(2)}', '${agrupar[cliente].items.join(' + ')}')" class="mt-3 text-[9px] font-black text-emerald-600 uppercase">Copiar solo este</button>
                 </div>`;
             });
 
-            if(Object.keys(agrupar).length === 0) contenedor.innerHTML = "<p class="text-center p-10 font-bold opacity-30 uppercase text-xs">No hay ventas registradas hoy</p>";
-            
+            document.getElementById('btnCopiarTodo').onclick = () => {
+                navigator.clipboard.writeText(textoWpp);
+                alert("Corte completo copiado para WhatsApp.");
+            };
+
+            if(Object.keys(agrupar).length === 0) contenedor.innerHTML = "<p class='text-center p-10 font-bold opacity-30'>Sin movimientos hoy</p>";
             document.getElementById('modalCobranza').classList.remove('hidden');
         };
 
+        window.copiarCliente = (nom, tot, det) => {
+            const txt = `*DPR CONSULTORÍA*\nHola *${nom}*, este es el resumen de tus trámites de hoy:\n\n📝 ${det}\n💰 *TOTAL A PAGAR: ${tot}*\n\n_Favor de confirmar de recibido._`;
+            navigator.clipboard.writeText(txt);
+            alert("Resumen de " + nom + " copiado.");
+        };
+
+        // --- FUNCIONES EXTRA ---
         window.verificarProductoExistente = () => {
             const nom = document.getElementById('nombreProducto').value.trim().toUpperCase();
             const cI = document.getElementById('costoProducto');
@@ -250,15 +272,15 @@
             lista.innerHTML = "";
             Object.keys(productosMaestros).forEach(key => {
                 const prod = productosMaestros[key];
-                lista.innerHTML += `<tr class="border-b"><td class="py-4 font-black uppercase text-slate-700">${key}</td><td class="py-4 text-center text-slate-400">$${prod.costo}</td><td class="py-4 text-center font-bold">$${prod.precio}</td><td class="py-4 text-right"><button onclick="window.borrarProd('${key}')" class="text-red-500 font-black">ELIMINAR</button></td></tr>`;
+                lista.innerHTML += `<tr class="border-b"><td class="py-4 font-black uppercase text-slate-700">${key}</td><td class="py-4 text-center font-bold">$${prod.precio}</td><td class="py-4 text-right"><button onclick="window.borrarProd('${key}')" class="text-red-500 font-black">ELIMINAR</button></td></tr>`;
             });
             document.getElementById('modalInventario').classList.remove('hidden');
         };
 
-        window.borrarProd = (key) => { if(confirm("¿Borrar del catálogo?")) { delete productosMaestros[key]; localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros)); window.abrirModalInventario(); } };
+        window.borrarProd = (key) => { if(confirm("¿Borrar?")) { delete productosMaestros[key]; localStorage.setItem('catalogoDPR', JSON.stringify(productosMaestros)); window.abrirModalInventario(); } };
         window.cerrarModalInventario = () => document.getElementById('modalInventario').classList.add('hidden');
         window.cerrarModalCobranza = () => document.getElementById('modalCobranza').classList.add('hidden');
-        window.eliminarVenta = async (id) => { if(confirm("¿Borrar venta?")) await deleteDoc(doc(db, "solicitudes", id)); };
+        window.eliminarVenta = async (id) => { if(confirm("¿Borrar?")) await deleteDoc(doc(db, "solicitudes", id)); };
         
         cargarFinanzas();
     </script>
