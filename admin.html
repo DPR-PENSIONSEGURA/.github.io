@@ -165,9 +165,9 @@
                                 <option value="En Proceso" ${item.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${item.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
                                 <option value="Error" ${item.estatus === 'Error' ? 'selected' : ''}>Error</option>
-                                <option value="Error en curp " ${item.estatus === 'Error en CURP o NSS' ? 'selected' : ''}>Error</option>
-                                <option value=" solo se puede consultar una vez" ${item.estatus === 'Ya se consulto una vez el día de hoy' ? 'selected' : ''}>Error</option>
-                                <option value="Error en documento" ${item.estatus === 'No se encontró el documento o no existe' ? 'selected' : ''}>Error</option>
+                                <option value="Error" ${item.estatus === 'Error en CURP o NSS' ? 'selected' : ''}>Error en CURP o NSS</option>
+                                <option value="Error" ${item.estatus === 'Ya se consulto una vez el día de hoy' ? 'selected' : ''}>Ya se consulto una vez el día de hoy</option>
+                                <option value="Error" ${item.estatus === 'No se encontró el documento o no existe' ? 'selected' : ''}>No se encontró el documento o no existe</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
