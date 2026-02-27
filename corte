@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPR | Corte de Caja Unificado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .input-dark { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 1rem; padding: 12px; outline: none; transition: all 0.3s; }
+        .input-dark:focus { border-color: #2563eb; background: white; }
+        .btn-master { background: #1e293b; color: white; font-weight: 900; text-transform: uppercase; italic; transition: all 0.3s; }
+        .btn-master:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <div>
+                <h1 class="text-3xl font-black uppercase italic text-slate-800">Corte <span class="text-blue-600">Unificado</span></h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría | Gestión de Inventario y Trámites</p>
+            </div>
+            <a href="../admin.html" class="text-xs font-black uppercase text-slate-400 hover:text-blue-600 tracking-tighter">← Volver al Panel Admin</a>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <section class="lg:col-span-1 space-y-6">
+                <div class="card p-8">
+                    <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-blue-600 pl-4">Nueva Venta</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Producto/Servicio</label>
+                            <input type="text" id="nombreProducto" oninput="window.verificarExistente()" class="w-full input-dark font-bold uppercase" placeholder="EJ: ANÁLISIS COMPLETO">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Costo ($)</label>
+                                <input type="number" id="costoProducto" class="w-full input-dark font-bold" placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase text-slate-400 ml-2">Venta ($)</label>
+                                <input type="number" id="precioVenta" class="w-full input-dark font-bold" placeholder="0.00">
+                            </div>
+                        </div>
+                        <button onclick="window.registrarVentaManual()" class="w-full btn-master py-4 rounded-2xl shadow-xl mt-4">Registrar Venta</button>
+                    </div>
+                </div>
+
+                <div class="card p-8 bg-slate-900 text-white">
+                    <h2 class="text-sm font-black uppercase tracking-widest opacity-50 mb-6">Corte de Caja Hoy</h2>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-[10px] uppercase font-bold opacity-60">Ingreso Total (Bruto)</p>
+                            <p id="txtIngresoTotal" class="text-4xl font-black text-blue-400">$ 0.00</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[9px] uppercase font-bold opacity-60">Utilidad Neta</p>
+                                <p id="txtUtilidad" class="text-xl font-black text-emerald-400">$ 0.00</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] uppercase font-bold opacity-60">Reinversión</p>
+                                <p id="txtReinversion" class="text-xl font-black text-orange-400">$ 0.00</p>
+                            </div>
+                        </div>
+                        <button onclick="window.descargarReporte()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">Descargar Reporte .TXT</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-2">
+                <div class="card overflow-hidden">
+                    <div class="p-8 border-b border-slate-100 flex justify-between items-center">
+                        <h2 class="text-xl font-black uppercase italic text-slate-700">Detalle del Día</h2>
+                        <span id="contadorVentas" class="bg-blue-100 text-blue-600 px-4 py-1 rounded-full font-black text-[10px]">0 VENTAS</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-5">Origen</th>
+                                    <th class="p-5">Servicio</th>
+                                    <th class="p-5">Ingreso</th>
+                                    <th class="p-5">Ganancia</th>
+                                    <th class="p-5 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaUnificada" class="text-xs font-bold">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, addDoc, serverTimestamp, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817",
+            storageBucket: "pensionsegura-9c817.firebasestorage.app"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Catálogo local (se guarda en localStorage como en tu código original)
+        let productosMaestros = JSON.parse(localStorage.getItem('dpr_catalogo') || '{}');
+        let ventasUnificadas = [];
+
+        // 1. ESCUCHAR TODAS LAS SOLICITUDES DE HOY (WEB Y ASESORES)
+        const hoyInicio = new Date(); hoyInicio.setHours(0,0,0,0);
+        const q = query(collection(db, "solicitudes"), where("fecha", ">=", hoyInicio), orderBy("fecha", "desc"));
+
+        onSnapshot(q, (snap) => {
+            ventasUnificadas = [];
+            snap.forEach(d => {
+                const data = d.data();
+                if(data.tipo === "RECARGA ASESOR") return;
+                ventasUnificadas.push({
+                    id: d.id,
+                    origen: data.origen || "WEB/ASESOR",
+                    tipo: data.tipo,
+                    precio: Number(data.costo || 0),
+                    costo_base: 0, // En trámites digitales tu costo es 0 (utilidad pura)
+                    ganancia: Number(data.costo || 0),
+                    manual: false
+                });
+            });
+            actualizarInterfaz();
+        });
+
+        // 2. REGISTRAR VENTA MANUAL (INVENTARIO)
+        window.registrarVentaManual = async () => {
+            const nombre = document.getElementById('nombreProducto').value.trim().toUpperCase();
+            const costoBase = parseFloat(document.getElementById('costoProducto').value) || 0;
+            const precioVenta = parseFloat(document.getElementById('precioVenta').value) || 0;
+
+            if(!nombre || precioVenta <= 0) return alert("Datos inválidos");
+
+            // Guardar en catálogo si es nuevo
+            if(!productosMaestros[nombre]) {
+                productosMaestros[nombre] = { costo: costoBase, precio: precioVenta };
+                localStorage.setItem('dpr_catalogo', JSON.stringify(productosMaestros));
+            }
+
+            // Guardar en Firebase para que sea permanente en el reporte
+            await addDoc(collection(db, "solicitudes"), {
+                tipo: nombre,
+                costo: precioVenta,
+                costo_base: costoBase, // Nuevo campo para inventario
+                origen: "MANUAL",
+                fecha: serverTimestamp(),
+                estatus: "Terminado",
+                nombre: "VENTA DIRECTA"
+            });
+
+            document.getElementById('nombreProducto').value = "";
+            document.getElementById('costoProducto').value = "";
+            document.getElementById('precioVenta').value = "";
+            alert("Venta registrada");
+        };
+
+        window.verificarExistente = () => {
+            const nom = document.getElementById('nombreProducto').value.toUpperCase();
+            if(productosMaestros[nom]) {
+                document.getElementById('costoProducto').value = productosMaestros[nom].costo;
+                document.getElementById('precioVenta').value = productosMaestros[nom].precio;
+            }
+        };
+
+        function actualizarInterfaz() {
+            const tabla = document.getElementById('tablaUnificada');
+            let bruto = 0, utilidad = 0, reinversion = 0;
+            tabla.innerHTML = "";
+
+            ventasUnificadas.forEach(v => {
+                bruto += v.precio;
+                reinversion += (v.costo_base || 0);
+                utilidad += (v.precio - (v.costo_base || 0));
+
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-5"><span class="px-2 py-1 rounded text-[8px] font-black ${v.origen === 'MANUAL' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'} uppercase">${v.origen}</span></td>
+                        <td class="p-5 font-black uppercase text-slate-700">${v.tipo}</td>
+                        <td class="p-5 text-slate-900 font-bold">$${v.precio.toFixed(2)}</td>
+                        <td class="p-5 text-emerald-600 font-black">$${(v.precio - (v.costo_base || 0)).toFixed(2)}</td>
+                        <td class="p-5 text-right"><button onclick="window.eliminarVenta('${v.id}')" class="text-red-400 hover:text-red-600 font-black">ELIMINAR</button></td>
+                    </tr>`;
+            });
+
+            document.getElementById('txtIngresoTotal').innerText = `$ ${bruto.toFixed(2)}`;
+            document.getElementById('txtUtilidad').innerText = `$ ${utilidad.toFixed(2)}`;
+            document.getElementById('txtReinversion').innerText = `$ ${reinversion.toFixed(2)}`;
+            document.getElementById('contadorVentas').innerText = `${ventasUnificadas.length} MOVIMIENTOS`;
+        }
+
+        window.eliminarVenta = async (id) => {
+            if(confirm("¿Eliminar este registro de forma permanente?")) {
+                await deleteDoc(doc(db, "solicitudes", id));
+            }
+        };
+
+        window.descargarReporte = () => {
+            let contenido = `DPR CONSULTORÍA - REPORTE DE CORTE\nFECHA: ${new Date().toLocaleDateString()}\n`;
+            contenido += `-------------------------------------------\n`;
+            contenido += `INGRESO TOTAL: ${document.getElementById('txtIngresoTotal').innerText}\n`;
+            contenido += `UTILIDAD NETA: ${document.getElementById('txtUtilidad').innerText}\n`;
+            contenido += `REINVERSIÓN: ${document.getElementById('txtReinversion').innerText}\n`;
+            contenido += `-------------------------------------------\n\nDETALLE:\n`;
+            
+            ventasUnificadas.forEach(v => {
+                contenido += `[${v.origen}] ${v.tipo.padEnd(20)} | Venta: $${v.precio} | Ganancia: $${v.ganancia}\n`;
+            });
+
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Corte_DPR_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+        };
+    </script>
+</body>
+</html>
