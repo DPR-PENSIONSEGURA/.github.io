@@ -24,7 +24,7 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Rendimiento Optimizado | Gestión de Errores</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Trámites | Datos Completos</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -87,7 +87,7 @@
                             <tr>
                                 <th class="p-4 text-center">Tipo</th>
                                 <th class="p-4">Servicio</th>
-                                <th class="p-4">Cliente / Info</th>
+                                <th class="p-4">Cliente / Datos del Trámite</th>
                                 <th class="p-4 text-center">Estatus</th>
                                 <th class="p-4 text-right">Acción</th>
                             </tr>
@@ -152,7 +152,7 @@
                 window.solicitudesCache[id] = item;
                 const fStr = item.fecha?.toDate().toLocaleDateString() || '...';
                 if(item.estatus === 'En Proceso') pendientes++;
-                if(fStr === hoyStr && !item.estatus.includes('Error')) totalHoy += Number(item.costo || 0);
+                if(fStr === hoyStr && !item.estatus.includes('ERROR')) totalHoy += Number(item.costo || 0);
                 todasSolicitudes.push({ ...item, id: id });
             });
 
@@ -184,12 +184,13 @@
                 let btnAccion = '';
                 if (s.estatus === 'Terminado') {
                     btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Ver</button>`;
-                } else if (s.estatus.includes('Error')) {
+                } else if (s.estatus.includes('ERROR') || s.estatus.includes('INEXISTENTE') || s.estatus.includes('LIMITE') || s.estatus.includes('ILEGIBLES')) {
                     btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ ${s.estatus}</button>`;
                 } else {
                     btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition">Subir</button>`;
                 }
 
+                // CORRECCIÓN AQUÍ: Se agregaron los campos CURP y NSS visibles
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50 transition">
                         <td class="p-4 text-center">
@@ -199,8 +200,12 @@
                         </td>
                         <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                         <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase truncate max-w-[150px]">${s.nombre || 'Sin Nombre'}</div>
-                            <div class="text-[9px] text-blue-500 font-bold">${s.curp || 'S/N'}</div>
+                            <div class="font-black text-slate-900 uppercase truncate max-w-[200px] mb-1">${s.nombre || 'Sin Nombre'}</div>
+                            <div class="flex flex-col gap-0.5">
+                                <div class="text-[10px] text-blue-600 font-black tracking-tight">CURP: ${s.curp || 'N/A'}</div>
+                                <div class="text-[10px] text-slate-500 font-black tracking-tight">NSS: ${s.nss || 'N/A'}</div>
+                                ${s.extra ? `<div class="text-[9px] text-orange-600 font-bold italic">Nota: ${s.extra}</div>` : ''}
+                            </div>
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none focus:border-blue-500">
@@ -218,29 +223,22 @@
         }
 
         window.cambiarEstatus = async (id, est) => {
-            // Si el estatus seleccionado contiene la palabra "ERROR" o los nuevos errores
             const errores = ["ERROR NSS/CURP", "DOC. INEXISTENTE", "LIMITE ALCANZADO", "FOTOS ILEGIBLES"];
-            
             if(errores.includes(est)) {
                 const costoOriginal = window.solicitudesCache[id].costo || 0;
                 const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor? (Costo original: $${costoOriginal})`, costoOriginal);
-                
                 if(m !== null) {
                     const montoDevolver = Number(m);
                     const asesorId = window.solicitudesCache[id].asesor_uid;
-                    
                     if(asesorId) {
                         await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(montoDevolver) });
                         alert(`Se regresaron $${montoDevolver} al asesor.`);
                     }
-                } else {
-                    return; // Si cancela el prompt, no cambia el estatus
-                }
+                } else { return; }
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
-        // El resto de funciones se mantienen igual...
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas');
             t.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Sin recargas pendientes</td></tr>' : "";
