@@ -15,7 +15,6 @@
         .filter-btn { padding: 6px 14px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
         .filter-active { background: #1e293b; color: white; }
         .filter-inactive { background: white; color: #64748b; border: 1px solid #e2e8f0; }
-        /* Mejora de scroll para móviles */
         .overflow-x-auto { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
@@ -25,7 +24,7 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Rendimiento Optimizado | Carga Rápida</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Rendimiento Optimizado | Gestión de Errores</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -71,7 +70,7 @@
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Últimas 50 Solicitudes</h2>
+                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
                     <div class="flex gap-1 bg-slate-200 p-1 rounded-full scale-90">
                         <button onclick="window.cambiarFiltro('TODAS')" id="filterTODAS" class="filter-btn filter-active">Todas</button>
                         <button onclick="window.cambiarFiltro('PORTAL')" id="filterPORTAL" class="filter-btn filter-inactive">Portal</button>
@@ -132,17 +131,14 @@
         let idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // 1. VISITAS (Optimizado)
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
 
-        // 2. CONTADOR ASESORES
         onSnapshot(collection(db, "asesores"), (snap) => {
             document.getElementById('txtAsesores').innerText = snap.size;
         });
 
-        // 3. SOLICITUDES (Carga Rápida Limitada a 50)
         const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(50));
         onSnapshot(qSolicitudes, (snap) => {
             todasSolicitudes = [];
@@ -152,20 +148,16 @@
             snap.forEach(d => {
                 const item = d.data();
                 if(item.tipo === "RECARGA ASESOR") return;
-
                 const id = d.id;
                 window.solicitudesCache[id] = item;
                 const fStr = item.fecha?.toDate().toLocaleDateString() || '...';
-
                 if(item.estatus === 'En Proceso') pendientes++;
-                if(fStr === hoyStr && item.estatus !== 'Error') totalHoy += Number(item.costo || 0);
-
+                if(fStr === hoyStr && !item.estatus.includes('Error')) totalHoy += Number(item.costo || 0);
                 todasSolicitudes.push({ ...item, id: id });
             });
 
             document.getElementById('contadorPendientes').innerText = pendientes;
             document.getElementById('gananciaHoy').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(totalHoy);
-            
             renderizarTabla();
         });
 
@@ -179,7 +171,6 @@
         function renderizarTabla() {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
-
             const filtradas = todasSolicitudes.filter(s => {
                 if(filtroActual === "TODAS") return true;
                 if(filtroActual === "MANUAL") return s.origen === "MANUAL";
@@ -190,12 +181,11 @@
                 const esManual = s.origen === 'MANUAL';
                 const fStr = s.fecha?.toDate().toLocaleDateString() || '...';
                 
-                // LÓGICA DE BOTONES INTELIGENTES
                 let btnAccion = '';
                 if (s.estatus === 'Terminado') {
                     btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Ver</button>`;
                 } else if (s.estatus.includes('Error')) {
-                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ Error</button>`;
+                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ ${s.estatus}</button>`;
                 } else {
                     btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition">Subir</button>`;
                 }
@@ -210,13 +200,16 @@
                         <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                         <td class="p-4">
                             <div class="font-black text-slate-900 uppercase truncate max-w-[150px]">${s.nombre || 'Sin Nombre'}</div>
-                            <div class="text-[9px] text-blue-500 font-bold">${s.curp || 'N/A'}</div>
+                            <div class="text-[9px] text-blue-500 font-bold">${s.curp || 'S/N'}</div>
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none focus:border-blue-500">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                <option value="Error" ${s.estatus.includes('Error') ? 'selected' : ''}>Error</option>
+                                <option value="ERROR NSS/CURP" ${s.estatus === 'ERROR NSS/CURP' ? 'selected' : ''}>ERROR NSS/CURP</option>
+                                <option value="DOC. INEXISTENTE" ${s.estatus === 'DOC. INEXISTENTE' ? 'selected' : ''}>DOC. INEXISTENTE</option>
+                                <option value="LIMITE ALCANZADO" ${s.estatus === 'LIMITE ALCANZADO' ? 'selected' : ''}>LIMITE ALCANZADO</option>
+                                <option value="FOTOS ILEGIBLES" ${s.estatus === 'FOTOS ILEGIBLES' ? 'selected' : ''}>FOTOS ILEGIBLES</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">${btnAccion}</td>
@@ -224,7 +217,30 @@
             });
         }
 
-        // 4. RECARGAS PENDIENTES
+        window.cambiarEstatus = async (id, est) => {
+            // Si el estatus seleccionado contiene la palabra "ERROR" o los nuevos errores
+            const errores = ["ERROR NSS/CURP", "DOC. INEXISTENTE", "LIMITE ALCANZADO", "FOTOS ILEGIBLES"];
+            
+            if(errores.includes(est)) {
+                const costoOriginal = window.solicitudesCache[id].costo || 0;
+                const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor? (Costo original: $${costoOriginal})`, costoOriginal);
+                
+                if(m !== null) {
+                    const montoDevolver = Number(m);
+                    const asesorId = window.solicitudesCache[id].asesor_uid;
+                    
+                    if(asesorId) {
+                        await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(montoDevolver) });
+                        alert(`Se regresaron $${montoDevolver} al asesor.`);
+                    }
+                } else {
+                    return; // Si cancela el prompt, no cambia el estatus
+                }
+            }
+            await updateDoc(doc(db, "solicitudes", id), { estatus: est });
+        };
+
+        // El resto de funciones se mantienen igual...
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas');
             t.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Sin recargas pendientes</td></tr>' : "";
@@ -246,16 +262,8 @@
             if(est === 'aprobado') {
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("Aprobado exitosamente.");
-            } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
-        };
-
-        window.cambiarEstatus = async (id, est) => {
-            if(est === 'Error') {
-                const m = prompt("Monto a devolver al asesor:");
-                if(m) await updateDoc(doc(db, "asesores", window.solicitudesCache[id].asesor_uid), { saldo: increment(Number(m)) });
-            }
-            await updateDoc(doc(db, "solicitudes", id), { estatus: est });
+                alert("Aprobado.");
+            } else { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
         window.abrirSubida = (id, folio) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "TRÁMITE: " + folio; document.getElementById('modalSubir').classList.remove('hidden'); };
@@ -266,18 +274,16 @@
             if(!file) return alert("Selecciona el resultado.");
             const btn = document.getElementById('btnGuardar');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
-
             const fd = new FormData();
             fd.append('file', file);
             fd.append('upload_preset', UPLOAD_PRESET);
-
             try {
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 window.cerrarModal();
-                alert("Entregado con éxito.");
-            } catch(e) { alert("Error al subir archivo."); }
+                alert("Entregado.");
+            } catch(e) { alert("Error al subir."); }
             btn.innerText = "Subir Archivo"; btn.disabled = false;
         };
 
