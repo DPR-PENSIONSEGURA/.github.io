@@ -18,26 +18,16 @@
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-            display: inline-flex;
-            animation: marquee 25s linear infinite;
-        }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .animate-marquee { display: inline-flex; animation: marquee 25s linear infinite; }
     </style>
 </head>
 <body>
 
     <div class="bg-yellow-400 py-2 overflow-hidden border-b border-yellow-600 shadow-lg">
         <div class="whitespace-nowrap animate-marquee flex items-center">
-            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
-                ⚠️RESPONDE UNA ENCUESTA EN NUESTRO CANAL DE WHATSAPP ✅ AYUDANOS A MEJORAR
-            </span>
-            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
-                ✅ SISTEMA DE SEMANAS REESTABLECIDO ✅ ✅ RECUERDA QUE LA RECARGA MINIMA ES DE $200 ✅ 
-            </span>
+            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">⚠️ REVISA TU SALDO ANTES DE PEDIR ✅</span>
+            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">✅ RECUERDA QUE LA RECARGA MINIMA ES DE $200 ✅</span>
         </div>
     </div>
 
@@ -62,35 +52,9 @@
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">🏥 <span class="text-[10px] block font-black uppercase">IMSS</span></button>
             <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">⚖️ <span class="text-[10px] block font-black uppercase">SAT</span></button>
-            <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">🧮 <span class="text-[10px] block font-black uppercase">CALCULADORAS</span></button>
             <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">📄 <span class="text-[10px] block font-black uppercase">DOCUMENTOS</span></button>
             <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">🏠 <span class="text-[10px] block font-black uppercase">INFONAVIT</span></button>
             <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">💰 <span class="text-[10px] block font-black uppercase text-blue-400">AFORE</span></button>
-        </div>
-
-        <div id="seccionAfore" class="hidden bg-slate-800/40 p-8 rounded-[2.5rem] border border-blue-500/20 mb-12 animate-fade">
-            <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark">
-                    <option value="">-- Seleccionar Afore --</option>
-                    <option value="Sura">Sura ($750)</option>
-                    <option value="Invercap">Invercap ($1400)</option>
-                    <option value="Profuturo">Profuturo ($500)</option>
-                    <option value="Banorte">Banorte ($600)</option>
-                    <option value="Coppel">Coppel ($350)</option>
-                    <option value="Azteca">Azteca ($350)</option>
-                    <option value="Principal">Principal ($750)</option>
-                    <option value="Banamex">Banamex ($1200)</option>
-                </select>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS" class="input-dark">
-                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase">
-                </div>
-            </div>
-            <div class="mt-8 flex justify-between items-center">
-                <p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p>
-                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl">Confirmar Pago</button>
-            </div>
         </div>
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
@@ -101,10 +65,12 @@
                 <table class="w-full text-left">
                     <thead>
                         <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
-                            <th class="pb-4">Fecha</th><th class="pb-4">Servicio</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Documento</th>
+                            <th class="pb-4">Fecha</th><th class="pb-4">Servicio</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Resultado</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-xs"></tbody>
+                    <tbody id="listaHistorial" class="text-xs font-medium">
+                        <tr><td colspan="4" class="py-10 text-center opacity-30">Cargando historial...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -122,13 +88,12 @@
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
             <h2 class="text-xl font-black text-white uppercase mb-6">Recargar Saldo</h2>
             <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8 text-white">
-                <p class="text-[10px] font-black text-blue-400 uppercase mb-2">Transferencia</p>
+                <p class="text-[10px] font-black text-blue-400 uppercase mb-2 tracking-widest">Datos transferencia</p>
                 <p class="text-xl font-black tracking-widest">4915 6630 4036 4896</p>
-                <p class="text-[10px] uppercase opacity-70">Banorte | Diana Puente</p>
+                <p class="text-[10px] uppercase opacity-70 italic">Banorte | Diana Puente</p>
             </div>
             <div class="space-y-3">
                 <input type="number" id="depMonto" placeholder="Monto" class="input-dark text-center">
-                <input type="text" id="depRef" placeholder="Rastreo" class="input-dark text-center uppercase">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px]">
                 <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 mt-4">Informar Pago</button>
             </div>
@@ -137,7 +102,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -155,7 +120,6 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
-        const PRECIOS_AFORE = { "Sura": 750, "Invercap": 1400, "Profuturo": 500, "Banorte": 600, "Coppel": 350, "Azteca": 350, "Principal": 750, "Banamex": 1200 };
 
         const TRAMITES = {
             'IMSS': [
@@ -170,8 +134,14 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
+            if (user) { 
+                userUID = user.uid; 
+                emailAsesor = user.email; 
+                escucharSaldo(); 
+                escucharHistorial(); 
+            } else { 
+                window.location.href = "login/index.html"; 
+            }
         });
 
         function escucharSaldo() {
@@ -184,45 +154,45 @@
         }
 
         window.mostrarTramites = (cat) => {
-            document.getElementById('seccionAfore').classList.add('hidden');
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700">
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.curp || false}, '${t.extra || ''}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    <p class="gold-text font-black text-[9px] mt-1 tracking-widest">$${t.precio}.00</p>
                 </div>`;
             });
             listado.innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, pref, pideNss, pideNac, pideEx, special) => {
+        window.prepararTramite = (nombre, costo, pref, pideNss, pideCurp, pideEx, special) => {
             const content = document.getElementById('formContent');
-            let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">`;
+            let fields = pideCurp ? `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">` : '';
             
             if (special === 'RETIRO' || special === 'REGISTRO') {
                 fields += `
-                <div class="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl mb-4 text-[9px] font-black text-red-500 uppercase italic">RECUERDA SUBIR FOTOS LEGIBLES, SIN FLASH Y SIN INE ESCANEADAS.</div>
+                <div class="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl mb-4 text-[9px] font-black text-red-500 uppercase italic">RECUERDA SUBIR FOTOS SIN FLASH Y SIN INE ESCANEADAS.</div>
+                <input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">
                 <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">
-                <label class="text-[9px] uppercase ml-2">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3">
-                <label class="text-[9px] uppercase ml-2">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3">
-                <label class="text-[9px] uppercase ml-2">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3">
-                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full mb-4">' : '<textarea id="extra_p" placeholder="Contraseña..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
+                <label class="text-[9px] uppercase ml-2 text-slate-500">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3 text-[10px]">
+                <label class="text-[9px] uppercase ml-2 text-slate-500">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3 text-[10px]">
+                <label class="text-[9px] uppercase ml-2 text-slate-500">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3 text-[10px]">
+                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2 text-slate-500">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full mb-4 text-[10px]">' : '<textarea id="extra_p" placeholder="Contraseña..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
             } else {
                 if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
                 if(pideEx) fields += `<input type="text" id="extra_p" placeholder="${pideEx}" class="input-dark mb-4 w-full">`;
             }
 
-            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}', '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase">Pagar $${costo}</button>`;
+            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}', '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-lg">Confirmar Pago $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (n, c, p, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value;
-            if(!curp) return alert("Ingresa la CURP.");
+            const curp = document.getElementById('curp_p')?.value || "";
+            if(!curp && (special === 'RETIRO' || special === 'REGISTRO')) return alert("Ingresa la CURP.");
 
             const btn = document.querySelector("#modalTramite button:last-child");
             const originalText = btn.innerText;
@@ -242,8 +212,7 @@
                         if (item.f) {
                             btn.innerText = `SUBIENDO: ${item.l}...`;
                             const fd = new FormData();
-                            fd.append('file', item.f);
-                            fd.append('upload_preset', UPLOAD_PRESET);
+                            fd.append('file', item.f); fd.append('upload_preset', UPLOAD_PRESET);
                             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                             const data = await res.json();
                             docs[item.k] = data.secure_url;
@@ -251,7 +220,7 @@
                     }
                 }
 
-                btn.innerText = "FINALIZANDO...";
+                btn.innerText = "PROCESANDO...";
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
@@ -260,29 +229,37 @@
                     extra: document.getElementById('extra_p')?.value || "",
                     ...docs, estatus: "En Proceso", fecha: serverTimestamp()
                 });
-                alert("Enviado."); cerrarModal();
-            } catch(e) { alert("Error al subir."); }
+                alert("Enviado correctamente."); cerrarModal();
+            } catch(e) { alert("Error al procesar."); }
             finally { btn.disabled = false; btn.innerText = originalText; }
         };
 
         function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(20));
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
             onSnapshot(q, (snap) => {
                 const lista = document.getElementById('listaHistorial');
+                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin solicitudes previas</td></tr>'; return; }
+                
                 lista.innerHTML = "";
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
+                    const id = docSnap.id;
                     let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
-                    let misDocs = "";
-                    if(d.file_ine_f) misDocs += `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-1 rounded mr-1">INE</button>`;
                     
-                    lista.innerHTML += `<tr class="border-b border-slate-800">
-                        <td class="py-4 text-slate-500">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                        <td class="py-4 font-black">${d.tipo}<br>${misDocs}</td>
-                        <td class="py-4 text-center font-bold ${color}">${d.estatus}</td>
-                        <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black">VER</a>` : '--'}</td>
+                    // Botones de lo que el asesor subió (Mis Archivos)
+                    let misArchivos = "";
+                    if(d.file_ine_f) misArchivos += `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[8px]">INE F</button>`;
+                    if(d.file_selfie) misArchivos += `<button onclick="window.open('${d.file_selfie}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[8px]">FOTO</button>`;
+                    
+                    lista.innerHTML += `<tr class="border-b border-slate-800 animate-fade">
+                        <td class="py-4 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
+                        <td class="py-4"><div class="font-black uppercase tracking-tighter">${d.tipo}</div><div class="mt-1">${misArchivos}</div></td>
+                        <td class="py-4 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
+                        <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">VER</a>` : '--'}</td>
                     </tr>`;
                 });
+            }, (error) => {
+                console.error("Error historial:", error);
             });
         }
 
@@ -290,11 +267,15 @@
             const m = parseFloat(document.getElementById('depMonto').value);
             const f = document.getElementById('fileRecarga').files[0];
             if (!m || !f) return alert("Faltan datos.");
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-            const data = await res.json();
-            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-            alert("Reportado."); cerrarModal();
+            const btn = document.getElementById('btnNotificar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Reportado con éxito."); cerrarModal();
+            } catch(e) { alert("Error."); }
+            finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
