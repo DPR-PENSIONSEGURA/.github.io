@@ -184,10 +184,11 @@
                 let btnAccion = '';
                 let btnDescargas = '';
 
-                // LÓGICA DE DESCARGA MÚLTIPLE (Para Registro y Retiro)
-                if (s.fotos && Array.isArray(s.fotos)) {
-                    s.fotos.forEach((url, idx) => {
-                        btnDescargas += `<button onclick="window.open('${url}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1">DOC ${idx+1} 📥</button>`;
+                // BÚSQUEDA AGRESIVA DE ARCHIVOS (Registro y Retiro)
+                const listaFotos = s.fotos || s.archivos || s.documentos || [];
+                if (Array.isArray(listaFotos) && listaFotos.length > 0) {
+                    listaFotos.forEach((url, idx) => {
+                        if(url) btnDescargas += `<button onclick="window.open('${url}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-sm">DOC ${idx+1} 📥</button>`;
                     });
                 } else if (s.comprobante) {
                     btnDescargas += `<button onclick="window.open('${s.comprobante}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1">PAGO 📥</button>`;
@@ -238,7 +239,6 @@
         }
 
         window.eliminarSolicitud = async (id, estatus) => {
-            // CONDICIÓN DE BLOQUEO DE BORRADO
             if (estatus === 'En Proceso') {
                 return alert("⚠️ No puedes eliminar un trámite que está 'En Proceso'. Primero márcalo como Terminado o Error.");
             }
