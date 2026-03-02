@@ -10,7 +10,7 @@
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
         .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
-        .category-card:hover { border-color: #C5A059; background: rgba(255, 255, 255, 0.07); }
+        .category-card:hover { border-color: #C5A059; background: rgbargba(237, 232, 208, 1); }
         .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
         .gold-text { color: #C5A059; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
@@ -31,6 +31,9 @@
                 <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-white">...</span>
                 </button>
+                <a href="finanzas.html" class="text-[9px] font-black uppercase text-blue-400 border border-blue-400/30 px-3 py-1.5 rounded-full hover:bg-blue-400 hover:text-white transition">
+    📈 Mis Finanzas
+</a>
                 <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500">Salir</button>
             </div>
         </div>
