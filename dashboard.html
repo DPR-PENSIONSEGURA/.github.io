@@ -9,7 +9,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
-        .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
+        .category-card { background: rgbargba(245, 245, 220, 1)); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
         .category-card:hover { border-color: #C5A059; background: rgbargba(237, 232, 208, 1); }
         .input-dark { background: #1E293B; border: 1px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
         .gold-text { color: #C5A059; }
@@ -37,6 +37,31 @@
                 <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500">Salir</button>
             </div>
         </div>
+        <div class="bg-red-600 border-y border-red-500 shadow-2xl relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+    
+    <div class="max-w-7xl mx-auto py-3 px-4 flex items-center justify-center gap-3 relative z-10">
+        <span class="relative flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+        </span>
+
+        <p class="text-white font-black uppercase italic text-[11px] md:text-sm tracking-[0.2em] text-center">
+            ⚠️ Falla General en Sistemas <span class="underline decoration-white/50 underline-offset-4">RENAPO</span> | Los trámites de CURP pueden presentar retrasos ⚠️
+        </p>
+
+        <span class="relative flex h-3 w-3 hidden md:flex">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+        </span>
+    </div>
+</div>
+
+<style>
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+</style>
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
