@@ -326,53 +326,77 @@
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, p, special) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const curp = document.getElementById('curp_p').value;
-            if(!curp) return alert("Ingresa la CURP.");
+window.confirmarCompra = async (n, c, p, special) => {
+    if (saldoGlobal < c) return alert("Saldo insuficiente.");
+    const curp = document.getElementById('curp_p').value;
+    if(!curp) return alert("Ingresa la CURP.");
 
-            try {
-                let docs = {};
-                if (special === 'RETIRO' || special === 'REGISTRO') {
-                    // Aquí iría la lógica de subida a Cloudinary para múltiples archivos si fuera necesario, 
-                    // por ahora lo simplificamos marcando que se requieren archivos.
-                    const f1 = document.getElementById('file_ine_f').files[0];
-                    if(!f1) return alert("Faltan archivos requeridos.");
-                    // Nota: Se recomienda implementar un loop de subida para todos los archivos detectados.
+    const btn = document.querySelector("#modalTramite button:last-child");
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+
+    try {
+        let docs = {};
+        if (special === 'RETIRO' || special === 'REGISTRO') {
+            const filesToUpload = [
+                { key: 'file_ine_f', file: document.getElementById('file_ine_f').files[0], label: 'INE FRENTE' },
+                { key: 'file_ine_r', file: document.getElementById('file_ine_r').files[0], label: 'INE REVERSO' },
+                { key: 'file_selfie', file: document.getElementById('file_selfie').files[0], label: 'FOTO CLIENTE' },
+                { key: 'file_edocta', file: document.getElementById('file_edocta')?.files[0], label: 'EDO. CUENTA' }
+            ];
+
+            for (let item of filesToUpload) {
+                if (item.file) {
+                    btn.innerText = `SUBIENDO: ${item.label}...`;
+                    const fd = new FormData();
+                    fd.append('file', item.file);
+                    fd.append('upload_preset', UPLOAD_PRESET);
+                    const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                    const data = await res.json();
+                    docs[item.key] = data.secure_url;
                 }
-
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: n, costo: c, folio: p + "-" + Math.floor(Math.random()*9000), curp: curp.toUpperCase(),
-                    nss: document.getElementById('nss_p')?.value || "N/A", 
-                    extra: document.getElementById('extra_p')?.value || "",
-                    estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("Enviado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al procesar."); }
-        };
-
-        function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
-            onSnapshot(q, (snap) => {
-                const lista = document.getElementById('listaHistorial');
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500 font-bold uppercase tracking-widest">Sin solicitudes</td></tr>'; return; }
-                let solicitudes = [];
-                snap.forEach(docSnap => solicitudes.push(docSnap.data()));
-                solicitudes.sort((a, b) => (b.fecha?.toMillis() || 0) - (a.fecha?.toMillis() || 0));
-                lista.innerHTML = "";
-                solicitudes.forEach(d => {
-                    let color = d.estatus === 'Terminado' ? "bg-green-500/10 text-green-500" : (d.estatus === 'Error' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500");
-                    lista.innerHTML += `<tr class="border-b border-slate-800/50 hover:bg-white/5 transition">
-                        <td class="py-4 px-2 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                        <td class="py-4 px-2 font-black text-white uppercase text-[10px] tracking-tighter">${d.tipo}</td>
-                        <td class="py-4 px-2 text-center"><span class="status-badge ${color}">${d.estatus}</span></td>
-                        <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline">BAJAR</a>` : '--'}</td>
-                    </tr>`;
-                });
-            });
+            }
         }
+
+        btn.innerText = "REGISTRANDO...";
+        await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+        await addDoc(collection(db, "solicitudes"), {
+            asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+            tipo: n, costo: c, folio: p + "-" + Math.floor(Math.random()*9000), 
+            curp: curp.toUpperCase(), nss: document.getElementById('nss_p')?.value || "N/A",
+            extra: document.getElementById('extra_p')?.value || "",
+            ...docs, estatus: "En Proceso", fecha: serverTimestamp()
+        });
+        alert("Enviado con éxito."); cerrarModal();
+    } catch(e) { alert("Error al subir. Revisa tu conexión."); }
+    finally { btn.disabled = false; btn.innerText = originalText; btn.style.opacity = "1"; }
+};
+
+// Actualización en la tabla del Asesor para que vea sus fotos
+function escucharHistorial() {
+    const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
+    onSnapshot(q, (snap) => {
+        const lista = document.getElementById('listaHistorial');
+        lista.innerHTML = "";
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
+            
+            // Botones de lo que el asesor subió
+            let misArchivos = "";
+            if(d.file_ine_f) misArchivos += `<button onclick="window.open('${d.file_ine_f}')" class="text-[8px] bg-slate-800 p-1 rounded mr-1">INE</button>`;
+            
+            lista.innerHTML += `
+                <tr class="border-b border-slate-800">
+                    <td class="py-4 text-slate-500">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
+                    <td class="py-4 font-black">${d.tipo}<br>${misArchivos}</td>
+                    <td class="py-4 text-center font-bold ${color}">${d.estatus}</td>
+                    <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black">BAJAR</a>` : '--'}</td>
+                </tr>`;
+        });
+    });
+}
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
