@@ -117,11 +117,10 @@
 
         const TRAMITES = {
             'IMSS': [
-                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-                { nombre: 'Tarjeta NSS', precio: 15, nss: true },
+              
                 { nombre: 'Modalidad 10', precio: 200, special: 'MOD10' },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo', precio: 300, nss: true, curp: true, pideNombre: true, nota: 'INCLUYE PAGO DE APORTACIONES' }
+                { nombre: 'Alta para Desempleo', precio: 600, nss: true, curp: true, pideNombre: true, nota: 'INCLUYE PAGO DE APORTACIONES' }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
@@ -129,6 +128,8 @@
                 { nombre: 'RFC Original', precio: 230, curp: true }
             ],
             'DOC': [
+                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                { nombre: 'Tarjeta NSS', precio: 15, curp: true, nss: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
                 { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
