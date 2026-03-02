@@ -9,14 +9,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; }
         .card { background: white; border-radius: 2.5rem; border: 1px solid #E2E8F0; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .btn-green { background: #059669; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
-        .btn-orange { background: #F97316; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white; padding: 0; }
-            .card { border: none; box-shadow: none; padding: 0; }
-        }
+        .btn-green { background: #059669; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; cursor: pointer; }
+        .btn-orange { background: #F97316; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; cursor: pointer; }
+        @media print { .no-print { display: none !important; } body { background: white; } .card { border: none; box-shadow: none; } }
     </style>
 </head>
 <body class="p-6 md:p-10">
@@ -25,56 +20,50 @@
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 no-print">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Corte e <span class="text-emerald-600">Inventario</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Gestión de Catálogo y Reportes DPR</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Conexión Real-Time Activada</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <button onclick="window.generarCorte('diario')" class="btn-orange text-[10px] shadow-lg">🖨️ Corte Diario</button>
-                <button onclick="window.generarCorte('mensual')" class="btn-green text-[10px] shadow-lg">📅 Corte Mensual</button>
-                <a href="admin.html" class="bg-slate-200 text-slate-600 px-5 py-3 rounded-xl font-black text-[10px] uppercase mt-auto">Cerrar</a>
+                <button onclick="window.generarCorte('diario')" class="btn-orange text-[10px] shadow-lg">🖨️ Generar Corte Diario</button>
+                <button onclick="window.generarCorte('mensual')" class="btn-green text-[10px] shadow-lg">📅 Generar Corte Mensual</button>
+                <a href="admin.html" class="bg-slate-200 text-slate-600 px-5 py-3 rounded-xl font-black text-[10px] uppercase mt-auto">Volver</a>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 no-print">
                 <div class="card">
-                    <h2 class="font-black uppercase text-xs mb-6 text-emerald-600 tracking-widest border-l-4 border-emerald-500 pl-3">Nuevo Item</h2>
+                    <h2 class="font-black uppercase text-xs mb-6 text-emerald-600 border-l-4 border-emerald-500 pl-3">Editar Catálogo</h2>
                     <div class="space-y-4">
-                        <input type="text" id="catNombre" placeholder="NOMBRE DEL SERVICIO" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold uppercase text-xs">
-                        <input type="number" id="catPrecio" placeholder="PRECIO ASESOR" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold text-xs">
-                        <button onclick="window.guardarEnCatalogo()" class="w-full btn-green text-[11px] shadow-md">Guardar en Catálogo</button>
+                        <input type="text" id="catNombre" placeholder="NOMBRE SERVICIO" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold uppercase text-xs">
+                        <input type="number" id="catPrecio" placeholder="PRECIO" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold text-xs">
+                        <button onclick="window.guardarEnCatalogo()" class="w-full btn-green text-[11px]">Guardar Item</button>
                     </div>
-                    
-                    <div class="mt-10">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest italic">Precios Guardados</h3>
-                        <div id="listaCatalogo" class="space-y-2 max-h-80 overflow-y-auto pr-2 text-xs">
-                            </div>
-                    </div>
+                    <div id="listaCatalogo" class="mt-10 space-y-2 max-h-80 overflow-y-auto pr-2 text-xs"></div>
                 </div>
             </div>
 
             <div class="lg:col-span-2">
                 <div class="card">
-                    <h2 class="font-black uppercase text-xs mb-8 text-slate-400 no-print">Resumen de Operaciones</h2>
                     <div id="contenedorCorte">
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="text-[10px] font-black uppercase border-b-4 border-slate-100 text-slate-400">
-                                    <th class="pb-4">Concepto de Servicio</th>
+                                    <th class="pb-4">Servicio</th>
                                     <th class="pb-4 text-center">Cant.</th>
-                                    <th class="pb-4 text-right">Monto Total</th>
+                                    <th class="pb-4 text-right">Monto</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaCorteBody" class="text-sm font-bold text-slate-700">
-                                <tr><td colspan="3" class="py-10 text-center opacity-20 italic">Selecciona un tipo de corte para generar datos...</td></tr>
+                                <tr><td colspan="3" class="py-20 text-center opacity-30 italic">Presiona un botón de corte para cargar datos...</td></tr>
                             </tbody>
                             <tfoot>
                                 <tr class="border-t-4 border-slate-100">
-                                    <td colspan="2" class="pt-6 font-black uppercase text-right text-xs">Total Ventas (Servicios):</td>
+                                    <td colspan="2" class="pt-6 font-black uppercase text-right text-xs">Total Ventas:</td>
                                     <td id="granTotalCorte" class="pt-6 font-black text-right text-emerald-600 text-xl tracking-tighter">$0.00</td>
                                 </tr>
                             </tfoot>
                         </table>
-                        <div id="infoExtraCorte" class="mt-8"></div>
+                        <div id="infoExtraCorte"></div>
                     </div>
                 </div>
             </div>
@@ -83,17 +72,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- GESTIÓN CATÁLOGO ---
+        // --- CATÁLOGO ---
         window.guardarEnCatalogo = async () => {
             const nom = document.getElementById('catNombre').value;
             const pre = parseFloat(document.getElementById('catPrecio').value);
-            if(!nom || !pre) return alert("Completa los campos");
+            if(!nom || !pre) return alert("Datos incompletos");
             await addDoc(collection(db, "catalogo_precios"), { nombre: nom.toUpperCase(), precio: pre });
             document.getElementById('catNombre').value = ""; document.getElementById('catPrecio').value = "";
         };
@@ -103,58 +92,78 @@
             div.innerHTML = "";
             snap.forEach(d => {
                 const item = d.data();
-                div.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                        <span class="font-black text-slate-700 text-[9px] uppercase">${item.nombre}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-emerald-600">$${item.precio}</span>
-                            <button onclick="window.eliminarDelCat('${d.id}')" class="text-slate-300 hover:text-red-500 transition">✕</button>
-                        </div>
-                    </div>`;
+                div.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100 mb-2">
+                    <span class="font-black text-slate-700 text-[9px] uppercase">${item.nombre}</span>
+                    <div class="flex items-center gap-3"><span class="font-bold text-emerald-600">$${item.precio}</span>
+                    <button onclick="window.eliminarDelCat('${d.id}')" class="text-slate-300 hover:text-red-500">✕</button></div>
+                </div>`;
             });
         });
 
         window.eliminarDelCat = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "catalogo_precios", id)); };
 
-        // --- LÓGICA DE CORTE REAL-TIME ---
-        window.generarCorte = async (tipo) => {
-            const inicio = new Date();
-            inicio.setHours(0,0,0,0);
-            if (tipo === 'mensual') { inicio.setDate(1); }
+        // --- CORTE RESISTENTE ---
+        window.generarCorte = (tipo) => {
+            const tbody = document.getElementById('tablaCorteBody');
+            tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center font-bold animate-pulse text-emerald-600 uppercase text-[10px]">Consultando Base de Datos...</td></tr>';
 
-            const qServicios = query(collection(db, "solicitudes"), where("fecha", ">=", inicio), where("estatus", "==", "Terminado"));
-            const qRecargas = query(collection(db, "notificaciones_pago"), where("fecha", ">=", inicio), where("estatus", "==", "aprobado"));
+            const ahora = new Date();
+            let fechaFiltro = new Date();
+            fechaFiltro.setHours(0,0,0,0);
+            if (tipo === 'mensual') { fechaFiltro.setDate(1); }
 
-            onSnapshot(qServicios, (snapServ) => {
+            // Buscamos servicios TERMINADOS
+            const q = query(collection(db, "solicitudes"), 
+                where("fecha", ">=", Timestamp.fromDate(fechaFiltro)),
+                where("estatus", "==", "Terminado")
+            );
+
+            onSnapshot(q, (snap) => {
                 const agrupado = {};
-                let granTotal = 0;
-                snapServ.forEach(d => {
+                let totalVentas = 0;
+
+                if(snap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="py-10 text-center opacity-30 italic">No hay ventas terminadas en este periodo.</td></tr>';
+                    document.getElementById('granTotalCorte').innerText = "$0.00";
+                    return;
+                }
+
+                snap.forEach(d => {
                     const s = d.data();
                     const n = s.tipo.toUpperCase();
                     if (!agrupado[n]) agrupado[n] = { cant: 0, total: 0 };
-                    agrupado[n].cant++; agrupado[n].total += (s.costo || 0); granTotal += (s.costo || 0);
+                    agrupado[n].cant++;
+                    agrupado[n].total += (Number(s.costo) || 0);
+                    totalVentas += (Number(s.costo) || 0);
                 });
 
-                const tbody = document.getElementById('tablaCorteBody');
                 tbody.innerHTML = "";
                 for (const [key, value] of Object.entries(agrupado)) {
-                    tbody.innerHTML += `
-                        <tr class="border-b border-slate-50">
-                            <td class="py-4 uppercase text-[11px] font-black text-slate-600">${key}</td>
-                            <td class="py-4 text-center font-bold text-slate-800">${value.cant}</td>
-                            <td class="py-4 text-right font-black text-slate-800">$${value.total.toFixed(2)}</td>
-                        </tr>`;
+                    tbody.innerHTML += `<tr class="border-b border-slate-50">
+                        <td class="py-4 uppercase text-[11px] font-black text-slate-600">${key}</td>
+                        <td class="py-4 text-center font-bold text-slate-800">${value.cant}</td>
+                        <td class="py-4 text-right font-black text-slate-800">$${value.total.toFixed(2)}</td>
+                    </tr>`;
                 }
-                document.getElementById('granTotalCorte').innerText = `$${granTotal.toFixed(2)}`;
+                document.getElementById('granTotalCorte').innerText = `$${totalVentas.toFixed(2)}`;
 
-                onSnapshot(qRecargas, (snapRec) => {
-                    let totalRec = 0; snapRec.forEach(r => totalRec += (r.data().monto || 0));
+                // Consultar RECARGAS (Informativo)
+                const qRec = query(collection(db, "notificaciones_pago"), 
+                    where("fecha", ">=", Timestamp.fromDate(fechaFiltro)),
+                    where("estatus", "==", "aprobado")
+                );
+                onSnapshot(qRec, (snapRec) => {
+                    let totalRec = 0;
+                    snapRec.forEach(r => totalRec += (Number(r.data().monto) || 0));
                     document.getElementById('infoExtraCorte').innerHTML = `
                         <div class="mt-8 p-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 flex justify-between items-center">
                             <p class="text-xs font-bold text-emerald-800 uppercase">Saldo recargado por asesores:</p>
                             <p class="text-2xl font-black text-emerald-700">$${totalRec.toFixed(2)}</p>
                         </div>`;
                 });
+            }, (error) => {
+                console.error(error);
+                alert("Error de conexión. Verifica la consola.");
             });
         };
     </script>
