@@ -283,6 +283,79 @@
         window.eliminarVenta = async (id) => { if(confirm("¿Borrar?")) await deleteDoc(doc(db, "solicitudes", id)); };
         
         cargarFinanzas();
+        // ... (Mantén el inicio del script igual)
+
+window.imprimirCorte = async (tipo) => {
+    const ahora = new Date();
+    let inicio = new Date();
+    if (tipo === 'diario') {
+        inicio.setHours(0,0,0,0);
+        document.getElementById('subtituloReporte').innerText = `Corte Diario - ${ahora.toLocaleDateString()}`;
+    } else {
+        inicio.setDate(1); inicio.setHours(0,0,0,0);
+        document.getElementById('subtituloReporte').innerText = `Corte Mensual - ${ahora.toLocaleString('default', { month: 'long' })} ${ahora.getFullYear()}`;
+    }
+
+    // 1. CONSULTAR SERVICIOS (VENTAS REALES)
+    const qServicios = query(collection(db, "solicitudes"), where("fecha", ">=", inicio), where("estatus", "==", "Terminado"));
+    
+    // 2. CONSULTAR RECARGAS (DATO INFORMATIVO)
+    const qRecargas = query(collection(db, "notificaciones_pago"), where("fecha", ">=", inicio), where("estatus", "==", "aprobado"));
+
+    onSnapshot(qServicios, (snapServ) => {
+        const agrupado = {};
+        let granTotalVentas = 0;
+
+        snapServ.forEach(d => {
+            const s = d.data();
+            const nombreServicio = s.tipo.toUpperCase();
+            if (!agrupado[nombreServicio]) agrupado[nombreServicio] = { cant: 0, total: 0 };
+            agrupado[nombreServicio].cant += 1;
+            agrupado[nombreServicio].total += (s.costo || 0);
+            granTotalVentas += (s.costo || 0);
+        });
+
+        // Dibujar tabla de ventas
+        const tbody = document.getElementById('tablaCorteBody');
+        tbody.innerHTML = "";
+        for (const [key, value] of Object.entries(agrupado)) {
+            tbody.innerHTML += `
+                <tr class="border-b border-slate-50">
+                    <td class="py-3 uppercase">${key}</td>
+                    <td class="py-3 text-center">${value.cant}</td>
+                    <td class="py-3 text-right">$${value.total.toFixed(2)}</td>
+                </tr>`;
+        }
+        document.getElementById('granTotalCorte').innerText = `$${granTotalVentas.toFixed(2)}`;
+
+        // 3. OBTENER EL DATO DE RECARGAS SIN SUMAR AL TOTAL
+        onSnapshot(qRecargas, (snapRec) => {
+            let totalRecargado = 0;
+            snapRec.forEach(r => { totalRecargado += (r.data().monto || 0); });
+
+            // Insertar el dato informativo al final
+            const infoRecarga = `
+                <div class="mt-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                    <p class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Dato Informativo (Flujo de Caja):</p>
+                    <p class="text-sm font-bold text-emerald-800">Saldo recargado ${tipo === 'diario' ? 'al día' : 'en el mes'}: <span class="text-lg">$${totalRecargado.toFixed(2)}</span></p>
+                </div>
+            `;
+            
+            // Si ya existe el div de info, lo actualizamos, si no lo creamos
+            const existingInfo = document.getElementById('infoExtraCorte');
+            if(existingInfo) existingInfo.innerHTML = infoRecarga;
+            else {
+                const divInfo = document.createElement('div');
+                divInfo.id = 'infoExtraCorte';
+                divInfo.innerHTML = infoRecarga;
+                document.getElementById('contenedorCorte').appendChild(divInfo);
+            }
+
+            // Disparar impresión
+            setTimeout(() => { window.print(); }, 800);
+        });
+    });
+};
     </script>
 </body>
 </html>
