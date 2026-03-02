@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #0F172A; color: #E2E8F0; }
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
         .category-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; cursor: pointer; }
         .category-card:hover { border-color: #C5A059; background: rgba(255, 255, 255, 0.07); }
@@ -21,13 +21,6 @@
 </head>
 <body>
 
-    <div class="bg-yellow-400 py-2 overflow-hidden border-b border-yellow-600">
-        <div class="whitespace-nowrap animate-marquee flex items-center">
-            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">⚠️ REVISA TU SALDO ANTES DE PEDIR ✅</span>
-            <span class="text-slate-900 font-black uppercase italic text-xs mx-4">✅ RECUERDA QUE LA RECARGA MINIMA ES DE $200 ✅</span>
-        </div>
-    </div>
-
     <header class="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
         <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -35,7 +28,6 @@
                 <h1 class="font-black uppercase tracking-tighter text-xl text-white">DPR <span class="gold-text italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-4">
-                <a href="finanzas.html" class="text-[9px] font-black uppercase text-blue-400 border border-blue-400/30 px-3 py-1.5 rounded-full hover:bg-blue-400 hover:text-white transition">📈 Mis Finanzas</a>
                 <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-white">...</span>
                 </button>
@@ -45,7 +37,7 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
-        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Servicios Disponibles</h2>
+        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6">Servicios</h2>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">🏥 <span class="text-[10px] block font-black uppercase">IMSS</span></button>
             <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">⚖️ <span class="text-[10px] block font-black uppercase">SAT</span></button>
@@ -54,23 +46,37 @@
             <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">💰 <span class="text-[10px] block font-black uppercase text-blue-400 font-bold">AFORE</span></button>
         </div>
 
+        <div id="seccionAfore" class="hidden bg-slate-800/40 p-8 rounded-[2.5rem] border border-blue-500/20 mb-12 animate-fade">
+            <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark">
+                    <option value="">-- Seleccionar Afore --</option>
+                    <option value="Sura">Sura ($750)</option>
+                    <option value="Coppel">Coppel ($350)</option>
+                </select>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS" class="input-dark">
+                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase">
+                </div>
+            </div>
+            <div class="mt-8 flex justify-between items-center">
+                <p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p>
+                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic">Pagar</button>
+            </div>
+        </div>
+
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
         <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl">
-            <h2 class="text-xl font-black text-white uppercase italic mb-6">Historial de Trámites</h2>
+            <h2 class="text-xl font-black text-white uppercase italic mb-6">Mis Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
                         <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
-                            <th class="pb-4">Fecha</th>
-                            <th class="pb-4">Servicio / Cliente</th>
-                            <th class="pb-4 text-center">Estatus</th>
-                            <th class="pb-4 text-right">Resultado</th>
+                            <th class="pb-4">Fecha</th><th class="pb-4">Servicio</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Resultado</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-xs font-medium">
-                        <tr><td colspan="4" class="py-10 text-center opacity-30 italic">Cargando trámites...</td></tr>
-                    </tbody>
+                    <tbody id="listaHistorial" class="text-xs font-medium"></tbody>
                 </table>
             </div>
         </section>
@@ -84,18 +90,17 @@
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 text-center shadow-2xl">
+        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <h2 class="text-xl font-black text-white uppercase mb-6 tracking-tighter">Recargar Saldo</h2>
-            <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8 text-white">
-                <p class="text-[10px] font-black text-blue-400 uppercase mb-2">Datos para transferencia</p>
-                <p class="text-xl font-black tracking-widest mb-1">4915 6630 4036 4896</p>
-                <p class="text-[10px] uppercase opacity-70 italic font-bold">Banorte | Diana Puente Rodriguez</p>
+            <h2 class="text-xl font-black text-white uppercase mb-6">Recargar Saldo</h2>
+            <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8">
+                <p class="text-xl font-black text-white">4915 6630 4036 4896</p>
+                <p class="text-[10px] uppercase opacity-70">Banorte | Diana Puente</p>
             </div>
-            <div class="space-y-4">
-                <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark text-center font-black">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 shadow-lg">Informar Pago</button>
+            <div class="space-y-3">
+                <input type="number" id="depMonto" placeholder="Monto" class="input-dark text-center font-black">
+                <input type="file" id="fileRecarga" class="block w-full text-[10px]">
+                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 mt-4 shadow-lg">Informar Pago</button>
             </div>
         </div>
     </div>
@@ -120,6 +125,7 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
+        const PRECIOS_AFORE = { "Sura": 750, "Coppel": 350 };
 
         const TRAMITES = {
             'IMSS': [
@@ -129,8 +135,8 @@
                 { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true }
             ],
             'SAT': [{ id: 'RFC', nombre: 'RFC Clon', precio: 35, curp: true }],
-            'DOC': [{ id: 'NACIMIENTO', nombre: 'Acta Nacimiento', precio: 15, curp: true }],
-            'INF': [{ id: 'RESET', nombre: 'Reset Cuenta', precio: 170, nss: true }]
+            'DOC': [{ id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }],
+            'INF': [{ id: 'RESET', nombre: 'Reseteo Cuenta', precio: 170, nss: true }]
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -147,14 +153,42 @@
             });
         }
 
+        window.mostrarSeccionAfore = () => {
+            document.getElementById('seccionAfore').classList.toggle('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+        };
+
+        window.actualizarPrecioAfore = () => {
+            const afore = document.getElementById('selectAfore').value;
+            document.getElementById('txtPrecioAfore').innerText = `$${PRECIOS_AFORE[afore] || 0}.00`;
+        };
+
+        window.pagarEstadoCuenta = async () => {
+            const afore = document.getElementById('selectAfore').value;
+            const nss = document.getElementById('nssAfore').value;
+            const curp = document.getElementById('curpAfore').value;
+            if (!afore || nss.length < 11 || curp.length < 10) return alert("Datos incompletos.");
+            const costo = PRECIOS_AFORE[afore];
+            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
+            
+            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-costo) });
+            await addDoc(collection(db, "solicitudes"), {
+                asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                tipo: `ECTA: ${afore}`, curp: curp.toUpperCase(), nss, costo, estatus: "En Proceso", fecha: serverTimestamp()
+            });
+            alert("Enviado.");
+            document.getElementById('seccionAfore').classList.add('hidden');
+        };
+
         window.mostrarTramites = (cat) => {
+            document.getElementById('seccionAfore').classList.add('hidden');
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
                 html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.nss || false}', '${t.curp || false}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1 tracking-widest font-bold font-mono italic">$${t.precio}.00</p>
+                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
             });
             listado.innerHTML = html;
@@ -167,43 +201,40 @@
             if (special === 'RETIRO' || special === 'REGISTRO') {
                 fields += `
                 <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">
-                <label class="text-[9px] uppercase ml-2 text-slate-500 tracking-widest">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3 text-[10px]">
-                <label class="text-[9px] uppercase ml-2 text-slate-500 tracking-widest">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3 text-[10px]">
-                <label class="text-[9px] uppercase ml-2 text-slate-500 tracking-widest">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3 text-[10px]">
-                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2 text-slate-500 tracking-widest">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full mb-4 text-[10px]">' : '<textarea id="extra_p" placeholder="Notas adicionales..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
+                <label class="text-[9px] uppercase ml-2 text-slate-500">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3 text-[10px]">
+                <label class="text-[9px] uppercase ml-2 text-slate-500">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3 text-[10px]">
+                <label class="text-[9px] uppercase ml-2 text-slate-500">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3 text-[10px]">
+                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2 text-slate-500">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full text-[10px]">' : '<textarea id="extra_p" placeholder="Nota..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
             } else if (pideNss) {
                 fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
             }
 
-            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-lg">Confirmar Pago $${costo}</button>`;
+            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase">Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const curpVal = document.getElementById('curp_p')?.value || "";
-            if(!curpVal) return alert("Ingresa la CURP.");
+            if(!curpVal) return alert("CURP requerida.");
 
             const btn = document.querySelector("#modalTramite button:last-child");
-            const originalText = btn.innerText;
-            btn.disabled = true;
+            const oldT = btn.innerText; btn.disabled = true;
 
             try {
                 let docs = {};
                 if (special === 'RETIRO' || special === 'REGISTRO') {
-                    const files = [
-                        { k: 'file_ine_f', f: document.getElementById('file_ine_f').files[0], l: 'INE FRENTE' },
-                        { k: 'file_ine_r', f: document.getElementById('file_ine_r').files[0], l: 'INE REVERSO' },
-                        { k: 'file_selfie', f: document.getElementById('file_selfie').files[0], l: 'FOTO CLIENTE' },
-                        { k: 'file_edocta', f: document.getElementById('file_edocta')?.files[0], l: 'EDO CUENTA' }
+                    const flds = [
+                        { k: 'file_ine_f', f: document.getElementById('file_ine_f').files[0], l: 'INE F' },
+                        { k: 'file_ine_r', f: document.getElementById('file_ine_r').files[0], l: 'INE R' },
+                        { k: 'file_selfie', f: document.getElementById('file_selfie').files[0], l: 'FOTO' },
+                        { k: 'file_edocta', f: document.getElementById('file_edocta')?.files[0], l: 'EDO' }
                     ];
-
-                    for (let item of files) {
+                    for (let item of flds) {
                         if (item.f) {
                             btn.innerText = `SUBIENDO: ${item.l}...`;
-                            const fd = new FormData();
-                            fd.append('file', item.f); fd.append('upload_preset', UPLOAD_PRESET);
+                            const fd = new FormData(); fd.append('file', item.f); fd.append('upload_preset', UPLOAD_PRESET);
                             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                             const data = await res.json();
                             docs[item.k] = data.secure_url;
@@ -211,7 +242,6 @@
                     }
                 }
 
-                btn.innerText = "PROCESANDO...";
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
@@ -220,54 +250,45 @@
                     extra: document.getElementById('extra_p')?.value || "",
                     ...docs, estatus: "En Proceso", fecha: serverTimestamp()
                 });
-                alert("Enviado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al enviar."); }
-            finally { btn.disabled = false; btn.innerText = originalText; }
+                alert("Enviado."); cerrarModal();
+            } catch(e) { alert("Error."); }
+            finally { btn.disabled = false; btn.innerText = oldT; }
         };
 
         function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(30));
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
             onSnapshot(q, (snap) => {
                 const lista = document.getElementById('listaHistorial');
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin trámites</td></tr>'; return; }
-                
                 lista.innerHTML = "";
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
                     let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
-                    
-                    // BOTONES DE VERIFICACIÓN (Mantenidos)
                     let misArchivos = "";
-                    if(d.file_ine_f) misArchivos += `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[7px] uppercase font-black">INE F</button>`;
-                    if(d.file_selfie) misArchivos += `<button onclick="window.open('${d.file_selfie}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[7px] uppercase font-black">FOTO</button>`;
+                    if(d.file_ine_f) misArchivos += `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[8px]">DOCS 📥</button>`;
                     
-                    lista.innerHTML += `<tr class="border-b border-slate-800 hover:bg-white/5 transition animate-fade">
-                        <td class="py-4 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                        <td class="py-4">
-                            <div class="font-black uppercase tracking-tighter text-white">${d.tipo}</div>
-                            <div class="text-[9px] text-blue-400 font-black tracking-widest mt-1">CURP: ${d.curp || 'N/A'}</div>
-                            <div class="mt-2">${misArchivos}</div>
-                        </td>
+                    lista.innerHTML += `<tr class="border-b border-slate-800 animate-fade">
+                        <td class="py-4 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
+                        <td class="py-4"><div class="font-black uppercase tracking-tighter text-white">${d.tipo}</div><div class="text-[9px] text-blue-400 font-bold tracking-widest mt-1">CURP: ${d.curp || 'N/A'}</div><div class="mt-2">${misArchivos}</div></td>
                         <td class="py-4 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
-                        <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline italic">DESCARGAR</a>` : '--'}</td>
+                        <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline italic">VER</a>` : '--'}</td>
                     </tr>`;
                 });
+            }, (error) => {
+                // Aquí cae el error si falta el índice.
+                console.error("Error historial:", error);
             });
         }
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f) return alert("Completa los datos.");
+            if (!m || !f) return alert("Faltan datos.");
             const btn = document.getElementById('btnNotificar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); cerrarModal();
-            } catch(e) { alert("Error."); }
-            finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+            const data = await res.json();
+            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+            alert("Reportado."); cerrarModal(); btn.innerText = "Informar Pago"; btn.disabled = false;
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
