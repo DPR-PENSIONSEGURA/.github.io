@@ -70,15 +70,11 @@
             <h3 class="font-black text-xl uppercase italic">Precalificación Infonavit</h3>
             <p class="text-red-200 font-bold text-[10px] uppercase">$210 MXN</p>
         </button>
-        <button onclick="abrirModal('modalRFC')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
-            <span class="text-3xl mb-4 block">🆔</span>
-            <h3 class="font-black text-xl uppercase italic">RFC Clon</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$35 MXN</p>
-        </button>
+    
         <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">✅</span>
             <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$140 MXN</p>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$180 MXN</p>
         </button>
         <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
             <span class="text-3xl mb-4 block">📜</span>
@@ -88,7 +84,7 @@
         <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
             <span class="text-3xl mb-4 block">📄</span>
             <h3 class="font-black text-xl uppercase italic">Documentos</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$15 MXN</p>
+            <p class="text-blue-600 font-bold text-[10px] uppercase">$25 MXN</p>
         </button>
     </main>
 
@@ -280,14 +276,15 @@
             const a = document.getElementById('anioLey').value;
             const r = document.getElementById('resLey');
             r.classList.remove('hidden');
-            if (a < 1997) { r.innerText = "¡ERES LEY 73!"; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
-            else { r.innerText = "¡ERES LEY 97!"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
+            if (a < 1997) { r.innerText = "¡ERES LEY 73! Solicita un análisis de pensión para que sepas como aumentar hasta $50,000 tu pension ! " ; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
+            else { r.innerText = "¡ERES LEY 97! el ahorro es tu mejor aliado, solicita un análisis para que aproveches cada centavo ahorrado"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
         };
 
         window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); };
     </script>
 </body>
 </html>
+
 
 
 
