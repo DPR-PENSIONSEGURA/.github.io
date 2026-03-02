@@ -10,16 +10,12 @@
         body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; }
         .card { background: white; border-radius: 2.5rem; border: 1px solid #E2E8F0; padding: 2.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
         .btn-green { background: #059669; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
-        .btn-green:hover { background: #047857; transform: translateY(-2px); }
         .btn-orange { background: #F97316; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
-        .btn-orange:hover { background: #EA580C; transform: translateY(-2px); }
         
-        /* AJUSTES PARA IMPRESIÓN */
         @media print {
             .no-print { display: none !important; }
             body { background: white; padding: 0; }
-            .card { border: none; box-shadow: none; padding: 0; width: 100%; }
-            .print-header { display: flex !important; margin-bottom: 2rem; border-bottom: 4px solid #059669; padding-bottom: 1rem; }
+            .card { border: none; box-shadow: none; padding: 0; }
         }
     </style>
 </head>
@@ -32,25 +28,11 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Gestión de Catálogo y Reportes DPR</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <button onclick="imprimirCorte('diario')" class="btn-orange text-[10px] shadow-lg">🖨️ Corte Diario</button>
-                <button onclick="imprimirCorte('mensual')" class="btn-green text-[10px] shadow-lg">📅 Corte Mensual</button>
-                <a href="admin.html" class="bg-slate-200 text-slate-600 px-5 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-slate-300 transition mt-auto">Cerrar</a>
+                <button onclick="window.generarCorte('diario')" class="btn-orange text-[10px] shadow-lg">🖨️ Corte Diario</button>
+                <button onclick="window.generarCorte('mensual')" class="btn-green text-[10px] shadow-lg">📅 Corte Mensual</button>
+                <a href="admin.html" class="bg-slate-200 text-slate-600 px-5 py-3 rounded-xl font-black text-[10px] uppercase mt-auto">Cerrar</a>
             </div>
         </header>
-
-        <div class="print-header hidden items-center justify-between w-full">
-            <div class="flex items-center gap-4">
-                <div class="bg-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center font-black text-white text-3xl shadow-lg">DP</div>
-                <div>
-                    <h1 class="text-2xl font-black uppercase tracking-tighter text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
-                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">pensionsegura.org | García, Nuevo León</p>
-                </div>
-            </div>
-            <div class="text-right">
-                <p id="fechaReportePrint" class="text-sm font-black text-slate-800 uppercase"></p>
-                <p id="tipoReportePrint" class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest"></p>
-            </div>
-        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1 no-print">
@@ -59,11 +41,11 @@
                     <div class="space-y-4">
                         <input type="text" id="catNombre" placeholder="NOMBRE DEL SERVICIO" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold uppercase text-xs">
                         <input type="number" id="catPrecio" placeholder="PRECIO ASESOR" class="w-full p-4 border-2 border-slate-100 rounded-2xl outline-none focus:border-emerald-500 font-bold text-xs">
-                        <button onclick="guardarEnCatalogo()" class="w-full btn-green text-[11px] shadow-md">Guardar en Catálogo</button>
+                        <button onclick="window.guardarEnCatalogo()" class="w-full btn-green text-[11px] shadow-md">Guardar en Catálogo</button>
                     </div>
                     
                     <div class="mt-10">
-                        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Precios Guardados</h3>
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest italic">Precios Guardados</h3>
                         <div id="listaCatalogo" class="space-y-2 max-h-80 overflow-y-auto pr-2 text-xs">
                             </div>
                     </div>
@@ -74,7 +56,7 @@
                 <div class="card">
                     <h2 class="font-black uppercase text-xs mb-8 text-slate-400 no-print">Resumen de Operaciones</h2>
                     <div id="contenedorCorte">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left">
                             <thead>
                                 <tr class="text-[10px] font-black uppercase border-b-4 border-slate-100 text-slate-400">
                                     <th class="pb-4">Concepto de Servicio</th>
@@ -88,11 +70,10 @@
                             <tfoot>
                                 <tr class="border-t-4 border-slate-100">
                                     <td colspan="2" class="pt-6 font-black uppercase text-right text-xs">Total Ventas (Servicios):</td>
-                                    <td id="granTotalCorte" class="pt-6 font-black text-right text-emerald-600 text-xl tracking-tighter"></td>
+                                    <td id="granTotalCorte" class="pt-6 font-black text-right text-emerald-600 text-xl tracking-tighter">$0.00</td>
                                 </tr>
                             </tfoot>
                         </table>
-
                         <div id="infoExtraCorte" class="mt-8"></div>
                     </div>
                 </div>
@@ -102,17 +83,17 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- GESTIÓN DE CATÁLOGO ---
+        // --- GESTIÓN CATÁLOGO ---
         window.guardarEnCatalogo = async () => {
             const nom = document.getElementById('catNombre').value;
             const pre = parseFloat(document.getElementById('catPrecio').value);
-            if(!nom || !pre) return alert("Por favor completa los campos");
+            if(!nom || !pre) return alert("Completa los campos");
             await addDoc(collection(db, "catalogo_precios"), { nombre: nom.toUpperCase(), precio: pre });
             document.getElementById('catNombre').value = ""; document.getElementById('catPrecio').value = "";
         };
@@ -123,43 +104,35 @@
             snap.forEach(d => {
                 const item = d.data();
                 div.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100 group">
-                        <span class="font-black text-slate-700 uppercase text-[9px]">${item.nombre}</span>
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <span class="font-black text-slate-700 text-[9px] uppercase">${item.nombre}</span>
                         <div class="flex items-center gap-3">
                             <span class="font-bold text-emerald-600">$${item.precio}</span>
-                            <button onclick="eliminarDelCat('${d.id}')" class="text-slate-300 hover:text-red-500 font-bold transition">✕</button>
+                            <button onclick="window.eliminarDelCat('${d.id}')" class="text-slate-300 hover:text-red-500 transition">✕</button>
                         </div>
                     </div>`;
             });
         });
 
-        window.eliminarDelCat = async (id) => { if(confirm("¿Eliminar del catálogo?")) await deleteDoc(doc(db, "catalogo_precios", id)); };
+        window.eliminarDelCat = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "catalogo_precios", id)); };
 
-        // --- LÓGICA DE CORTE GRÁFICO E INFORMATIVO ---
-        window.imprimirCorte = async (tipo) => {
-            const ahora = new Date();
-            let inicio = new Date();
+        // --- LÓGICA DE CORTE REAL-TIME ---
+        window.generarCorte = async (tipo) => {
+            const inicio = new Date();
             inicio.setHours(0,0,0,0);
             if (tipo === 'mensual') { inicio.setDate(1); }
-
-            // Configurar textos de impresión
-            document.getElementById('fechaReportePrint').innerText = ahora.toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
-            document.getElementById('tipoReportePrint').innerText = tipo === 'diario' ? 'Corte de Caja Diario' : 'Corte Mensual Consolidado';
 
             const qServicios = query(collection(db, "solicitudes"), where("fecha", ">=", inicio), where("estatus", "==", "Terminado"));
             const qRecargas = query(collection(db, "notificaciones_pago"), where("fecha", ">=", inicio), where("estatus", "==", "aprobado"));
 
             onSnapshot(qServicios, (snapServ) => {
                 const agrupado = {};
-                let granTotalVentas = 0;
-
+                let granTotal = 0;
                 snapServ.forEach(d => {
                     const s = d.data();
                     const n = s.tipo.toUpperCase();
                     if (!agrupado[n]) agrupado[n] = { cant: 0, total: 0 };
-                    agrupado[n].cant++;
-                    agrupado[n].total += (s.costo || 0);
-                    granTotalVentas += (s.costo || 0);
+                    agrupado[n].cant++; agrupado[n].total += (s.costo || 0); granTotal += (s.costo || 0);
                 });
 
                 const tbody = document.getElementById('tablaCorteBody');
@@ -172,23 +145,15 @@
                             <td class="py-4 text-right font-black text-slate-800">$${value.total.toFixed(2)}</td>
                         </tr>`;
                 }
-                document.getElementById('granTotalCorte').innerText = `$${granTotalVentas.toFixed(2)}`;
+                document.getElementById('granTotalCorte').innerText = `$${granTotal.toFixed(2)}`;
 
                 onSnapshot(qRecargas, (snapRec) => {
-                    let totalRecargado = 0;
-                    snapRec.forEach(r => { totalRecargado += (r.data().monto || 0); });
-
+                    let totalRec = 0; snapRec.forEach(r => totalRec += (r.data().monto || 0));
                     document.getElementById('infoExtraCorte').innerHTML = `
                         <div class="mt-8 p-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100 flex justify-between items-center">
-                            <div>
-                                <p class="text-[9px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Flujo de Caja (Informativo)</p>
-                                <p class="text-xs font-bold text-emerald-800">Saldo total recargado por asesores:</p>
-                            </div>
-                            <p class="text-2xl font-black text-emerald-700 tracking-tighter">$${totalRecargado.toFixed(2)}</p>
-                        </div>
-                    `;
-
-                    setTimeout(() => { window.print(); }, 800);
+                            <p class="text-xs font-bold text-emerald-800 uppercase">Saldo recargado por asesores:</p>
+                            <p class="text-2xl font-black text-emerald-700">$${totalRec.toFixed(2)}</p>
+                        </div>`;
                 });
             });
         };
