@@ -26,9 +26,6 @@
             display: inline-flex;
             animation: marquee 25s linear infinite;
         }
-        .animate-marquee:hover {
-            animation-play-state: paused;
-        }
     </style>
 </head>
 <body>
@@ -38,7 +35,6 @@
             <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
                 ⚠️RESPONDE UNA ENCUESTA EN NUESTRO CANAL DE WHATSAPP ✅ AYUDANOS A MEJORAR
             </span>
-        
             <span class="text-slate-900 font-black uppercase italic text-xs mx-4">
                 ✅ SISTEMA DE SEMANAS REESTABLECIDO ✅ ✅ RECUERDA QUE LA RECARGA MINIMA ES DE $200 ✅ 
             </span>
@@ -60,69 +56,40 @@
         </div>
     </header>
 
-    <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" 
-       class="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2 group">
-        <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 whitespace-nowrap font-black uppercase text-[10px] tracking-widest">
-            Únete al Canal de Avisos
-        </span>
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338-11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.92l.356.211c1.639.973 3.532 1.488 5.467 1.489 5.811 0 10.537-4.729 10.54-10.539 0-2.817-1.097-5.465-3.091-7.46s-4.644-3.091-7.463-3.091c-5.815 0-10.542 4.729-10.545 10.539 0 2.115.556 4.177 1.61 5.976l.233.396-1.06 3.869 3.967-1.041z"/></svg>
-    </a>
-
     <main class="p-6 max-w-7xl mx-auto">
         <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-500 mb-6 text-center md:text-left">Servicios Disponibles</h2>
         
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏥</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">IMSS</span>
-            </button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">⚖️</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">SAT</span>
-            </button>
-            <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🧮</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">CALCULADORAS</span>
-            </button>
-            <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">📄</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">DOCUMENTOS</span>
-            </button>
-            <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">
-                <span class="text-2xl block mb-2">🏠</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter">INFONAVIT</span>
-            </button>
-            <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">
-                <span class="text-2xl block mb-2">💰</span>
-                <span class="text-[10px] font-black uppercase tracking-tighter text-blue-400 font-bold">ESTADOS CUENTA</span>
-            </button>
+            <button onclick="mostrarTramites('IMSS')" class="category-card p-4 rounded-2xl text-center">🏥 <span class="text-[10px] block font-black uppercase">IMSS</span></button>
+            <button onclick="mostrarTramites('SAT')" class="category-card p-4 rounded-2xl text-center">⚖️ <span class="text-[10px] block font-black uppercase">SAT</span></button>
+            <button onclick="window.open('herramientas.html', '_blank')" class="category-card p-4 rounded-2xl text-center">🧮 <span class="text-[10px] block font-black uppercase">CALCULADORAS</span></button>
+            <button onclick="mostrarTramites('DOC')" class="category-card p-4 rounded-2xl text-center">📄 <span class="text-[10px] block font-black uppercase">DOCUMENTOS</span></button>
+            <button onclick="mostrarTramites('INF')" class="category-card p-4 rounded-2xl text-center">🏠 <span class="text-[10px] block font-black uppercase">INFONAVIT</span></button>
+            <button onclick="window.mostrarSeccionAfore()" class="category-card p-4 rounded-2xl text-center border-blue-500/40">💰 <span class="text-[10px] block font-black uppercase text-blue-400">AFORE</span></button>
         </div>
 
         <div id="seccionAfore" class="hidden bg-slate-800/40 p-8 rounded-[2.5rem] border border-blue-500/20 mb-12 animate-fade">
             <h2 class="text-xl font-black uppercase mb-6 italic border-l-4 border-blue-600 pl-4 gold-text">Estado de Cuenta Afore</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="text-[10px] uppercase text-slate-500 font-black ml-2">Administradora</label>
-                    <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark text-sm font-bold mt-1">
-                        <option value="">-- Seleccionar Afore --</option>
-                        <option value="Sura">Sura ($750)</option>
-                        <option value="Invercap">Invercap ($1400)</option>
-                        <option value="Profuturo">Profuturo ($500)</option>
-                        <option value="Banorte">Banorte ($600)</option>
-                        <option value="Coppel">Coppel ($350)</option>
-                        <option value="Azteca">Azteca ($350)</option>
-                        <option value="Principal">Principal ($750)</option>
-                        <option value="Banamex">Banamex ($1200)</option>
-                    </select>
-                </div>
+                <select id="selectAfore" onchange="window.actualizarPrecioAfore()" class="input-dark">
+                    <option value="">-- Seleccionar Afore --</option>
+                    <option value="Sura">Sura ($750)</option>
+                    <option value="Invercap">Invercap ($1400)</option>
+                    <option value="Profuturo">Profuturo ($500)</option>
+                    <option value="Banorte">Banorte ($600)</option>
+                    <option value="Coppel">Coppel ($350)</option>
+                    <option value="Azteca">Azteca ($350)</option>
+                    <option value="Principal">Principal ($750)</option>
+                    <option value="Banamex">Banamex ($1200)</option>
+                </select>
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS (11 DÍGITOS)" class="input-dark font-black">
-                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase font-black">
+                    <input type="text" id="nssAfore" maxlength="11" placeholder="NSS" class="input-dark">
+                    <input type="text" id="curpAfore" placeholder="CURP" class="input-dark uppercase">
                 </div>
             </div>
-            <div class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center">
-                <div><p class="text-[10px] text-slate-500 uppercase">Costo</p><p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p></div>
-                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl hover:scale-105 transition">Confirmar Pago</button>
+            <div class="mt-8 flex justify-between items-center">
+                <p id="txtPrecioAfore" class="text-3xl font-black gold-text">$0.00</p>
+                <button onclick="window.pagarEstadoCuenta()" class="bg-white text-slate-900 px-10 py-4 rounded-2xl font-black uppercase italic shadow-xl">Confirmar Pago</button>
             </div>
         </div>
 
@@ -134,10 +101,7 @@
                 <table class="w-full text-left">
                     <thead>
                         <tr class="text-[10px] font-black uppercase text-slate-500 border-b border-slate-800">
-                            <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-2">Servicio</th>
-                            <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Documento</th>
+                            <th class="pb-4">Fecha</th><th class="pb-4">Servicio</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Documento</th>
                         </tr>
                     </thead>
                     <tbody id="listaHistorial" class="text-xs"></tbody>
@@ -147,33 +111,33 @@
     </main>
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div class="bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh] relative">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
             <div id="formContent"></div>
         </div>
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 shadow-2xl text-center">
+        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl">×</button>
-            <h2 class="text-xl font-black text-white uppercase mb-6 tracking-tighter">Recargar Saldo</h2>
-            <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8">
-                <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2 italic">Datos para transferencia</p>
-                <p class="text-2xl font-black text-white tracking-widest mb-1">4915 6630 4036 4896</p>
-                <p class="text-xs font-bold text-white uppercase opacity-80">Banorte | Diana Puente Rodriguez</p>
+            <h2 class="text-xl font-black text-white uppercase mb-6">Recargar Saldo</h2>
+            <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2rem] mb-8 text-white">
+                <p class="text-[10px] font-black text-blue-400 uppercase mb-2">Transferencia</p>
+                <p class="text-xl font-black tracking-widest">4915 6630 4036 4896</p>
+                <p class="text-[10px] uppercase opacity-70">Banorte | Diana Puente</p>
             </div>
             <div class="space-y-3">
-                <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark text-center font-black">
-                <input type="text" id="depRef" placeholder="Folio de rastreo" class="input-dark uppercase font-bold text-center">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 shadow-lg mt-4">Informar Pago</button>
+                <input type="number" id="depMonto" placeholder="Monto" class="input-dark text-center">
+                <input type="text" id="depRef" placeholder="Rastreo" class="input-dark text-center uppercase">
+                <input type="file" id="fileRecarga" class="block w-full text-[10px]">
+                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 mt-4">Informar Pago</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -196,38 +160,13 @@
         const TRAMITES = {
             'IMSS': [
                 { id: 'M10', nombre: 'Modalidad 10', precio: 200, nss: true, extra: 'DIRECCIÓN' },
-                { id: 'ALTA MENSUAL', nombre: 'ALTA MENSUAL', precio: 600, nss: true, curp: true },
-                { id: 'RESUMEN AFORE', nombre: 'RESUMEN AFORE', precio: 15, nss: true, curp: true },
                 { id: 'RETIRO PARCIAL', nombre: 'RETIRO DESEMPLEO', precio: 60, special: 'RETIRO' },
                 { id: 'REGISTRO DIST', nombre: 'REGISTRO DISTANCIA', precio: 80, special: 'REGISTRO' },
-                { id: 'SINDO UR', nombre: 'SINDO ULTIMO RETIRO', precio: 40, nss: true },    
-                { id: 'SINDO ALFA', nombre: 'SINDO ALFA NUMERICO', precio: 80, curp: true },
-                { id: 'SINDO COMP', nombre: 'SINDO COMPLETO', precio: 220, nss: true }
+                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true }
             ],
-            'SAT': [
-                { id: 'RFC_CLON', nombre: 'RFC Clon', precio: 35, curp: true },
-                { id: 'RFCV', nombre: 'RFC Verificable', precio: 140, curp: true },
-                { id: 'CSF', nombre: 'Constancia Fiscal', precio: 230, curp: true },
-                { id: 'RFC CON IDCIF', nombre: 'RFC CON IDCIF', precio: 40, curp: true, extra: 'IDCIF' },
-                { id: 'Loc idcif', nombre: 'LOCALIZAR IDCIF', precio: 60, extra: 'DATOS ACCESO' },
-                { id: 'op. cumplimiento', nombre: 'OPINION CUMPLIMIENTO', precio: 30, curp: true }
-            ],
-            'DOC': [
-                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-                { id: 'VIGENCIA', nombre: 'Vigencia de Derechos', precio: 13, curp: true },
-                { id: 'NSS', nombre: 'TARJETA NSS', precio: 13, curp: true },
-                { id: 'MATRI', nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { id: 'DEF', nombre: 'Acta de Defunción', precio: 15, curp: true },
-                { id: 'DIVORCIO', nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }
-            ],
-            'INF': [
-                { id: 'PRECA MEJVT', nombre: 'Precalificación Mejoravit', precio: 120, nss: true, nac: true },
-                   { id: 'PRECA INF', nombre: 'Precalificación Linea II', precio: 120, nss: true, nac: true },
-                { id: 'CUENTA', nombre: 'Crear cuenta Infonavit', precio: 150, nss: true, extra: 'TEL Y CORREO' },
-                { id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true }
-            ]
+            'SAT': [{ id: 'RFC_CLON', nombre: 'RFC Clon', precio: 35, curp: true }],
+            'DOC': [{ id: 'NACIMIENTO', nombre: 'Acta de Nacimiento', precio: 15, curp: true }],
+            'INF': [{ id: 'RESET', nombre: 'Reseteo de cuenta', precio: 170, nss: true }]
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -239,39 +178,10 @@
             onSnapshot(doc(db, "asesores", userUID), (docSnap) => {
                 if (docSnap.exists()) {
                     saldoGlobal = docSnap.data().saldo || 0;
-                    const f = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
-                    document.getElementById('txtSaldoHeader').innerText = f;
-                    document.getElementById('txtSaldoGrande').innerText = f;
+                    document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
                 }
             });
         }
-
-        window.mostrarSeccionAfore = () => {
-            document.getElementById('seccionAfore').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-        };
-
-        window.actualizarPrecioAfore = () => {
-            const afore = document.getElementById('selectAfore').value;
-            document.getElementById('txtPrecioAfore').innerText = `$${PRECIOS_AFORE[afore] || 0}.00`;
-        };
-
-        window.pagarEstadoCuenta = async () => {
-            const afore = document.getElementById('selectAfore').value;
-            const nss = document.getElementById('nssAfore').value;
-            const curp = document.getElementById('curpAfore').value;
-            const costo = PRECIOS_AFORE[afore];
-            if (!afore || nss.length < 11 || curp.length < 10) return alert("Datos incompletos.");
-            if (saldoGlobal < costo) return alert("Saldo insuficiente.");
-            if (confirm(`¿Pagar $${costo}?`)) {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-costo) });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: `ECTA: ${afore}`, curp: curp.toUpperCase(), nss, costo, estatus: "En Proceso", fecha: serverTimestamp()
-                });
-                alert("Enviado."); document.getElementById('seccionAfore').classList.add('hidden');
-            }
-        };
 
         window.mostrarTramites = (cat) => {
             document.getElementById('seccionAfore').classList.add('hidden');
@@ -279,7 +189,7 @@
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 cursor-pointer transition-all">
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.id}', ${t.nss || false}, ${t.nac || false}, '${t.extra || ''}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700">
                     <p class="font-black text-xs uppercase text-white">${t.nombre}</p>
                     <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
@@ -291,122 +201,99 @@
             const content = document.getElementById('formContent');
             let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full">`;
             
-            if (special === 'RETIRO') {
+            if (special === 'RETIRO' || special === 'REGISTRO') {
                 fields += `
-                <div class="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl mb-4">
-                    <p class="text-[9px] font-black text-red-500 uppercase italic leading-tight">
-                        RECUERDA SUBIR FOTOS SIN FLASH O REFLEJOS DE LUZ QUE EVITEN LA CORRECTA LECTURA DE TUS DOCUMENTOS. EVITA QUE LA FOTO DE TU CLIENTE TENGA SOMBRAS O LUCES MUY MARCADAS. NO SE ACEPTAN INE ESCANEADAS.
-                    </p>
-                </div>
+                <div class="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl mb-4 text-[9px] font-black text-red-500 uppercase italic">RECUERDA SUBIR FOTOS LEGIBLES, SIN FLASH Y SIN INE ESCANEADAS.</div>
                 <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">INE Frente</label><input type="file" id="file_ine_f" class="block w-full text-[10px] mb-3">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full text-[10px] mb-3">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">Foto del Cliente</label><input type="file" id="file_selfie" class="block w-full text-[10px] mb-3">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">Estado de Cuenta</label><input type="file" id="file_edocta" class="block w-full text-[10px] mb-4">`;
-            } else if (special === 'REGISTRO') {
-                fields += `
-                <div class="p-4 bg-red-900/20 border border-red-500/50 rounded-2xl mb-4">
-                    <p class="text-[9px] font-black text-red-500 uppercase italic leading-tight">
-                        RECUERDA SUBIR FOTOS SIN FLASH O REFLEJOS DE LUZ QUE EVITEN LA CORRECTA LECTURA DE TUS DOCUMENTOS. EVITA QUE LA FOTO DE TU CLIENTE TENGA SOMBRAS O LUCES MUY MARCADAS. NO SE ACEPTAN INE ESCANEADAS.
-                    </p>
-                </div>
-                <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">INE Frente</label><input type="file" id="file_ine_f" class="block w-full text-[10px] mb-3">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full text-[10px] mb-3">
-                <label class="text-[9px] font-black uppercase ml-2 text-slate-500">Foto del Cliente</label><input type="file" id="file_selfie" class="block w-full text-[10px] mb-3">
-                <textarea id="extra_p" placeholder="Notas/Contraseña específica..." class="input-dark mb-4 w-full h-20 text-xs"></textarea>`;
+                <label class="text-[9px] uppercase ml-2">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3">
+                <label class="text-[9px] uppercase ml-2">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3">
+                <label class="text-[9px] uppercase ml-2">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3">
+                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full mb-4">' : '<textarea id="extra_p" placeholder="Contraseña..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
             } else {
-                if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">`;
-                if(pideNac) fields += `<label class="text-[9px] ml-2 text-slate-500 uppercase font-bold">Nacimiento</label><input type="date" id="nac_p" class="input-dark mb-4 w-full">`;
+                if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
                 if(pideEx) fields += `<input type="text" id="extra_p" placeholder="${pideEx}" class="input-dark mb-4 w-full">`;
             }
 
-            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}', '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+            content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${pref}', '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase">Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
-window.confirmarCompra = async (n, c, p, special) => {
-    if (saldoGlobal < c) return alert("Saldo insuficiente.");
-    const curp = document.getElementById('curp_p').value;
-    if(!curp) return alert("Ingresa la CURP.");
+        window.confirmarCompra = async (n, c, p, special) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p').value;
+            if(!curp) return alert("Ingresa la CURP.");
 
-    const btn = document.querySelector("#modalTramite button:last-child");
-    const originalText = btn.innerText;
-    btn.disabled = true;
-    btn.style.opacity = "0.5";
+            const btn = document.querySelector("#modalTramite button:last-child");
+            const originalText = btn.innerText;
+            btn.disabled = true;
 
-    try {
-        let docs = {};
-        if (special === 'RETIRO' || special === 'REGISTRO') {
-            const filesToUpload = [
-                { key: 'file_ine_f', file: document.getElementById('file_ine_f').files[0], label: 'INE FRENTE' },
-                { key: 'file_ine_r', file: document.getElementById('file_ine_r').files[0], label: 'INE REVERSO' },
-                { key: 'file_selfie', file: document.getElementById('file_selfie').files[0], label: 'FOTO CLIENTE' },
-                { key: 'file_edocta', file: document.getElementById('file_edocta')?.files[0], label: 'EDO. CUENTA' }
-            ];
+            try {
+                let docs = {};
+                if (special === 'RETIRO' || special === 'REGISTRO') {
+                    const files = [
+                        { k: 'file_ine_f', f: document.getElementById('file_ine_f').files[0], l: 'INE FRENTE' },
+                        { k: 'file_ine_r', f: document.getElementById('file_ine_r').files[0], l: 'INE REVERSO' },
+                        { k: 'file_selfie', f: document.getElementById('file_selfie').files[0], l: 'FOTO CLIENTE' },
+                        { k: 'file_edocta', f: document.getElementById('file_edocta')?.files[0], l: 'EDO CUENTA' }
+                    ];
 
-            for (let item of filesToUpload) {
-                if (item.file) {
-                    btn.innerText = `SUBIENDO: ${item.label}...`;
-                    const fd = new FormData();
-                    fd.append('file', item.file);
-                    fd.append('upload_preset', UPLOAD_PRESET);
-                    const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                    const data = await res.json();
-                    docs[item.key] = data.secure_url;
+                    for (let item of files) {
+                        if (item.f) {
+                            btn.innerText = `SUBIENDO: ${item.l}...`;
+                            const fd = new FormData();
+                            fd.append('file', item.f);
+                            fd.append('upload_preset', UPLOAD_PRESET);
+                            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                            const data = await res.json();
+                            docs[item.k] = data.secure_url;
+                        }
+                    }
                 }
-            }
+
+                btn.innerText = "FINALIZANDO...";
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                await addDoc(collection(db, "solicitudes"), {
+                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                    tipo: n, costo: c, curp: curp.toUpperCase(),
+                    nss: document.getElementById('nss_p')?.value || "N/A",
+                    extra: document.getElementById('extra_p')?.value || "",
+                    ...docs, estatus: "En Proceso", fecha: serverTimestamp()
+                });
+                alert("Enviado."); cerrarModal();
+            } catch(e) { alert("Error al subir."); }
+            finally { btn.disabled = false; btn.innerText = originalText; }
+        };
+
+        function escucharHistorial() {
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(20));
+            onSnapshot(q, (snap) => {
+                const lista = document.getElementById('listaHistorial');
+                lista.innerHTML = "";
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
+                    let misDocs = "";
+                    if(d.file_ine_f) misDocs += `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-1 rounded mr-1">INE</button>`;
+                    
+                    lista.innerHTML += `<tr class="border-b border-slate-800">
+                        <td class="py-4 text-slate-500">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
+                        <td class="py-4 font-black">${d.tipo}<br>${misDocs}</td>
+                        <td class="py-4 text-center font-bold ${color}">${d.estatus}</td>
+                        <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black">VER</a>` : '--'}</td>
+                    </tr>`;
+                });
+            });
         }
-
-        btn.innerText = "REGISTRANDO...";
-        await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-        await addDoc(collection(db, "solicitudes"), {
-            asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-            tipo: n, costo: c, folio: p + "-" + Math.floor(Math.random()*9000), 
-            curp: curp.toUpperCase(), nss: document.getElementById('nss_p')?.value || "N/A",
-            extra: document.getElementById('extra_p')?.value || "",
-            ...docs, estatus: "En Proceso", fecha: serverTimestamp()
-        });
-        alert("Enviado con éxito."); cerrarModal();
-    } catch(e) { alert("Error al subir. Revisa tu conexión."); }
-    finally { btn.disabled = false; btn.innerText = originalText; btn.style.opacity = "1"; }
-};
-
-// Actualización en la tabla del Asesor para que vea sus fotos
-function escucharHistorial() {
-    const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID));
-    onSnapshot(q, (snap) => {
-        const lista = document.getElementById('listaHistorial');
-        lista.innerHTML = "";
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
-            let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
-            
-            // Botones de lo que el asesor subió
-            let misArchivos = "";
-            if(d.file_ine_f) misArchivos += `<button onclick="window.open('${d.file_ine_f}')" class="text-[8px] bg-slate-800 p-1 rounded mr-1">INE</button>`;
-            
-            lista.innerHTML += `
-                <tr class="border-b border-slate-800">
-                    <td class="py-4 text-slate-500">${d.fecha?.toDate().toLocaleDateString() || '...'}</td>
-                    <td class="py-4 font-black">${d.tipo}<br>${misArchivos}</td>
-                    <td class="py-4 text-center font-bold ${color}">${d.estatus}</td>
-                    <td class="py-4 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black">BAJAR</a>` : '--'}</td>
-                </tr>`;
-        });
-    });
-}
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('depRef').value;
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !f) return alert("Faltan datos.");
+            if (!m || !f) return alert("Faltan datos.");
             const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
             const data = await res.json();
-            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
             alert("Reportado."); cerrarModal();
         };
 
