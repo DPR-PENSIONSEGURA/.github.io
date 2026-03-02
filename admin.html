@@ -24,7 +24,7 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Trámites y Descargas</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Trámites | Datos Completos</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -53,6 +53,20 @@
             </a>
         </div>
 
+        <section class="mb-12">
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-blue-600 pl-4">Aprobación de Saldo</h2>
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
+                            <tr><th class="p-5">Asesor</th><th class="p-5">Monto</th><th class="p-5">Baucher</th><th class="p-5 text-center">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaRecargas"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
@@ -73,7 +87,7 @@
                             <tr>
                                 <th class="p-4 text-center">Tipo</th>
                                 <th class="p-4">Servicio</th>
-                                <th class="p-4">Datos del Cliente</th>
+                                <th class="p-4">Cliente / Datos</th>
                                 <th class="p-4 text-center">Estatus</th>
                                 <th class="p-4 text-right">Archivos / Acción</th>
                             </tr>
@@ -167,23 +181,24 @@
                 const esManual = s.origen === 'MANUAL';
                 const fStr = s.fecha?.toDate().toLocaleDateString() || '...';
                 
-                // LÓGICA DE BOTONES Y DESCARGAS
                 let btnAccion = '';
-                let linksDescarga = '';
+                let btnDescargas = '';
 
-                // Si el asesor subió documentos (Registro a distancia / Retiro)
+                // LÓGICA DE DESCARGA MÚLTIPLE (Para Registro y Retiro)
                 if (s.fotos && Array.isArray(s.fotos)) {
-                    s.fotos.forEach((url, index) => {
-                        linksDescarga += `<a href="${url}" target="_blank" download="Doc_${index+1}" class="bg-purple-100 text-purple-600 px-2 py-1 rounded text-[7px] font-black uppercase mr-1 inline-block mb-1">DOC ${index+1} 📥</a>`;
+                    s.fotos.forEach((url, idx) => {
+                        btnDescargas += `<button onclick="window.open('${url}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1">DOC ${idx+1} 📥</button>`;
                     });
+                } else if (s.comprobante) {
+                    btnDescargas += `<button onclick="window.open('${s.comprobante}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1">PAGO 📥</button>`;
                 }
 
                 if (s.estatus === 'Terminado') {
-                    btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Resultado</button>`;
+                    btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Ver Resultado</button>`;
                 } else if (s.estatus.includes('ERROR') || s.estatus.includes('INEXISTENTE') || s.estatus.includes('LIMITE') || s.estatus.includes('ILEGIBLES')) {
-                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70">❌ ERROR</button>`;
+                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70">❌ ${s.estatus}</button>`;
                 } else {
-                    btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition">Subir Resultado</button>`;
+                    btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Subir</button>`;
                 }
 
                 tabla.innerHTML += `
@@ -193,20 +208,16 @@
                                 ${esManual ? 'Manual' : 'Portal'}
                             </span>
                         </td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div>
-                            <div class="text-[8px] text-slate-400 font-bold">${fStr}</div>
-                        </td>
+                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                         <td class="p-4">
                             <div class="font-black text-slate-900 uppercase mb-1">${s.nombre || 'N/A'}</div>
                             <div class="flex flex-col gap-0.5">
                                 <div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp || 'N/A'}</div>
                                 <div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss || 'N/A'}</div>
-                                ${s.extra ? `<div class="text-[8px] text-orange-600 font-bold italic bg-orange-50 p-1 rounded mt-1">NOTA: ${s.extra}</div>` : ''}
                             </div>
                         </td>
                         <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[8px] uppercase outline-none focus:border-blue-500">
+                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none focus:border-blue-500">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
                                 <option value="ERROR NSS/CURP" ${s.estatus === 'ERROR NSS/CURP' ? 'selected' : ''}>ERROR NSS/CURP</option>
@@ -216,18 +227,31 @@
                             </select>
                         </td>
                         <td class="p-4 text-right">
-                            <div class="mb-2">${linksDescarga}</div>
-                            ${btnAccion}
+                            <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
+                            <div class="flex justify-end gap-2">
+                                ${btnAccion}
+                                <button onclick="window.eliminarSolicitud('${s.id}', '${s.estatus}')" class="text-slate-300 hover:text-red-500 transition">✕</button>
+                            </div>
                         </td>
                     </tr>`;
             });
         }
 
+        window.eliminarSolicitud = async (id, estatus) => {
+            // CONDICIÓN DE BLOQUEO DE BORRADO
+            if (estatus === 'En Proceso') {
+                return alert("⚠️ No puedes eliminar un trámite que está 'En Proceso'. Primero márcalo como Terminado o Error.");
+            }
+            if (confirm("¿Seguro que deseas eliminar este registro permanentemente?")) {
+                await deleteDoc(doc(db, "solicitudes", id));
+            }
+        };
+
         window.cambiarEstatus = async (id, est) => {
             const errores = ["ERROR NSS/CURP", "DOC. INEXISTENTE", "LIMITE ALCANZADO", "FOTOS ILEGIBLES"];
             if(errores.includes(est)) {
                 const costoOriginal = window.solicitudesCache[id].costo || 0;
-                const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor?`, costoOriginal);
+                const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor? (Costo original: $${costoOriginal})`, costoOriginal);
                 if(m !== null) {
                     const montoDevolver = Number(m);
                     const asesorId = window.solicitudesCache[id].asesor_uid;
@@ -240,6 +264,32 @@
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
+        // --- RECARGAS ---
+        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
+            const t = document.getElementById('tablaRecargas');
+            t.innerHTML = snap.empty ? '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Sin recargas pendientes</td></tr>' : "";
+            snap.forEach(d => {
+                const r = d.data();
+                t.innerHTML += `<tr class="border-b">
+                    <td class="p-5 font-bold text-slate-700">${r.asesorEmail}</td>
+                    <td class="p-5 font-black text-green-600">$${r.monto}</td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[10px]">VER BAUCHER</button></td>
+                    <td class="p-5 text-center flex justify-center gap-2">
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[9px]">OK</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">X</button>
+                    </td>
+                </tr>`;
+            });
+        });
+
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if(est === 'aprobado') {
+                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                alert("Aprobado.");
+            } else { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
+        };
+
         window.abrirSubida = (id, folio) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "TRÁMITE: " + folio; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
@@ -249,16 +299,15 @@
             const btn = document.getElementById('btnGuardar');
             btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData();
-            fd.append('file', file);
-            fd.append('upload_preset', UPLOAD_PRESET);
+            fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 window.cerrarModal();
-                alert("Entregado con éxito.");
-            } catch(e) { alert("Error al subir."); }
-            btn.innerText = "Subir Archivo"; btn.disabled = false;
+                alert("Entregado.");
+            } catch(e) { alert("Error."); }
+            btn.innerText = "Subir"; btn.disabled = false;
         };
 
         window.filtrarTabla = () => {
