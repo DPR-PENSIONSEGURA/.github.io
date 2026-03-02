@@ -15,6 +15,7 @@
         .filter-btn { padding: 6px 14px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
         .filter-active { background: #1e293b; color: white; }
         .filter-inactive { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+        .overflow-x-auto { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -183,6 +184,7 @@
                 let btnAccion = '', btnDescargas = '';
 
                 // --- LÓGICA DE DESCARGA PARA RETIRO Y REGISTRO ---
+                // Aquí buscamos los nombres exactos de los campos que pusimos en el Dashboard
                 const camposFotos = [
                     { label: 'INE F', url: s.file_ine_f },
                     { label: 'INE R', url: s.file_ine_r },
