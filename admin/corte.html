@@ -3,75 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR | Control de Utilidades e Inventario</title>
+    <title>DPR | Ventas Manuales y WhatsApp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; }
         .card { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
         .btn-green { background: #059669; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
-        .btn-orange { background: #F97316; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
-        .badge-utilidad { background: #DCFCE7; color: #166534; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; }
-        @media print { .no-print { display: none !important; } body { background: white; } .card { border: none; box-shadow: none; } }
+        .btn-wpp { background: #25D366; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+        .input-dpr { width: 100%; p: 3; border: 2px solid #F1F5F9; border-radius: 12px; font-weight: 700; font-size: 12px; outline: none; transition: 0.3s; }
+        .input-dpr:focus { border-color: #059669; }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 text-xs">
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 no-print">
             <div class="flex items-center gap-4">
                 <div class="bg-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center font-black text-white text-xl">DP</div>
-                <h1 class="text-2xl font-black uppercase italic text-slate-800">Corte de <span class="text-emerald-600">Utilidades</span></h1>
+                <h1 class="text-2xl font-black uppercase italic">Ventas <span class="text-emerald-600">Manuales</span></h1>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.generarCorte('diario')" class="btn-orange text-[10px]">🖨️ Corte Diario</button>
-                <button onclick="window.generarCorte('mensual')" class="btn-green text-[10px]">📅 Corte Mensual</button>
-                <a href="admin.html" class="bg-slate-200 text-slate-500 px-4 py-3 rounded-xl font-black text-[10px] uppercase">Volver</a>
+                <button onclick="window.generarCorte('diario')" class="bg-orange-500 text-white px-4 py-2 rounded-xl font-black uppercase">Corte Diario</button>
+                <a href="admin.html" class="bg-slate-200 text-slate-500 px-4 py-2 rounded-xl font-black uppercase tracking-widest">Cerrar</a>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
             <div class="lg:col-span-1 no-print">
-                <div class="card">
-                    <h2 class="font-black uppercase text-[10px] mb-4 text-emerald-600 tracking-widest italic border-b pb-2">Configurar Inventario</h2>
-                    <div class="space-y-3">
-                        <input type="text" id="catNombre" placeholder="NOMBRE (Ej: Acta)" class="w-full p-3 border rounded-xl text-xs font-bold uppercase outline-none focus:border-emerald-500">
-                        <input type="number" id="catCosto" placeholder="MI COSTO (Compra)" class="w-full p-3 border rounded-xl text-xs font-bold outline-none">
-                        <input type="number" id="catPrecio" placeholder="PRECIO ASESOR (Venta)" class="w-full p-3 border rounded-xl text-xs font-bold outline-none">
-                        <button onclick="window.guardarEnCatalogo()" class="w-full btn-green text-[10px]">Añadir al Inventario</button>
+                <div class="card space-y-4">
+                    <h2 class="font-black uppercase text-emerald-600 border-b pb-2 italic">Nueva Venta (WPP/Manual)</h2>
+                    
+                    <div>
+                        <label class="font-black text-[9px] text-slate-400">CLIENTE (NOMBRE O CEL)</label>
+                        <input type="text" id="wppCliente" placeholder="Ej: Juan 8122..." class="input-dpr mt-1">
                     </div>
-                    <div class="mt-8">
-                        <h3 class="text-[9px] font-black text-slate-400 uppercase mb-3 italic">Lista de Precios e Inventario</h3>
-                        <div id="listaCatalogo" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+
+                    <div>
+                        <label class="font-black text-[9px] text-slate-400">SELECCIONAR TRÁMITE</label>
+                        <select id="wppTramite" class="input-dpr mt-1 bg-white" onchange="window.actualizarPrecioManual()">
+                            <option value="">-- Seleccionar --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="font-black text-[9px] text-slate-400">MONTO A COBRAR ($)</label>
+                        <input type="number" id="wppMonto" class="input-dpr mt-1" placeholder="0.00">
+                    </div>
+
+                    <button onclick="window.registrarVentaManual()" class="w-full btn-wpp shadow-lg">💾 Guardar y Formato</button>
+                    
+                    <div id="areaFormato" class="hidden mt-4 p-4 bg-slate-900 rounded-2xl text-white font-mono text-[10px] relative">
+                        <p id="textoFormato"></p>
+                        <button onclick="window.copiarFormato()" class="mt-3 w-full bg-white/10 py-2 rounded-lg hover:bg-white/20">📋 Copiar para WhatsApp</button>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-3">
                 <div class="card">
-                    <div id="contenedorCorte">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-[10px] font-black uppercase border-b-4 border-slate-100 text-slate-400 italic">
-                                    <th class="pb-4">Servicio Solicitado</th>
-                                    <th class="pb-4 text-center">Cantidad</th>
-                                    <th class="pb-4 text-right">Ingreso Bruto</th>
-                                    <th class="pb-4 text-right">Utilidad Neta</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaCorteBody" class="text-sm font-bold text-slate-700">
-                                <tr><td colspan="4" class="py-20 text-center opacity-30 italic">Cargando datos de ventas...</td></tr>
+                    <h2 class="font-black uppercase text-slate-400 mb-6 italic tracking-widest">Resumen de Ventas y Utilidad</h2>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[9px] font-black uppercase border-b-2 text-slate-300">
+                                <th class="pb-3">Detalle / Cliente</th>
+                                <th class="pb-3 text-center">Cant</th>
+                                <th class="pb-3 text-right">Venta</th>
+                                <th class="pb-3 text-right">Utilidad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCorteBody" class="font-bold text-slate-700">
                             </tbody>
-                            <tfoot>
-                                <tr class="border-t-4 border-slate-100">
-                                    <td colspan="2" class="pt-6 font-black uppercase text-right text-[10px] text-slate-400">Totales del Periodo:</td>
-                                    <td id="totalIngresos" class="pt-6 font-black text-right text-slate-800 text-lg">$0.00</td>
-                                    <td id="totalUtilidad" class="pt-6 font-black text-right text-emerald-600 text-2xl tracking-tighter">$0.00</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        <div id="infoExtraCorte"></div>
-                    </div>
+                        <tfoot>
+                            <tr class="border-t-4 border-slate-50">
+                                <td colspan="3" class="pt-6 font-black text-right text-slate-400 uppercase">Utilidad Real DPR:</td>
+                                <td id="totalUtilidad" class="pt-6 font-black text-right text-emerald-600 text-2xl">$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -79,107 +90,101 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where, deleteDoc, doc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let preciosCache = {}; // Para calcular utilidades rápido
+        let inventario = {};
 
-        // --- GESTIÓN DE INVENTARIO ---
-        window.guardarEnCatalogo = async () => {
-            const nom = document.getElementById('catNombre').value.toUpperCase();
-            const costo = parseFloat(document.getElementById('catCosto').value) || 0;
-            const precio = parseFloat(document.getElementById('catPrecio').value) || 0;
-            if(!nom || !precio) return alert("Nombre y Precio son obligatorios");
-            await addDoc(collection(db, "inventario_dpr"), { nombre: nom, costoPropio: costo, precioVenta: precio });
-            document.getElementById('catNombre').value = ""; document.getElementById('catCosto').value = ""; document.getElementById('catPrecio').value = "";
-        };
-
+        // 1. CARGAR TRÁMITES EN EL SELECT
         onSnapshot(collection(db, "inventario_dpr"), (snap) => {
-            const div = document.getElementById('listaCatalogo');
-            div.innerHTML = "";
-            preciosCache = {}; 
+            const select = document.getElementById('wppTramite');
+            select.innerHTML = '<option value="">-- Seleccionar --</option>';
             snap.forEach(d => {
                 const item = d.data();
-                preciosCache[item.nombre] = item;
-                div.innerHTML += `
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2 relative group">
-                    <p class="font-black text-[9px] text-slate-800 uppercase">${item.nombre}</p>
-                    <div class="flex justify-between mt-1">
-                        <span class="text-[9px] font-bold text-slate-400 italic">Costo: $${item.costoPropio}</span>
-                        <span class="text-[9px] font-black text-emerald-600">Venta: $${item.precioVenta}</span>
-                    </div>
-                    <button onclick="window.eliminarItem('${d.id}')" class="absolute -top-1 -right-1 bg-white shadow rounded-full w-5 h-5 text-[10px] text-red-400 opacity-0 group-hover:opacity-100 transition">✕</button>
-                </div>`;
+                inventario[item.nombre] = item;
+                select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
             });
         });
 
-        window.eliminarItem = async (id) => { if(confirm("¿Eliminar del inventario?")) await deleteDoc(doc(db, "inventario_dpr", id)); };
+        window.actualizarPrecioManual = () => {
+            const tramite = document.getElementById('wppTramite').value;
+            if(inventario[tramite]) document.getElementById('wppMonto').value = inventario[tramite].precioVenta;
+        };
 
-        // --- CÁLCULO DE CORTE Y UTILIDAD ---
+        // 2. REGISTRAR VENTA MANUAL Y GENERAR FORMATO
+        window.registrarVentaManual = async () => {
+            const cliente = document.getElementById('wppCliente').value;
+            const tramite = document.getElementById('wppTramite').value;
+            const monto = parseFloat(document.getElementById('wppMonto').value);
+
+            if(!cliente || !tramite || !monto) return alert("Llena todos los datos");
+
+            // Guardar en Firebase como venta "Manual"
+            await addDoc(collection(db, "solicitudes"), {
+                cliente_nombre: cliente.toUpperCase(),
+                tipo: tramite,
+                costo: monto,
+                estatus: "Terminado",
+                metodo: "WhatsApp/Manual",
+                fecha: Timestamp.now()
+            });
+
+            // Generar Formato WPP
+            const formato = `✅ *DPR CONSULTORÍA*\n--------------------------\n👤 *Cliente:* ${cliente.toUpperCase()}\n📄 *Servicio:* ${tramite}\n💰 *Total:* $${monto.toFixed(2)}\n--------------------------\n*Gracias por tu preferencia.*`;
+            
+            document.getElementById('textoFormato').innerText = formato;
+            document.getElementById('areaFormato').classList.remove('hidden');
+            alert("Venta guardada y formato generado");
+        };
+
+        window.copiarFormato = () => {
+            const texto = document.getElementById('textoFormato').innerText;
+            navigator.clipboard.writeText(texto);
+            alert("Formato copiado. ¡Pégalo en WhatsApp!");
+        };
+
+        // 3. GENERAR CORTE DE UTILIDADES
         window.generarCorte = (tipo) => {
-            const ahora = new Date();
-            let inicio = new Date();
+            const inicio = new Date();
             inicio.setHours(0,0,0,0);
-            if (tipo === 'mensual') inicio.setDate(1);
+            if(tipo === 'mensual') inicio.setDate(1);
 
-            const q = query(collection(db, "solicitudes"), 
-                where("fecha", ">=", Timestamp.fromDate(inicio)),
-                where("estatus", "==", "Terminado")
-            );
+            const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(inicio)), where("estatus", "==", "Terminado"));
 
             onSnapshot(q, (snap) => {
-                const agrupado = {};
-                let ingBruto = 0;
                 let utilTotal = 0;
+                const tbody = document.getElementById('tablaCorteBody');
+                tbody.innerHTML = "";
 
                 snap.forEach(d => {
                     const s = d.data();
                     const n = s.tipo.toUpperCase();
-                    const costoVenta = Number(s.costo) || 0;
-                    
-                    // Lógica de utilidad: Buscamos cuánto nos cuesta a nosotros en el inventario
-                    const infoInv = preciosCache[n] || { costoPropio: 0 };
-                    const utilidadUnitaria = costoVenta - infoInv.costoPropio;
+                    const venta = Number(s.costo) || 0;
+                    const costoPropio = inventario[n] ? inventario[n].costoPropio : 0;
+                    const utilidad = venta - costoPropio;
+                    const infoCliente = s.cliente_nombre || "Asesor Sistema";
 
-                    if (!agrupado[n]) agrupado[n] = { cant: 0, bruto: 0, util: 0 };
-                    agrupado[n].cant++;
-                    agrupado[n].bruto += costoVenta;
-                    agrupado[n].util += utilidadUnitaria;
-                    
-                    ingBruto += costoVenta;
-                    utilTotal += utilidadUnitaria;
-                });
+                    utilTotal += utilidad;
 
-                const tbody = document.getElementById('tablaCorteBody');
-                tbody.innerHTML = "";
-                
-                if(snap.empty) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center italic opacity-30">No hay ventas registradas en este periodo.</td></tr>';
-                }
-
-                for (const [key, val] of Object.entries(agrupado)) {
                     tbody.innerHTML += `
                     <tr class="border-b border-slate-50">
-                        <td class="py-4 uppercase text-[11px] font-black text-slate-600">${key}</td>
-                        <td class="py-4 text-center font-bold text-slate-800">${val.cant}</td>
-                        <td class="py-4 text-right font-bold text-slate-400">$${val.bruto.toFixed(2)}</td>
-                        <td class="py-4 text-right font-black text-emerald-600">
-                            $${val.util.toFixed(2)}
-                            <span class="badge-utilidad block md:inline ml-2">NETO</span>
+                        <td class="py-4 font-black uppercase">
+                            <span class="block text-emerald-600">${n}</span>
+                            <span class="text-[8px] text-slate-400 italic">${infoCliente}</span>
                         </td>
+                        <td class="text-center">1</td>
+                        <td class="text-right">$${venta.toFixed(2)}</td>
+                        <td class="text-right text-emerald-600">$${utilidad.toFixed(2)}</td>
                     </tr>`;
-                }
-
-                document.getElementById('totalIngresos').innerText = `$${ingBruto.toFixed(2)}`;
+                });
                 document.getElementById('totalUtilidad').innerText = `$${utilTotal.toFixed(2)}`;
             });
         };
-        
-        // Cargar corte diario al iniciar
-        setTimeout(() => window.generarCorte('diario'), 1000);
+
+        window.generarCorte('diario');
     </script>
 </body>
 </html>
