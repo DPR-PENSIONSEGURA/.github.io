@@ -20,7 +20,7 @@
 <body class="p-4 md:p-8">
 
     <div id="alertaSonido" class="fixed bottom-4 left-4 z-[100] bg-white p-4 rounded-2xl shadow-2xl border-2 border-blue-600 flex items-center gap-4">
-        <p class="text-[10px] font-black uppercase">¿Activar alertas sonoras?</p>
+        <p class="text-[10px] font-black uppercase tracking-tighter">¿Activar alertas de solicitudes?</p>
         <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-700">Activar 🔔</button>
     </div>
 
@@ -28,13 +28,13 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión de Trámites y Descargas Directas</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Trámites y Descargas Directas</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div class="card-stat bg-orange-500 text-white p-5 rounded-[2rem] shadow-xl border-b-4 border-orange-700">
                     <span class="text-3xl">🔥</span>
-                    <div><p class="text-[9px] font-black uppercase opacity-70">Visitas Hoy</p><p id="txtVisitas" class="text-2xl font-black">0</p></div>
+                    <div><p class="text-[9px] font-black uppercase opacity-70">Visitas</p><p id="txtVisitas" class="text-2xl font-black">0</p></div>
                 </div>
                 <div class="card-stat bg-emerald-600 text-white p-5 rounded-[2rem] shadow-xl border-b-4 border-emerald-800">
                     <span class="text-3xl">💰</span>
@@ -54,14 +54,14 @@
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes Recientes</h2>
+                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
                     <div class="flex gap-1 bg-slate-200 p-1 rounded-full scale-90">
                         <button onclick="window.cambiarFiltro('TODAS')" id="filterTODAS" class="filter-btn filter-active">Todas</button>
                         <button onclick="window.cambiarFiltro('PORTAL')" id="filterPORTAL" class="filter-btn filter-inactive">Portal</button>
                         <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR NOMBRE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none focus:border-blue-500">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -71,9 +71,9 @@
                             <tr>
                                 <th class="p-4 text-center">Tipo</th>
                                 <th class="p-4">Servicio</th>
-                                <th class="p-4">Datos / NSS / CURP</th>
+                                <th class="p-4">Cliente / Info</th>
                                 <th class="p-4 text-center">Estatus</th>
-                                <th class="p-4 text-right">Documentación / Acción</th>
+                                <th class="p-4 text-right">Archivos / Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
@@ -88,14 +88,14 @@
             <h2 class="text-xl font-black mb-4 uppercase italic">Entregar Resultado</h2>
             <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-xs"></p>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Enviar a Cliente</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir Archivo</button>
             <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -106,7 +106,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CONFIGURACIÓN DE ALERTAS
         const audioNotif = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
         let primeraCarga = true;
 
@@ -126,7 +125,6 @@
         let idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // VISITAS Y ASESORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
@@ -134,14 +132,13 @@
             document.getElementById('txtAsesores').innerText = snap.size;
         });
 
-        // ESCUCHA DE SOLICITUDES
         const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(60));
         onSnapshot(qSolicitudes, (snap) => {
             let totalHoy = 0, pendientes = 0;
             const hoyStr = new Date().toLocaleDateString();
             
             if (!primeraCarga && snap.docChanges().some(change => change.type === "added")) {
-                audioNotif.play();
+                audioNotif.play().catch(()=>{});
                 const nuevaSol = snap.docChanges().find(c => c.type === "added").doc.data();
                 if (Notification.permission === "granted") {
                     new Notification("🆕 Nueva Solicitud", { body: `${nuevaSol.tipo}: ${nuevaSol.nombre}` });
@@ -186,8 +183,7 @@
                 let btnAccion = '', btnDescargas = '';
 
                 // --- LÓGICA DE DESCARGA PARA RETIRO Y REGISTRO ---
-                // Buscamos campos específicos que nos pasaste
-                const docsDisponibles = [
+                const camposFotos = [
                     { label: 'INE F', url: s.file_ine_f },
                     { label: 'INE R', url: s.file_ine_r },
                     { label: 'FOTO', url: s.file_selfie },
@@ -195,25 +191,18 @@
                     { label: 'PAGO', url: s.comprobante }
                 ];
 
-                docsDisponibles.forEach(doc => {
-                    if (doc.url) {
-                        btnDescargas += `<button onclick="descargarArchivo('${doc.url}', '${doc.label}_${s.nombre}')" class="bg-purple-600 text-white px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-md hover:bg-purple-800 transition">
-                            ${doc.label} 📥
+                camposFotos.forEach(foto => {
+                    if (foto.url) {
+                        btnDescargas += `<button onclick="window.open('${foto.url}')" class="bg-purple-600 text-white px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-md">
+                            ${foto.label} 📥
                         </button>`;
                     }
                 });
 
-                // Si se guardaron en la lista genérica de fotos
-                if (s.fotos && Array.isArray(s.fotos)) {
-                    s.fotos.forEach((url, idx) => {
-                        btnDescargas += `<button onclick="window.open('${url}')" class="bg-purple-100 text-purple-600 px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 border border-purple-200">DOC ${idx+1} 📥</button>`;
-                    });
-                }
-
                 if (s.estatus === 'Terminado') {
-                    btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-lg">Resultado ✅</button>`;
-                } else if (s.estatus.includes('ERROR') || s.estatus.includes('DOC') || s.estatus.includes('LIMITE')) {
-                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70">❌ ERROR</button>`;
+                    btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-lg">Ver Resultado</button>`;
+                } else if (s.estatus.includes('ERROR') || s.estatus.includes('LIMITE') || s.estatus.includes('INEXISTENTE')) {
+                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ ${s.estatus}</button>`;
                 } else {
                     btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 shadow-md">Subir</button>`;
                 }
@@ -251,17 +240,6 @@
             });
         }
 
-        // FUNCIÓN PARA FORZAR DESCARGA
-        window.descargarArchivo = (url, nombre) => {
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = "_blank";
-            link.download = nombre;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        };
-
         window.eliminarSolicitud = async (id, estatus) => {
             if (estatus === 'En Proceso') return alert("⚠️ No puedes eliminar trámites en proceso.");
             if (confirm("¿Eliminar permanentemente?")) await deleteDoc(doc(db, "solicitudes", id));
@@ -296,7 +274,7 @@
                 window.cerrarModal();
                 alert("Entregado.");
             } catch(e) { alert("Error."); }
-            btn.innerText = "Subir Archivo"; btn.disabled = false;
+            btn.innerText = "Subir"; btn.disabled = false;
         };
 
         window.filtrarTabla = () => {
