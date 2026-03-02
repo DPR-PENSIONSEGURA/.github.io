@@ -132,14 +132,36 @@
 
         const TRAMITES = {
             'IMSS': [
-                { id: 'M10', nombre: 'Modalidad 10', precio: 200, nss: true, curp: true },
-                { id: 'RETIRO', nombre: 'RETIRO DESEMPLEO', precio: 60, special: 'RETIRO' },
-                { id: 'REGISTRO', nombre: 'REGISTRO DISTANCIA', precio: 80, special: 'REGISTRO' },
-                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true }
+                { id: 'SC', nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                { id: 'TARJETA NSS', nombre: 'TARJETA NSS', precio: 15, nss: true },
+                { id: 'M10', nombre: 'Inscripción a Modalidad 10', precio: 200, nss: true, curp: true },
+               ,
+                
             ],
-            'SAT': [{ id: 'RFC', nombre: 'RFC Clon', precio: 35, curp: true }],
-            'DOC': [{ id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true }],
-            'INF': [{ id: 'RESET', nombre: 'Reseteo Cuenta', precio: 170, nss: true }]
+            'SAT': [
+                    { id: 'RFC CLON', nombre: 'RFC Clon', precio: 35, curp: true },
+                   { id: 'RFC VERIFICABLE ', nombre: 'RFC VERIFICABLE', precio: 140, curp: true },
+                    { id: 'RFC', nombre: 'RFC ORIGINAL', precio: 230, curp: true },
+         { id: 'RFC IDCIF', nombre: 'RFC CON IDCIF', precio: 40, rfc: true, idcif: true },
+                   ],
+            'DOC': [
+                    { id: 'CURP', nombre: 'CURP Certificada', precio: 4, curp: true },
+                   { id: 'ACTA DE NACIMIENTO', nombre: 'ACTA DE NACIMIENTO', precio: 15, nss: true },
+                    { id: 'ACTA DE MATRIMONIO', nombre: 'ACTA DE MATRIMONIO', precio: 15, nss: true },
+                { id: 'ACTA DE DIVORCIO', nombre: 'ACTA DE DEFUNCIÓN', precio: 15, nss: true },
+                    
+                   ],
+            'INF': [{ id: 'RESET', nombre: 'RESETEO DE CUENTA INFONAVIT', precio: 150, nss: true },
+                    {id: 'HIST', nombre: 'HISTÓRICO INFONAVIT', precio: 150, nss: true },
+          {id: 'PRECAM', nombre: 'PRECALIFICACIÓN MEJORAVIT', precio: 120, nss: true },
+                     {id: 'PRECAl', nombre: 'PRECALIFICACIÓN LINEA II', precio: 120, nss: true },
+                    
+                   ]
+
+              'AFORE': [
+            { id: 'RETIRO', nombre: 'RETIRO DESEMPLEO', precio: 60, special: 'RETIRO' },
+                { id: 'REGISTRO', nombre: 'REGISTRO DISTANCIA', precio: 80, special: 'REGISTRO' },
+             { id: 'RESUMEN', nombre: 'RESUMEN DE AFORE', precio: 10, curp: true },
         };
 
         onAuthStateChanged(auth, (user) => {
