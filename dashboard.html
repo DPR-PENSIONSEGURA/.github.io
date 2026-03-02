@@ -23,12 +23,8 @@
     <div class="bg-red-600 border-y border-red-500 shadow-2xl relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
         <div class="max-w-7xl mx-auto py-2.5 px-4 flex items-center justify-center gap-3 relative z-10">
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-            </span>
             <p class="text-white font-black uppercase italic text-[10px] md:text-xs tracking-widest text-center">
-                ⚠️ Falla General en Sistemas <span class="underline underline-offset-2">RENAPO</span> | Los trámites de CURP, SEMANAS COTIZADAS Y AFORE  presentan retrasos ⚠️
+                ⚠️ Falla General en Sistemas <span class="underline underline-offset-2">RENAPO</span> | Los trámites de CURP presentan retrasos ⚠️
             </p>
         </div>
     </div>
@@ -41,10 +37,10 @@
             </div>
             <div class="flex items-center gap-3 md:gap-5">
                 <a href="finanzas.html" class="hidden md:block text-[9px] font-black uppercase text-blue-400 border border-blue-400/30 px-3 py-1.5 rounded-full hover:bg-blue-400 hover:text-white transition">📈 Finanzas</a>
-                <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 shadow-inner">
+                <button onclick="abrirModal('modalSaldo')" class="bg-slate-800 px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-white text-sm">...</span>
                 </button>
-                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500 hover:text-red-400">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-red-500">Salir</button>
             </div>
         </div>
     </header>
@@ -62,11 +58,8 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
-        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl overflow-hidden">
-            <h2 class="text-xl font-black text-white uppercase italic mb-6 flex justify-between items-center">
-                Mis Solicitudes 
-                <span class="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Últimos 25 registros</span>
-            </h2>
+        <section class="bg-slate-900/50 rounded-[2.5rem] border border-slate-800 p-6 shadow-2xl">
+            <h2 class="text-xl font-black text-white uppercase italic mb-6">Mis Solicitudes Recientes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead>
@@ -74,12 +67,10 @@
                             <th class="pb-4 px-2">Fecha</th>
                             <th class="pb-4 px-2">Servicio / Cliente</th>
                             <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Resultado</th>
+                            <th class="pb-4 px-2 text-right">Acción</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-xs">
-                        <tr><td colspan="4" class="py-20 text-center opacity-20 font-black uppercase italic">Sincronizando con base de datos...</td></tr>
-                    </tbody>
+                    <tbody id="listaHistorial" class="text-xs"></tbody>
                 </table>
             </div>
         </section>
@@ -93,7 +84,7 @@
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 text-center">
+        <div class="bg-slate-900 w-full max-w-md rounded-[3rem] p-10 relative border border-slate-800 text-center shadow-2xl">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-500 text-2xl hover:text-white">×</button>
             <h2 class="text-xl font-black text-white uppercase mb-6 italic tracking-tighter">Recargar Saldo</h2>
             <div class="bg-blue-600/10 border-2 border-blue-500/30 p-6 rounded-[2.5rem] mb-8 text-white">
@@ -101,9 +92,9 @@
                 <p class="text-[10px] uppercase font-black opacity-60">Banorte | Diana Puente Rodríguez</p>
             </div>
             <div class="space-y-4">
-                <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark text-center font-black text-lg">
+                <input type="number" id="depMonto" placeholder="Monto Recarga" class="input-dark text-center font-black">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-500">
-                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 shadow-xl mt-4 hover:scale-[1.02] transition">Informar Pago</button>
+                <button onclick="notificarPago()" id="btnNotificar" class="w-full gold-gradient py-4 rounded-2xl font-black uppercase text-slate-900 shadow-xl">Informar Pago</button>
             </div>
         </div>
     </div>
@@ -113,12 +104,7 @@
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-            authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -133,28 +119,38 @@
             'IMSS': [
                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
                 { nombre: 'Tarjeta NSS', precio: 15, nss: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, curp: true }
+                { nombre: 'Modalidad 10', precio: 200, special: 'MOD10' },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo', precio: 300, nss: true, curp: true, pideNombre: true, nota: 'INCLUYE PAGO DE APORTACIONES' }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
                 { nombre: 'RFC Verificable', precio: 140, curp: true },
-                { nombre: 'RFC Original', precio: 230, curp: true },
-                { nombre: 'RFC con IDCIF', precio: 40, curp: true, extra: 'IDCIF' }
+                { nombre: 'RFC Original', precio: 230, curp: true }
             ],
             'DOC': [
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 15, curp: true }
+                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
+                { nombre: 'Acta de Defunción', precio: 15, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 15, curp: true, nss: true }
             ],
             'INF': [
-                { nombre: 'Reseteo Cuenta Infonavit', precio: 150, nss: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true },
-                { nombre: 'Precalificación Mejoravit', precio: 120, nss: true }
+                { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
             ],
             'AFORE': [
-                { nombre: 'Retiro por Desempleo', precio: 60, special: 'RETIRO' },
-                { nombre: 'Registro a Distancia', precio: 80, special: 'REGISTRO' },
-                { nombre: 'Resumen de Afore', precio: 10, curp: true }
+                { nombre: 'Retiro Desempleo', precio: 60, special: 'RETIRO' },
+                { nombre: 'Registro Distancia', precio: 80, special: 'REGISTRO' },
+                { nombre: 'Resumen de Afore', precio: 10, curp: true },
+                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'ECTA: Invercap', precio: 1400, nss: true, curp: true },
+                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
+                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
+                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
             ]
         };
 
@@ -177,40 +173,48 @@
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, ${t.nss || false}, ${t.curp || false}, '${t.extra || ''}', '${t.special || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 shadow-sm animate-fade">
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, '${t.nota || ''}')" class="category-card p-5 rounded-2xl border border-slate-700 shadow-sm animate-fade">
                     <p class="font-black text-[11px] uppercase text-white tracking-tight">${t.nombre}</p>
-                    <p class="gold-text font-black text-[9px] mt-1 font-mono italic">$${t.precio}.00</p>
+                    <p class="gold-text font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
             });
             listado.innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, pideNss, pideCurp, pideEx, special) => {
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, nota) => {
             const content = document.getElementById('formContent');
-            let fields = `<input type="text" id="curp_p" placeholder="CURP" class="input-dark uppercase font-bold mb-4 w-full tracking-widest">`;
+            let fields = '';
             
-            if (special === 'RETIRO' || special === 'REGISTRO') {
+            if (special === 'MOD10') {
                 fields += `
-                <div class="p-3 bg-red-900/20 border border-red-500/30 rounded-2xl mb-4 text-[9px] font-black text-red-500 uppercase italic leading-tight">Sube fotos legibles, sin flash y sin recortes. No se aceptan escaneos.</div>
-                <input type="text" id="nss_p" placeholder="NSS (11 DÍGITOS)" class="input-dark mb-4 w-full">
+                <input type="text" id="curp_p" placeholder="CURP" class="input-dark mb-4 w-full uppercase">
+                <input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">
+                <input type="number" id="salario_p" placeholder="SALARIO MENSUAL" class="input-dark mb-4 w-full">
+                <input type="text" id="dir_p" placeholder="DIRECCIÓN COMPLETA" class="input-dark mb-4 w-full">
+                <input type="email" id="email_p" placeholder="CORREO ELECTRÓNICO" class="input-dark mb-4 w-full">
+                <input type="tel" id="tel_p" placeholder="TELÉFONO" class="input-dark mb-4 w-full">`;
+            } else if (special === 'RETIRO' || special === 'REGISTRO') {
+                fields += `
+                <input type="text" id="curp_p" placeholder="CURP" class="input-dark mb-4 w-full uppercase font-bold tracking-widest">
+                <input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full font-bold">
                 <label class="text-[9px] uppercase ml-2 text-slate-500 font-black">INE Frente</label><input type="file" id="file_ine_f" class="block w-full mb-3 text-[10px]">
                 <label class="text-[9px] uppercase ml-2 text-slate-500 font-black">INE Reverso</label><input type="file" id="file_ine_r" class="block w-full mb-3 text-[10px]">
-                <label class="text-[9px] uppercase ml-2 text-slate-500 font-black">Foto Cliente (Selfie)</label><input type="file" id="file_selfie" class="block w-full mb-3 text-[10px]">
-                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2 text-slate-500 font-black">Edo. de Cuenta</label><input type="file" id="file_edocta" class="block w-full text-[10px] mb-4">' : '<textarea id="extra_p" placeholder="Notas adicionales..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
-            } else if (pideNss) {
-                fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full">`;
+                <label class="text-[9px] uppercase ml-2 text-slate-500 font-black">Foto Cliente</label><input type="file" id="file_selfie" class="block w-full mb-3 text-[10px]">
+                ${special === 'RETIRO' ? '<label class="text-[9px] uppercase ml-2 text-slate-500 font-black">Edo. Cuenta</label><input type="file" id="file_edocta" class="block w-full mb-4 text-[10px]">' : '<textarea id="extra_p" placeholder="Contraseña..." class="input-dark mb-4 h-20 text-xs"></textarea>'}`;
+            } else {
+                if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-dark mb-4 w-full uppercase">`;
+                if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-dark mb-4 w-full uppercase font-bold tracking-widest">`;
+                if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-dark mb-4 w-full font-bold">`;
             }
 
             content.innerHTML = `<h2 class="text-xl font-black gold-text mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar y Enviar $${costo}</button>`;
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}', '${nota}')" class="w-full gold-gradient py-4 rounded-2xl text-slate-900 font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, special) => {
+        window.confirmarCompra = async (n, c, special, nota) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const curpVal = document.getElementById('curp_p')?.value || "";
-            if(!curpVal) return alert("El campo CURP es obligatorio.");
-
+            
             const btn = document.querySelector("#modalTramite button:last-child");
             const oldT = btn.innerText; btn.disabled = true;
 
@@ -234,17 +238,21 @@
                     }
                 }
 
-                btn.innerText = "REGISTRANDO...";
+                btn.innerText = "PROCESANDO...";
+                let extras = nota || "";
+                if(document.getElementById('salario_p')) extras += ` | Salario: ${document.getElementById('salario_p').value} | Dir: ${document.getElementById('dir_p').value} | Email: ${document.getElementById('email_p').value} | Tel: ${document.getElementById('tel_p').value}`;
+                if(document.getElementById('nombre_cliente')) extras += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
+
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: n, costo: c, curp: curpVal.toUpperCase(),
+                    tipo: n, costo: c, curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
                     nss: document.getElementById('nss_p')?.value || "N/A",
-                    extra: document.getElementById('extra_p')?.value || "",
+                    extra: (document.getElementById('extra_p')?.value || "") + " " + extras,
                     ...docs, estatus: "En Proceso", fecha: serverTimestamp()
                 });
-                alert("Trámite enviado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al procesar."); }
+                alert("Enviado con éxito."); cerrarModal();
+            } catch(e) { alert("Error al enviar."); }
             finally { btn.disabled = false; btn.innerText = oldT; }
         };
 
@@ -253,41 +261,38 @@
             onSnapshot(q, (snap) => {
                 const lista = document.getElementById('listaHistorial');
                 lista.innerHTML = "";
-                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30 italic">Sin movimientos aún</td></tr>'; return; }
-                
+                if (snap.empty) { lista.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin trámites</td></tr>'; return; }
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
                     let color = d.estatus === 'Terminado' ? "text-green-500" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-yellow-500");
-                    let misDocs = d.file_ine_f ? `<button onclick="window.open('${d.file_ine_f}')" class="bg-white/10 px-2 py-0.5 rounded mr-1 text-[7px] font-black uppercase hover:bg-white/20 transition">Mis Archivos 📥</button>` : "";
-                    
                     lista.innerHTML += `<tr class="border-b border-slate-800 hover:bg-white/5 transition animate-fade">
-                        <td class="py-4 px-2 text-slate-500 font-bold text-[10px]">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
+                        <td class="py-4 px-2 text-slate-500 font-bold">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
                         <td class="py-4 px-2">
                             <div class="font-black uppercase tracking-tight text-white text-[11px]">${d.tipo}</div>
                             <div class="text-[9px] text-blue-400 font-bold tracking-widest mt-1">CURP: ${d.curp || 'N/A'}</div>
-                            <div class="mt-1.5">${misDocs}</div>
+                            ${d.extra ? `<div class="text-[7px] text-orange-500 font-black italic mt-1">${d.extra}</div>` : ''}
                         </td>
                         <td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
                         <td class="py-4 px-2 text-right">
-                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline italic tracking-tighter">DESCARGAR</a>` : '<span class="opacity-20">--</span>'}
+                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="gold-text font-black underline italic">DESCARGAR</a>` : '<span class="opacity-20">--</span>'}
                         </td>
                     </tr>`;
                 });
-            }, (error) => { console.error("Error historial:", error); });
+            });
         }
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f) return alert("Monto y comprobante son obligatorios.");
+            if (!m || !f) return alert("Faltan datos.");
             const btn = document.getElementById('btnNotificar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al subir."); }
+                alert("Pago reportado."); cerrarModal();
+            } catch(e) { alert("Error."); }
             finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
         };
 
