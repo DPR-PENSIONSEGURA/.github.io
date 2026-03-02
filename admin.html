@@ -29,7 +29,7 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Trámites y Descargas Directas</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión Central de Trámites y Saldo</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -52,6 +52,22 @@
             </div>
         </header>
 
+        <section class="mb-12">
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
+                            <tr><th class="p-5">Asesor</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaRecargas">
+                            <tr><td colspan="4" class="p-10 text-center opacity-30 font-bold uppercase text-[10px]">Cargando recargas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
@@ -62,11 +78,11 @@
                         <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none focus:border-blue-500">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto max-h-[700px]">
+                <div class="overflow-x-auto max-h-[600px]">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-900 sticky top-0 text-white text-[10px] uppercase font-black z-10">
                             <tr>
@@ -126,6 +142,7 @@
         let idTramiteActual = "";
         window.solicitudesCache = {};
 
+        // 1. VISITAS Y ASESORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
@@ -133,6 +150,41 @@
             document.getElementById('txtAsesores').innerText = snap.size;
         });
 
+        // 2. RECARGAS PENDIENTES (REESTABLECIDO)
+        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
+            const t = document.getElementById('tablaRecargas');
+            t.innerHTML = "";
+            if (snap.empty) {
+                t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas por aprobar</td></tr>';
+                return;
+            }
+            snap.forEach(d => {
+                const r = d.data();
+                t.innerHTML += `<tr class="border-b animate-fade">
+                    <td class="p-5 font-bold text-slate-700">${r.asesorEmail}</td>
+                    <td class="p-5 font-black text-emerald-600 italic tracking-tighter">$${r.monto}</td>
+                    <td class="p-5">
+                        <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase tracking-widest">Ver Pago 📥</button>
+                    </td>
+                    <td class="p-5 text-center flex justify-center gap-2">
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-emerald-600 shadow-md">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-red-600 shadow-md">BORRAR</button>
+                    </td>
+                </tr>`;
+            });
+        });
+
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if(est === 'aprobado') {
+                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                alert("¡Saldo aprobado correctamente!");
+            } else {
+                if(confirm("¿Eliminar este reporte de pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
+            }
+        };
+
+        // 3. SOLICITUDES
         const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(60));
         onSnapshot(qSolicitudes, (snap) => {
             let totalHoy = 0, pendientes = 0;
@@ -183,27 +235,21 @@
                 const fStr = s.fecha?.toDate().toLocaleDateString() || '...';
                 let btnAccion = '', btnDescargas = '';
 
-                // --- LÓGICA DE DESCARGA PARA RETIRO Y REGISTRO ---
-                // Aquí buscamos los nombres exactos de los campos que pusimos en el Dashboard
                 const camposFotos = [
-                    { label: 'INE F', url: s.file_ine_f },
-                    { label: 'INE R', url: s.file_ine_r },
-                    { label: 'FOTO', url: s.file_selfie },
-                    { label: 'EDOCTA', url: s.file_edocta },
+                    { label: 'INE F', url: s.file_ine_f }, { label: 'INE R', url: s.file_ine_r },
+                    { label: 'FOTO', url: s.file_selfie }, { label: 'EDOCTA', url: s.file_edocta },
                     { label: 'PAGO', url: s.comprobante }
                 ];
 
                 camposFotos.forEach(foto => {
                     if (foto.url) {
-                        btnDescargas += `<button onclick="window.open('${foto.url}')" class="bg-purple-600 text-white px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-md">
-                            ${foto.label} 📥
-                        </button>`;
+                        btnDescargas += `<button onclick="window.open('${foto.url}')" class="bg-purple-600 text-white px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-md">${foto.label} 📥</button>`;
                     }
                 });
 
                 if (s.estatus === 'Terminado') {
                     btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-lg">Ver Resultado</button>`;
-                } else if (s.estatus.includes('ERROR') || s.estatus.includes('LIMITE') || s.estatus.includes('INEXISTENTE')) {
+                } else if (s.estatus.includes('ERROR') || s.estatus.includes('INEXISTENTE')) {
                     btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ ${s.estatus}</button>`;
                 } else {
                     btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 shadow-md">Subir</button>`;
@@ -251,7 +297,7 @@
             const errores = ["ERROR NSS/CURP", "DOC. INEXISTENTE", "LIMITE ALCANZADO", "FOTOS ILEGIBLES"];
             if(errores.includes(est)) {
                 const costoOriginal = window.solicitudesCache[id].costo || 0;
-                const m = prompt(`Monto a devolver:`, costoOriginal);
+                const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor?`, costoOriginal);
                 if(m !== null) {
                     const asesorId = window.solicitudesCache[id].asesor_uid;
                     if(asesorId) await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(Number(m)) });
