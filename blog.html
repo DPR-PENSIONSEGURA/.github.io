@@ -3,117 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog de Pensión Segura | Noticias y Guías IMSS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <title>Blog de DPR Consultoría | Noticias y Guías IMSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #1a365d;
-            --accent: #d97706;
-            --bg: #f8fafc;
-        }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #334155; }
+        /* ESTILO BEIGE Y VERDE DPR */
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; scroll-behavior: smooth; }
+        .header-dpr { background: #0F172A; color: white; border-bottom: 4px solid #059669; }
+        .card-blog { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; transition: all 0.3s ease; }
+        .sidebar-card { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; height: fit-content; }
         
-        header { background: var(--primary); color: white; padding: 1.5rem; text-align: center; }
-
-        .blog-wrapper {
-            display: grid;
-            grid-template-columns: 2fr 1fr; /* Columna grande para noticia, chica para anteriores */
-            gap: 30px;
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        /* La Noticia Principal (La Última) */
-        .main-post {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .main-post img { width: 100%; border-radius: 10px; margin-bottom: 20px; }
-        .main-post h1 { color: var(--primary); font-size: 2rem; }
-
-        /* La Pestaña de Noticias Anteriores (Sidebar) */
-        .sidebar {
-            background: #fff;
-            padding: 20px;
-            border-radius: 15px;
-            height: fit-content;
-            border: 1px solid #e2e8f0;
-        }
-        .sidebar h2 { font-size: 1.2rem; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        .input-dpr { width: 100%; padding: 12px; border: 2px solid #F1F5F9; border-radius: 15px; font-weight: 700; font-size: 12px; outline: none; transition: 0.3s; }
+        .input-dpr:focus { border-color: #059669; background: #F0FDF4; }
         
-        .recent-item {
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .recent-item a { 
-            text-decoration: none; 
-            color: #475569; 
-            font-weight: 600; 
-            transition: 0.3s;
-        }
-        .recent-item a:hover { color: var(--accent); }
-        .recent-item small { display: block; color: #94a3b8; margin-top: 5px; }
-
-        .btn-leer {
-            display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
-
-        @media (max-width: 850px) {
-            .blog-wrapper { grid-template-columns: 1fr; } /* En celular se pone uno arriba del otro */
-        }
+        .btn-wpp { background: #25D366; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn-wpp:hover { background: #128C7E; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 211, 102, 0.3); }
+        
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="font-size: 1.5rem; font-weight: bold;">Pensión Segura - Blog Informativo</div>
+<header class="header-dpr p-6 text-center">
+    <div class="max-w-7xl mx-auto flex justify-center items-center gap-3">
+        <div class="bg-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg">DP</div>
+        <div class="text-xl font-black uppercase tracking-tighter italic">DPR <span class="text-emerald-500">Consultoría</span> | Blog</div>
+    </div>
 </header>
 
-<div class="blog-wrapper">
+<div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
     
-    <main class="main-post">
-        <span style="color: var(--accent); font-weight: bold; text-transform: uppercase;">Nuevo Artículo</span>
-        <h1>Ley 97 del IMSS: ¿Cómo asegurar un retiro digno si eres generación AFORE?</h1>
-        <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80" alt="Ley 97">
-        <p>¿Empezaste a cotizar después de julio de 1997? Tu futuro depende de tu cuenta individual. Descubre cómo las semanas cotizadas y el saldo de tu AFORE definirán tu calidad de vida...</p>
-        <a href="guia-ley-97.html" class="btn-leer">Seguir leyendo →</a>
+    <main class="lg:col-span-2 space-y-8">
+        <section class="card-blog p-8 shadow-xl">
+            <span class="text-[10px] font-black text-orange-600 uppercase tracking-widest italic">Última Noticia</span>
+            <h1 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter mt-2 mb-6 border-l-4 border-emerald-600 pl-4">
+                Ley 97 del IMSS: ¿Cómo asegurar un retiro digno si eres generación AFORE?
+            </h1>
+            <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80" class="w-full rounded-[2rem] mb-6 shadow-md" alt="Ley 97">
+            
+            <div class="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed">
+                <p>¿Empezaste a cotizar después de julio de 1997? Tu futuro depende de tu cuenta individual. Descubre cómo las semanas cotizadas y el saldo de tu AFORE definirán tu calidad de vida...</p>
+                <p class="mt-4">Para muchos mexicanos, la Ley 97 representa un reto financiero. A diferencia de la Ley 73, aquí no existe una pensión vitalicia pagada por el gobierno basada solo en tus últimos salarios; aquí, <strong>el ahorro es la clave.</strong></p>
+            </div>
+            <a href="guia-ley-97.html" class="mt-8 inline-block bg-slate-800 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-600 transition">Seguir leyendo →</a>
+        </section>
+
+        <section class="card-blog p-8 shadow-xl border-t-4 border-orange-500">
+            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Preguntas al Experto</h2>
+            
+            <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 mb-8">
+                <p class="text-[10px] font-black text-orange-600 uppercase mb-4 tracking-widest italic">⚠️ Por favor, incluye tus semanas y salarios para una respuesta exacta:</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="p_nombre" placeholder="Nombre Completo" class="input-dpr">
+                    <input type="number" id="p_semanas" placeholder="Semanas Cotizadas (Ej: 1100)" class="input-dpr">
+                    <input type="text" id="p_salario" placeholder="Último Salario Mensual" class="input-dpr">
+                    <textarea id="p_duda" placeholder="Escribe tu duda o caso aquí..." class="input-dpr md:col-span-2 h-24"></textarea>
+                </div>
+                <button onclick="enviarDudaBlog()" class="btn-wpp w-full justify-center mt-6 shadow-lg">Enviar consulta por WhatsApp</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-white border border-slate-100 rounded-2xl">
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Pedro M. pregunta:</p>
+                    <p class="text-xs font-bold text-slate-700 italic mt-1">"Tengo 1200 semanas y 58 años, ¿me conviene Modalidad 40?"</p>
+                    <div class="mt-3 p-3 bg-emerald-50 rounded-xl border-l-4 border-emerald-500 text-[11px] text-emerald-800 font-medium">
+                        <strong>Diana Puente:</strong> Definitivamente Pedro. Con tus semanas, invertir los últimos 2 años puede duplicar tu pensión proyectada.
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <aside class="sidebar">
-        <h2>Temas Anteriores</h2>
-        
-        <div class="recent-item">
-            <a href="ley-73-vs-97.html">Ley 73 vs 97: ¿Cuál es tu régimen?</a>
-            <small>Publicado: Febrero 2026</small>
-        </div>
+    <aside class="space-y-6">
+        <section class="sidebar-card p-6 shadow-lg">
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 border-b pb-2">Temas Anteriores</h2>
+            
+            <div class="space-y-6">
+                <div class="group cursor-pointer">
+                    <span class="text-[9px] font-black text-emerald-600 uppercase">Guía Ley 73</span>
+                    <a href="ley-73-vs-97.html" class="block font-black text-sm text-slate-800 group-hover:text-emerald-600 transition uppercase tracking-tighter italic">Ley 73 vs 97: ¿Cuál es tu régimen?</a>
+                    <p class="text-[10px] text-slate-400 mt-1">Publicado: Febrero 2026</p>
+                </div>
 
-        <div class="recent-item">
-            <a href="#">¿Qué es la Modalidad 40? (Próximamente)</a>
-            <small>Publicado: Enero 2026</small>
-        </div>
+                <div class="group cursor-pointer">
+                    <span class="text-[9px] font-black text-orange-600 uppercase">Inversión</span>
+                    <a href="queesmodalidad40?.html" class="block font-black text-sm text-slate-800 group-hover:text-orange-600 transition uppercase tracking-tighter italic">¿Qué es la Modalidad 40?</a>
+                    <p class="text-[10px] text-slate-400 mt-1">Publicado: Enero 2026</p>
+                </div>
+            </div>
 
-        <div style="margin-top: 30px; padding: 15px; background: #fff7ed; border-radius: 10px;">
-            <p style="font-size: 0.9rem; margin: 0;"><strong>¿Necesitas asesoría ?</strong></p>
-            <a href="https://wa.me/521234567890?text=Hola,%20quiero%20una%20asesoría" class="boton-whatsapp" target="_blank">
-    Hola, quiero una asesoría
-</a>
-        </div>
+            <div class="mt-10 p-6 bg-emerald-600 rounded-[2rem] text-white text-center shadow-xl">
+                <p class="text-xs font-black uppercase mb-4">¿Necesitas asesoría privada?</p>
+                <a href="https://wa.me/528131983700?text=Hola%20Diana,%20vi%20tu%20blog%20y%20quiero%20asesoría" 
+                   target="_blank" 
+                   class="inline-block bg-white text-emerald-600 font-black px-6 py-3 rounded-xl uppercase text-[10px] hover:scale-105 transition">
+                    Contactar Ahora
+                </a>
+            </div>
+        </section>
     </aside>
 
 </div>
 
-<footer style="text-align: center; padding: 2rem; color: #94a3b8;">
-    © 2026 DPR Consultoría
+<footer class="text-center py-10 opacity-40 text-[10px] font-black uppercase tracking-[0.5em]">
+    © 2026 DPR Consultoría | García, Nuevo León
 </footer>
+
+<script>
+    function enviarDudaBlog() {
+        const n = document.getElementById('p_nombre').value;
+        const s = document.getElementById('p_semanas').value;
+        const sa = document.getElementById('p_salario').value;
+        const d = document.getElementById('p_duda').value;
+
+        if(!n || !s || !d) return alert("Por favor completa los campos para ayudarte mejor.");
+
+        const msg = `✅ *DUDA DESDE EL BLOG*\n\n👤 *Nombre:* ${n}\n📈 *Semanas:* ${s}\n💰 *Salario:* ${sa}\n❓ *Duda:* ${d}`;
+        window.open(`https://wa.me/528131983700?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+</script>
 
 </body>
 </html>
