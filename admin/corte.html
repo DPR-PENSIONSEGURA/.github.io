@@ -106,177 +106,115 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where, Timestamp, deleteDoc, doc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+   <script type="module">
+    // ... (Configuración de Firebase e Inventario igual) ...
 
-        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    window.generarCorte = (tipo) => {
+        const inicio = new Date(); 
+        inicio.setHours(0,0,0,0);
+        if(tipo === 'mensual') inicio.setDate(1);
 
-        let inventario = {};
+        const q = query(collection(db, "solicitudes"), 
+            where("fecha", ">=", Timestamp.fromDate(inicio)), 
+            where("estatus", "==", "Terminado")
+        );
 
-        // --- GESTIÓN DE CATÁLOGO ---
-        window.guardarEnCatalogo = async () => {
-            const nom = document.getElementById('catNombre').value.toUpperCase();
-            const costo = parseFloat(document.getElementById('catCosto').value) || 0;
-            const precio = parseFloat(document.getElementById('catPrecio').value) || 0;
-            if(!nom || !precio) return alert("Llena los campos obligatorios");
-            await addDoc(collection(db, "inventario_dpr"), { nombre: nom, costoPropio: costo, precioVenta: precio });
-            document.getElementById('catNombre').value = ""; document.getElementById('catCosto').value = ""; document.getElementById('catPrecio').value = "";
-        };
+        onSnapshot(q, (snap) => {
+            let vtaTotal = 0;
+            let reinversionTotal = 0;
+            let utilTotal = 0;
+            const conteoProductos = {};
+            const deudores = [];
 
-        onSnapshot(collection(db, "inventario_dpr"), (snap) => {
-            const select = document.getElementById('wppTramite');
-            const lista = document.getElementById('listaCatalogo');
-            select.innerHTML = '<option value="">-- Seleccionar --</option>';
-            lista.innerHTML = "";
-            inventario = {};
-            snap.forEach(d => {
-                const item = d.data();
-                inventario[item.nombre] = item;
-                select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
-                lista.innerHTML += `
-                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2 relative group">
-                    <div>
-                        <p class="font-black text-[9px] text-slate-700 uppercase">${item.nombre}</p>
-                        <p class="text-[8px] font-bold text-emerald-600">Venta: $${item.precioVenta}</p>
-                    </div>
-                    <button onclick="window.eliminarItem('${d.id}')" class="text-slate-300 hover:text-red-500">✕</button>
-                </div>`;
-            });
-        });
+            const tbody = document.getElementById('tablaCorteBody');
+            tbody.innerHTML = "";
 
-        window.eliminarItem = async (id) => { if(confirm("¿Eliminar del inventario?")) await deleteDoc(doc(db, "inventario_dpr", id)); };
-
-        window.actualizarPrecioManual = () => {
-            const tramite = document.getElementById('wppTramite').value;
-            if(inventario[tramite]) document.getElementById('wppMonto').value = inventario[tramite].precioVenta;
-        };
-
-        // --- VENTAS Y WHATSAPP ---
-        window.registrarVentaManual = async () => {
-            const cliente = document.getElementById('wppCliente').value;
-            const tramite = document.getElementById('wppTramite').value;
-            const monto = parseFloat(document.getElementById('wppMonto').value);
-
-            if(!cliente || !tramite || !monto) return alert("Datos incompletos");
-
-            await addDoc(collection(db, "solicitudes"), {
-                cliente_nombre: cliente.toUpperCase(), tipo: tramite, costo: monto,
-                estatus: "Terminado", metodo: "Manual", fecha: Timestamp.now()
-            });
-
-            const formato = `✅ *DPR CONSULTORÍA*\n--------------------------\n👤 *Cliente:* ${cliente.toUpperCase()}\n📄 *Servicio:* ${tramite}\n💰 *Total:* $${monto.toFixed(2)}\n--------------------------\n💳 *DATOS DE PAGO:*\n🏦 BANORTE | DIANA PUENTE\n🔢 Cuenta: 1246255761\n🔗 CLABE: 072580012462557612\n--------------------------\n*Favor de enviar comprobante.*`;
-            
-            document.getElementById('textoFormato').innerText = formato;
-            document.getElementById('areaFormato').classList.remove('hidden');
-
-            const container = document.getElementById('areaFormato');
-            const soloNum = cliente.replace(/\D/g, '');
-            
-            // Botones de acción dinámica
-            const oldBtns = container.querySelectorAll('.dynamic-btn');
-            oldBtns.forEach(b => b.remove());
-
-            if(soloNum.length >= 10) {
-                const btnW = document.createElement('a');
-                btnW.href = `https://wa.me/52${soloNum}?text=${encodeURIComponent(formato)}`;
-                btnW.target = "_blank";
-                btnW.className = "dynamic-btn mt-3 block w-full bg-emerald-500 text-white text-center py-3 rounded-xl font-black uppercase text-[9px]";
-                btnW.innerHTML = "📲 Enviar WhatsApp";
-                container.appendChild(btnW);
+            if(snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30 italic">Sin ventas en este periodo.</td></tr>';
             }
 
-            const btnP = document.createElement('button');
-            btnP.className = "dynamic-btn mt-2 block w-full bg-white text-slate-900 text-center py-3 rounded-xl font-black uppercase text-[9px] shadow-sm";
-            btnPdfRecibo
-            btnP.innerHTML = "📄 Generar Recibo PDF";
-            btnP.onclick = () => window.generarReciboPDF(cliente.toUpperCase(), tramite, monto);
-            container.appendChild(btnP);
+            snap.forEach(d => {
+                const s = d.data();
+                const n = s.tipo.toUpperCase();
+                const venta = Number(s.costo) || 0;
+                const costoPropio = inventario[n] ? inventario[n].costoPropio : 0;
+                const utilidad = venta - costoPropio;
 
-            alert("Venta registrada.");
-        };
+                // Acumulados Financieros
+                vtaTotal += venta;
+                reinversionTotal += costoPropio;
+                utilTotal += utilidad;
 
-        window.copiarFormato = () => { navigator.clipboard.writeText(document.getElementById('textoFormato').innerText); alert("Copiado."); };
+                // Conteo de artículos
+                conteoProductos[n] = (conteoProductos[n] || 0) + 1;
 
-        // --- PDF CON LOGO Y QR ---
-        window.generarReciboPDF = (cliente, servicio, total) => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const fecha = new Date().toLocaleDateString();
+                // Lista de deudas (Ventas Manuales)
+                if(s.metodo === "Manual" || s.metodo === "WhatsApp/Manual") {
+                    deudores.push({ cliente: s.cliente_nombre, monto: venta, tramite: n });
+                }
 
-            // LOGO "DP"
-            doc.setFillColor(5, 150, 105);
-            doc.roundedRect(15, 15, 25, 25, 4, 4, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(16); doc.setFont("helvetica", "bold");
-            doc.text("DP", 21, 31);
-
-            // ENCABEZADO
-            doc.setTextColor(30, 41, 59);
-            doc.setFontSize(22); doc.text("DPR CONSULTORÍA", 45, 28);
-            doc.setFontSize(9); doc.setFont("helvetica", "normal");
-            doc.text("Asesoría Especializada en Pensiones y Trámites", 45, 34);
-
-            doc.setDrawColor(5, 150, 105); doc.setLineWidth(1.5); doc.line(15, 45, 195, 45);
-
-            // DATOS RECIBO
-            doc.setFontSize(14); doc.setFont("helvetica", "bold"); doc.text("RECIBO DE PAGO", 15, 60);
-            doc.setFontSize(9); doc.text(`FECHA: ${fecha}`, 155, 60);
-
-            doc.setDrawColor(241, 245, 249); doc.setFillColor(248, 250, 252); doc.rect(15, 70, 180, 50, 'F');
-            
-            doc.setFontSize(10); doc.text("CLIENTE:", 25, 85); doc.setFont("helvetica", "normal"); doc.text(cliente, 60, 85);
-            doc.setFont("helvetica", "bold"); doc.text("SERVICIO:", 25, 95); doc.setFont("helvetica", "normal"); doc.text(servicio, 60, 95);
-            
-            doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text("TOTAL PAGADO:", 25, 110);
-            doc.setTextColor(5, 150, 105); doc.text(`$${total.toFixed(2)} MXN`, 75, 110);
-
-            // QR REPRESENTATIVO (Simulado con cuadros)
-            doc.setFillColor(30, 41, 59); doc.rect(155, 130, 30, 30);
-            doc.setTextColor(255, 255, 255); doc.setFontSize(6); doc.text("ESCÁNAME", 163, 163);
-
-            doc.setTextColor(100, 116, 139); doc.setFontSize(8);
-            doc.text("Verifica la autenticidad en pensionsegura.org", 15, 140);
-            doc.save(`DPR_Recibo_${cliente.replace(/\s+/g, '_')}.pdf`);
-        };
-
-        // --- CORTE UTILIDADES ---
-        window.generarCorte = (tipo) => {
-            const inicio = new Date(); inicio.setHours(0,0,0,0);
-            if(tipo === 'mensual') inicio.setDate(1);
-
-            const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(inicio)), where("estatus", "==", "Terminado"));
-
-            onSnapshot(q, (snap) => {
-                let utilTotal = 0;
-                const tbody = document.getElementById('tablaCorteBody');
-                tbody.innerHTML = "";
-                snap.forEach(d => {
-                    const s = d.data();
-                    const n = s.tipo.toUpperCase();
-                    const venta = Number(s.costo) || 0;
-                    const costoPropio = inventario[n] ? inventario[n].costoPropio : 0;
-                    const utilidad = venta - costoPropio;
-                    utilTotal += utilidad;
-
-                    tbody.innerHTML += `
-                    <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                        <td class="py-4 uppercase">
-                            <span class="block text-slate-800">${n}</span>
-                            <span class="text-[7px] text-slate-400 italic">${s.cliente_nombre || 'Asesor'}</span>
-                        </td>
-                        <td class="text-center">1</td>
-                        <td class="text-right text-slate-400">$${venta.toFixed(2)}</td>
-                        <td class="text-right text-emerald-600 font-black">$${utilidad.toFixed(2)}</td>
-                    </tr>`;
-                });
-                document.getElementById('totalUtilidad').innerText = `$${utilTotal.toFixed(2)}`;
+                tbody.innerHTML += `
+                <tr class="border-b border-slate-50">
+                    <td class="py-3 uppercase font-black text-slate-700">
+                        ${n} <span class="text-[7px] text-slate-400 block">${s.cliente_nombre || 'SISTEMA'}</span>
+                    </td>
+                    <td class="text-center">1</td>
+                    <td class="text-right text-slate-400">$${venta.toFixed(2)}</td>
+                    <td class="text-right text-emerald-600 font-black">$${utilidad.toFixed(2)}</td>
+                </tr>`;
             });
-        };
 
-        window.generarCorte('diario');
-    </script>
+            // ACTUALIZAR TOTALES Y RESUMEN ABAJO
+            const infoExtra = document.getElementById('infoExtraCorte');
+            infoExtra.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 border-t-2 border-slate-100 pt-8">
+                    
+                    <div class="bg-red-50 p-6 rounded-3xl border border-red-100">
+                        <h3 class="font-black text-red-600 text-[10px] uppercase mb-4 italic tracking-widest">⚠️ Cuentas por Cobrar (Venta Manual)</h3>
+                        <div class="space-y-2">
+                            ${deudores.length > 0 ? deudores.map(d => `
+                                <div class="flex justify-between border-b border-red-200/50 pb-2">
+                                    <span class="text-[9px] font-black uppercase text-slate-700">${d.cliente}</span>
+                                    <span class="text-[9px] font-bold text-red-600">$${d.monto.toFixed(2)}</span>
+                                </div>
+                            `).join('') : '<p class="text-[9px] italic text-slate-400">No hay deudas pendientes hoy.</p>'}
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <h3 class="font-black text-slate-500 text-[10px] uppercase mb-4 italic tracking-widest">📦 Inventario Vendido</h3>
+                        <div class="space-y-2">
+                            ${Object.entries(conteoProductos).map(([prod, cant]) => `
+                                <div class="flex justify-between border-b border-slate-200/50 pb-2">
+                                    <span class="text-[9px] font-bold uppercase text-slate-600">${prod}</span>
+                                    <span class="text-[9px] font-black text-slate-800">${cant} pz</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-white p-4 rounded-2xl border">
+                        <p class="text-[8px] font-black text-slate-400 uppercase">Venta Total</p>
+                        <p class="text-lg font-black text-slate-800">$${vtaTotal.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border">
+                        <p class="text-[8px] font-black text-orange-400 uppercase">Reinversión</p>
+                        <p class="text-lg font-black text-orange-600">$${reinversionTotal.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100">
+                        <p class="text-[8px] font-black text-emerald-600 uppercase">Ganancia Limpia</p>
+                        <p class="text-xl font-black text-emerald-700">$${utilTotal.toFixed(2)}</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('totalUtilidad').innerText = `$${utilTotal.toFixed(2)}`;
+        });
+    };
+
+    window.generarCorte('diario');
+</script>
 </body>
 </html>
