@@ -10,42 +10,31 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; scroll-behavior: smooth; }
         .card { background: white; border-radius: 2.5rem; border: 1px solid #E2E8F0; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
-        .btn-green { background: #059669; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
-        .btn-green:hover { background: #047857; transform: translateY(-2px); }
-        .btn-orange { background: #F97316; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
         .input-dpr { width: 100%; padding: 12px; border: 2px solid #F1F5F9; border-radius: 15px; font-weight: 700; font-size: 12px; outline: none; transition: 0.3s; }
         .input-dpr:focus { border-color: #059669; background: #F0FDF4; }
         @media print { .no-print { display: none !important; } body { background: white; } }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="bg-red-600 border-y border-red-500 shadow-lg relative overflow-hidden mb-6 no-print">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-        <div class="max-w-7xl mx-auto py-2 px-4 flex items-center justify-center gap-3 relative z-10 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-            ⚠️ Falla General en Sistemas RENAPO | Trámites de CURP presentan retrasos ⚠️
-        </div>
+    <div class="bg-red-600 border-y border-red-500 shadow-lg relative overflow-hidden mb-6 no-print text-white font-black uppercase italic text-[10px] py-2 text-center tracking-widest">
+        ⚠️ Falla General en Sistemas RENAPO | Trámites de CURP presentan retrasos ⚠️
     </div>
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 no-print">
             <div class="flex items-center gap-4">
-                <div class="bg-emerald-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-xl shadow-lg">DP</div>
-                <div>
-                    <h1 class="text-2xl font-black uppercase italic text-slate-800 tracking-tighter">Corte de <span class="text-emerald-600">Utilidades</span></h1>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría | García, NL</p>
-                </div>
+                <div class="bg-emerald-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-xl">DP</div>
+                <h1 class="text-2xl font-black uppercase italic text-slate-800">Corte de <span class="text-emerald-600">Utilidades</span></h1>
             </div>
             <div class="flex gap-2">
-                <button onclick="window.generarCorte('diario')" class="btn-orange text-[10px]">Corte Diario</button>
-                <button onclick="window.generarCorte('mensual')" class="btn-green text-[10px]">Corte Mensual</button>
-                <a href="admin.html" class="bg-slate-200 text-slate-500 px-5 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-slate-300 transition">Volver</a>
+                <button onclick="window.generarCorte('diario')" class="bg-orange-500 text-white px-5 py-2 rounded-xl font-black text-[10px] uppercase">Corte Diario</button>
+                <button onclick="window.generarCorte('mensual')" class="bg-emerald-600 text-white px-5 py-2 rounded-xl font-black text-[10px] uppercase">Corte Mensual</button>
+                <a href="admin.html" class="bg-slate-200 text-slate-500 px-5 py-2 rounded-xl font-black text-[10px] uppercase">Volver</a>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            
             <div class="lg:col-span-1 space-y-6 no-print">
                 <div class="card">
                     <h2 class="font-black uppercase text-[10px] text-emerald-600 border-b pb-2 mb-4 italic">Venta Directa / WhatsApp</h2>
@@ -54,13 +43,12 @@
                         <select id="wppTramite" class="input-dpr bg-white" onchange="window.actualizarPrecioManual()">
                             <option value="">-- Seleccionar Trámite --</option>
                         </select>
-                        <input type="number" id="wppMonto" placeholder="MONTO A COBRAR $" class="input-dpr">
-                        <button onclick="window.registrarVentaManual()" class="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg hover:bg-emerald-600 transition">💾 Guardar y Enviar</button>
+                        <input type="number" id="wppMonto" placeholder="MONTO $" class="input-dpr">
+                        <button onclick="window.registrarVentaManual()" class="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg">💾 Guardar y Enviar</button>
                     </div>
-                    
-                    <div id="areaFormato" class="hidden mt-6 p-4 bg-slate-900 rounded-3xl text-white font-mono text-[9px] relative overflow-hidden">
+                    <div id="areaFormato" class="hidden mt-6 p-4 bg-slate-900 rounded-3xl text-white font-mono text-[9px]">
                         <div id="textoFormato"></div>
-                        <button onclick="window.copiarFormato()" class="mt-4 w-full bg-white/10 py-2 rounded-xl hover:bg-white/20 transition">📋 Copiar Texto</button>
+                        <button onclick="window.copiarFormato()" class="mt-4 w-full bg-white/10 py-2 rounded-xl">📋 Copiar Texto</button>
                     </div>
                 </div>
 
@@ -78,29 +66,43 @@
 
             <div class="lg:col-span-3">
                 <div class="card min-h-[600px]">
-                    <h2 class="font-black uppercase text-xs text-slate-400 mb-8 italic tracking-widest border-l-4 border-emerald-500 pl-4">Resumen de Ventas y Utilidades Reales</h2>
-                    <div id="contenedorCorte">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-[9px] font-black uppercase border-b-2 border-slate-100 text-slate-300 italic">
-                                    <th class="pb-4">Detalle / Cliente</th>
-                                    <th class="pb-4 text-center">Cant</th>
-                                    <th class="pb-4 text-right">Venta</th>
-                                    <th class="pb-4 text-right">Utilidad Neta</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaCorteBody" class="font-bold text-slate-700 text-[11px]">
-                                <tr><td colspan="4" class="py-20 text-center opacity-20 italic">Selecciona un periodo de corte...</td></tr>
-                            </tbody>
-                            <tfoot>
-                                <tr class="border-t-4 border-slate-50">
-                                    <td colspan="3" class="pt-8 font-black text-right text-slate-400 uppercase tracking-tighter">Ganancia Real DPR:</td>
-                                    <td id="totalUtilidad" class="pt-8 font-black text-right text-emerald-600 text-3xl tracking-tighter">$0.00</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        <div id="infoExtraCorte"></div>
+                    <h2 class="font-black uppercase text-xs text-slate-400 mb-8 italic tracking-widest border-l-4 border-emerald-500 pl-4">Resumen de Operaciones</h2>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[9px] font-black uppercase border-b-2 border-slate-100 text-slate-300 italic">
+                                <th class="pb-4">Detalle / Cliente</th>
+                                <th class="pb-4 text-center">Cant</th>
+                                <th class="pb-4 text-right">Venta</th>
+                                <th class="pb-4 text-right">Utilidad Neta</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCorteBody" class="font-bold text-slate-700 text-[11px]">
+                            <tr><td colspan="4" class="py-20 text-center opacity-20 italic">Cargando datos...</td></tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="border-t-4 border-slate-50">
+                                <td colspan="3" class="pt-8 font-black text-right text-slate-400 uppercase tracking-tighter">Ganancia Real DPR:</td>
+                                <td id="totalUtilidad" class="pt-8 font-black text-right text-emerald-600 text-3xl tracking-tighter">$0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 border-t-2 border-slate-100 pt-8">
+                        <div class="bg-red-50 p-6 rounded-3xl border border-red-100">
+                            <h3 class="font-black text-red-600 text-[10px] uppercase mb-4 italic tracking-widest">⚠️ Cuentas por Cobrar (Clic para Cobrar)</h3>
+                            <div id="listaDeudoresContainer" class="space-y-3 font-bold">
+                                </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                            <h3 class="font-black text-slate-500 text-[10px] uppercase mb-4 italic tracking-widest">📦 Inventario Vendido</h3>
+                            <div id="listaResumenProductos" class="space-y-2">
+                                </div>
+                        </div>
                     </div>
+
+                    <div id="resumenFinancieroFinal" class="mt-8 grid grid-cols-3 gap-4 text-center">
+                        </div>
                 </div>
             </div>
         </div>
@@ -116,12 +118,12 @@
 
     let inventario = {};
 
-    // --- GESTIÓN DE CATÁLOGO ---
+    // GESTIÓN CATÁLOGO
     window.guardarEnCatalogo = async () => {
         const nom = document.getElementById('catNombre').value.toUpperCase();
         const costo = parseFloat(document.getElementById('catCosto').value) || 0;
         const precio = parseFloat(document.getElementById('catPrecio').value) || 0;
-        if(!nom || !precio) return alert("Llena los campos obligatorios");
+        if(!nom || !precio) return alert("Llena los campos");
         await addDoc(collection(db, "inventario_dpr"), { nombre: nom, costoPropio: costo, precioVenta: precio });
         document.getElementById('catNombre').value = ""; document.getElementById('catCosto').value = ""; document.getElementById('catPrecio').value = "";
     };
@@ -136,13 +138,8 @@
             const item = d.data();
             inventario[item.nombre] = item;
             select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
-            lista.innerHTML += `
-            <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 mb-2">
-                <div>
-                    <p class="font-black text-[9px] text-slate-700 uppercase">${item.nombre}</p>
-                    <p class="text-[8px] font-bold text-emerald-600">Venta: $${item.precioVenta}</p>
-                </div>
-                <button onclick="window.eliminarItem('${d.id}')" class="text-slate-300 hover:text-red-500">✕</button>
+            lista.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl mb-2 text-[9px] font-black uppercase">
+                <span>${item.nombre}</span><button onclick="window.eliminarItem('${d.id}')" class="text-red-400">✕</button>
             </div>`;
         });
     });
@@ -150,66 +147,52 @@
     window.eliminarItem = async (id) => { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "inventario_dpr", id)); };
 
     window.actualizarPrecioManual = () => {
-        const tramite = document.getElementById('wppTramite').value;
-        if(inventario[tramite]) document.getElementById('wppMonto').value = inventario[tramite].precioVenta;
+        const t = document.getElementById('wppTramite').value;
+        if(inventario[t]) document.getElementById('wppMonto').value = inventario[t].precioVenta;
     };
 
-    // --- REGISTRO VENTAS MANUALES ---
+    // VENTAS MANUALES
     window.registrarVentaManual = async () => {
-        const cliente = document.getElementById('wppCliente').value;
-        const tramite = document.getElementById('wppTramite').value;
-        const monto = parseFloat(document.getElementById('wppMonto').value);
-        if(!cliente || !tramite || !monto) return alert("Datos incompletos");
+        const c = document.getElementById('wppCliente').value;
+        const t = document.getElementById('wppTramite').value;
+        const m = parseFloat(document.getElementById('wppMonto').value);
+        if(!c || !t || !m) return alert("Faltan datos");
 
         await addDoc(collection(db, "solicitudes"), {
-            cliente_nombre: cliente.toUpperCase(), tipo: tramite, costo: monto,
+            cliente_nombre: c.toUpperCase(), tipo: t, costo: m,
             estatus: "Terminado", metodo: "Manual", fecha: Timestamp.now()
         });
 
-        const formato = `✅ *DPR CONSULTORÍA*\n--------------------------\n👤 *Cliente:* ${cliente.toUpperCase()}\n📄 *Servicio:* ${tramite}\n💰 *Total:* $${monto.toFixed(2)}\n--------------------------\n*Favor de enviar comprobante.*`;
-        document.getElementById('textoFormato').innerText = formato;
+        const f = `✅ *DPR CONSULTORÍA*\n👤 *Cliente:* ${c.toUpperCase()}\n📄 *Servicio:* ${t}\n💰 *Total:* $${m.toFixed(2)}\n*Favor de enviar comprobante.*`;
+        document.getElementById('textoFormato').innerText = f;
         document.getElementById('areaFormato').classList.remove('hidden');
-
-        // Lógica de botón WhatsApp si es número
-        const soloNum = cliente.replace(/\D/g, '');
-        if(soloNum.length >= 10) {
-            const oldW = document.getElementById('btnWpp'); if(oldW) oldW.remove();
-            const btnW = document.createElement('a');
-            btnW.id = "btnWpp";
-            btnW.href = `https://wa.me/52${soloNum}?text=${encodeURIComponent(formato)}`;
-            btnW.target = "_blank";
-            btnW.className = "mt-3 block w-full bg-emerald-500 text-white text-center py-3 rounded-xl font-black uppercase text-[9px]";
-            btnW.innerText = "📲 Enviar WhatsApp";
-            document.getElementById('areaFormato').appendChild(btnW);
-        }
-        alert("Venta registrada.");
+        alert("Venta guardada.");
     };
 
     window.copiarFormato = () => { navigator.clipboard.writeText(document.getElementById('textoFormato').innerText); alert("Copiado."); };
 
-    // --- GENERAR CORTE ---
+    // FUNCIÓN GLOBAL DE COBRO (CORREGIDA)
+    window.copiarTextoCobro = (texto) => {
+        navigator.clipboard.writeText(texto).then(() => {
+            alert("✅ Formato de cobro agrupado copiado. ¡Listo para enviar!");
+        });
+    };
+
+    // GENERAR CORTE MAESTRO
     window.generarCorte = (tipo) => {
-        const inicio = new Date(); 
-        inicio.setHours(0,0,0,0);
+        const inicio = new Date(); inicio.setHours(0,0,0,0);
         if(tipo === 'mensual') inicio.setDate(1);
 
-        const q = query(collection(db, "solicitudes"), 
-            where("fecha", ">=", Timestamp.fromDate(inicio)), 
-            where("estatus", "==", "Terminado")
-        );
+        const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(inicio)), where("estatus", "==", "Terminado"));
 
         onSnapshot(q, (snap) => {
-            let vtaTotal = 0;
-            let reinversionTotal = 0;
-            let utilTotal = 0;
-            const conteoProductos = {};
-            const deudores = [];
-
+            let vtaT = 0, reinvT = 0, utilT = 0;
+            const conteoP = {}, deudoresAgrupados = {};
             const tbody = document.getElementById('tablaCorteBody');
             tbody.innerHTML = "";
 
             if(snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30 italic">Sin ventas en este periodo.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30 italic">Sin ventas hoy.</td></tr>';
             }
 
             snap.forEach(d => {
@@ -219,122 +202,38 @@
                 const costoPropio = inventario[n] ? inventario[n].costoPropio : 0;
                 const utilidad = venta - costoPropio;
 
-                vtaTotal += venta;
-                reinversionTotal += costoPropio;
-                utilTotal += utilidad;
-                conteoProductos[n] = (conteoProductos[n] || 0) + 1;
+                vtaT += venta; reinvT += costoPropio; utilT += utilidad;
+                conteoP[n] = (conteoP[n] || 0) + 1;
 
+                // Agrupación para deudores
                 if(s.metodo === "Manual") {
-                    deudores.push({ cliente: s.cliente_nombre, monto: venta });
+                    const idC = s.cliente_nombre.toUpperCase();
+                    if(!deudoresAgrupados[idC]) deudoresAgrupados[idC] = { total: 0, items: [] };
+                    deudoresAgrupados[idC].total += venta;
+                    deudoresAgrupados[idC].items.push(n);
                 }
 
-                tbody.innerHTML += `
-                <tr class="border-b border-slate-50">
-                    <td class="py-3 uppercase font-black text-slate-700">
-                        ${n} <span class="text-[7px] text-slate-400 block">${s.cliente_nombre || 'SISTEMA'}</span>
-                    </td>
-                    <td class="text-center">1</td>
-                    <td class="text-right text-slate-400">$${venta.toFixed(2)}</td>
-                    <td class="text-right text-emerald-600 font-black">$${utilidad.toFixed(2)}</td>
-                </tr>`;
+                tbody.innerHTML += `<tr class="border-b border-slate-50"><td class="py-3 uppercase font-black text-slate-700">${n} <span class="text-[7px] text-slate-400 block">${s.cliente_nombre || 'SISTEMA'}</span></td><td class="text-center">1</td><td class="text-right text-slate-400">$${venta.toFixed(2)}</td><td class="text-right text-emerald-600 font-black">$${utilidad.toFixed(2)}</td></tr>`;
             });
-            // --- LÓGICA DE AGRUPACIÓN Y COBRO ---
-const deudoresAgrupados = {};
 
-snap.forEach(d => {
-    const s = d.data();
-    if(s.metodo === "Manual" || s.metodo === "WhatsApp/Manual") {
-        const idCliente = s.cliente_nombre.toUpperCase();
-        
-        if (!deudoresAgrupados[idCliente]) {
-            deudoresAgrupados[idCliente] = {
-                montoTotal: 0,
-                detalles: []
-            };
-        }
-        
-        deudoresAgrupados[idCliente].montoTotal += (Number(s.costo) || 0);
-        deudoresAgrupados[idCliente].detalles.push(s.tipo.toUpperCase());
-    }
-});
+            // Mostrar Deudores Agrupados con botón de cobro
+            const containerD = document.getElementById('listaDeudoresContainer');
+            containerD.innerHTML = Object.keys(deudoresAgrupados).length ? Object.keys(deudoresAgrupados).map(c => {
+                const info = deudoresAgrupados[c];
+                const msg = `✅ *DPR CONSULTORÍA*\n👤 *Cliente:* ${c}\n📄 *Servicios:* ${info.items.join(', ')}\n💰 *Total:* $${info.total.toFixed(2)}\n💳 *PAGO:* BANORTE | DIANA PUENTE | CTA: 1246255761 | CLABE: 072580012462557612`;
+                return `<div class="flex justify-between items-center border-b pb-2"><div class="text-[9px] font-black uppercase">${c}<span class="block text-[7px] text-slate-400">(${info.items.length} piezas)</span></div><div class="flex items-center gap-2"><span class="text-red-600">$${info.total.toFixed(2)}</span><button onclick="window.copiarTextoCobro(\`${msg}\`)" class="bg-emerald-500 text-white px-2 py-1 rounded text-[7px] uppercase italic">📲 Cobrar</button></div></div>`;
+            }).join('') : '<p class="text-[9px] italic text-slate-400">Sin deudas hoy.</p>';
 
-// Renderizar la tabla de deudores corregida
-const deudoresHtml = Object.keys(deudoresAgrupados).map(cliente => {
-    const info = deudoresAgrupados[cliente];
-    const serviciosTexto = info.detalles.join(', ');
-    
-    // Formato de texto para WhatsApp
-    const textoCobro = `✅ *DPR CONSULTORÍA - ORDEN DE PAGO*\n` +
-                       `--------------------------\n` +
-                       `👤 *Cliente:* ${cliente}\n` +
-                       `📄 *Servicios:* ${info.detalles.length} (${serviciosTexto})\n` +
-                       `💰 *Total a Liquidar:* $${info.montoTotal.toFixed(2)}\n` +
-                       `--------------------------\n` +
-                       `💳 *DATOS DE DEPÓSITO:*\n` +
-                       `🏦 *Banco:* BANORTE\n` +
-                       `👤 *Titular:* DIANA PUENTE RODRÍGUEZ\n` +
-                       `🔢 *Cuenta:* 1246255761\n` +
-                       `🔗 *CLABE:* 072580012462557612\n` +
-                       `--------------------------\n` +
-                       `*Favor de enviar comprobante al realizar el pago.*`;
+            // Resumen de Productos
+            document.getElementById('listaResumenProductos').innerHTML = Object.entries(conteoP).map(([p, c]) => `<div class="flex justify-between border-b pb-1"><span>${p}</span><span>${c} pz</span></div>`).join('');
 
-    return `
-    <div class="flex justify-between items-center border-b border-red-200/50 pb-3 mb-2 group">
-        <div>
-            <span class="text-[9px] font-black uppercase text-slate-700 block">${cliente}</span>
-            <span class="text-[7px] text-slate-400 italic font-bold">(${info.detalles.length} servicios registrados)</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <span class="text-[10px] font-black text-red-600">$${info.montoTotal.toFixed(2)}</span>
-            <button onclick="copiarTextoCobro(\`${textoCobro}\`)" 
-                    class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95"
-                    title="Copiar cobro para WhatsApp">
-                <span class="text-[8px] font-black uppercase italic">📲 COBRAR</span>
-            </button>
-        </div>
-    </div>`;
-}).join('');
-
-// Insertar en el div correspondiente
-document.getElementById('listaDeudoresContainer').innerHTML = deudoresHtml || '<p class="text-[9px] italic text-slate-400">Sin deudas hoy.</p>';
-
-// Función global para copiar (fuera de generarCorte)
-window.copiarTextoCobro = (texto) => {
-    navigator.clipboard.writeText(texto).then(() => {
-        alert("✅ Formato de cobro agrupado copiado. ¡Listo para enviar!");
-    });
-};
-
-            const infoExtra = document.getElementById('infoExtraCorte');
-            infoExtra.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 border-t-2 border-slate-100 pt-8">
-                    <div class="bg-red-50 p-6 rounded-3xl border border-red-100">
-                        <h3 class="font-black text-red-600 text-[10px] uppercase mb-4 italic tracking-widest">⚠️ Cuentas por Cobrar</h3>
-                        <div class="space-y-2">
-                            ${deudores.length > 0 ? deudores.map(d => `
-                                <div class="flex justify-between border-b border-red-200/50 pb-2">
-                                    <span class="text-[9px] font-black uppercase text-slate-700">${d.cliente}</span>
-                                    <span class="text-[9px] font-bold text-red-600">$${d.monto.toFixed(2)}</span>
-                                </div>`).join('') : '<p class="text-[9px] italic text-slate-400">Sin deudas hoy.</p>'}
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                        <h3 class="font-black text-slate-500 text-[10px] uppercase mb-4 italic tracking-widest">📦 Inventario Vendido</h3>
-                        <div class="space-y-2">
-                            ${Object.entries(conteoProductos).map(([prod, cant]) => `
-                                <div class="flex justify-between border-b border-slate-200/50 pb-2">
-                                    <span class="text-[9px] font-bold uppercase text-slate-600">${prod}</span>
-                                    <span class="text-[9px] font-black text-slate-800">${cant} pz</span>
-                                </div>`).join('')}
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-8 grid grid-cols-3 gap-4 text-center">
-                    <div class="bg-white p-4 rounded-2xl border"><p class="text-[8px] font-black text-slate-400 uppercase">Venta Total</p><p class="text-lg font-black text-slate-800">$${vtaTotal.toFixed(2)}</p></div>
-                    <div class="bg-white p-4 rounded-2xl border"><p class="text-[8px] font-black text-orange-400 uppercase">Reinversión</p><p class="text-lg font-black text-orange-600">$${reinversionTotal.toFixed(2)}</p></div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100"><p class="text-[8px] font-black text-emerald-600 uppercase">Ganancia</p><p class="text-xl font-black text-emerald-700">$${utilTotal.toFixed(2)}</p></div>
-                </div>`;
-            document.getElementById('totalUtilidad').innerText = `$${utilTotal.toFixed(2)}`;
+            // Totales Financieros
+            document.getElementById('resumenFinancieroFinal').innerHTML = `
+                <div class="bg-white p-3 rounded-xl border font-black"><p class="text-[7px] text-slate-400 uppercase">Venta Total</p>$${vtaT.toFixed(2)}</div>
+                <div class="bg-white p-3 rounded-xl border font-black text-orange-600"><p class="text-[7px] text-orange-400 uppercase">Reinversión</p>$${reinvT.toFixed(2)}</div>
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 font-black text-emerald-700"><p class="text-[7px] text-emerald-600 uppercase">Ganancia</p>$${utilT.toFixed(2)}</div>`;
+            
+            document.getElementById('totalUtilidad').innerText = `$${utilT.toFixed(2)}`;
         });
     };
 
