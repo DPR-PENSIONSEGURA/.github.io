@@ -138,7 +138,9 @@
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
                 { nombre: 'RFC Verificable', precio: 140, curp: true },
-                { nombre: 'RFC Original', precio: 230, curp: true }
+                { nombre: 'RFC Original', precio: 230, curp: true },
+                { nombre: 'Localización de IDcif', precio: 70, rfc: true },
+                { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
             ],
             'DOC': [
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
@@ -185,7 +187,7 @@
             listado.classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, '${t.nota || ''}')" class="category-card p-5 rounded-3xl animate-fade">
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, '${t.nota || ''}', ${t.rfc || false}, ${t.idcif || false})" class="category-card p-5 rounded-3xl animate-fade">
                     <p class="font-black text-[11px] uppercase text-slate-800 tracking-tight">${t.nombre}</p>
                     <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
@@ -193,7 +195,7 @@
             listado.innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, nota) => {
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, nota, pideRfc, pideIdcif) => {
             const content = document.getElementById('formContent');
             let fields = '';
             
@@ -217,6 +219,8 @@
                 if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
                 if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
                 if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+                if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+                if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
             }
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
@@ -253,6 +257,8 @@
                 let extraInfo = nota || "";
                 if(document.getElementById('salario_p')) extraInfo += ` | Salario: ${document.getElementById('salario_p').value} | Dir: ${document.getElementById('dir_p').value} | Email: ${document.getElementById('email_p').value} | Tel: ${document.getElementById('tel_p').value}`;
                 if(document.getElementById('nombre_cliente')) extraInfo += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
+                if(document.getElementById('rfc_p')) extraInfo += ` | RFC: ${document.getElementById('rfc_p').value}`;
+                if(document.getElementById('idcif_p')) extraInfo += ` | IDcif: ${document.getElementById('idcif_p').value}`;
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
