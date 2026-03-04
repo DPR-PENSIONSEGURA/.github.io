@@ -104,9 +104,10 @@
             </div>
             <div class="space-y-4 text-left">
                 <label class="text-[10px] font-black ml-2 uppercase text-slate-400">Monto a reportar</label>
-                <input type="number" id="depMonto" placeholder="Ej: 500" class="input-light text-center font-black text-lg">
+                <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
                 <button onclick="notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg mt-4">Informar Pago</button>
+             <p class="text-[10px] font-black text-red-600 uppercase mb-2 tracking-widest">NO HAY DEVOLUCIONES EN RECARGAS MENORES A $200</p>
             </div>
         </div>
     </div>
