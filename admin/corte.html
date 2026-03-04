@@ -238,6 +238,72 @@
                     <td class="text-right text-emerald-600 font-black">$${utilidad.toFixed(2)}</td>
                 </tr>`;
             });
+            // --- LÓGICA DE AGRUPACIÓN Y COBRO ---
+const deudoresAgrupados = {};
+
+snap.forEach(d => {
+    const s = d.data();
+    if(s.metodo === "Manual" || s.metodo === "WhatsApp/Manual") {
+        const idCliente = s.cliente_nombre.toUpperCase();
+        
+        if (!deudoresAgrupados[idCliente]) {
+            deudoresAgrupados[idCliente] = {
+                montoTotal: 0,
+                detalles: []
+            };
+        }
+        
+        deudoresAgrupados[idCliente].montoTotal += (Number(s.costo) || 0);
+        deudoresAgrupados[idCliente].detalles.push(s.tipo.toUpperCase());
+    }
+});
+
+// Renderizar la tabla de deudores corregida
+const deudoresHtml = Object.keys(deudoresAgrupados).map(cliente => {
+    const info = deudoresAgrupados[cliente];
+    const serviciosTexto = info.detalles.join(', ');
+    
+    // Formato de texto para WhatsApp
+    const textoCobro = `✅ *DPR CONSULTORÍA - ORDEN DE PAGO*\n` +
+                       `--------------------------\n` +
+                       `👤 *Cliente:* ${cliente}\n` +
+                       `📄 *Servicios:* ${info.detalles.length} (${serviciosTexto})\n` +
+                       `💰 *Total a Liquidar:* $${info.montoTotal.toFixed(2)}\n` +
+                       `--------------------------\n` +
+                       `💳 *DATOS DE DEPÓSITO:*\n` +
+                       `🏦 *Banco:* BANORTE\n` +
+                       `👤 *Titular:* DIANA PUENTE RODRÍGUEZ\n` +
+                       `🔢 *Cuenta:* 1246255761\n` +
+                       `🔗 *CLABE:* 072580012462557612\n` +
+                       `--------------------------\n` +
+                       `*Favor de enviar comprobante al realizar el pago.*`;
+
+    return `
+    <div class="flex justify-between items-center border-b border-red-200/50 pb-3 mb-2 group">
+        <div>
+            <span class="text-[9px] font-black uppercase text-slate-700 block">${cliente}</span>
+            <span class="text-[7px] text-slate-400 italic font-bold">(${info.detalles.length} servicios registrados)</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-[10px] font-black text-red-600">$${info.montoTotal.toFixed(2)}</span>
+            <button onclick="copiarTextoCobro(\`${textoCobro}\`)" 
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95"
+                    title="Copiar cobro para WhatsApp">
+                <span class="text-[8px] font-black uppercase italic">📲 COBRAR</span>
+            </button>
+        </div>
+    </div>`;
+}).join('');
+
+// Insertar en el div correspondiente
+document.getElementById('listaDeudoresContainer').innerHTML = deudoresHtml || '<p class="text-[9px] italic text-slate-400">Sin deudas hoy.</p>';
+
+// Función global para copiar (fuera de generarCorte)
+window.copiarTextoCobro = (texto) => {
+    navigator.clipboard.writeText(texto).then(() => {
+        alert("✅ Formato de cobro agrupado copiado. ¡Listo para enviar!");
+    });
+};
 
             const infoExtra = document.getElementById('infoExtraCorte');
             infoExtra.innerHTML = `
