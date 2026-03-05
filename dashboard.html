@@ -21,14 +21,14 @@
 
     <div id="alertaSonido" class="fixed bottom-4 left-4 z-[100] bg-white p-4 rounded-2xl shadow-2xl border-2 border-blue-600 flex items-center gap-4">
         <p class="text-[10px] font-black uppercase tracking-tighter">¿Activar alertas de solicitudes?</p>
-        <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-700">Activar 🔔</button>
+        <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Activar 🔔</button>
     </div>
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión Central de Trámites y Saldo</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión Central de Trámites y Saldo</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -49,7 +49,7 @@
                     <div><p class="text-[9px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-2xl font-black">0</p></div>
                 </div>
             </div>
-            <a href="corte.html" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1">
+            <a href="corte.html" class="inline-flex items-center gap-2 bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-700 transition-all">
                 📦 Ir a Corte e Inventario
             </a>
         </header>
@@ -63,7 +63,7 @@
                             <tr><th class="p-5">Asesor</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
                         </thead>
                         <tbody id="tablaRecargas">
-                            <tr><td colspan="4" class="p-10 text-center opacity-30 font-bold uppercase text-[10px]">Cargando recargas...</td></tr>
+                            <tr><td colspan="4" class="p-10 text-center opacity-30 font-bold uppercase text-[10px]">Sin recargas pendientes</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -80,7 +80,7 @@
                         <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP O RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP, RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -90,7 +90,7 @@
                             <tr>
                                 <th class="p-4 text-center">Tipo</th>
                                 <th class="p-4">Servicio / Fecha</th>
-                                <th class="p-4">Asesor / Cliente / Datos</th>
+                                <th class="p-4">Origen / Cliente / Datos</th>
                                 <th class="p-4 text-center">Estatus</th>
                                 <th class="p-4 text-right">Archivos / Acción</th>
                             </tr>
@@ -133,13 +133,13 @@
         let todasSolicitudes = [];
         let idTramiteActual = "";
 
-        // RECARGAS
+        // --- GESTIÓN DE RECARGAS ---
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
                 const r = d.data();
                 t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">Ver Pago 📥</button></td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase tracking-tighter">Ver Pago 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2">
                         <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
                         <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">BORRAR</button>
@@ -151,14 +151,16 @@
             if(est === 'aprobado') {
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-            } else { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
+                alert("Recarga aprobada.");
+            } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // SOLICITUDES
+        // --- GESTIÓN DE SOLICITUDES ---
         const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100));
         onSnapshot(qSolicitudes, (snap) => {
             let totalHoy = 0, pendientes = 0;
             const hoyStr = new Date().toLocaleDateString();
+            
             if (!primeraCarga && snap.docChanges().some(change => change.type === "added")) audioNotif.play().catch(()=>{});
             primeraCarga = false;
 
@@ -190,16 +192,18 @@
                 const esManual = s.metodo === "Manual" || s.metodo === "WhatsApp/Manual" || s.origen === "MANUAL";
                 const fStr = s.fecha?.toDate().toLocaleString() || '...';
                 
-                // --- LÓGICA DE VISUALIZACIÓN DE VARIABLES (CORREGIDO) ---
+                // --- AQUÍ ESTÁN LAS VARIABLES QUE BUSCABAS DIANA ---
                 let detallesHtml = "";
                 if(s.curp && s.curp !== "N/A") detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
                 if(s.nss && s.nss !== "N/A") detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
-                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
-                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
                 
-                // Mostrar cualquier otra nota extra que venga del panel
+                // NUEVAS VARIABLES DEL SAT
+                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black uppercase">RFC: ${s.rfc}</div>`;
+                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif}</div>`;
+                
+                // NOTAS Y CLIENTE
                 const notaExtra = s.extra || s.extra_p || "";
-                if(notaExtra) detallesHtml += `<div class="text-[8px] text-orange-600 font-bold bg-orange-50 p-1 rounded mt-1 italic uppercase">NOTAS: ${notaExtra}</div>`;
+                if(notaExtra) detallesHtml += `<div class="text-[8px] text-orange-600 font-bold bg-orange-50 p-1 rounded mt-1 italic uppercase border border-orange-100">NOTAS: ${notaExtra}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie},{l:'EDO',u:s.file_edocta}];
@@ -210,7 +214,7 @@
                         <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
                         <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                         <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-[11px]">${s.nombre_asesor || s.nombre || 'N/A'}</div>
+                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || s.nombre || 'ASESOR S/N'}</div>
                             ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">Cliente: ${s.cliente_nombre}</div>` : ''}
                             ${detallesHtml}
                         </td>
@@ -223,8 +227,8 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                            <div class="flex justify-end gap-2">
-                                <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-sm">Subir</button>
+                            <div class="flex justify-end gap-2 items-center">
+                                <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-sm">Entregar</button>
                                 <button onclick="window.eliminarSolicitud('${s.id}', '${s.estatus}')" class="text-slate-200 hover:text-red-500 ml-2 transition">✕</button>
                             </div>
                         </td>
@@ -253,8 +257,8 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                window.cerrarModal(); alert("Entregado.");
-            } catch(e) { alert("Error."); }
+                window.cerrarModal(); alert("Entregado con éxito.");
+            } catch(e) { alert("Error al subir."); }
             btn.innerText = "Subir Archivo"; btn.disabled = false;
         };
 
