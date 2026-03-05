@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro Final</title>
+    <title>DPR Admin | Control Maestro </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -15,21 +15,20 @@
         .filter-btn { padding: 6px 14px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
         .filter-active { background: #1e293b; color: white; }
         .filter-inactive { background: white; color: #64748b; border: 1px solid #e2e8f0; }
-        .overflow-x-auto { -webkit-overflow-scrolling: touch; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div id="alertaSonido" class="fixed bottom-4 left-4 z-[100] bg-white p-4 rounded-2xl shadow-2xl border-2 border-blue-600 flex items-center gap-4">
         <p class="text-[10px] font-black uppercase tracking-tighter">¿Activar alertas de solicitudes?</p>
-        <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-700">Activar 🔔</button>
+        <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Activar 🔔</button>
     </div>
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión Central de Trámites y Saldo</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión Central de Trámites y Saldo</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -50,13 +49,8 @@
                     <div><p class="text-[9px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-2xl font-black">0</p></div>
                 </div>
             </div>
-            <a href="https://pensionsegura.org/admin/corte.html" 
-   class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">
-    📦 Ir a Corte e Inventario
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-    </svg>
-</a>
+            
+            <a href="corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-700">📦 Ir a Corte e Inventario</a>
         </header>
 
         <section class="mb-12">
@@ -85,7 +79,7 @@
                         <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP O RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold uppercase outline-none">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -94,8 +88,8 @@
                         <thead class="bg-slate-900 sticky top-0 text-white text-[10px] uppercase font-black z-10">
                             <tr>
                                 <th class="p-4 text-center">Tipo</th>
-                                <th class="p-4">Servicio</th>
-                                <th class="p-4">Cliente / Info</th>
+                                <th class="p-4">Servicio / Fecha</th>
+                                <th class="p-4">Asesor / Cliente / Info</th>
                                 <th class="p-4 text-center">Estatus</th>
                                 <th class="p-4 text-right">Archivos / Acción</th>
                             </tr>
@@ -112,7 +106,7 @@
             <h2 class="text-xl font-black mb-4 uppercase italic">Entregar Resultado</h2>
             <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-xs"></p>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir Archivo</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700">Subir Archivo</button>
             <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
@@ -121,12 +115,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-            authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817",
-            storageBucket: "pensionsegura-9c817.firebasestorage.app"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -136,7 +125,6 @@
         window.activarAudio = () => {
             audioNotif.play().then(() => {
                 document.getElementById('alertaSonido').classList.add('hidden');
-                if (Notification.permission !== "granted") Notification.requestPermission();
             });
         };
 
@@ -149,35 +137,17 @@
         let idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // 1. VISITAS Y ASESORES
-        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
-            document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
-        });
-        onSnapshot(collection(db, "asesores"), (snap) => {
-            document.getElementById('txtAsesores').innerText = snap.size;
-        });
-
-        // 2. RECARGAS PENDIENTES (REESTABLECIDO)
+        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
-            const t = document.getElementById('tablaRecargas');
-            t.innerHTML = "";
-            if (snap.empty) {
-                t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas por aprobar</td></tr>';
-                return;
-            }
+            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
                 const r = d.data();
-                t.innerHTML += `<tr class="border-b animate-fade">
-                    <td class="p-5 font-bold text-slate-700">${r.asesorEmail}</td>
-                    <td class="p-5 font-black text-emerald-600 italic tracking-tighter">$${r.monto}</td>
-                    <td class="p-5">
-                        <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase tracking-widest">Ver Pago 📥</button>
-                    </td>
+                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">Ver Pago 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2">
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-emerald-600 shadow-md">APROBAR</button>
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-red-600 shadow-md">BORRAR</button>
-                    </td>
-                </tr>`;
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">BORRAR</button>
+                    </td></tr>`;
             });
         });
 
@@ -185,25 +155,16 @@
             if(est === 'aprobado') {
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("¡Saldo aprobado correctamente!");
-            } else {
-                if(confirm("¿Eliminar este reporte de pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
-            }
+            } else { if(confirm("¿Eliminar?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // 3. SOLICITUDES
-        const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(60));
+        // SOLICITUDES (CORRECCIÓN DE VARIABLES)
+        const qSolicitudes = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100));
         onSnapshot(qSolicitudes, (snap) => {
             let totalHoy = 0, pendientes = 0;
             const hoyStr = new Date().toLocaleDateString();
             
-            if (!primeraCarga && snap.docChanges().some(change => change.type === "added")) {
-                audioNotif.play().catch(()=>{});
-                const nuevaSol = snap.docChanges().find(c => c.type === "added").doc.data();
-                if (Notification.permission === "granted") {
-                    new Notification("🆕 Nueva Solicitud", { body: `${nuevaSol.tipo}: ${nuevaSol.nombre}` });
-                }
-            }
+            if (!primeraCarga && snap.docChanges().some(change => change.type === "added")) audioNotif.play().catch(()=>{});
             primeraCarga = false;
 
             todasSolicitudes = [];
@@ -221,6 +182,58 @@
             renderizarTabla();
         });
 
+        function renderizarTabla() {
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = "";
+            const filtradas = todasSolicitudes.filter(s => {
+                if(filtroActual === "TODAS") return true;
+                if(filtroActual === "MANUAL") return s.metodo === "Manual" || s.metodo === "WhatsApp/Manual";
+                if(filtroActual === "PORTAL") return s.origen === "ASESOR";
+            });
+
+            filtradas.forEach(s => {
+                const esManual = s.metodo === "Manual" || s.metodo === "WhatsApp/Manual";
+                const fStr = s.fecha?.toDate().toLocaleString() || '...';
+                
+                // LÓGICA DE VISUALIZACIÓN DE DATOS (CORREGIDO PARA RFC/IDCIF)
+                let detallesHtml = "";
+                if(s.curp && s.curp !== "N/A") detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
+                if(s.nss && s.nss !== "N/A") detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
+                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
+                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
+                if(s.extra) detallesHtml += `<div class="text-[8px] text-orange-600 font-bold bg-orange-50 p-1 rounded mt-1 italic">NOTAS: ${s.extra}</div>`;
+
+                let btnDescargas = '';
+                const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie},{l:'EDO',u:s.file_edocta}];
+                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black uppercase mr-1 mb-1">${f.l} 📥</button>`; });
+
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50 transition">
+                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
+                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase mb-1">${s.nombre_asesor || s.nombre || 'N/A'}</div>
+                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase">CLIENTE: ${s.cliente_nombre}</div>` : ''}
+                            ${detallesHtml}
+                        </td>
+                        <td class="p-4 text-center">
+                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none bg-slate-50">
+                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
+                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
+                            <div class="flex justify-end gap-2">
+                                <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px]">Subir</button>
+                                <button onclick="window.eliminarSolicitud('${s.id}', '${s.estatus}')" class="text-slate-300 hover:text-red-500 ml-2">✕</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+
         window.cambiarFiltro = (f) => {
             filtroActual = f;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.replace('filter-active', 'filter-inactive'));
@@ -228,114 +241,35 @@
             renderizarTabla();
         };
 
-        function renderizarTabla() {
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = "";
-            const filtradas = todasSolicitudes.filter(s => {
-                if(filtroActual === "TODAS") return true;
-                if(filtroActual === "MANUAL") return s.origen === "MANUAL";
-                if(filtroActual === "PORTAL") return s.origen !== "MANUAL";
-            });
-
-            filtradas.forEach(s => {
-                const esManual = s.origen === 'MANUAL';
-                const fStr = s.fecha?.toDate().toLocaleDateString() || '...';
-                let btnAccion = '', btnDescargas = '';
-
-                const camposFotos = [
-                    { label: 'INE F', url: s.file_ine_f }, { label: 'INE R', url: s.file_ine_r },
-                    { label: 'FOTO', url: s.file_selfie }, { label: 'EDOCTA', url: s.file_edocta },
-                    { label: 'PAGO', url: s.comprobante }
-                ];
-
-                camposFotos.forEach(foto => {
-                    if (foto.url) {
-                        btnDescargas += `<button onclick="window.open('${foto.url}')" class="bg-purple-600 text-white px-2 py-1 rounded-[6px] font-black text-[7px] uppercase mr-1 mb-1 shadow-md">${foto.label} 📥</button>`;
-                    }
-                });
-
-                if (s.estatus === 'Terminado') {
-                    btnAccion = `<button onclick="window.open('${s.archivoFinal}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] shadow-lg">Ver Resultado</button>`;
-                } else if (s.estatus.includes('ERROR') || s.estatus.includes('INEXISTENTE')) {
-                    btnAccion = `<button class="bg-red-500 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] opacity-70 cursor-not-allowed">❌ ${s.estatus}</button>`;
-                } else {
-                    btnAccion = `<button onclick="window.abrirSubida('${s.id}', '${s.folio || 'S/F'}')" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 shadow-md">Subir</button>`;
-                }
-
-                tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase mb-1">${s.nombre || 'N/A'}</div>
-                            <div class="flex flex-col gap-0.5">
-                                <div class="text-[10px] text-blue-600 font-black tracking-tight">CURP: ${s.curp || 'N/A'}</div>
-                                <div class="text-[10px] text-slate-600 font-black tracking-tight">NSS: ${s.nss || s.nss_p || 'N/A'}</div>
-                                ${s.extra_p || s.extra ? `<div class="text-[8px] text-orange-600 font-black italic bg-orange-50 p-1 rounded mt-1">NOTA: ${s.extra_p || s.extra}</div>` : ''}
-                            </div>
-                        </td>
-                        <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none focus:border-blue-500 bg-slate-50">
-                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>En Proceso</option>
-                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>Terminado</option>
-                                <option value="ERROR NSS/CURP" ${s.estatus === 'ERROR NSS/CURP' ? 'selected' : ''}>ERROR NSS/CURP</option>
-                                <option value="DOC. INEXISTENTE" ${s.estatus === 'DOC. INEXISTENTE' ? 'selected' : ''}>DOC. INEXISTENTE</option>
-                                <option value="LIMITE ALCANZADO" ${s.estatus === 'LIMITE ALCANZADO' ? 'selected' : ''}>LIMITE ALCANZADO</option>
-                                <option value="FOTOS ILEGIBLES" ${s.estatus === 'FOTOS ILEGIBLES' ? 'selected' : ''}>FOTOS ILEGIBLES</option>
-                            </select>
-                        </td>
-                        <td class="p-4 text-right">
-                            <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                            <div class="flex justify-end gap-2 items-center">
-                                ${btnAccion} 
-                                <button onclick="window.eliminarSolicitud('${s.id}', '${s.estatus}')" class="text-slate-300 hover:text-red-500 transition ml-2">✕</button>
-                            </div>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        window.eliminarSolicitud = async (id, estatus) => {
-            if (estatus === 'En Proceso') return alert("⚠️ No puedes eliminar trámites en proceso.");
-            if (confirm("¿Eliminar permanentemente?")) await deleteDoc(doc(db, "solicitudes", id));
-        };
-
         window.cambiarEstatus = async (id, est) => {
-            const errores = ["ERROR NSS/CURP", "DOC. INEXISTENTE", "LIMITE ALCANZADO", "FOTOS ILEGIBLES"];
-            if(errores.includes(est)) {
-                const costoOriginal = window.solicitudesCache[id].costo || 0;
-                const m = prompt(`Se marcará como error. ¿Cuánto saldo deseas regresar al asesor?`, costoOriginal);
-                if(m !== null) {
-                    const asesorId = window.solicitudesCache[id].asesor_uid;
-                    if(asesorId) await updateDoc(doc(db, "asesores", asesorId), { saldo: increment(Number(m)) });
-                }
-            }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
-        window.abrirSubida = (id, folio) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "TRÁMITE: " + folio; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "TIPO: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
-            if(!file) return alert("Selecciona resultado.");
-            const btn = document.getElementById('btnGuardar');
-            btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            if(!file) return alert("Selecciona archivo.");
+            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                window.cerrarModal();
-                alert("Entregado.");
-            } catch(e) { alert("Error."); }
-            btn.innerText = "Subir"; btn.disabled = false;
+                window.cerrarModal(); alert("Entregado con éxito.");
+            } catch(e) { alert("Error al subir."); }
+            btn.innerText = "Subir Archivo"; btn.disabled = false;
         };
 
         window.filtrarTabla = () => {
             const bus = document.getElementById('buscador').value.toUpperCase();
             const filas = document.querySelectorAll('#tablaSolicitudes tr');
             filas.forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
+        };
+
+        window.eliminarSolicitud = async (id, estatus) => {
+            if (confirm("¿Eliminar trámite permanentemente?")) await deleteDoc(doc(db, "solicitudes", id));
         };
     </script>
 </body>
