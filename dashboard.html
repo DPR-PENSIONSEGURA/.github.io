@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,23 +8,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* TEMA CLARO: BEIGE Y VERDE */
         body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; scroll-behavior: smooth; }
         .header-glass { background: rgba(255, 255, 255, 0.8); border-bottom: 2px solid #E2E8F0; backdrop-blur: 10px; }
         .green-gradient { background: linear-gradient(135deg, #059669 0%, #10B981 100%); }
-        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; }
+        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         .orange-btn:hover { background: #EA580C; transform: translateY(-2px); shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.4); }
-        
         .category-card { background: white; border: 1px solid #E2E8F0; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .category-card:hover { border-color: #059669; transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        
         .calc-card { border: 2px solid #F97316; background: #FFF7ED; transition: all 0.3s ease; cursor: pointer; }
         .calc-card:hover { background: #FFEDD5; transform: scale(1.05); }
-
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; color: #1E293B; padding: 12px; border-radius: 15px; width: 100%; outline: none; transition: border-color 0.3s; }
         .input-light:focus { border-color: #F97316; }
-        
-        .status-badge { padding: 4px 10px; border-radius: 9999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
@@ -34,7 +29,7 @@
     <div class="bg-orange-600 border-y border-orange-500 shadow-lg relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
         <div class="max-w-7xl mx-auto py-2 px-4 flex items-center justify-center gap-3 relative z-10 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-            🟩OFERTA RFC VERIFICABLE $120🟩⚠️ SEMANAS SALIENDO RÁPIDO | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 ⚠️
+            ⚠️ SEMANAS SALIENDO RÁPIDO | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 ⚠️
         </div>
     </div>
 
@@ -63,8 +58,7 @@
             <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[10px] block font-black uppercase mt-2 text-slate-700">DOCUMENTOS</span></button>
             <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[10px] block font-black uppercase mt-2 text-slate-700">INFONAVIT</span></button>
             <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center border-emerald-500/20">💰 <span class="text-[10px] block font-black uppercase text-emerald-600 mt-2">AFORE</span></button>
-            
-            <a href="calculadora.html" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center shadow-lg border-2">
+            <a href="https://pensionsegura.org/calculadoras" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center shadow-lg border-2">
                 <span class="text-xl">🧮</span>
                 <span class="text-[10px] block font-black uppercase mt-2 text-orange-600">CALCULADORAS</span>
             </a>
@@ -73,19 +67,19 @@
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
         <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl overflow-hidden">
-            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Solicitudes Recientes</h2>
+            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100">
+                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 italic">
                             <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-2">Servicio / Cliente</th>
+                            <th class="pb-4 px-4">Información del Trámite</th>
                             <th class="pb-4 px-2 text-center">Estatus</th>
                             <th class="pb-4 px-2 text-right">Resultado</th>
                         </tr>
                     </thead>
-                    <tbody id="listaHistorial" class="text-xs font-bold">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
+                    <tbody id="listaHistorial" class="text-xs">
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando Base de Datos...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -104,9 +98,8 @@
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl hover:text-slate-800">×</button>
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic tracking-tighter">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8">
-                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 tracking-widest">Datos para transferencia</p>
-                <p class="text-xl font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
-                <p class="text-[10px] uppercase font-bold text-emerald-600/60">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 tracking-widest tracking-tighter">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-xl font-black text-emerald-700 tracking-widest mb-1 uppercase tracking-tighter">4915 6630 4036 4896</p>
             </div>
             <div class="space-y-4 text-left">
                 <label class="text-[10px] font-black ml-2 uppercase text-slate-400">Monto a reportar</label>
@@ -139,12 +132,11 @@
                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
                 { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
-                { nombre: 'RFC Verificable', precio: 120, curp: true },
+                { nombre: 'RFC Verificable', precio: 140, curp: true },
                 { nombre: 'RFC Original', precio: 230, curp: true },
                 { nombre: 'Localización de IDcif', precio: 70, rfc: true },
                 { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
@@ -152,25 +144,16 @@
             'DOC': [
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { nombre: 'Acta de Defunción', precio: 15, curp: true },
                 { nombre: 'Vigencia de Derechos', precio: 15, curp: true, nss: true }
             ],
             'INF': [
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true },
-                { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true }
             ],
             'AFORE': [
                 { nombre: 'Retiro Desempleo', precio: 60, special: 'RETIRO' },
-                { nombre: 'Registro Distancia', precio: 80, special: 'REGISTRO' },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
-                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
-                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
-                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true },
-                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true }
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true }
             ]
         };
 
@@ -207,14 +190,8 @@
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
             if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
             if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
-
-            if (special === 'RETIRO' || special === 'REGISTRO') {
-                fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Frente</label><input type="file" id="file_ine_f" class="mb-4 text-xs w-full">
-                           <label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Reverso</label><input type="file" id="file_ine_r" class="mb-4 text-xs w-full">
-                           <label class="text-[9px] font-black ml-2 uppercase text-slate-400">Selfie</label><input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
-            }
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
                 <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}', '${nota}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar y Enviar $${costo}</button>`;
@@ -224,24 +201,24 @@
         window.confirmarCompra = async (n, c, special, nota) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
-            const oldT = btn.innerText; btn.disabled = true; btn.innerText = "PROCESANDO...";
+            btn.disabled = true; btn.innerText = "PROCESANDO...";
 
             try {
-                let extraInfo = nota || "";
-                if(document.getElementById('nombre_cliente')) extraInfo += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
-                if(document.getElementById('rfc_p')) extraInfo += ` | RFC: ${document.getElementById('rfc_p').value}`;
-                if(document.getElementById('idcif_p')) extraInfo += ` | IDcif: ${document.getElementById('idcif_p').value}`;
+                const infoExtra = {};
+                if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
+                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
+                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
-                    tipo: n, costo: c, curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
-                    nss: document.getElementById('nss_p')?.value || "N/A",
-                    extra: extraInfo, estatus: "En Proceso", fecha: serverTimestamp()
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
+                    tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
-                alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error."); }
-            finally { btn.disabled = false; btn.innerText = oldT; }
+                alert("Trámite enviado con éxito."); cerrarModal();
+            } catch(e) { alert("Error al procesar."); }
+            finally { btn.disabled = false; btn.innerText = "Reintentar"; }
         };
 
         function escucharHistorial() {
@@ -251,13 +228,25 @@
                 lista.innerHTML = "";
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
-                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : "text-orange-500";
+                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
+                    
+                    // LÓGICA DE VISUALIZACIÓN DE DATOS SOLICITADOS
+                    let detalles = "";
+                    if(d.curp) detalles += `<span class="mr-3">CURP: ${d.curp}</span>`;
+                    if(d.nss && d.nss !== "N/A") detalles += `<span class="mr-3">NSS: ${d.nss}</span>`;
+                    if(d.rfc) detalles += `<span class="mr-3">RFC: ${d.rfc}</span>`;
+                    if(d.idcif) detalles += `<span>IDCIF: ${d.idcif}</span>`;
+
                     lista.innerHTML += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition">
                         <td class="py-4 px-2 text-slate-400 font-bold">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
-                        <td class="py-4 px-2 uppercase text-slate-700">${d.tipo}</td>
-                        <td class="py-4 px-2 text-center uppercase ${color}">${d.estatus}</td>
+                        <td class="py-4 px-4">
+                            <div class="font-black uppercase tracking-tight text-slate-700 text-[11px]">${d.tipo}</div>
+                            <div class="text-[8px] text-emerald-600 font-bold uppercase mt-1 flex flex-wrap">${detalles}</div>
+                            ${d.cliente_nombre ? `<div class="text-[7px] text-slate-400 italic mt-1 uppercase">Cliente: ${d.cliente_nombre}</div>` : ''}
+                        </td>
+                        <td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
                         <td class="py-4 px-2 text-right">
-                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="text-emerald-600 underline italic">DESCARGAR</a>` : '--'}
+                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="text-emerald-600 font-black underline italic">DESCARGAR</a>` : '--'}
                         </td>
                     </tr>`;
                 });
@@ -274,7 +263,7 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); cerrarModal();
+                alert("Reportado."); cerrarModal();
             } catch(e) { alert("Error."); }
             finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
         };
