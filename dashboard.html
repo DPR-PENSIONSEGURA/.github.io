@@ -128,10 +128,11 @@
 
         const TRAMITES = {
             'IMSS': [
-                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
                 { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
@@ -141,18 +142,26 @@
                 { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
             ],
             'DOC': [
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
+                { nombre: 'Acta de Defunción', precio: 15, curp: true },
                 { nombre: 'Vigencia de Derechos', precio: 15, curp: true, nss: true }
             ],
             'INF': [
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true }
+                { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
             ],
             'AFORE': [
                 { nombre: 'Retiro Desempleo', precio: 60, special: 'RETIRO' },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
-                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true }
+                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
+                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true },
+                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true }
             ]
         };
 
