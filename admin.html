@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro Restaurado</title>
+    <title>DPR Admin | Control Maestro Total</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .card-stat { transition: transform 0.2s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
-        .card-stat:hover { transform: translateY(-5px); }
         .badge-manual { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         .filter-btn { padding: 6px 14px; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
@@ -20,7 +19,7 @@
 <body class="p-4 md:p-8">
 
     <div id="alertaSonido" class="fixed bottom-4 left-4 z-[100] bg-white p-4 rounded-2xl shadow-2xl border-2 border-blue-600 flex items-center gap-4">
-        <p class="text-[10px] font-black uppercase">¿Activar sonido de notificaciones?</p>
+        <p class="text-[10px] font-black uppercase">¿Activar alertas sonoras?</p>
         <button onclick="activarAudio()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase">Activar 🔔</button>
     </div>
 
@@ -28,35 +27,41 @@
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">DPR Admin</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión Central de Trámites y Saldo</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestión Central v4.0</p>
             </div>
-            </div>
-            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                 <div class="card-stat bg-orange-500 text-white p-5 rounded-[2rem] shadow-xl">
-                    <div><p class="text-[9px] font-black uppercase opacity-70">Visitas</p><p id="txtVisitas" class="text-2xl font-black">0</p></div>
+                    <p class="text-[9px] font-black uppercase opacity-70">Visitas</p><p id="txtVisitas" class="text-2xl font-black">0</p>
                 </div>
                 <div class="card-stat bg-emerald-600 text-white p-5 rounded-[2rem] shadow-xl">
-                    <div><p class="text-[9px] font-black uppercase opacity-70">Venta Hoy</p><p id="gananciaHoy" class="text-2xl font-black">$0.00</p></div>
+                    <p class="text-[9px] font-black uppercase opacity-70">Venta Hoy</p><p id="gananciaHoy" class="text-2xl font-black">$0.00</p>
                 </div>
                 <div class="card-stat bg-purple-600 text-white p-5 rounded-[2rem] shadow-xl">
-                    <div><p class="text-[9px] font-black uppercase opacity-70">Asesores</p><p id="txtAsesores" class="text-2xl font-black">0</p></div>
+                    <p class="text-[9px] font-black uppercase opacity-70">Asesores</p><p id="txtAsesores" class="text-2xl font-black">0</p>
                 </div>
                 <div class="card-stat bg-blue-600 text-white p-5 rounded-[2rem] shadow-xl">
-                    <div><p class="text-[9px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-2xl font-black">0</p></div>
+                    <p class="text-[9px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-2xl font-black">0</p>
                 </div>
             </div>
         </header>
 
         <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4 italic">Aprobación de Saldo</h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                            <tr><th class="p-5">Asesor</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                            <tr>
+                                <th class="p-5">Asesor / Email</th>
+                                <th class="p-5">Monto</th>
+                                <th class="p-5">Comprobante</th>
+                                <th class="p-5 text-center">Acciones</th>
+                            </tr>
                         </thead>
-                        <tbody id="tablaRecargas"></tbody>
+                        <tbody id="tablaRecargas">
+                            <tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas por aprobar</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -64,23 +69,26 @@
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div class="flex gap-1 bg-slate-200 p-1 rounded-full scale-90">
-                    <button onclick="window.cambiarFiltro('TODAS')" id="filterTODAS" class="filter-btn filter-active">Todas</button>
-                    <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4 italic">Solicitudes</h2>
+                    <div class="flex gap-1 bg-slate-200 p-1 rounded-full scale-90">
+                        <button onclick="window.cambiarFiltro('TODAS')" id="filterTODAS" class="filter-btn filter-active">Todas</button>
+                        <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
+                    </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP O RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto max-h-[700px]">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 sticky top-0 text-white text-[10px] uppercase font-black z-10">
+                        <thead class="bg-slate-900 sticky top-0 text-white text-[10px] uppercase font-black z-10 italic">
                             <tr>
-                                <th class="p-4">Tipo</th>
+                                <th class="p-4">Origen</th>
                                 <th class="p-4">Trámite / Fecha</th>
                                 <th class="p-4">Asesor / Cliente / Datos</th>
                                 <th class="p-4 text-center">Estatus</th>
-                                <th class="p-4 text-right">Archivos / Acción</th>
+                                <th class="p-4 text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
@@ -92,17 +100,17 @@
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic">Entregar Resultado</h2>
-            <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-xs"></p>
+            <h2 class="text-xl font-black mb-4 uppercase italic tracking-tighter">Entregar Resultado</h2>
+            <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-[10px] uppercase"></p>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg hover:bg-blue-700">Subir Archivo</button>
-            <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir y Terminar</button>
+            <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
@@ -126,20 +134,27 @@
             document.getElementById('txtAsesores').innerText = snap.size;
         });
 
-        // 2. RECARGAS
+        // 2. RECARGAS PENDIENTES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
+            if(snap.empty) t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>';
             snap.forEach(d => {
                 const r = d.data();
                 t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px]">VER PAGO 📥</button></td>
-                    <td class="p-5 text-center"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button></td></tr>`;
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">Ver Pago 📥</button></td>
+                    <td class="p-5 text-center flex justify-center gap-2">
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] shadow-sm hover:bg-emerald-600">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] shadow-sm hover:bg-red-600">BORRAR</button>
+                    </td></tr>`;
             });
         });
 
-        window.validarRecarga = async (docId, uid, monto) => {
-            await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-            await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if(est === 'aprobado') {
+                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                alert("¡Saldo cargado!");
+            } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
         // 3. SOLICITUDES
@@ -151,7 +166,7 @@
                 if(s.tipo === "RECARGA ASESOR") return;
                 window.solicitudesCache[d.id] = s;
                 if(s.estatus === 'En Proceso') pendientes++;
-                if(s.fecha?.toDate().toLocaleDateString() === hoyStr && s.estatus !== 'Error de Datos') totalHoy += Number(s.costo || 0);
+                if(s.fecha?.toDate().toLocaleDateString() === hoyStr && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
                 todasSolicitudes.push({ ...s, id: d.id });
             });
             document.getElementById('contadorPendientes').innerText = pendientes;
@@ -166,22 +181,22 @@
             filtradas.forEach(s => {
                 const esManual = s.metodo === "Manual" || s.origen === "MANUAL";
                 let infoHtml = "";
-                if(s.curp && s.curp !== "N/A") infoHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
-                if(s.rfc) infoHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
-                if(s.idcif) infoHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
-                if(s.extra) infoHtml += `<div class="text-[8px] text-orange-600 font-bold mt-1 italic uppercase">NOTAS: ${s.extra}</div>`;
+                if(s.curp && s.curp !== "N/A") infoHtml += `<div class="text-[10px] text-blue-600 font-black uppercase">CURP: ${s.curp}</div>`;
+                if(s.rfc) infoHtml += `<div class="text-[10px] text-emerald-600 font-black uppercase">RFC: ${s.rfc}</div>`;
+                if(s.idcif) infoHtml += `<div class="text-[10px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif}</div>`;
+                if(s.extra) infoHtml += `<div class="text-[8px] text-orange-600 font-bold mt-1 uppercase italic border border-orange-100 p-1 bg-orange-50 rounded">NOTAS: ${s.extra}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie},{l:'EDO',u:s.file_edocta}];
-                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black uppercase mr-1 shadow-sm">${f.l} 📥</button>`; });
+                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black uppercase mr-1 mb-1 shadow-sm">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50 transition">
                         <td class="p-4"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase">${s.tipo}</div><div class="text-[8px] text-slate-400">${s.fecha?.toDate().toLocaleString() || '...'}</div></td>
+                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 italic">${s.fecha?.toDate().toLocaleString() || '...'}</div></td>
                         <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-[10px]">ASESOR: ${s.nombre_asesor || s.nombre || 'S/N'}</div>
-                            <div class="text-[9px] font-bold text-slate-500 border-b border-slate-100 mb-1 pb-1">CLIENTE: ${s.cliente_nombre || 'N/A'}</div>
+                            <div class="font-black text-slate-900 uppercase text-[10px]">${s.nombre_asesor || s.nombre || 'S/N'}</div>
+                            <div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">CLIENTE: ${s.cliente_nombre || 'N/A'}</div>
                             ${infoHtml}
                         </td>
                         <td class="p-4 text-center">
@@ -189,18 +204,12 @@
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                                 <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR/DEVOLVER</option>
-                                 <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-
                             </select>
                         </td>
                         <td class="p-4 text-right">
                              <div class="flex flex-wrap justify-end gap-1 mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] shadow-sm">Subir Archivo</button>
+                             <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] shadow-sm hover:bg-blue-700">Subir Resultado</button>
+                             <button onclick="window.eliminarSolicitud('${s.id}')" class="text-slate-200 hover:text-red-500 ml-2 transition">✕</button>
                         </td>
                     </tr>`;
             });
@@ -211,18 +220,18 @@
                 const s = window.solicitudesCache[id];
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("Saldo devuelto automáticamente.");
+                    alert("Saldo reembolsado automáticamente.");
                 }
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
-        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "TRAMITE: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
-            if(!file) return alert("Selecciona resultado.");
+            if(!file) return alert("Selecciona archivo.");
             const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
@@ -230,7 +239,7 @@
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 window.cerrarModal(); alert("Entregado con éxito.");
-            } catch(e) { alert("Error."); }
+            } catch(e) { alert("Error al subir."); }
             btn.innerText = "Subir Archivo"; btn.disabled = false;
         };
 
@@ -241,6 +250,7 @@
         };
 
         window.cambiarFiltro = (f) => { filtroActual = f; renderizarTabla(); };
+        window.eliminarSolicitud = async (id) => { if (confirm("¿Eliminar trámite?")) await deleteDoc(doc(db, "solicitudes", id)); };
     </script>
 </body>
 </html>
