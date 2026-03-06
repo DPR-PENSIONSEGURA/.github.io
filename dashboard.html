@@ -97,7 +97,7 @@
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl hover:text-slate-800">×</button>
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic tracking-tighter">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8">
-                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 tracking-widest tracking-tighter">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-[10px] font-black text-emerald-600 uppercase mb-2 tracking-tighter">Banorte | Diana Puente Rodríguez</p>
                 <p class="text-xl font-black text-emerald-700 tracking-widest mb-1 uppercase tracking-tighter">4915 6630 4036 4896</p>
             </div>
             <div class="space-y-4 text-left">
@@ -105,7 +105,7 @@
                 <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
                 <button onclick="notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg mt-4">Informar Pago</button>
-                <p class="text-[10px] font-black text-red-600 uppercase text-center mt-2">NO HAY DEVOLUCIONES EN RECARGAS MENORES A $200</p>
+                <p class="text-[10px] font-black text-red-600 uppercase text-center mt-2">RECARGA MÍNIMA $200</p>
             </div>
         </div>
     </div>
@@ -120,6 +120,7 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // CONFIGURACIÓN CLOUDINARY
         const CLOUD_NAME = "de5abnhul"; 
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
@@ -128,40 +129,29 @@
 
         const TRAMITES = {
             'IMSS': [
-                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
                 { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
                 { nombre: 'RFC Verificable', precio: 140, curp: true },
-                { nombre: 'RFC Original', precio: 230, curp: true },
                 { nombre: 'Localización de IDcif', precio: 70, rfc: true },
                 { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
             ],
             'DOC': [
-                 { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { nombre: 'Acta de Defunción', precio: 15, curp: true },
                 { nombre: 'Vigencia de Derechos', precio: 15, curp: true, nss: true }
             ],
             'INF': [
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true }
-                { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
             ],
             'AFORE': [
                 { nombre: 'Retiro Desempleo', precio: 60, special: 'RETIRO' },
-                { nombre: 'Resumen de Afore', precio: 10, curp: true },
-                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
-                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
-                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true },
-                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true }
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true }
             ]
         };
 
@@ -201,6 +191,13 @@
             if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
             if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
 
+            if (special === 'RETIRO') {
+                fields += `
+                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Frente</label><input type="file" id="file_ine_f" class="mb-4 text-xs w-full">
+                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Reverso</label><input type="file" id="file_ine_r" class="mb-4 text-xs w-full">
+                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">Selfie con INE</label><input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
+            }
+
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
                 <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}', '${nota}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar y Enviar $${costo}</button>`;
             abrirModal('modalTramite');
@@ -209,9 +206,32 @@
         window.confirmarCompra = async (n, c, special, nota) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
+            const oldT = btn.innerText;
             btn.disabled = true; btn.innerText = "PROCESANDO...";
 
             try {
+                let docs = {};
+                // Lógica de subida de archivos para trámites especiales
+                if (special === 'RETIRO') {
+                    const f_ine_f = document.getElementById('file_ine_f').files[0];
+                    const f_ine_r = document.getElementById('file_ine_r').files[0];
+                    const f_selfie = document.getElementById('file_selfie').files[0];
+
+                    if(!f_ine_f || !f_ine_r || !f_selfie) throw new Error("Faltan fotos");
+
+                    const uploadFile = async (file) => {
+                        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                        const data = await res.json();
+                        return data.secure_url;
+                    };
+
+                    btn.innerText = "SUBIENDO FOTOS...";
+                    docs.file_ine_f = await uploadFile(f_ine_f);
+                    docs.file_ine_r = await uploadFile(f_ine_r);
+                    docs.file_selfie = await uploadFile(f_selfie);
+                }
+
                 const infoExtra = {};
                 if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
@@ -222,11 +242,29 @@
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
-                    tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
+                    tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra, ...docs
                 });
+
                 alert("Trámite enviado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al procesar."); }
-            finally { btn.disabled = false; btn.innerText = "Reintentar"; }
+            } catch(e) { 
+                alert("Error al procesar: " + e.message); 
+                btn.disabled = false; btn.innerText = oldT;
+            }
+        };
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const f = document.getElementById('fileRecarga').files[0];
+            if (!m || !f || m < 200) return alert("El monto mínimo es $200 y debes subir el comprobante.");
+            const btn = document.getElementById('btnNotificar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Reportado con éxito. Espera aprobación."); cerrarModal();
+            } catch(e) { alert("Error de subida."); }
+            finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
         };
 
         function escucharHistorial() {
@@ -237,19 +275,16 @@
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
                     let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
-                    
-                    // LÓGICA DE VISUALIZACIÓN DE DATOS SOLICITADOS
                     let detalles = "";
                     if(d.curp) detalles += `<span class="mr-3">CURP: ${d.curp}</span>`;
-                    if(d.nss && d.nss !== "N/A") detalles += `<span class="mr-3">NSS: ${d.nss}</span>`;
+                    if(d.nss) detalles += `<span class="mr-3">NSS: ${d.nss}</span>`;
                     if(d.rfc) detalles += `<span class="mr-3">RFC: ${d.rfc}</span>`;
-                    if(d.idcif) detalles += `<span>IDCIF: ${d.idcif}</span>`;
 
                     lista.innerHTML += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition">
                         <td class="py-4 px-2 text-slate-400 font-bold">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
                         <td class="py-4 px-4">
-                            <div class="font-black uppercase tracking-tight text-slate-700 text-[11px]">${d.tipo}</div>
-                            <div class="text-[8px] text-emerald-600 font-bold uppercase mt-1 flex flex-wrap">${detalles}</div>
+                            <div class="font-black uppercase text-slate-700 text-[11px]">${d.tipo}</div>
+                            <div class="text-[8px] text-emerald-600 font-bold uppercase mt-1">${detalles}</div>
                             ${d.cliente_nombre ? `<div class="text-[7px] text-slate-400 italic mt-1 uppercase">Cliente: ${d.cliente_nombre}</div>` : ''}
                         </td>
                         <td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
@@ -261,25 +296,9 @@
             });
         }
 
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f) return alert("Faltan datos.");
-            const btn = document.getElementById('btnNotificar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Reportado."); cerrarModal();
-            } catch(e) { alert("Error."); }
-            finally { btn.innerText = "Informar Pago"; btn.disabled = false; }
-        };
-
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
     </script>
 </body>
-                </html>
-                
+</html>
