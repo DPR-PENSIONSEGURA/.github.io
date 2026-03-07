@@ -192,13 +192,28 @@
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black uppercase mr-1 mb-1 shadow-sm">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-4"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 italic">${s.fecha?.toDate().toLocaleString() || '...'}</div></td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-[10px]">${s.nombre_asesor || s.nombre || 'S/N'}</div>
-                            <div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">CLIENTE: ${s.cliente_nombre || 'N/A'}</div>
-                            ${infoHtml}
+                    // --- ESTA ES LA PARTE QUE DEBES PEGAR ---
+let detallesHtml = "";
+// Verificamos CURP
+if(s.curp && s.curp !== "N/A") {
+    detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
+}
+// Verificamos NSS (Lo que pediste específicamente)
+if(s.nss && s.nss !== "N/A") {
+    detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
+}
+// Verificamos RFC e IDCIF (Para que no se te pasen estos datos de SAT)
+if(s.rfc) {
+    detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
+}
+if(s.idcif) {
+    detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
+}
+// Verificamos Notas o Fechas
+if(s.fecha_nacimiento) {
+    detallesHtml += `<div class="text-[10px] text-orange-600 font-bold italic">FECHA NAC: ${s.fecha_nacimiento}</div>`;
+}
+    
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
