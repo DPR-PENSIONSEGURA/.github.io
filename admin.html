@@ -44,7 +44,7 @@
                     <p class="text-[9px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-2xl font-black">0</p>
                 </div>
             </div>
-             <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
+            <a href="corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
         </header>
 
         <section class="mb-12">
@@ -60,9 +60,7 @@
                                 <th class="p-5 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaRecargas">
-                            <tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas por aprobar</td></tr>
-                        </tbody>
+                        <tbody id="tablaRecargas"></tbody>
                     </table>
                 </div>
             </div>
@@ -77,7 +75,7 @@
                         <button onclick="window.cambiarFiltro('MANUAL')" id="filterMANUAL" class="filter-btn filter-inactive">Manual</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP O RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP, NSS O RFC..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -87,9 +85,9 @@
                             <tr>
                                 <th class="p-4">Origen</th>
                                 <th class="p-4">Trámite / Fecha</th>
-                                <th class="p-4">Asesor / Cliente / Datos</th>
+                                <th class="p-4">Asesor / Cliente / Información</th>
                                 <th class="p-4 text-center">Estatus</th>
-                                <th class="p-4 text-right">Acción</th>
+                                <th class="p-4 text-right">Archivos / Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
@@ -127,7 +125,7 @@
         let filtroActual = "TODAS", todasSolicitudes = [], idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // 1. VISITAS Y ASESORES
+        // 1. CONTADORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
             document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : "0";
         });
@@ -135,7 +133,7 @@
             document.getElementById('txtAsesores').innerText = snap.size;
         });
 
-        // 2. RECARGAS PENDIENTES
+        // 2. RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             if(snap.empty) t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>';
@@ -144,8 +142,8 @@
                 t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td>
                     <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">Ver Pago 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2">
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] shadow-sm hover:bg-emerald-600">APROBAR</button>
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] shadow-sm hover:bg-red-600">BORRAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">BORRAR</button>
                     </td></tr>`;
             });
         });
@@ -167,7 +165,7 @@
                 if(s.tipo === "RECARGA ASESOR") return;
                 window.solicitudesCache[d.id] = s;
                 if(s.estatus === 'En Proceso') pendientes++;
-                if(s.fecha?.toDate().toLocaleDateString() === hoyStr && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
+                if(s.fecha?.toDate().toLocaleDateString() === hoyStr && s.estatus !== 'Error de Datos') totalHoy += Number(s.costo || 0);
                 todasSolicitudes.push({ ...s, id: d.id });
             });
             document.getElementById('contadorPendientes').innerText = pendientes;
@@ -181,39 +179,29 @@
 
             filtradas.forEach(s => {
                 const esManual = s.metodo === "Manual" || s.origen === "MANUAL";
-                let infoHtml = "";
-                if(s.curp && s.curp !== "N/A") infoHtml += `<div class="text-[10px] text-blue-600 font-black uppercase">CURP: ${s.curp}</div>`;
-                if(s.rfc) infoHtml += `<div class="text-[10px] text-emerald-600 font-black uppercase">RFC: ${s.rfc}</div>`;
-                if(s.idcif) infoHtml += `<div class="text-[10px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif}</div>`;
-                if(s.extra) infoHtml += `<div class="text-[8px] text-orange-600 font-bold mt-1 uppercase italic border border-orange-100 p-1 bg-orange-50 rounded">NOTAS: ${s.extra}</div>`;
+                const fStr = s.fecha?.toDate().toLocaleString() || '...';
+                
+                // Lógica de visualización de datos (INCLUYE NSS)
+                let detallesHtml = "";
+                if(s.curp && s.curp !== "N/A") detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
+                if(s.nss && s.nss !== "N/A") detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
+                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
+                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
+                if(s.fecha_nacimiento) detallesHtml += `<div class="text-[10px] text-orange-600 font-bold italic uppercase">FECHA NAC: ${s.fecha_nacimiento}</div>`;
+                if(s.extra) detallesHtml += `<div class="text-[8px] text-orange-600 font-bold bg-orange-50 p-1 rounded mt-1 italic uppercase border border-orange-100">NOTAS: ${s.extra}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie},{l:'EDO',u:s.file_edocta}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-1 rounded text-[7px] font-black uppercase mr-1 mb-1 shadow-sm">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
-                    // --- ESTA ES LA PARTE QUE DEBES PEGAR ---
-let detallesHtml = "";
-// Verificamos CURP
-if(s.curp && s.curp !== "N/A") {
-    detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
-}
-// Verificamos NSS (Lo que pediste específicamente)
-if(s.nss && s.nss !== "N/A") {
-    detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
-}
-// Verificamos RFC e IDCIF (Para que no se te pasen estos datos de SAT)
-if(s.rfc) {
-    detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
-}
-if(s.idcif) {
-    detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
-}
-// Verificamos Notas o Fechas
-if(s.fecha_nacimiento) {
-    detallesHtml += `<div class="text-[10px] text-orange-600 font-bold italic">FECHA NAC: ${s.fecha_nacimiento}</div>`;
-}
-    
+                    <tr class="border-b hover:bg-blue-50 transition">
+                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
+                        <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || s.nombre || 'ASESOR S/N'}</div>
+                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">Cliente: ${s.cliente_nombre}</div>` : ''}
+                            ${detallesHtml}
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
@@ -256,7 +244,7 @@ if(s.fecha_nacimiento) {
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 window.cerrarModal(); alert("Entregado con éxito.");
             } catch(e) { alert("Error al subir."); }
-            btn.innerText = "Subir Archivo"; btn.disabled = false;
+            btn.innerText = "Subir y Terminar"; btn.disabled = false;
         };
 
         window.filtrarTabla = () => {
