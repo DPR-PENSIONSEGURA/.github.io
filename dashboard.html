@@ -202,6 +202,9 @@
                 fields += `<p class="text-[9px] font-black uppercase text-emerald-600 mb-4 tracking-widest">Trámite Directo - Sin requisitos previos</p>`;
             }
             else if (nombre === 'Alta para Desempleo') {
+fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
+        fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+        fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;                
         fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
             ⚠️ RECUERDA: Este trámite incluye el pago de aportaciones. <br>
             Asegúrate de que los datos del cliente sean correctos.
