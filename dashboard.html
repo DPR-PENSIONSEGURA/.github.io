@@ -200,7 +200,14 @@
             // Requisitos específicos por trámite
             if (special === 'MOD10') {
                 fields += `<p class="text-[9px] font-black uppercase text-emerald-600 mb-4 tracking-widest">Trámite Directo - Sin requisitos previos</p>`;
-            } else if (special === 'RETIRO') {
+            }
+            else if (nombre === 'Alta para Desempleo') {
+        fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
+            ⚠️ RECUERDA: Este trámite incluye el pago de aportaciones. <br>
+            Asegúrate de que los datos del cliente sean correctos.
+        </p>`;
+    }
+            else if (special === 'RETIRO') {
                 fields += `
                 <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
                 <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
@@ -215,6 +222,7 @@
                 if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
                 if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
             }
+            
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
                 <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar y Enviar $${costo}</button>`;
