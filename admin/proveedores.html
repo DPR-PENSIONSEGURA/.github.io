@@ -3,161 +3,380 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Gestión de Proveedores</title>
+    <title>DPR Consultoría | Panel Ejecutivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #1E293B; }
-        .admin-card { background: white; border: 1px solid #E2E8F0; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .admin-card:hover { border-color: #F97316; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .status-badge { padding: 4px 12px; border-radius: 50px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
-        .bg-pending { background: #FEF3C7; color: #92400E; }
-        .bg-approved { background: #D1FAE5; color: #065F46; }
-        .bg-rejected { background: #FEE2E2; color: #991B1B; }
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; scroll-behavior: smooth; }
+        .header-glass { background: rgba(255, 255, 255, 0.8); border-bottom: 2px solid #E2E8F0; backdrop-blur: 10px; }
+        .green-gradient { background: linear-gradient(135deg, #059669 0%, #10B981 100%); }
+        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
+        .orange-btn:hover { background: #EA580C; transform: translateY(-2px); }
+        .category-card { background: white; border: 1px solid #E2E8F0; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .category-card:hover { border-color: #059669; transform: translateY(-3px); }
+        .calc-card { border: 2px solid #F97316; background: #FFF7ED; transition: all 0.3s ease; cursor: pointer; }
+        .calc-card:hover { background: #FFEDD5; transform: scale(1.05); }
+        .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; }
+        .input-light:focus { border-color: #F97316; }
         
-        /* Estilo para el truncado de texto con Ver más */
-        .text-truncate-custom { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .text-expanded { -webkit-line-clamp: unset !important; display: block !important; }
+        .expand-btn { display: flex; align-items: center; overflow: hidden; max-width: 45px; height: 45px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer; border-radius: 50px; padding: 10px; }
+        .expand-btn:hover { max-width: 250px; padding-right: 20px; }
+        .expand-btn span.icon { font-size: 20px; min-width: 25px; text-align: center; }
+        .expand-btn span.text { font-size: 10px; font-weight: 900; text-transform: uppercase; margin-left: 10px; opacity: 0; transition: opacity 0.3s; }
+        .expand-btn:hover span.text { opacity: 1; }
+
+        .animate-fade { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <header class="bg-white border-b p-6 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
+        🟢SEMANAS Y SINDOS SALIENDO RÁPIDO 🟢 | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 🟢🧮 CALCULADORA DE LEY 73 Y SALARIO PROMEDIO EN FUNCIONAMIENTO 🟢
+    </div>
+
+    <header class="sticky top-0 z-40 header-glass">
+        <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-slate-800 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl">AD</div>
-                <div>
-                    <h1 class="font-black uppercase tracking-tighter text-xl text-slate-800">Gestión de <span class="text-orange-600 italic text-2xl">Proveedores</span></h1>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">DPR Consultoría Executive</p>
+                <div class="green-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-xl text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" class="expand-btn bg-emerald-100 text-emerald-600 border border-emerald-200">
+                    <span class="icon">🔔</span>
+                    <span class="text">¡Únete a nuestro canal!</span>
+                </a>
+                <div onclick="window.abrirPropuestaServicio()" class="expand-btn bg-orange-100 text-orange-600 border border-orange-200">
+                    <span class="icon">📦</span>
+                    <span class="text">Ofrece tus servicios</span>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <div id="countPropuestas" class="text-[10px] font-black bg-orange-100 text-orange-700 px-4 py-2 rounded-full uppercase tracking-widest">...</div>
-                <a href="../admin" class="text-[10px] font-black uppercase text-slate-400 hover:text-slate-800 transition border-l pl-4">Cerrar Admin</a>
+
+            <div class="flex items-center gap-3">
+                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                    <span id="txtSaldoHeader" class="font-black text-emerald-600">...</span>
+                </button>
+                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition">Salir</button>
             </div>
         </div>
     </header>
 
-    <main class="p-8 max-w-7xl mx-auto">
-        <div id="contenedorPropuestas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div class="col-span-full py-20 text-center opacity-40 font-black uppercase tracking-widest italic animate-pulse">
-                Sincronizando base de datos de proveedores...
+    <main class="p-6 max-w-7xl mx-auto">
+        <div class="max-w-2xl mx-auto mb-10">
+            <div class="relative group">
+                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O SERVICIO... (EJ: SEMANAS, RFC, ACTA)" 
+                class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-sm outline-none focus:border-emerald-500 transition-all shadow-lg group-hover:shadow-xl">
+                <span class="absolute left-6 top-5 text-xl opacity-30 group-hover:opacity-100 transition">🔍</span>
             </div>
         </div>
+
+        <h2 id="tituloSeccion" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6 italic">Panel de Servicios</h2>
+        
+        <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12 transition-all">
+            <button onclick="mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[10px] block font-black uppercase mt-2">IMSS</span></button>
+            <button onclick="mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[10px] block font-black uppercase mt-2">SAT</span></button>
+            <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[10px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
+            <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[10px] block font-black uppercase mt-2">INFONAVIT</span></button>
+            <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[10px] block font-black uppercase mt-2">AFORE</span></button>
+            <a href="https://pensionsegura.org/calculadora.html" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center border-2 shadow-lg">
+                <span class="text-xl">🧮</span>
+                <span class="text-[10px] block font-black uppercase mt-2 text-orange-600">CALCULADORA</span>
+            </a>
+        </div>
+
+        <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
+
+        <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl overflow-hidden">
+            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 italic">
+                            <th class="pb-4 px-2">Fecha</th>
+                            <th class="pb-4 px-4">Información del Trámite</th>
+                            <th class="pb-4 px-2 text-center">Estatus</th>
+                            <th class="pb-4 px-2 text-right">Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaHistorial" class="text-xs font-bold">
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
+
+    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border shadow-2xl overflow-y-auto max-h-[90vh] relative">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl hover:text-slate-800">×</button>
+            <div id="formContent"></div>
+        </div>
+    </div>
+
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center">
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8 text-xs">
+                <p class="font-black text-emerald-600 mb-2">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-xl font-black text-emerald-700 tracking-widest">4915 6630 4036 4896</p>
+            </div>
+            <div class="space-y-4 text-left">
+                <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
+                <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
+                <button onclick="notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        function escucharPropuestas() {
-            const q = query(collection(db, "propuestas_proveedores"), orderBy("fecha", "desc"));
-            
-            onSnapshot(q, (snap) => {
-                const contenedor = document.getElementById('contenedorPropuestas');
-                document.getElementById('countPropuestas').innerText = `${snap.size} PROPUESTAS RECIBIDAS`;
-                
-                if (snap.empty) {
-                    contenedor.innerHTML = `<div class="col-span-full text-center py-20 font-black uppercase text-slate-300 italic border-4 border-dashed rounded-[3rem]">No hay propuestas de servicios por el momento</div>`;
-                    return;
+        const CLOUD_NAME = "de5abnhul"; 
+        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        let saldoGlobal = 0, userUID = "", emailAsesor = "";
+
+        const TRAMITES = {
+            'IMSS': [
+                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 35, nss: true },
+                { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
+            ],
+            'SAT': [
+                { nombre: 'RFC Clon', precio: 35, curp: true },
+                { nombre: 'RFC Verificable', precio: 140, curp: true },
+                { nombre: 'RFC Original', precio: 230, curp: true },
+                { nombre: 'Localización de IDcif', precio: 35, rfc: true },
+                { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
+            ],
+            'DOC': [
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
+                { nombre: 'Acta de Defunción', precio: 15, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 19, curp: true, nss: true }
+            ],
+            'INF': [
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
+            ],
+            'AFORE': [
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
+                { nombre: 'Resumen de Afore', precio: 10, curp: true },
+                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
+                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
+                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
+            ]
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
+            else { window.location.href = "login/index.html"; }
+        });
+
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (d) => {
+                if (d.exists()) {
+                    saldoGlobal = d.data().saldo || 0;
+                    document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
                 }
-
-                let html = '';
-                snap.forEach(docSnap => {
-                    const p = docSnap.data();
-                    const id = docSnap.id;
-                    const fecha = p.fecha?.toDate().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) || 'Hoy';
-                    const telefono = p.telefono || 'SIN TEL';
-                    
-                    let badgeClass = p.estatus === 'Aceptada' ? 'bg-approved' : (p.estatus === 'Rechazada' ? 'bg-rejected' : 'bg-pending');
-
-                    html += `
-                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between h-full border border-slate-100 shadow-sm overflow-hidden">
-                            <div>
-                                <div class="flex justify-between items-start mb-6">
-                                    <span class="status-badge ${badgeClass}">${p.estatus}</span>
-                                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-tighter">${fecha}</span>
-                                </div>
-                                <h3 class="font-black text-lg uppercase text-slate-800 leading-tight mb-3 italic tracking-tighter">${p.servicio}</h3>
-                                
-                                <div class="mb-6">
-                                    <p id="desc-${id}" class="text-[11px] font-bold text-slate-500 uppercase leading-relaxed text-truncate-custom break-words">
-                                        ${p.descripcion}
-                                    </p>
-                                    <button onclick="window.toggleTexto('${id}')" id="btn-${id}" class="text-[9px] font-black text-blue-600 mt-2 uppercase hover:underline">
-                                        Ver más...
-                                    </button>
-                                </div>
-                                
-                                <div class="bg-emerald-50 rounded-3xl p-5 mb-6 border border-emerald-100">
-                                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-emerald-100/50">
-                                        <div>
-                                            <p class="text-[8px] font-black text-emerald-600 uppercase mb-1">Costo Sugerido</p>
-                                            <p class="text-2xl font-black text-emerald-700">$${p.costo.toLocaleString('es-MX')}</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Contacto WhatsApp</p>
-                                            <a href="https://wa.me/52${telefono}" target="_blank" class="text-[11px] font-black text-emerald-600 hover:underline">
-                                                📱 ${telefono}
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <p class="text-[8px] font-black text-slate-400 uppercase">Asesor:</p>
-                                        <p class="text-[9px] font-black text-slate-600 truncate max-w-[150px] italic">${p.asesor_email}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2 mt-auto">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button onclick="window.gestionarPropuesta('${id}', 'Aceptada', '${p.servicio}', ${p.costo})" class="bg-slate-900 text-white text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-orange-600 transition shadow-lg">Aceptar</button>
-                                    <button onclick="window.gestionarPropuesta('${id}', 'Rechazada')" class="bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-red-50 hover:text-red-500 transition">Rechazar</button>
-                                </div>
-                                <button onclick="window.borrarPermanente('${id}')" class="w-full text-[8px] font-black uppercase text-slate-300 hover:text-red-600 transition py-2 text-center">Eliminar del registro</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                contenedor.innerHTML = html;
             });
         }
 
-        // FUNCIÓN PARA EXPANDIR / COLAPSAR TEXTO
-        window.toggleTexto = (id) => {
-            const desc = document.getElementById(`desc-${id}`);
-            const btn = document.getElementById(`btn-${id}`);
-            if (desc.classList.contains('text-truncate-custom')) {
-                desc.classList.remove('text-truncate-custom');
-                btn.innerText = 'Ver menos';
-            } else {
-                desc.classList.add('text-truncate-custom');
-                btn.innerText = 'Ver más...';
-            }
-        };
+        /* BUSCADOR INTELIGENTE */
+        window.buscarServicio = () => {
+            const query = document.getElementById('inputBusqueda').value.toUpperCase();
+            const gridCats = document.getElementById('gridCategorias');
+            const listado = document.getElementById('listaServicios');
+            const titulo = document.getElementById('tituloSeccion');
 
-        window.gestionarPropuesta = async (id, estatus, nombre = '', costo = 0) => {
-            try {
-                await updateDoc(doc(db, "propuestas_proveedores", id), { estatus: estatus });
-                if(estatus === 'Aceptada') {
-                    alert(`✅ PROPUESTA ACEPTADA\n\nCopia este código para tu lista de trámites:\n{ nombre: '${nombre}', precio: ${costo}, curp: true }`);
+            if (query.length < 1) {
+                gridCats.classList.remove('hidden');
+                listado.classList.add('hidden');
+                titulo.innerText = "Panel de Servicios";
+                return;
+            }
+
+            gridCats.classList.add('hidden');
+            listado.classList.remove('hidden');
+            titulo.innerText = "Resultados de búsqueda";
+
+            let html = '';
+            let encontrados = 0;
+
+            Object.values(TRAMITES).flat().forEach(t => {
+                if (t.nombre.toUpperCase().includes(query)) {
+                    encontrados++;
+                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false})" 
+                    class="category-card p-5 rounded-3xl animate-fade">
+                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p>
+                        <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    </div>`;
                 }
-            } catch (e) { alert("Error al procesar"); }
+            });
+
+            listado.innerHTML = encontrados > 0 ? html : `<div class="col-span-full py-10 text-center font-black uppercase text-slate-300">No se encontraron servicios con ese nombre</div>`;
         };
 
-        window.borrarPermanente = async (id) => {
-            if(confirm("¿Eliminar propuesta definitivamente?")) {
-                try {
-                    await deleteDoc(doc(db, "propuestas_proveedores", id));
-                } catch (e) { alert("Error al eliminar"); }
+        window.abrirPropuestaServicio = () => {
+            const content = document.getElementById('formContent');
+            content.innerHTML = `
+                <h2 class="text-xl font-black text-orange-600 mb-2 uppercase italic">Ofrecer Nuevo Servicio</h2>
+                <div class="space-y-4">
+                    <input type="text" id="prop_nombre" placeholder="NOMBRE DEL SERVICIO" class="input-light uppercase">
+                    <textarea id="prop_desc" placeholder="DESCRIPCIÓN BREVE" class="input-light h-24 resize-none uppercase"></textarea>
+                    <input type="number" id="prop_costo" placeholder="COSTO SUGERIDO $" class="input-light font-black text-emerald-600">
+                    <input type="number" id="prop_tel" placeholder="TELÉFONO DE CONTACTO" class="input-light font-black text-emerald-600">
+                    <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl mt-4">Enviar Propuesta</button>
+                </div>`;
+            abrirModal('modalTramite');
+        };
+
+        window.enviarPropuestaProveedor = async () => {
+            const n = document.getElementById('prop_nombre').value;
+            const d = document.getElementById('prop_desc').value;
+            const c = document.getElementById('prop_costo').value;
+            const t = document.getElementById('prop_tel').value;
+            const btn = document.getElementById('btnEnviarProp');
+            if(!n || !d || !c || !t) return alert("Completa todos los campos.");
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            try {
+                await addDoc(collection(db, "propuestas_proveedores"), {
+                    asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente"
+                });
+                alert("Propuesta enviada."); cerrarModal();
+            } catch (e) { alert("Error"); btn.disabled = false; }
+        };
+
+        window.mostrarTramites = (cat) => {
+            const listado = document.getElementById('listaServicios');
+            listado.classList.remove('hidden');
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false})" class="category-card p-5 rounded-3xl animate-fade">
+                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p>
+                    <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                </div>`;
+            });
+            listado.innerHTML = html;
+        };
+
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif) => {
+            const content = document.getElementById('formContent');
+            let fields = '';
+            if (special === 'MOD10') fields += `<p class="text-[9px] font-black uppercase text-emerald-600 mb-4 tracking-widest text-center">Trámite Directo</p>`;
+            else if (nombre === 'Alta para Desempleo' || nombre === 'Alta para Desempleo sin aportaciones') {
+                fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">
+                           <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">
+                           <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO.</p>`;
+                else fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ INCLUYE APORTACIONES.</p>`;
             }
+            else if (special === 'RETIRO') {
+                fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase"><input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                           <input type="file" id="file_ine_f" class="mb-4 text-xs w-full"><input type="file" id="file_ine_r" class="mb-4 text-xs w-full"><input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
+            } else {
+                if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+                if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+                if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+                if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+                if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+                if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
+            }
+            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+            abrirModal('modalTramite');
         };
 
-        escucharPropuestas();
+        window.confirmarCompra = async (n, c, special) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            const btn = document.querySelector("#modalTramite button:last-child");
+            btn.disabled = true; btn.innerText = "PROCESANDO...";
+            try {
+                const infoExtra = {};
+                if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
+                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
+                if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
+                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
+                if (special === 'RETIRO') {
+                    const uploadFile = async (id) => {
+                        const file = document.getElementById(id).files[0];
+                        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                        const data = await res.json(); return data.secure_url;
+                    };
+                    infoExtra.file_ine_f = await uploadFile('file_ine_f');
+                    infoExtra.file_ine_r = await uploadFile('file_ine_r');
+                    infoExtra.file_selfie = await uploadFile('file_selfie');
+                }
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
+                alert("Trámite enviado."); cerrarModal();
+            } catch(e) { alert("Error"); btn.disabled = false; }
+        };
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const f = document.getElementById('fileRecarga').files[0];
+            if (!m || !f || m < 200) return alert("Mínimo $200.");
+            const btn = document.getElementById('btnNotificar'); btn.disabled = true;
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Reportado."); cerrarModal();
+            } catch(e) { alert("Error"); }
+            finally { btn.disabled = false; }
+        };
+
+        function escucharHistorial() {
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
+            onSnapshot(q, (snap) => {
+                const lista = document.getElementById('listaHistorial'); lista.innerHTML = "";
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
+                    lista.innerHTML += `<tr class="border-b">
+                        <td class="py-4 px-2 text-slate-400 text-[10px]">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
+                        <td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase">${d.curp || ''}</div></td>
+                        <td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
+                        <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="text-emerald-600 underline">VER</a>` : '--'}</td>
+                    </tr>`;
+                });
+            });
+        }
+
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
+        escucharHistorial();
     </script>
 </body>
 </html>
