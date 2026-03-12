@@ -19,6 +19,7 @@
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; }
         .input-light:focus { border-color: #F97316; }
         
+        /* Botones Expandibles */
         .expand-btn { display: flex; align-items: center; overflow: hidden; max-width: 45px; height: 45px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer; border-radius: 50px; padding: 10px; }
         .expand-btn:hover { max-width: 250px; padding-right: 20px; }
         .expand-btn span.icon { font-size: 20px; min-width: 25px; text-align: center; }
@@ -32,7 +33,7 @@
 <body>
 
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-        🟢SEMANAS Y SINDOS SALIENDO RÁPIDO 🟢 | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 🟢🧮 CALCULADORA DE LEY 73 Y SALARIO PROMEDIO EN FUNCIONAMIENTO 🟢
+        🟢SEMANAS Y SINDOS SALIENDO RÁPIDO 🟢 | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 🟢🧮 CALCULADORA EN FUNCIONAMIENTO 🟢
     </div>
 
     <header class="sticky top-0 z-40 header-glass">
@@ -65,21 +66,26 @@
     <main class="p-6 max-w-7xl mx-auto">
         <div class="max-w-2xl mx-auto mb-10">
             <div class="relative group">
-                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O SERVICIO... (EJ: BURÓ, SEMANAS, RFC)" 
+                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O SERVICIO..." 
                 class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-sm outline-none focus:border-emerald-500 transition-all shadow-lg group-hover:shadow-xl">
                 <span class="absolute left-6 top-5 text-xl opacity-30 group-hover:opacity-100 transition">🔍</span>
             </div>
         </div>
 
-        <h2 id="tituloSeccion" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6 italic">Panel de Servicios</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="tituloSeccion" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[10px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">
+                ⬅️ Volver al Panel
+            </button>
+        </div>
         
-        <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12 transition-all">
+        <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[10px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[10px] block font-black uppercase mt-2">SAT</span></button>
             <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[10px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
             <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[10px] block font-black uppercase mt-2">INFONAVIT</span></button>
             <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[10px] block font-black uppercase mt-2">AFORE</span></button>
-            <a href="https://pensionsegura.org/calculadora.html" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center border-2 shadow-lg">
+            <a href="https://pensionsegura.org/calculadora.html" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center border-2 shadow-lg text-slate-800">
                 <span class="text-xl">🧮</span>
                 <span class="text-[10px] block font-black uppercase mt-2 text-orange-600">CALCULADORA</span>
             </a>
@@ -87,7 +93,7 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
-        <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl overflow-hidden">
+        <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl overflow-hidden mt-12">
             <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -100,7 +106,7 @@
                         </tr>
                     </thead>
                     <tbody id="listaHistorial" class="text-xs font-bold">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando historial...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -118,11 +124,11 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8 text-xs">
-                <p class="font-black text-emerald-600 mb-2">Banorte | Diana Puente Rodríguez</p>
-                <p class="text-xl font-black text-emerald-700 tracking-widest">4915 6630 4036 4896</p>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8 text-xs text-left">
+                <p class="font-black text-emerald-600 mb-2 uppercase tracking-tighter text-center">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-xl font-black text-emerald-700 tracking-widest text-center">4915 6630 4036 4896</p>
             </div>
-            <div class="space-y-4 text-left">
+            <div class="space-y-4">
                 <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
                 <button onclick="notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
@@ -195,8 +201,13 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); }
-            else { window.location.href = "login/index.html"; }
+            if (user) { 
+                userUID = user.uid; emailAsesor = user.email; 
+                escucharSaldo(); 
+                escucharHistorial(); 
+            } else { 
+                window.location.href = "login/index.html"; 
+            }
         });
 
         function escucharSaldo() {
@@ -208,71 +219,75 @@
             });
         }
 
+        function escucharHistorial() {
+            if(!userUID) return;
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
+            onSnapshot(q, (snap) => {
+                const lista = document.getElementById('listaHistorial');
+                if (snap.empty) {
+                    lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase">Sin solicitudes</td></tr>`;
+                    return;
+                }
+                let html = "";
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const fechaTxt = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
+                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
+                    html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${fechaTxt}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black">VER</a>` : '--'}</td></tr>`;
+                });
+                lista.innerHTML = html;
+            });
+        }
+
         window.buscarServicio = () => {
             const query = document.getElementById('inputBusqueda').value.toUpperCase();
-            const gridCats = document.getElementById('gridCategorias');
-            const listado = document.getElementById('listaServicios');
-            const titulo = document.getElementById('tituloSeccion');
-
-            if (query.length < 1) {
-                gridCats.classList.remove('hidden');
-                listado.classList.add('hidden');
-                titulo.innerText = "Panel de Servicios";
-                return;
-            }
-
-            gridCats.classList.add('hidden');
-            listado.classList.remove('hidden');
-            titulo.innerText = "Resultados de búsqueda";
-
-            let html = '';
-            let encontrados = 0;
-
+            if (query.length < 1) return window.resetearPanel();
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            let html = '', encontrados = 0;
             Object.values(TRAMITES).flat().forEach(t => {
                 if (t.nombre.toUpperCase().includes(query)) {
                     encontrados++;
-                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" 
-                    class="category-card p-5 rounded-3xl animate-fade">
-                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p>
-                        <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" class="category-card p-5 rounded-3xl animate-fade">
+                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
                     </div>`;
                 }
             });
-            listado.innerHTML = encontrados > 0 ? html : `<div class="col-span-full py-10 text-center font-black uppercase text-slate-300">No se encontraron servicios</div>`;
+            document.getElementById('listaServicios').innerHTML = encontrados > 0 ? html : `<div class="col-span-full py-10 text-center font-black uppercase text-slate-300">Sin resultados</div>`;
+        };
+
+        window.resetearPanel = () => {
+            document.getElementById('gridCategorias').classList.remove('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden');
+            document.getElementById('inputBusqueda').value = "";
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
         window.mostrarTramites = (cat) => {
-            const listado = document.getElementById('listaServicios');
-            listado.classList.remove('hidden');
             document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
             let html = '';
             TRAMITES[cat].forEach(t => {
                 html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" class="category-card p-5 rounded-3xl animate-fade">
-                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p>
-                    <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
                 </div>`;
             });
-            listado.innerHTML = html;
+            document.getElementById('listaServicios').innerHTML = html;
         };
 
         window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente) => {
             const content = document.getElementById('formContent');
             let fields = '';
-            
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
             if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
             if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
-            
-            if(pideIneFrente) {
-                fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2">Foto INE Frente:</p>
-                           <input type="file" id="file_ine_f" class="mb-4 text-xs w-full bg-slate-50 p-3 rounded-2xl border-2 border-dashed">`;
-            }
-
-            if(special === 'RETIRO') {
-                fields += `<input type="file" id="file_ine_f" class="mb-2"><input type="file" id="file_ine_r" class="mb-2"><input type="file" id="file_selfie" class="mb-4">`;
-            }
+            if(pideIneFrente) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Foto INE Frente:</p><input type="file" id="file_ine_f" class="mb-4 text-xs w-full bg-slate-50 p-3 rounded-2xl border-2 border-dashed">`;
+            if(special === 'RETIRO') fields += `<input type="file" id="file_ine_f" class="mb-2"><input type="file" id="file_ine_r" class="mb-2"><input type="file" id="file_selfie" class="mb-4">`;
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
                 <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
@@ -283,11 +298,9 @@
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
-            
             try {
                 const infoExtra = {};
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
-                
                 if (document.getElementById('file_ine_f')) {
                     const file = document.getElementById('file_ine_f').files[0];
                     if(file) {
@@ -296,7 +309,6 @@
                         const data = await res.json(); infoExtra.file_ine_f = data.secure_url;
                     }
                 }
-
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
                 alert("Trámite enviado."); cerrarModal();
@@ -309,33 +321,41 @@
                 <h2 class="text-xl font-black text-orange-600 italic uppercase">Ofrecer Servicio</h2>
                 <input type="text" id="prop_nombre" placeholder="NOMBRE SERVICIO" class="input-light uppercase">
                 <textarea id="prop_desc" placeholder="DESCRIPCIÓN" class="input-light h-24 uppercase"></textarea>
-                <input type="number" id="prop_costo" placeholder="COSTO" class="input-light">
-                <input type="number" id="prop_tel" placeholder="TELÉFONO" class="input-light">
-                <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Enviar</button>
+                <input type="number" id="prop_costo" placeholder="COSTO SUGERIDO" class="input-light">
+                <input type="number" id="prop_tel" placeholder="TELÉFONO DE CONTACTO" class="input-light">
+                <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Enviar Propuesta</button>
             </div>`;
             abrirModal('modalTramite');
         };
 
         window.enviarPropuestaProveedor = async () => {
             const n = document.getElementById('prop_nombre').value;
+            const d = document.getElementById('prop_desc').value;
+            const c = document.getElementById('prop_costo').value;
             const t = document.getElementById('prop_tel').value;
-            if(!n || !t) return alert("Faltan datos");
+            if(!n || !t) return alert("Completa los campos obligatorios.");
             try {
-                await addDoc(collection(db, "propuestas_proveedores"), { asesor_uid: userUID, servicio: n.toUpperCase(), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente" });
-                alert("Enviado."); cerrarModal();
-            } catch (e) { alert("Error"); }
+                await addDoc(collection(db, "propuestas_proveedores"), { asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente" });
+                alert("Propuesta enviada con éxito."); cerrarModal();
+            } catch (e) { alert("Error al enviar"); }
+        };
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const f = document.getElementById('fileRecarga').files[0];
+            if (!m || !f || m < 200) return alert("Mínimo $200 y comprobante.");
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Pago reportado."); cerrarModal();
+            } catch(e) { alert("Error"); }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => {
-            document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('inputBusqueda').value = "";
-        };
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
-        
-        escucharHistorial();
     </script>
 </body>
 </html>
