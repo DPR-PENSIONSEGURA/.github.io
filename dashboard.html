@@ -19,29 +19,10 @@
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; }
         .input-light:focus { border-color: #F97316; }
         
-        /* Estilos de botones expandibles */
-        .expand-btn { 
-            display: flex; 
-            align-items: center; 
-            overflow: hidden; 
-            max-width: 45px; 
-            height: 45px; 
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-            white-space: nowrap; 
-            cursor: pointer;
-            border-radius: 50px;
-            padding: 10px;
-        }
+        .expand-btn { display: flex; align-items: center; overflow: hidden; max-width: 45px; height: 45px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer; border-radius: 50px; padding: 10px; }
         .expand-btn:hover { max-width: 250px; padding-right: 20px; }
         .expand-btn span.icon { font-size: 20px; min-width: 25px; text-align: center; }
-        .expand-btn span.text { 
-            font-size: 10px; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            margin-left: 10px; 
-            opacity: 0; 
-            transition: opacity 0.3s;
-        }
+        .expand-btn span.text { font-size: 10px; font-weight: 900; text-transform: uppercase; margin-left: 10px; opacity: 0; transition: opacity 0.3s; }
         .expand-btn:hover span.text { opacity: 1; }
 
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
@@ -66,7 +47,6 @@
                     <span class="icon">🔔</span>
                     <span class="text">¡Únete a nuestro canal!</span>
                 </a>
-
                 <div onclick="window.abrirPropuestaServicio()" class="expand-btn bg-orange-100 text-orange-600 border border-orange-200">
                     <span class="icon">📦</span>
                     <span class="text">Ofrece tus servicios</span>
@@ -83,9 +63,17 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
-        <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6 italic">Panel de Servicios</h2>
+        <div class="max-w-2xl mx-auto mb-10">
+            <div class="relative group">
+                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O SERVICIO... (EJ: SEMANAS, RFC, ACTA)" 
+                class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-sm outline-none focus:border-emerald-500 transition-all shadow-lg group-hover:shadow-xl">
+                <span class="absolute left-6 top-5 text-xl opacity-30 group-hover:opacity-100 transition">🔍</span>
+            </div>
+        </div>
+
+        <h2 id="tituloSeccion" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-6 italic">Panel de Servicios</h2>
         
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12 transition-all">
             <button onclick="mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[10px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[10px] block font-black uppercase mt-2">SAT</span></button>
             <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[10px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
@@ -178,13 +166,15 @@
                 { nombre: 'Localización de IDcif', precio: 35, rfc: true },
                 { nombre: 'RFC con IDcif', precio: 40, rfc: true, idcif: true }
             ],
-            'DOC': [
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 15, curp: true },
-                { nombre: 'Acta de Defunción', precio: 15, curp: true },
-                { nombre: 'Vigencia de Derechos', precio: 19, curp: true, nss: true }
+           'DOC': [
+    { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true }, // Nuevo servicio
+    { nombre: 'CURP Certificada', precio: 4, curp: true },
+    { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
+    { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
+    { nombre: 'Acta de Divorcio', precio: 15, curp: true },
+    { nombre: 'Acta de Defunción', precio: 15, curp: true },
+    { nombre: 'Vigencia de Derechos', precio: 19, curp: true, nss: true }
+],
             ],
             'INF': [
                 { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
@@ -219,17 +209,50 @@
             });
         }
 
-        /* LÓGICA DE PROVEEDORES / CAJA 📦 */
+        /* BUSCADOR INTELIGENTE */
+        window.buscarServicio = () => {
+            const query = document.getElementById('inputBusqueda').value.toUpperCase();
+            const gridCats = document.getElementById('gridCategorias');
+            const listado = document.getElementById('listaServicios');
+            const titulo = document.getElementById('tituloSeccion');
+
+            if (query.length < 1) {
+                gridCats.classList.remove('hidden');
+                listado.classList.add('hidden');
+                titulo.innerText = "Panel de Servicios";
+                return;
+            }
+
+            gridCats.classList.add('hidden');
+            listado.classList.remove('hidden');
+            titulo.innerText = "Resultados de búsqueda";
+
+            let html = '';
+            let encontrados = 0;
+
+            Object.values(TRAMITES).flat().forEach(t => {
+                if (t.nombre.toUpperCase().includes(query)) {
+                    encontrados++;
+                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false})" 
+                    class="category-card p-5 rounded-3xl animate-fade">
+                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p>
+                        <p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    </div>`;
+                }
+            });
+
+            listado.innerHTML = encontrados > 0 ? html : `<div class="col-span-full py-10 text-center font-black uppercase text-slate-300">No se encontraron servicios con ese nombre</div>`;
+        };
+
         window.abrirPropuestaServicio = () => {
             const content = document.getElementById('formContent');
             content.innerHTML = `
                 <h2 class="text-xl font-black text-orange-600 mb-2 uppercase italic">Ofrecer Nuevo Servicio</h2>
-                <p class="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-widest text-center border-b pb-4">Propuesta para Admin/Proveedores</p>
                 <div class="space-y-4">
                     <input type="text" id="prop_nombre" placeholder="NOMBRE DEL SERVICIO" class="input-light uppercase">
                     <textarea id="prop_desc" placeholder="DESCRIPCIÓN BREVE" class="input-light h-24 resize-none uppercase"></textarea>
                     <input type="number" id="prop_costo" placeholder="COSTO SUGERIDO $" class="input-light font-black text-emerald-600">
-                     <input type="number" id="prop_tel" placeholder="TELÉFONO " class="input-light font-black text-emerald-600">
+                    <input type="number" id="prop_tel" placeholder="TELÉFONO DE CONTACTO" class="input-light font-black text-emerald-600">
                     <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl mt-4">Enviar Propuesta</button>
                 </div>`;
             abrirModal('modalTramite');
@@ -239,12 +262,13 @@
             const n = document.getElementById('prop_nombre').value;
             const d = document.getElementById('prop_desc').value;
             const c = document.getElementById('prop_costo').value;
+            const t = document.getElementById('prop_tel').value;
             const btn = document.getElementById('btnEnviarProp');
-            if(!n || !d || !c) return alert("Completa todos los campos.");
+            if(!n || !d || !c || !t) return alert("Completa todos los campos.");
             btn.disabled = true; btn.innerText = "ENVIANDO...";
             try {
                 await addDoc(collection(db, "propuestas_proveedores"), {
-                    asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), fecha: serverTimestamp(), estatus: "Pendiente"
+                    asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente"
                 });
                 alert("Propuesta enviada."); cerrarModal();
             } catch (e) { alert("Error"); btn.disabled = false; }
@@ -271,15 +295,12 @@
                 fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">
                            <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">
                            <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO DE APORTACIONES.</p>`;
+                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO.</p>`;
                 else fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ INCLUYE APORTACIONES.</p>`;
             }
             else if (special === 'RETIRO') {
-                fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
-                           <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
-                           <input type="file" id="file_ine_f" class="mb-4 text-xs w-full">
-                           <input type="file" id="file_ine_r" class="mb-4 text-xs w-full">
-                           <input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
+                fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase"><input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                           <input type="file" id="file_ine_f" class="mb-4 text-xs w-full"><input type="file" id="file_ine_r" class="mb-4 text-xs w-full"><input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
             } else {
                 if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
                 if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
@@ -357,6 +378,7 @@
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
+        escucharHistorial();
     </script>
 </body>
 </html>
