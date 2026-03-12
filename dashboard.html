@@ -131,6 +131,7 @@
                 { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
@@ -206,8 +207,16 @@ fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENT
         fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
         fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;                
         fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
-            ⚠️ RECUERDA: Este trámite incluye el pago de aportaciones. <br>
+            ⚠️ RECUERDA: Este trámite incluye el pago de aportaciones y es retroactivo 5 días. <br>
             Asegúrate de que los datos del cliente sean correctos.
+        </p>`;
+    }
+                 else if (nombre === 'Alta para Desempleo sin aportaciones') {
+fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
+        fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+        fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;                
+        fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
+            ⚠️ LE ENVIAREMOS EL ARCHIVIO PARA QUE PUEDA PAGAR SUS APORTACIONES. 🔺SI EL ALTA ES ENTRE EL DÍA 20 Y 30 DE EL MES SOLO TENDRÁ DOS DIAS PARA HACER SU PAGO DE APORTACIONES.
         </p>`;
     }
             else if (special === 'RETIRO') {
