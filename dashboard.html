@@ -120,19 +120,19 @@
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
         // --- RESTAURACIÓN TOTAL DE TRÁMITES ---
-        const TRAMITES = {
-            'IMSS': [
-                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-                                { nombre: 'SINDO ULTIMO RETIRO', precio: 35, nss: true,},
-                { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true,},
-                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true,},
-                { nombre: 'SINDO COMPLETO', precio: 135, nss: true,},
-                { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
-            ],
+       const TRAMITES = {
+        'IMSS': [
+            { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+            { nombre: 'SINDO ULTIMO RETIRO', precio: 35, nss: true,},
+            { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true,},
+            { nombre: 'SINDO VIGENCIA', precio: 95, nss: true,},
+            { nombre: 'SINDO COMPLETO', precio: 135, nss: true,},
+            { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
+            { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
+            { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+            { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }, // <--- AQUÍ FALTABA ESTA COMA
+            { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
+        ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
                 { nombre: 'RFC Verificable', precio: 140, curp: true },
