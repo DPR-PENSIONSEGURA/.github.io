@@ -18,21 +18,34 @@
         .calc-card:hover { background: #FFEDD5; transform: scale(1.05); }
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; }
         .input-light:focus { border-color: #F97316; }
-        .animate-fade { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } 
-.fab-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 100; }
-.fab-button { width: 56px; height: 56px; border-radius: 50%; display: flex; items-center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease; cursor: pointer; border: none; }
-.fab-button:hover { transform: scale(1.1) rotate(5deg); }
-.bg-whatsapp { background-color: #25D366; }
-.bg-services { background-color: #F97316; }
+        
+        /* Estilos de botones expandibles */
+        .expand-btn { 
+            display: flex; 
+            align-items: center; 
+            overflow: hidden; 
+            max-width: 45px; 
+            height: 45px; 
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            white-space: nowrap; 
+            cursor: pointer;
+            border-radius: 50px;
+            padding: 10px;
+        }
+        .expand-btn:hover { max-width: 250px; padding-right: 20px; }
+        .expand-btn span.icon { font-size: 20px; min-width: 25px; text-align: center; }
+        .expand-btn span.text { 
+            font-size: 10px; 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            margin-left: 10px; 
+            opacity: 0; 
+            transition: opacity 0.3s;
+        }
+        .expand-btn:hover span.text { opacity: 1; }
 
-.fab-button::before {
-    content: attr(data-label);
-    position: absolute; right: 70px; background: rgba(0,0,0,0.8); color: white;
-    padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: bold;
-    white-space: nowrap; opacity: 0; pointer-events: none; transition: 0.3s;
-}
-.fab-button:hover::before { opacity: 1; }
+        .animate-fade { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -40,7 +53,8 @@
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
         🟢SEMANAS Y SINDOS SALIENDO RÁPIDO 🟢 | RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 🟢🧮 CALCULADORA DE LEY 73 Y SALARIO PROMEDIO EN FUNCIONAMIENTO 🟢
     </div>
-<header class="sticky top-0 z-40 header-glass">
+
+    <header class="sticky top-0 z-40 header-glass">
         <div class="max-w-7xl mx-auto p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="green-gradient w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg">DP</div>
@@ -53,7 +67,7 @@
                     <span class="text">¡Únete a nuestro canal!</span>
                 </a>
 
-                <div onclick="abrirModal('modalTramite')" class="expand-btn bg-orange-100 text-orange-600 border border-orange-200">
+                <div onclick="window.abrirPropuestaServicio()" class="expand-btn bg-orange-100 text-orange-600 border border-orange-200">
                     <span class="icon">📦</span>
                     <span class="text">Ofrece tus servicios</span>
                 </div>
@@ -66,14 +80,6 @@
                 <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition">Salir</button>
             </div>
         </div>
-    </header>
-    
-
-    <button onclick="abrirModal('listaServicios')" class="fab-button bg-services" data-label="OFRECER MIS SERVICIOS">
-        <span>+</span>
-    </button>
-</div>
-          
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
@@ -152,20 +158,19 @@
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
-        // --- RESTAURACIÓN TOTAL DE TRÁMITES ---
-       const TRAMITES = {
-        'IMSS': [
-            { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-            { nombre: 'SINDO ULTIMO RETIRO', precio: 35, nss: true,},
-            { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true,},
-            { nombre: 'SINDO VIGENCIA', precio: 95, nss: true,},
-            { nombre: 'SINDO COMPLETO', precio: 135, nss: true,},
-            { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
-            { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
-            { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-            { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true }, // <--- AQUÍ FALTABA ESTA COMA
-            { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
-        ],
+        const TRAMITES = {
+            'IMSS': [
+                { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 35, nss: true },
+                { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo sin aportaciones', precio: 170, nss: true, curp: true, pideNombre: true }
+            ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 35, curp: true },
                 { nombre: 'RFC Verificable', precio: 140, curp: true },
@@ -214,6 +219,36 @@
             });
         }
 
+        /* LÓGICA DE PROVEEDORES / CAJA 📦 */
+        window.abrirPropuestaServicio = () => {
+            const content = document.getElementById('formContent');
+            content.innerHTML = `
+                <h2 class="text-xl font-black text-orange-600 mb-2 uppercase italic">Ofrecer Nuevo Servicio</h2>
+                <p class="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-widest text-center border-b pb-4">Propuesta para Admin/Proveedores</p>
+                <div class="space-y-4">
+                    <input type="text" id="prop_nombre" placeholder="NOMBRE DEL SERVICIO" class="input-light uppercase">
+                    <textarea id="prop_desc" placeholder="DESCRIPCIÓN BREVE" class="input-light h-24 resize-none uppercase"></textarea>
+                    <input type="number" id="prop_costo" placeholder="COSTO SUGERIDO $" class="input-light font-black text-emerald-600">
+                    <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl mt-4">Enviar Propuesta</button>
+                </div>`;
+            abrirModal('modalTramite');
+        };
+
+        window.enviarPropuestaProveedor = async () => {
+            const n = document.getElementById('prop_nombre').value;
+            const d = document.getElementById('prop_desc').value;
+            const c = document.getElementById('prop_costo').value;
+            const btn = document.getElementById('btnEnviarProp');
+            if(!n || !d || !c) return alert("Completa todos los campos.");
+            btn.disabled = true; btn.innerText = "ENVIANDO...";
+            try {
+                await addDoc(collection(db, "propuestas_proveedores"), {
+                    asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), fecha: serverTimestamp(), estatus: "Pendiente"
+                });
+                alert("Propuesta enviada."); cerrarModal();
+            } catch (e) { alert("Error"); btn.disabled = false; }
+        };
+
         window.mostrarTramites = (cat) => {
             const listado = document.getElementById('listaServicios');
             listado.classList.remove('hidden');
@@ -230,47 +265,30 @@
         window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif) => {
             const content = document.getElementById('formContent');
             let fields = '';
-            
-            // Requisitos específicos por trámite
-            if (special === 'MOD10') {
-                fields += `<p class="text-[9px] font-black uppercase text-emerald-600 mb-4 tracking-widest">Trámite Directo - Sin requisitos previos</p>`;
+            if (special === 'MOD10') fields += `<p class="text-[9px] font-black uppercase text-emerald-600 mb-4 tracking-widest text-center">Trámite Directo</p>`;
+            else if (nombre === 'Alta para Desempleo' || nombre === 'Alta para Desempleo sin aportaciones') {
+                fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">
+                           <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">
+                           <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO.</p>`;
+                else fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ INCLUYE APORTACIONES.</p>`;
             }
-            else if (nombre === 'Alta para Desempleo') {
-fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
-        fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
-        fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;                
-        fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
-            ⚠️ RECUERDA: Este trámite incluye el pago de aportaciones y es retroactivo 5 días. <br>
-            Asegúrate de que los datos del cliente sean correctos.
-        </p>`;
-    }
-                 else if (nombre === 'Alta para Desempleo sin aportaciones') {
-fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">`;
-        fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
-        fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;                
-        fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold uppercase mb-4 italic leading-tight">
-            ⚠️ LE ENVIAREMOS EL ARCHIVIO PARA QUE PUEDA PAGAR SUS APORTACIONES. 🔺SI EL ALTA ES ENTRE EL DÍA 20 Y 30 DE EL MES SOLO TENDRÁ DOS DIAS PARA HACER SU PAGO DE APORTACIONES.
-        </p>`;
-    }
             else if (special === 'RETIRO') {
-                fields += `
-                <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
-                <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
-                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Frente</label><input type="file" id="file_ine_f" class="mb-4 text-xs w-full">
-                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">INE Reverso</label><input type="file" id="file_ine_r" class="mb-4 text-xs w-full">
-                <label class="text-[9px] font-black ml-2 uppercase text-slate-400">Selfie</label><input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
+                fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
+                           <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                           <input type="file" id="file_ine_f" class="mb-4 text-xs w-full">
+                           <input type="file" id="file_ine_r" class="mb-4 text-xs w-full">
+                           <input type="file" id="file_selfie" class="mb-4 text-xs w-full">`;
             } else {
                 if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
                 if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
                 if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-                if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha de Nacimiento</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+                if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
                 if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
                 if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDcif" class="input-light mb-4 uppercase font-bold">`;
             }
-            
-
-            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic tracking-tighter">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition">Pagar y Enviar $${costo}</button>`;
+            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
             abrirModal('modalTramite');
         };
 
@@ -278,7 +296,6 @@ fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENT
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
-
             try {
                 const infoExtra = {};
                 if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
@@ -287,44 +304,36 @@ fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENT
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
                 if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
                 if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
-
-                // Subida de archivos para RETIRO
                 if (special === 'RETIRO') {
                     const uploadFile = async (id) => {
                         const file = document.getElementById(id).files[0];
-                        if(!file) throw new Error("Faltan fotos");
                         const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
                         const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                         const data = await res.json(); return data.secure_url;
                     };
-                    btn.innerText = "SUBIENDO FOTOS...";
                     infoExtra.file_ine_f = await uploadFile('file_ine_f');
                     infoExtra.file_ine_r = await uploadFile('file_ine_r');
                     infoExtra.file_selfie = await uploadFile('file_selfie');
                 }
-
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
-                    tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
-                });
+                await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
                 alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error: " + e.message); btn.disabled = false; btn.innerText = "REINTENTAR"; }
+            } catch(e) { alert("Error"); btn.disabled = false; }
         };
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f || m < 200) return alert("El mínimo es $200 y el comprobante es obligatorio.");
-            const btn = document.getElementById('btnNotificar'); btn.disabled = true; btn.innerText = "SUBIENDO...";
+            if (!m || !f || m < 200) return alert("Mínimo $200.");
+            const btn = document.getElementById('btnNotificar'); btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Reportado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al subir."); }
-            finally { btn.disabled = false; btn.innerText = "Informar Pago"; }
+                alert("Reportado."); cerrarModal();
+            } catch(e) { alert("Error"); }
+            finally { btn.disabled = false; }
         };
 
         function escucharHistorial() {
@@ -334,22 +343,11 @@ fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENT
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
                     let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
-                    let detalles = "";
-                    if(d.curp) detalles += `CURP: ${d.curp} `;
-                    if(d.rfc) detalles += `RFC: ${d.rfc} `;
-                    if(d.idcif) detalles += `IDcif: ${d.idcif} `;
-                    
-                    lista.innerHTML += `<tr class="border-b hover:bg-slate-50 transition">
-                        <td class="py-4 px-2 text-slate-400">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
-                        <td class="py-4 px-4">
-                            <div class="font-black uppercase text-slate-700">${d.tipo}</div>
-                            <div class="text-[8px] text-emerald-600 font-black uppercase mt-1">${detalles}</div>
-                            ${d.cliente_nombre ? `<div class="text-[7px] text-slate-400 italic">Cliente: ${d.cliente_nombre}</div>` : ''}
-                        </td>
+                    lista.innerHTML += `<tr class="border-b">
+                        <td class="py-4 px-2 text-slate-400 text-[10px]">${d.fecha?.toDate().toLocaleDateString() || 'Hoy'}</td>
+                        <td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase">${d.curp || ''}</div></td>
                         <td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td>
-                        <td class="py-4 px-2 text-right">
-                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="text-emerald-600 underline italic">DESCARGAR</a>` : '--'}
-                        </td>
+                        <td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="text-emerald-600 underline">VER</a>` : '--'}</td>
                     </tr>`;
                 });
             });
