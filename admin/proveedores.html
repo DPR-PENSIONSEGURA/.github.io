@@ -50,7 +50,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-      function escucharPropuestas() {
+        function escucharPropuestas() {
             const q = query(collection(db, "propuestas_proveedores"), orderBy("fecha", "desc"));
             
             onSnapshot(q, (snap) => {
@@ -67,13 +67,14 @@
                     const p = docSnap.data();
                     const id = docSnap.id;
                     const fecha = p.fecha?.toDate().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) || 'Hoy';
-                    // Capturamos el teléfono (si no existe, ponemos 'N/A')
+                    
+                    // Capturamos el nuevo dato de teléfono enviado desde el modal
                     const telefono = p.telefono || 'SIN TEL';
                     
                     let badgeClass = p.estatus === 'Aceptada' ? 'bg-approved' : (p.estatus === 'Rechazada' ? 'bg-rejected' : 'bg-pending');
 
                     html += `
-                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between">
+                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between h-full">
                             <div>
                                 <div class="flex justify-between items-start mb-6">
                                     <span class="status-badge ${badgeClass}">${p.estatus}</span>
@@ -89,14 +90,14 @@
                                             <p class="text-2xl font-black text-emerald-700">$${p.costo.toLocaleString('es-MX')}</p>
                                         </div>
                                         <div class="text-right">
-                                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">WhatsApp</p>
+                                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Contacto WhatsApp</p>
                                             <a href="https://wa.me/52${telefono}" target="_blank" class="text-[11px] font-black text-emerald-600 hover:underline">
                                                 📱 ${telefono}
                                             </a>
                                         </div>
                                     </div>
                                     <div class="flex justify-between items-center">
-                                        <p class="text-[8px] font-black text-slate-400 uppercase">Enviado por</p>
+                                        <p class="text-[8px] font-black text-slate-400 uppercase">Asesor:</p>
                                         <p class="text-[9px] font-black text-slate-600 truncate max-w-[150px]">${p.asesor_email}</p>
                                     </div>
                                 </div>
@@ -107,53 +108,7 @@
                                     <button onclick="window.gestionarPropuesta('${id}', 'Aceptada', '${p.servicio}', ${p.costo})" class="bg-slate-900 text-white text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-orange-600 transition shadow-lg">Aceptar</button>
                                     <button onclick="window.gestionarPropuesta('${id}', 'Rechazada')" class="bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-red-50 hover:text-red-500 transition">Rechazar</button>
                                 </div>
-                                <button onclick="window.borrarPermanente('${id}')" class="w-full text-[8px] font-black uppercase text-slate-300 hover:text-red-600 transition py-2">Eliminar del registro</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                contenedor.innerHTML = html;
-            });
-        }
-
-                let html = '';
-                snap.forEach(docSnap => {
-                    const p = docSnap.data();
-                    const id = docSnap.id;
-                    const fecha = p.fecha?.toDate().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) || 'Hoy';
-                    
-                    let badgeClass = p.estatus === 'Aceptada' ? 'bg-approved' : (p.estatus === 'Rechazada' ? 'bg-rejected' : 'bg-pending');
-
-                    html += `
-                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between">
-                            <div>
-                                <div class="flex justify-between items-start mb-6">
-                                    <span class="status-badge ${badgeClass}">${p.estatus}</span>
-                                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-tighter">${fecha}</span>
-                                </div>
-                                <h3 class="font-black text-lg uppercase text-slate-800 leading-tight mb-3 italic tracking-tighter">${p.servicio}</h3>
-                                <p class="text-[11px] font-bold text-slate-400 mb-6 uppercase leading-relaxed line-clamp-3">${p.descripcion}</p>
-                                
-                                <div class="bg-emerald-50 rounded-3xl p-5 mb-6 border border-emerald-100">
-                                    <div class="flex justify-between items-end">
-                                        <div>
-                                            <p class="text-[8px] font-black text-emerald-600 uppercase mb-1">Costo Sugerido</p>
-                                            <p class="text-2xl font-black text-emerald-700">$${p.costo.toLocaleString('es-MX')}</p>
-                                        </div>
-                                        <div class="text-right">
-                                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Enviado por</p>
-                                            <p class="text-[9px] font-black text-slate-600 truncate max-w-[120px]">${p.asesor_email.split('@')[0]}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button onclick="window.gestionarPropuesta('${id}', 'Aceptada', '${p.servicio}', ${p.costo})" class="bg-slate-900 text-white text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-orange-600 transition shadow-lg">Aceptar</button>
-                                    <button onclick="window.gestionarPropuesta('${id}', 'Rechazada')" class="bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-red-50 hover:text-red-500 transition">Rechazar</button>
-                                </div>
-                                <button onclick="window.borrarPermanente('${id}')" class="w-full text-[8px] font-black uppercase text-slate-300 hover:text-red-600 transition py-2">Eliminar del registro</button>
+                                <button onclick="window.borrarPermanente('${id}')" class="w-full text-[8px] font-black uppercase text-slate-300 hover:text-red-600 transition py-2 text-center">Eliminar del registro</button>
                             </div>
                         </div>
                     `;
@@ -173,7 +128,9 @@
 
         window.borrarPermanente = async (id) => {
             if(confirm("¿Eliminar propuesta definitivamente?")) {
-                await deleteDoc(doc(db, "propuestas_proveedores", id));
+                try {
+                    await deleteDoc(doc(db, "propuestas_proveedores", id));
+                } catch (e) { alert("Error al eliminar"); }
             }
         };
 
