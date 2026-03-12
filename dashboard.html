@@ -271,7 +271,7 @@
                 fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE DEL CLIENTE" class="input-light mb-4 uppercase">
                            <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">
                            <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO.</p>`;
+                if(nombre.includes('sin aportaciones')) fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ SE ENVIARÁ ARCHIVO PARA PAGO DE APORTACIONES.</p>`;
                 else fields += `<p class="text-[10px] bg-orange-50 border-l-4 border-orange-500 p-3 text-orange-700 font-bold mb-4 uppercase">⚠️ INCLUYE APORTACIONES.</p>`;
             }
             else if (special === 'RETIRO') {
