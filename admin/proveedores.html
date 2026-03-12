@@ -14,6 +14,10 @@
         .bg-pending { background: #FEF3C7; color: #92400E; }
         .bg-approved { background: #D1FAE5; color: #065F46; }
         .bg-rejected { background: #FEE2E2; color: #991B1B; }
+        
+        /* Estilo para el truncado de texto con Ver más */
+        .text-truncate-custom { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .text-expanded { -webkit-line-clamp: unset !important; display: block !important; }
     </style>
 </head>
 <body>
@@ -23,19 +27,19 @@
             <div class="flex items-center gap-3">
                 <div class="bg-slate-800 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl">AD</div>
                 <div>
-                    <h1 class="font-black uppercase tracking-tighter text-xl">Gestión de <span class="text-orange-600 italic">Proveedores</span></h1>
+                    <h1 class="font-black uppercase tracking-tighter text-xl text-slate-800">Gestión de <span class="text-orange-600 italic text-2xl">Proveedores</span></h1>
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">DPR Consultoría Executive</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <div id="countPropuestas" class="text-[10px] font-black bg-orange-100 text-orange-700 px-4 py-2 rounded-full uppercase">...</div>
+                <div id="countPropuestas" class="text-[10px] font-black bg-orange-100 text-orange-700 px-4 py-2 rounded-full uppercase tracking-widest">...</div>
                 <a href="../index.html" class="text-[10px] font-black uppercase text-slate-400 hover:text-slate-800 transition border-l pl-4">Cerrar Admin</a>
             </div>
         </div>
     </header>
 
     <main class="p-8 max-w-7xl mx-auto">
-        <div id="contenedorPropuestas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="contenedorPropuestas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <div class="col-span-full py-20 text-center opacity-40 font-black uppercase tracking-widest italic animate-pulse">
                 Sincronizando base de datos de proveedores...
             </div>
@@ -67,21 +71,27 @@
                     const p = docSnap.data();
                     const id = docSnap.id;
                     const fecha = p.fecha?.toDate().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }) || 'Hoy';
-                    
-                    // Capturamos el nuevo dato de teléfono enviado desde el modal
                     const telefono = p.telefono || 'SIN TEL';
                     
                     let badgeClass = p.estatus === 'Aceptada' ? 'bg-approved' : (p.estatus === 'Rechazada' ? 'bg-rejected' : 'bg-pending');
 
                     html += `
-                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between h-full">
+                        <div class="admin-card rounded-[2.5rem] p-8 flex flex-col justify-between h-full border border-slate-100 shadow-sm overflow-hidden">
                             <div>
                                 <div class="flex justify-between items-start mb-6">
                                     <span class="status-badge ${badgeClass}">${p.estatus}</span>
                                     <span class="text-[10px] font-black text-slate-300 uppercase tracking-tighter">${fecha}</span>
                                 </div>
                                 <h3 class="font-black text-lg uppercase text-slate-800 leading-tight mb-3 italic tracking-tighter">${p.servicio}</h3>
-                                <p class="text-[11px] font-bold text-slate-400 mb-6 uppercase leading-relaxed line-clamp-3">${p.descripcion}</p>
+                                
+                                <div class="mb-6">
+                                    <p id="desc-${id}" class="text-[11px] font-bold text-slate-500 uppercase leading-relaxed text-truncate-custom break-words">
+                                        ${p.descripcion}
+                                    </p>
+                                    <button onclick="window.toggleTexto('${id}')" id="btn-${id}" class="text-[9px] font-black text-blue-600 mt-2 uppercase hover:underline">
+                                        Ver más...
+                                    </button>
+                                </div>
                                 
                                 <div class="bg-emerald-50 rounded-3xl p-5 mb-6 border border-emerald-100">
                                     <div class="flex justify-between items-center mb-3 pb-3 border-b border-emerald-100/50">
@@ -98,12 +108,12 @@
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <p class="text-[8px] font-black text-slate-400 uppercase">Asesor:</p>
-                                        <p class="text-[9px] font-black text-slate-600 truncate max-w-[150px]">${p.asesor_email}</p>
+                                        <p class="text-[9px] font-black text-slate-600 truncate max-w-[150px] italic">${p.asesor_email}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="space-y-2">
+                            <div class="space-y-2 mt-auto">
                                 <div class="grid grid-cols-2 gap-2">
                                     <button onclick="window.gestionarPropuesta('${id}', 'Aceptada', '${p.servicio}', ${p.costo})" class="bg-slate-900 text-white text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-orange-600 transition shadow-lg">Aceptar</button>
                                     <button onclick="window.gestionarPropuesta('${id}', 'Rechazada')" class="bg-white border border-slate-200 text-slate-400 text-[10px] font-black uppercase py-4 rounded-2xl hover:bg-red-50 hover:text-red-500 transition">Rechazar</button>
@@ -116,6 +126,19 @@
                 contenedor.innerHTML = html;
             });
         }
+
+        // FUNCIÓN PARA EXPANDIR / COLAPSAR TEXTO
+        window.toggleTexto = (id) => {
+            const desc = document.getElementById(`desc-${id}`);
+            const btn = document.getElementById(`btn-${id}`);
+            if (desc.classList.contains('text-truncate-custom')) {
+                desc.classList.remove('text-truncate-custom');
+                btn.innerText = 'Ver menos';
+            } else {
+                desc.classList.add('text-truncate-custom');
+                btn.innerText = 'Ver más...';
+            }
+        };
 
         window.gestionarPropuesta = async (id, estatus, nombre = '', costo = 0) => {
             try {
