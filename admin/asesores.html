@@ -8,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -22,7 +23,7 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resumen Financiero Individual</p>
             </div>
             <div class="flex gap-2">
-                <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">⬅️ Volver al Panel</a>
+                <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-700 transition">⬅️ Volver al Panel</a>
             </div>
         </header>
 
@@ -37,34 +38,35 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
                 <div class="stat-card border-blue-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Saldo Disponible</p>
-                    <p id="resSaldo" class="text-3xl font-black text-blue-600">$0.00</p>
+                    <p id="resSaldo" class="text-2xl font-black text-blue-600">$0.00</p>
                 </div>
                 <div class="stat-card border-emerald-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Recargado</p>
-                    <p id="resAgregado" class="text-3xl font-black text-emerald-600">$0.00</p>
+                    <p id="resAgregado" class="text-2xl font-black text-emerald-600">$0.00</p>
                 </div>
                 <div class="stat-card border-orange-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Gastado</p>
-                    <p id="resGastado" class="text-3xl font-black text-orange-600">$0.00</p>
+                    <p id="resGastado" class="text-2xl font-black text-orange-600">$0.00</p>
                 </div>
                 <div class="stat-card border-purple-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Devoluciones</p>
-                    <p id="resDevolucion" class="text-3xl font-black text-purple-600">$0.00</p>
+                    <p id="resDevolucion" class="text-2xl font-black text-purple-600">$0.00</p>
                 </div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="p-6 border-b border-slate-100">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                     <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites Solicitados</h3>
+                    <button onclick="window.print()" class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50">Imprimir Reporte</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
                             <tr>
-                                <th class="p-4">Fecha</th>
-                                <th class="p-4">Servicio</th>
-                                <th class="p-4">Cliente</th>
-                                <th class="p-4">Costo</th>
+                                <th class="p-4 border-r border-slate-700">Fecha</th>
+                                <th class="p-4 border-r border-slate-700">Servicio</th>
+                                <th class="p-4 border-r border-slate-700">Cliente</th>
+                                <th class="p-4 border-r border-slate-700">Costo</th>
                                 <th class="p-4 text-center">Estatus</th>
                             </tr>
                         </thead>
@@ -74,7 +76,9 @@
             </div>
         </div>
 
-        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse">Buscando información en Firebase...</div>
+        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">
+            Consultando base de datos de DPR...
+        </div>
     </div>
 
     <script type="module">
@@ -86,43 +90,37 @@
         const db = getFirestore(app);
 
         window.buscarAsesor = async () => {
-            const email = document.getElementById('inputBusqueda').value.trim().toLowerCase();
-            if(!email) return alert("Ingresa un correo");
+            const inputEmail = document.getElementById('inputBusqueda').value.trim();
+            if(!inputEmail) return alert("Por favor, ingresa un correo electrónico.");
 
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('resultadoBusqueda').classList.add('hidden');
 
             try {
                 let saldoActual = 0, totalAgregado = 0, totalGastado = 0, totalDevuelto = 0;
-                let uidAsesor = "";
 
-                // 1. Buscar Saldo Actual y UID
-                const qAsesor = query(collection(db, "asesores"), where("email", "==", email));
-                const snapAsesor = await getDocs(qAsesor);
-                
+                // 1. BUSCAR EN COLECCIÓN ASESORES (Normalización de texto)
+                let snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail)));
+                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toLowerCase())));
+                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toUpperCase())));
+
                 if(snapAsesor.empty) {
-                    // Si no lo encuentra por email directo, intentamos buscar en la colección por el nombre_asesor de los trámites
-                    const qAlt = query(collection(db, "solicitudes"), where("nombre_asesor", "==", email));
-                    const snapAlt = await getDocs(qAlt);
-                    if(snapAlt.empty) {
-                        alert("Asesor no encontrado");
-                        document.getElementById('loader').classList.add('hidden');
-                        return;
-                    }
-                    // Si lo encuentra en trámites pero no en asesores, el saldo será 0 o N/A
-                } else {
-                    const dataA = snapAsesor.docs[0].data();
-                    saldoActual = dataA.saldo || 0;
-                    uidAsesor = snapAsesor.docs[0].id;
+                    alert("Asesor no encontrado en la base de datos.");
+                    document.getElementById('loader').classList.add('hidden');
+                    return;
                 }
 
-                // 2. Calcular Saldo Agregado (Recargas aprobadas)
-                const qPagos = query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", email), where("estatus", "==", "aprobado"));
-                const snapPagos = await getDocs(qPagos);
-                snapPagos.forEach(p => totalAgregado += Number(p.data().monto));
+                const dataA = snapAsesor.docs[0].data();
+                saldoActual = dataA.saldo || 0;
+                const emailDB = dataA.email; // Usamos el email real de la DB para las siguientes consultas
 
-                // 3. Obtener Solicitudes y Calcular Gastos/Devoluciones
-                const qSols = query(collection(db, "solicitudes"), where("nombre_asesor", "==", email), orderBy("fecha", "desc"));
+                // 2. CALCULAR RECARGAS
+                const qPagos = query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailDB), where("estatus", "==", "aprobado"));
+                const snapPagos = await getDocs(qPagos);
+                snapPagos.forEach(p => totalAgregado += Number(p.data().monto || 0));
+
+                // 3. OBTENER SOLICITUDES Y GASTOS
+                const qSols = query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailDB), orderBy("fecha", "desc"));
                 const snapSols = await getDocs(qSols);
                 
                 const tabla = document.getElementById('tablaHistorialAsesor');
@@ -133,16 +131,17 @@
                     if(s.tipo === "RECARGA ASESOR") return;
 
                     const costo = Number(s.costo || 0);
-                    const esError = s.estatus === "Error de Datos" || s.estatus.includes("ERROR");
+                    // Clasificación de gasto vs devolución (Rechazada o Error)
+                    const esDevolucion = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
 
-                    if(esError) {
+                    if(esDevolucion) {
                         totalDevuelto += costo;
                     } else {
                         totalGastado += costo;
                     }
 
-                    const fecha = s.fecha?.toDate().toLocaleDateString() || '---';
-                    const colorEstatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (esError ? 'text-red-500' : 'text-orange-500');
+                    const fecha = s.fecha?.toDate().toLocaleDateString('es-MX') || '---';
+                    const colorEstatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (esDevolucion ? 'text-red-500' : 'text-orange-500');
 
                     tabla.innerHTML += `
                         <tr class="border-b hover:bg-slate-50 transition">
@@ -150,14 +149,14 @@
                             <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
                             <td class="p-4">
                                 <div class="font-bold text-slate-900 uppercase">${s.cliente_nombre || 'S/N'}</div>
-                                <div class="text-[9px] text-slate-400 font-black tracking-tighter">CURP: ${s.curp || '---'}</div>
+                                <div class="text-[9px] text-slate-400 font-black">CURP: ${s.curp || '---'}</div>
                             </td>
-                            <td class="p-4 font-black text-slate-700">$${costo}</td>
+                            <td class="p-4 font-black text-slate-700">$${costo.toLocaleString('es-MX')}</td>
                             <td class="p-4 text-center font-black uppercase text-[10px] ${colorEstatus}">${s.estatus}</td>
                         </tr>`;
                 });
 
-                // Inyectar Resultados en las tarjetas
+                // Inyectar Resultados
                 const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
                 document.getElementById('resSaldo').innerText = fmt(saldoActual);
                 document.getElementById('resAgregado').innerText = fmt(totalAgregado);
@@ -168,9 +167,14 @@
                 document.getElementById('resultadoBusqueda').classList.remove('hidden');
 
             } catch(e) {
-                console.error(e);
-                alert("Error al obtener la información");
+                console.error("Error Firebase:", e);
                 document.getElementById('loader').classList.add('hidden');
+                
+                if (e.message.includes("index")) {
+                    alert("Falta crear un índice en Firebase para ordenar por fecha. Revisa la consola (F12) y abre el link azul.");
+                } else {
+                    alert("Ocurrió un error al obtener la información.");
+                }
             }
         };
     </script>
