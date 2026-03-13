@@ -8,8 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -23,7 +22,7 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resumen Financiero Individual</p>
             </div>
             <div class="flex gap-2">
-                <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-700 transition">⬅️ Volver al Panel</a>
+                <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">⬅️ Volver al Panel</a>
             </div>
         </header>
 
@@ -56,17 +55,17 @@
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites Solicitados</h3>
-                    <button onclick="window.print()" class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50">Imprimir Reporte</button>
+                    <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites</h3>
+                    <button onclick="window.print()" class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-3 py-1 rounded-full">Imprimir</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
                             <tr>
-                                <th class="p-4 border-r border-slate-700">Fecha</th>
-                                <th class="p-4 border-r border-slate-700">Servicio</th>
-                                <th class="p-4 border-r border-slate-700">Cliente</th>
-                                <th class="p-4 border-r border-slate-700">Costo</th>
+                                <th class="p-4">Fecha</th>
+                                <th class="p-4">Servicio</th>
+                                <th class="p-4">Cliente</th>
+                                <th class="p-4">Costo</th>
                                 <th class="p-4 text-center">Estatus</th>
                             </tr>
                         </thead>
@@ -76,9 +75,7 @@
             </div>
         </div>
 
-        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">
-            Consultando base de datos de DPR...
-        </div>
+        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse">Consultando Firebase...</div>
     </div>
 
     <script type="module">
@@ -91,7 +88,7 @@
 
         window.buscarAsesor = async () => {
             const inputEmail = document.getElementById('inputBusqueda').value.trim();
-            if(!inputEmail) return alert("Por favor, ingresa un correo electrónico.");
+            if(!inputEmail) return alert("Ingresa un correo");
 
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('resultadoBusqueda').classList.add('hidden');
@@ -99,29 +96,27 @@
             try {
                 let saldoActual = 0, totalAgregado = 0, totalGastado = 0, totalDevuelto = 0;
 
-                // 1. BUSCAR EN COLECCIÓN ASESORES (Normalización de texto)
+                // 1. BUSCAR ASESOR (Normalización)
                 let snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail)));
                 if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toLowerCase())));
                 if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toUpperCase())));
 
                 if(snapAsesor.empty) {
-                    alert("Asesor no encontrado en la base de datos.");
+                    alert("Correo no encontrado");
                     document.getElementById('loader').classList.add('hidden');
                     return;
                 }
 
                 const dataA = snapAsesor.docs[0].data();
                 saldoActual = dataA.saldo || 0;
-                const emailDB = dataA.email; // Usamos el email real de la DB para las siguientes consultas
+                const emailDB = dataA.email;
 
                 // 2. CALCULAR RECARGAS
-                const qPagos = query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailDB), where("estatus", "==", "aprobado"));
-                const snapPagos = await getDocs(qPagos);
+                const snapPagos = await getDocs(query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailDB), where("estatus", "==", "aprobado")));
                 snapPagos.forEach(p => totalAgregado += Number(p.data().monto || 0));
 
-                // 3. OBTENER SOLICITUDES Y GASTOS
-                const qSols = query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailDB), orderBy("fecha", "desc"));
-                const snapSols = await getDocs(qSols);
+                // 3. OBTENER SOLICITUDES
+                const snapSols = await getDocs(query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailDB), orderBy("fecha", "desc")));
                 
                 const tabla = document.getElementById('tablaHistorialAsesor');
                 tabla.innerHTML = "";
@@ -131,14 +126,10 @@
                     if(s.tipo === "RECARGA ASESOR") return;
 
                     const costo = Number(s.costo || 0);
-                    // Clasificación de gasto vs devolución (Rechazada o Error)
                     const esDevolucion = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
 
-                    if(esDevolucion) {
-                        totalDevuelto += costo;
-                    } else {
-                        totalGastado += costo;
-                    }
+                    if(esDevolucion) totalDevuelto += costo;
+                    else totalGastado += costo;
 
                     const fecha = s.fecha?.toDate().toLocaleDateString('es-MX') || '---';
                     const colorEstatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (esDevolucion ? 'text-red-500' : 'text-orange-500');
@@ -147,16 +138,15 @@
                         <tr class="border-b hover:bg-slate-50 transition">
                             <td class="p-4 text-slate-400 font-bold">${fecha}</td>
                             <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
-                            <td class="p-4">
-                                <div class="font-bold text-slate-900 uppercase">${s.cliente_nombre || 'S/N'}</div>
-                                <div class="text-[9px] text-slate-400 font-black">CURP: ${s.curp || '---'}</div>
+                            <td class="p-4 uppercase">
+                                <div class="font-bold text-slate-900">${s.cliente_nombre || 'S/N'}</div>
+                                <div class="text-[9px] text-slate-400 font-black tracking-tighter">CURP: ${s.curp || '---'}</div>
                             </td>
                             <td class="p-4 font-black text-slate-700">$${costo.toLocaleString('es-MX')}</td>
                             <td class="p-4 text-center font-black uppercase text-[10px] ${colorEstatus}">${s.estatus}</td>
                         </tr>`;
                 });
 
-                // Inyectar Resultados
                 const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
                 document.getElementById('resSaldo').innerText = fmt(saldoActual);
                 document.getElementById('resAgregado').innerText = fmt(totalAgregado);
@@ -170,10 +160,16 @@
                 console.error("Error Firebase:", e);
                 document.getElementById('loader').classList.add('hidden');
                 
-                if (e.message.includes("index")) {
-                    alert("Falta crear un índice en Firebase para ordenar por fecha. Revisa la consola (F12) y abre el link azul.");
+                if (e.message.includes("index") || e.message.includes("FAILED_PRECONDITION")) {
+                    const regex = /(https:\/\/console\.firebase\.google\.com[^\s]+)/g;
+                    const link = e.message.match(regex);
+                    if (link) {
+                        prompt("FALTA CREAR UN ÍNDICE. Copia este enlace y ábrelo en otra pestaña del celular:", link[0]);
+                    } else {
+                        alert("Error de Índice: Se requiere un índice en Firebase. Abre este panel en una PC para activarlo.");
+                    }
                 } else {
-                    alert("Ocurrió un error al obtener la información.");
+                    alert("Error al obtener información.");
                 }
             }
         };
