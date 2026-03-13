@@ -19,7 +19,6 @@
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; }
         .input-light:focus { border-color: #F97316; }
         
-        /* Botones Expandibles */
         .expand-btn { display: flex; align-items: center; overflow: hidden; max-width: 45px; height: 45px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer; border-radius: 50px; padding: 10px; }
         .expand-btn:hover { max-width: 250px; padding-right: 20px; }
         .expand-btn span.icon { font-size: 20px; min-width: 25px; text-align: center; }
@@ -233,7 +232,7 @@
                     const d = docSnap.data();
                     const fechaTxt = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
                     let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
-                    html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${fechaTxt}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black">VER</a>` : '--'}</td></tr>`;
+                    html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${fechaTxt}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || d.rfc || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black">VER</a>` : '--'}</td></tr>`;
                 });
                 lista.innerHTML = html;
             });
@@ -285,9 +284,20 @@
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
             if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-            if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
+            if(pideFecha) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Fecha de Nacimiento:</p><input type="date" id="fecha_p" class="input-light mb-4">`;
+            
             if(pideIneFrente) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Foto INE Frente:</p><input type="file" id="file_ine_f" class="mb-4 text-xs w-full bg-slate-50 p-3 rounded-2xl border-2 border-dashed">`;
-            if(special === 'RETIRO') fields += `<input type="file" id="file_ine_f" class="mb-2"><input type="file" id="file_ine_r" class="mb-2"><input type="file" id="file_selfie" class="mb-4">`;
+            
+            if(special === 'RETIRO') {
+                fields += `
+                    <div class="text-left space-y-4 mb-6">
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                    </div>`;
+            }
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
                 <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
@@ -301,18 +311,33 @@
             try {
                 const infoExtra = {};
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
-                if (document.getElementById('file_ine_f')) {
-                    const file = document.getElementById('file_ine_f').files[0];
-                    if(file) {
-                        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
+                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
+                if(document.getElementById('nombre_cliente')) infoExtra.nombre_cliente = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
+
+                // Subida de archivos (Cloudinary)
+                const subirArchivo = async (id) => {
+                    const el = document.getElementById(id);
+                    if (el && el.files[0]) {
+                        const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
                         const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                        const data = await res.json(); infoExtra.file_ine_f = data.secure_url;
+                        const data = await res.json(); return data.secure_url;
                     }
+                    return null;
+                };
+
+                infoExtra.file_ine_f = await subirArchivo('file_ine_f');
+                if(special === 'RETIRO') {
+                    infoExtra.file_ine_r = await subirArchivo('file_ine_r');
+                    infoExtra.file_selfie = await subirArchivo('file_selfie');
                 }
+
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
                 alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error"); btn.disabled = false; }
+            } catch(e) { alert("Error al procesar el trámite."); btn.disabled = false; btn.innerText = "PAGAR"; }
         };
 
         window.abrirPropuestaServicio = () => {
