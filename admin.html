@@ -45,21 +45,14 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
-    <a href="admin/asesores" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">
-        👥 Control de Asesores
-    </a>
-    
-    <a href="admin/corte" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">
-        📦 Corte e Inventario
-    </a>
-                 <a href="admin/proveedores" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">
-        🔔 Solicitud de Proveedores
-    </a>
-</div>
+                <a href="admin/asesores" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">👥 Control de Asesores</a>
+                <a href="admin/corte" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">📦 Corte e Inventario</a>
+                <a href="admin/proveedores" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-1 active:scale-95">🔔 Solicitud de Proveedores</a>
+            </div>
         </header>
 
         <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4 italic">Aprobación de Saldo</h2>
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
@@ -192,12 +185,17 @@
                 const esManual = s.metodo === "Manual" || s.origen === "MANUAL";
                 const fStr = s.fecha?.toDate().toLocaleString() || '...';
                 
-                // Lógica de visualización de datos (INCLUYE NSS)
+                // --- LÓGICA DE DETALLES CORREGIDA ---
                 let detallesHtml = "";
-if(s.curp && s.curp !== "N/A") detallesHtml += `<div class="text-[10px] text-blue-600 font-black">CURP: ${s.curp}</div>`;
-                if(s.nss && s.nss !== "N/A") detallesHtml += `<div class="text-[10px] text-slate-600 font-black">NSS: ${s.nss}</div>`;
-                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black">RFC: ${s.rfc}</div>`;
-                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black">IDCIF: ${s.idcif}</div>`;
+                
+                // Mapeo dinámico para detectar NSS aunque se llame nss o nss_p
+                const nssValor = s.nss || s.nss_p || null;
+                const curpValor = s.curp || s.curp_p || null;
+
+                if(curpValor && curpValor !== "N/A") detallesHtml += `<div class="text-[10px] text-blue-600 font-black uppercase">CURP: ${curpValor}</div>`;
+                if(nssValor && nssValor !== "N/A") detallesHtml += `<div class="text-[10px] text-slate-800 font-black uppercase bg-slate-100 px-1 rounded inline-block mt-1">NSS: ${nssValor}</div>`;
+                if(s.rfc) detallesHtml += `<div class="text-[10px] text-emerald-600 font-black uppercase">RFC: ${s.rfc}</div>`;
+                if(s.idcif) detallesHtml += `<div class="text-[10px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif}</div>`;
                 if(s.fecha_nacimiento) detallesHtml += `<div class="text-[10px] text-orange-600 font-bold italic uppercase">FECHA NAC: ${s.fecha_nacimiento}</div>`;
                 if(s.extra) detallesHtml += `<div class="text-[8px] text-orange-600 font-bold bg-orange-50 p-1 rounded mt-1 italic uppercase border border-orange-100">NOTAS: ${s.extra}</div>`;
 
@@ -210,21 +208,15 @@ if(s.curp && s.curp !== "N/A") detallesHtml += `<div class="text-[10px] text-blu
                         <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${esManual ? 'badge-manual' : 'badge-portal'}">${esManual ? 'Manual' : 'Portal'}</span></td>
                         <td class="p-4"><div class="font-black text-slate-700 uppercase tracking-tighter">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                         <td class="p-4">
-    <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || s.nombre || 'ASESOR S/N'}</div>
-    ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">Cliente: ${s.cliente_nombre}</div>` : ''}
-    ${detallesHtml}
-</td>
+                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || s.nombre || 'ASESOR S/N'}</div>
+                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-1">Cliente: ${s.cliente_nombre}</div>` : ''}
+                            <div class="mt-1 space-y-0.5">${detallesHtml}</div>
+                        </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                                 <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR/DEVOLVER</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
