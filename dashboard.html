@@ -51,15 +51,14 @@
                     <span class="icon">📦</span>
                     <span class="text">Ofrece tus servicios</span>
                 </div>
-            </div>
-    <div class="flex items-center gap-4">
                 <a href="finanzas.html" class="expand-btn bg-blue-600 text-white shadow-lg">
                     <span class="icon">📈</span>
                     <span class="text">Mis Movimientos</span>
                 </a>
+            </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600">...</span>
                 </button>
                 <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-slate-400 hover:text-red-500 transition">Salir</button>
@@ -194,6 +193,7 @@
                 { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
             ],
             'AFORE': [
+                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' }, // NUEVO
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
@@ -287,21 +287,33 @@
             const content = document.getElementById('formContent');
             let fields = '';
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
             if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
             if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
             if(pideFecha) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Fecha de Nacimiento:</p><input type="date" id="fecha_p" class="input-light mb-4">`;
             
-            if(pideIneFrente) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Foto INE Frente:</p><input type="file" id="file_ine_f" class="mb-4 text-xs w-full bg-slate-50 p-3 rounded-2xl border-2 border-dashed">`;
-            
-            if(special === 'RETIRO') {
+            if(special === 'REGISTRO') {
                 fields += `
+                    <input type="email" id="correo_p" placeholder="CORREO ELECTRÓNICO" class="input-light mb-4">
+                    <input type="tel" id="tel_p" placeholder="TELÉFONO" class="input-light mb-4">
+                    <input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">
                     <div class="text-left space-y-4 mb-6">
-                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
-                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
-                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
                     </div>`;
+            } else if(special === 'RETIRO') {
+                fields += `
+                    <input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">
+                    <div class="text-left space-y-4 mb-6">
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>
+                        <div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1 italic">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>
+                    </div>`;
+            } else if(pideIneFrente) {
+                fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left">Foto INE Frente:</p><input type="file" id="file_ine_f" class="mb-4 text-xs w-full bg-slate-50 p-3 rounded-2xl border-2 border-dashed">`;
             }
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
@@ -320,10 +332,12 @@
                 if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
                 if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
                 if(document.getElementById('nombre_cliente')) infoExtra.nombre_cliente = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('correo_p')) infoExtra.correo_cliente = document.getElementById('correo_p').value;
+                if(document.getElementById('tel_p')) infoExtra.telefono_cliente = document.getElementById('tel_p').value;
+                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value;
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
 
-                // Subida de archivos (Cloudinary)
-                const subirArchivo = async (id) => {
+                const subir = async (id) => {
                     const el = document.getElementById(id);
                     if (el && el.files[0]) {
                         const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
@@ -333,41 +347,32 @@
                     return null;
                 };
 
-                infoExtra.file_ine_f = await subirArchivo('file_ine_f');
-                if(special === 'RETIRO') {
-                    infoExtra.file_ine_r = await subirArchivo('file_ine_r');
-                    infoExtra.file_selfie = await subirArchivo('file_selfie');
+                infoExtra.file_ine_f = await subir('file_ine_f');
+                if(special === 'RETIRO' || special === 'REGISTRO') {
+                    infoExtra.file_ine_r = await subir('file_ine_r');
+                    infoExtra.file_selfie = await subir('file_selfie');
+                    if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
                 }
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
                 alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error al procesar el trámite."); btn.disabled = false; btn.innerText = "PAGAR"; }
+            } catch(e) { alert("Error al procesar."); btn.disabled = false; btn.innerText = "PAGAR"; }
         };
 
         window.abrirPropuestaServicio = () => {
             const content = document.getElementById('formContent');
-            content.innerHTML = `<div class="space-y-4">
-                <h2 class="text-xl font-black text-orange-600 italic uppercase">Ofrecer Servicio</h2>
-                <input type="text" id="prop_nombre" placeholder="NOMBRE SERVICIO" class="input-light uppercase">
-                <textarea id="prop_desc" placeholder="DESCRIPCIÓN" class="input-light h-24 uppercase"></textarea>
-                <input type="number" id="prop_costo" placeholder="COSTO SUGERIDO" class="input-light">
-                <input type="number" id="prop_tel" placeholder="TELÉFONO DE CONTACTO" class="input-light">
-                <button onclick="window.enviarPropuestaProveedor()" id="btnEnviarProp" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Enviar Propuesta</button>
-            </div>`;
+            content.innerHTML = `<div class="space-y-4"><h2 class="text-xl font-black text-orange-600 uppercase italic">Ofrecer Servicio</h2>
+                <input type="text" id="prop_n" placeholder="NOMBRE SERVICIO" class="input-light uppercase">
+                <input type="number" id="prop_t" placeholder="TELÉFONO" class="input-light">
+                <button onclick="window.enviarPropuestaP()" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Enviar</button></div>`;
             abrirModal('modalTramite');
         };
 
-        window.enviarPropuestaProveedor = async () => {
-            const n = document.getElementById('prop_nombre').value;
-            const d = document.getElementById('prop_desc').value;
-            const c = document.getElementById('prop_costo').value;
-            const t = document.getElementById('prop_tel').value;
-            if(!n || !t) return alert("Completa los campos obligatorios.");
-            try {
-                await addDoc(collection(db, "propuestas_proveedores"), { asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), descripcion: d.toUpperCase(), costo: parseFloat(c), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente" });
-                alert("Propuesta enviada con éxito."); cerrarModal();
-            } catch (e) { alert("Error al enviar"); }
+        window.enviarPropuestaP = async () => {
+            const n = document.getElementById('prop_n').value, t = document.getElementById('prop_t').value;
+            if(!n || !t) return alert("Faltan datos");
+            try { await addDoc(collection(db, "propuestas_proveedores"), { asesor_uid: userUID, asesor_email: emailAsesor, servicio: n.toUpperCase(), telefono: t, fecha: serverTimestamp(), estatus: "Pendiente" }); alert("Enviado."); cerrarModal(); } catch (e) { alert("Error"); }
         };
 
         window.notificarPago = async () => {
@@ -379,8 +384,8 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); cerrarModal();
-            } catch(e) { alert("Error"); }
+                alert("Reportado."); cerrarModal();
+            } catch(e) { alert("Error."); }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
