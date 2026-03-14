@@ -94,117 +94,111 @@
         <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">Escaneando Base de Datos...</div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
+        authDomain: "pensionsegura-9c817.firebaseapp.com", 
+        projectId: "pensionsegura-9c817" 
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        window.buscarAsesor = async () => {
-            const txt = document.getElementById('inputBusqueda').value.trim().toLowerCase();
-            if(!txt) return alert("Escribe un nombre para buscar");
+    // Definimos la función de búsqueda globalmente para que el botón la encuentre
+    window.buscarAsesor = async () => {
+        const busqueda = document.getElementById('inputBusqueda').value.trim().toLowerCase();
+        if(!busqueda) return alert("Escribe un nombre o correo");
 
-            document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('resultadoBusqueda').classList.add('hidden');
+        document.getElementById('loader').classList.remove('hidden');
+        document.getElementById('resultadoBusqueda').classList.add('hidden');
 
-            try {
-                // OBTENER TODOS PARA BÚSQUEDA PARCIAL (Evita errores de acentos/espacios)
-                const snapAll = await getDocs(collection(db, "asesores"));
-                let asesorEncontrado = null;
+        try {
+            // 1. Buscamos al asesor para obtener su email real
+            const snapAsesores = await getDocs(collection(db, "asesores"));
+            let asesor = null;
 
-                snapAll.forEach(doc => {
-                    const data = doc.data();
-                    const nombreDB = (data.nombre || "").toLowerCase();
-                    const emailDB = (data.email || "").toLowerCase();
-                    
-                    if(nombreDB.includes(txt) || emailDB.includes(txt)) {
-                        asesorEncontrado = data;
-                    }
-                });
-
-                if(!asesorEncontrado) {
-                    alert("No se encontró ningún asesor que coincida con '" + txt + "'");
-                    document.getElementById('loader').classList.add('hidden');
-                    return;
+            snapAsesores.forEach(doc => {
+                const d = doc.data();
+                if((d.nombre && d.nombre.toLowerCase().includes(busqueda)) || (d.email && d.email.toLowerCase() === busqueda)) {
+                    asesor = d;
                 }
+            });
 
-                const email = asesorEncontrado.email;
-                const saldo = asesorEncontrado.saldo || 0;
-
-                // 1. CARGAR RECARGAS (notificaciones_pago)
-                const snapRecargas = await getDocs(collection(db, "notificaciones_pago"));
-                const tRecargas = document.getElementById('tablaRecargasAsesor');
-                tRecargas.innerHTML = "";
-                let totalRecargado = 0;
-
-                snapRecargas.forEach(docR => {
-                    const r = docR.data();
-                    if(r.asesorEmail === email) {
-                        const monto = Number(r.monto || 0);
-                        const est = r.estatus || 'pendiente';
-                        if(est === 'aprobado') totalRecargado += monto;
-
-                        const color = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
-                        
-                        tRecargas.innerHTML += `
-                            <tr class="border-b">
-                                <td class="p-4 text-slate-500">${r.fecha?.toDate().toLocaleString() || '---'}</td>
-                                <td class="p-4">$${monto.toLocaleString()}</td>
-                                <td class="p-4 uppercase ${color}">${est}</td>
-                                <td class="p-4 text-right"><a href="${r.comprobante}" target="_blank" class="text-blue-600 font-black">VER</a></td>
-                            </tr>`;
-                    }
-                });
-
-                // 2. CARGAR TRÁMITES (solicitudes)
-                const snapSols = await getDocs(collection(db, "solicitudes"));
-                const tSols = document.getElementById('tablaHistorialAsesor');
-                tSols.innerHTML = "";
-                let totalGastado = 0, totalDevuelto = 0;
-
-                snapSols.forEach(docS => {
-                    const s = docS.data();
-                    // Buscamos coincidencia por el email del asesor
-                    if(s.nombre_asesor === email) {
-                        const costo = Number(s.costo || 0);
-                        const error = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
-
-                        if(error) totalDevuelto += costo; else totalGastado += costo;
-
-                        const colorStatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (error ? 'text-red-500' : 'text-orange-500');
-
-                        tSols.innerHTML += `
-                            <tr class="border-b hover:bg-slate-50 transition">
-                                <td class="p-4 text-slate-400 font-bold">${s.fecha?.toDate().toLocaleDateString() || '--'}</td>
-                                <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
-                                <td class="p-4 uppercase text-[10px]">
-                                    <div class="font-bold text-slate-900">${s.cliente_nombre || 'S/N'}</div>
-                                    <div class="text-blue-600">CURP: ${s.curp || '---'}</div>
-                                </td>
-                                <td class="p-4 font-black text-slate-700">$${costo.toLocaleString()}</td>
-                                <td class="p-4 text-center font-black uppercase text-[10px] ${colorStatus}">${s.estatus}</td>
-                            </tr>`;
-                    }
-                });
-
-                // MOSTRAR RESULTADOS
-                const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
-                document.getElementById('resSaldo').innerText = fmt(saldo);
-                document.getElementById('resAgregado').innerText = fmt(totalRecargado);
-                document.getElementById('resGastado').innerText = fmt(totalGastado);
-                document.getElementById('resDevolucion').innerText = fmt(totalDevuelto);
-
+            if(!asesor) {
+                alert("Asesor no encontrado");
                 document.getElementById('loader').classList.add('hidden');
-                document.getElementById('resultadoBusqueda').classList.remove('hidden');
-
-            } catch(e) {
-                console.error(e);
-                alert("Ocurrió un error al consultar. Revisa tu conexión.");
-                document.getElementById('loader').classList.add('hidden');
+                return;
             }
-        };
-    </script>
+
+            // 2. Cargamos su Saldo y datos principales
+            document.getElementById('resSaldo').innerText = `$${Number(asesor.saldo || 0).toLocaleString()}`;
+            const emailAsesor = asesor.email;
+
+            // 3. CARGAR RECARGAS (notificaciones_pago)
+            const snapRecargas = await getDocs(collection(db, "notificaciones_pago"));
+            const tRecargas = document.getElementById('tablaRecargasAsesor');
+            tRecargas.innerHTML = "";
+            let totalAprobado = 0;
+
+            snapRecargas.forEach(docR => {
+                const r = docR.data();
+                // Filtramos manualmente por email para evitar errores de índices
+                if(r.asesorEmail === emailAsesor) {
+                    const monto = Number(r.monto || 0);
+                    const est = r.estatus || 'pendiente';
+                    const fecha = r.fecha?.toDate().toLocaleString() || '---';
+
+                    if(est === 'aprobado') totalAprobado += monto;
+                    const color = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
+
+                    tRecargas.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-4 text-slate-500">${fecha}</td>
+                            <td class="p-4 font-bold">$${monto.toLocaleString()}</td>
+                            <td class="p-4 uppercase font-black ${color}">${est}</td>
+                            <td class="p-4 text-right">
+                                <a href="${r.comprobante}" target="_blank" class="text-blue-600 font-bold underline text-[10px]">VER TICKET</a>
+                            </td>
+                        </tr>`;
+                }
+            });
+            document.getElementById('resAgregado').innerText = `$${totalAprobado.toLocaleString()}`;
+
+            // 4. CARGAR TRÁMITES (solicitudes)
+            const snapSols = await getDocs(collection(db, "solicitudes"));
+            const tSols = document.getElementById('tablaHistorialAsesor');
+            tSols.innerHTML = "";
+            let totalGastado = 0;
+
+            snapSols.forEach(docS => {
+                const s = docS.data();
+                if(s.nombre_asesor === emailAsesor) {
+                    const costo = Number(s.costo || 0);
+                    if(s.estatus === 'Terminado') totalGastado += costo;
+
+                    tSols.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-4">${s.fecha?.toDate().toLocaleDateString() || '--'}</td>
+                            <td class="p-4 uppercase font-black">${s.tipo}</td>
+                            <td class="p-4 uppercase text-[10px]">${s.cliente_nombre || 'S/N'}</td>
+                            <td class="p-4">$${costo}</td>
+                            <td class="p-4 text-center font-black ${s.estatus === 'Terminado' ? 'text-emerald-500' : 'text-orange-500'}">${s.estatus}</td>
+                        </tr>`;
+                }
+            });
+            document.getElementById('resGastado').innerText = `$${totalGastado.toLocaleString()}`;
+
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('resultadoBusqueda').classList.remove('hidden');
+
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error al cargar los datos financieros.");
+            document.getElementById('loader').classList.add('hidden');
+        }
+    };
+</script>
 </body>
 </html>
