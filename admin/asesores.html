@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control de Asesores</title>
+    <title>DPR Admin | Control Inteligente de Asesores</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; }
+        .stat-card { background: white; padding: 1.2rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -19,50 +19,50 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Control de <span class="text-blue-600">Asesores</span></h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Gestión de Finanzas Individual</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Búsqueda Inteligente por Nombre</p>
             </div>
             <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">⬅️ Volver al Panel</a>
         </header>
 
         <div class="bg-white p-6 rounded-[2.5rem] shadow-xl mb-10 border border-blue-100">
             <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="inputBusqueda" placeholder="ESCRIBE EL CORREO EXACTO..." class="flex-1 p-4 rounded-2xl border-2 border-slate-100 outline-none focus:border-blue-500 font-bold uppercase text-sm">
+                <input type="text" id="inputBusqueda" placeholder="ESCRIBE EL NOMBRE DEL ASESOR (EJ: CECILIO)..." class="flex-1 p-4 rounded-2xl border-2 border-slate-100 outline-none focus:border-blue-500 font-bold uppercase text-sm">
                 <button onclick="buscarAsesor()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-all">Buscar Asesor</button>
             </div>
         </div>
 
         <div id="resultadoBusqueda" class="hidden animate-fade">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 text-center">
                 <div class="stat-card border-blue-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Saldo Disponible</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Saldo en Cuenta</p>
                     <p id="resSaldo" class="text-2xl font-black text-blue-600">$0.00</p>
                 </div>
                 <div class="stat-card border-emerald-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Recargado</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Recargas Aprobadas</p>
                     <p id="resAgregado" class="text-2xl font-black text-emerald-600">$0.00</p>
                 </div>
                 <div class="stat-card border-orange-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Gastado</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Gastado en Trámites</p>
                     <p id="resGastado" class="text-2xl font-black text-orange-600">$0.00</p>
                 </div>
                 <div class="stat-card border-purple-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Devoluciones</p>
+                    <p class="text-[9px] font-black text-slate-400 uppercase">Devoluciones</p>
                     <p id="resDevolucion" class="text-2xl font-black text-purple-600">$0.00</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden mb-10">
-                <div class="p-6 border-b border-emerald-100 bg-emerald-50">
-                    <h3 class="font-black uppercase italic text-emerald-700">Historial de Recargas</h3>
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden mb-10">
+                <div class="p-5 border-b bg-emerald-50">
+                    <h3 class="font-black uppercase italic text-emerald-700 text-sm">Historial de Recargas del Cliente</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                        <thead class="bg-slate-900 text-white text-[9px] uppercase font-black">
                             <tr>
-                                <th class="p-4">Fecha / Hora</th>
+                                <th class="p-4">Fecha y Hora</th>
                                 <th class="p-4">Monto</th>
                                 <th class="p-4">Estatus</th>
-                                <th class="p-4 text-right">Comprobante</th>
+                                <th class="p-4 text-right">Ticket</th>
                             </tr>
                         </thead>
                         <tbody id="tablaRecargasAsesor" class="text-xs font-bold"></tbody>
@@ -70,13 +70,13 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="p-6 border-b border-slate-100 bg-slate-50">
-                    <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites</h3>
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
+                <div class="p-5 border-b bg-slate-50">
+                    <h3 class="font-black uppercase italic text-slate-700 text-sm">Historial de Trámites Solicitados</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                        <thead class="bg-slate-900 text-white text-[9px] uppercase font-black italic">
                             <tr>
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Servicio</th>
@@ -91,100 +91,108 @@
             </div>
         </div>
 
-        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse">Conectando con la base de datos...</div>
+        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">Escaneando Base de Datos...</div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         window.buscarAsesor = async () => {
-            const inputEmail = document.getElementById('inputBusqueda').value.trim();
-            if(!inputEmail) return alert("Ingresa un correo");
+            const txt = document.getElementById('inputBusqueda').value.trim().toLowerCase();
+            if(!txt) return alert("Escribe un nombre para buscar");
 
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('resultadoBusqueda').classList.add('hidden');
 
             try {
-                let saldoActual = 0, totalAgregado = 0, totalGastado = 0, totalDevuelto = 0;
+                // OBTENER TODOS PARA BÚSQUEDA PARCIAL (Evita errores de acentos/espacios)
+                const snapAll = await getDocs(collection(db, "asesores"));
+                let asesorEncontrado = null;
 
-                // 1. BUSCAR EN COLECCIÓN 'asesores'
-                let snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toLowerCase())));
-                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail)));
+                snapAll.forEach(doc => {
+                    const data = doc.data();
+                    const nombreDB = (data.nombre || "").toLowerCase();
+                    const emailDB = (data.email || "").toLowerCase();
+                    
+                    if(nombreDB.includes(txt) || emailDB.includes(txt)) {
+                        asesorEncontrado = data;
+                    }
+                });
 
-                if(snapAsesor.empty) {
-                    alert("Correo no encontrado en la base de datos.");
+                if(!asesorEncontrado) {
+                    alert("No se encontró ningún asesor que coincida con '" + txt + "'");
                     document.getElementById('loader').classList.add('hidden');
                     return;
                 }
 
-                const docAsesor = snapAsesor.docs[0];
-                const dataA = docAsesor.data();
-                const emailDB = dataA.email;
-                saldoActual = dataA.saldo || 0;
+                const email = asesorEncontrado.email;
+                const saldo = asesorEncontrado.saldo || 0;
 
-                // 2. BUSCAR RECARGAS (notificaciones_pago)
-                const snapPagos = await getDocs(query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailDB)));
+                // 1. CARGAR RECARGAS (notificaciones_pago)
+                const snapRecargas = await getDocs(collection(db, "notificaciones_pago"));
                 const tRecargas = document.getElementById('tablaRecargasAsesor');
                 tRecargas.innerHTML = "";
-                
-                snapPagos.forEach(pDoc => {
-                    const r = pDoc.data();
-                    const monto = Number(r.monto || 0);
-                    const est = r.estatus || 'pendiente';
-                    const fecha = r.fecha?.toDate().toLocaleString('es-MX') || '---';
+                let totalRecargado = 0;
 
-                    if(est === 'aprobado') totalAgregado += monto;
+                snapRecargas.forEach(docR => {
+                    const r = docR.data();
+                    if(r.asesorEmail === email) {
+                        const monto = Number(r.monto || 0);
+                        const est = r.estatus || 'pendiente';
+                        if(est === 'aprobado') totalRecargado += monto;
 
-                    let colorEst = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
-
-                    tRecargas.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-4 text-slate-500">${fecha}</td>
-                            <td class="p-4 text-emerald-700">$${monto.toLocaleString()}</td>
-                            <td class="p-4 uppercase ${colorEst}">${est}</td>
-                            <td class="p-4 text-right"><a href="${r.comprobante}" target="_blank" class="text-blue-600 font-black">TICKET 📥</a></td>
-                        </tr>`;
+                        const color = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
+                        
+                        tRecargas.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-4 text-slate-500">${r.fecha?.toDate().toLocaleString() || '---'}</td>
+                                <td class="p-4">$${monto.toLocaleString()}</td>
+                                <td class="p-4 uppercase ${color}">${est}</td>
+                                <td class="p-4 text-right"><a href="${r.comprobante}" target="_blank" class="text-blue-600 font-black">VER</a></td>
+                            </tr>`;
+                    }
                 });
 
-                // 3. BUSCAR SOLICITUDES (solicitudes)
-                // Usamos el email para buscar en el historial de trámites
-                const snapSols = await getDocs(query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailDB)));
+                // 2. CARGAR TRÁMITES (solicitudes)
+                const snapSols = await getDocs(collection(db, "solicitudes"));
                 const tSols = document.getElementById('tablaHistorialAsesor');
                 tSols.innerHTML = "";
+                let totalGastado = 0, totalDevuelto = 0;
 
-                snapSols.forEach(sDoc => {
-                    const s = sDoc.data();
-                    const costo = Number(s.costo || 0);
-                    const esDev = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
+                snapSols.forEach(docS => {
+                    const s = docS.data();
+                    // Buscamos coincidencia por el email del asesor
+                    if(s.nombre_asesor === email) {
+                        const costo = Number(s.costo || 0);
+                        const error = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
 
-                    if(esDev) totalDevuelto += costo;
-                    else totalGastado += costo;
+                        if(error) totalDevuelto += costo; else totalGastado += costo;
 
-                    const fecha = s.fecha?.toDate().toLocaleDateString('es-MX') || '---';
-                    const colorEstatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (esDev ? 'text-red-500' : 'text-orange-500');
+                        const colorStatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (error ? 'text-red-500' : 'text-orange-500');
 
-                    tSols.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 transition">
-                            <td class="p-4 text-slate-400 font-bold">${fecha}</td>
-                            <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
-                            <td class="p-4 uppercase">
-                                <div class="font-bold text-slate-900">${s.cliente_nombre || 'S/N'}</div>
-                                <div class="text-[9px] text-slate-400 font-black">CURP: ${s.curp || '---'}</div>
-                            </td>
-                            <td class="p-4 font-black text-slate-700">$${costo.toLocaleString()}</td>
-                            <td class="p-4 text-center font-black uppercase text-[10px] ${colorEstatus}">${s.estatus}</td>
-                        </tr>`;
+                        tSols.innerHTML += `
+                            <tr class="border-b hover:bg-slate-50 transition">
+                                <td class="p-4 text-slate-400 font-bold">${s.fecha?.toDate().toLocaleDateString() || '--'}</td>
+                                <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
+                                <td class="p-4 uppercase text-[10px]">
+                                    <div class="font-bold text-slate-900">${s.cliente_nombre || 'S/N'}</div>
+                                    <div class="text-blue-600">CURP: ${s.curp || '---'}</div>
+                                </td>
+                                <td class="p-4 font-black text-slate-700">$${costo.toLocaleString()}</td>
+                                <td class="p-4 text-center font-black uppercase text-[10px] ${colorStatus}">${s.estatus}</td>
+                            </tr>`;
+                    }
                 });
 
-                // 4. INYECTAR RESULTADOS
+                // MOSTRAR RESULTADOS
                 const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
-                document.getElementById('resSaldo').innerText = fmt(saldoActual);
-                document.getElementById('resAgregado').innerText = fmt(totalAgregado);
+                document.getElementById('resSaldo').innerText = fmt(saldo);
+                document.getElementById('resAgregado').innerText = fmt(totalRecargado);
                 document.getElementById('resGastado').innerText = fmt(totalGastado);
                 document.getElementById('resDevolucion').innerText = fmt(totalDevuelto);
 
@@ -192,9 +200,9 @@
                 document.getElementById('resultadoBusqueda').classList.remove('hidden');
 
             } catch(e) {
-                console.error("Error Firebase:", e);
+                console.error(e);
+                alert("Ocurrió un error al consultar. Revisa tu conexión.");
                 document.getElementById('loader').classList.add('hidden');
-                alert("Error al obtener la información. Revisa la consola.");
             }
         };
     </script>
