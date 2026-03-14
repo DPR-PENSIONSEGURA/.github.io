@@ -21,62 +21,50 @@
                 <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Control de <span class="text-blue-600">Asesores</span></h1>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resumen Financiero Individual</p>
             </div>
-            <a href="../index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">⬅️ Volver al Panel</a>
+            <div class="flex gap-2">
+                <a href="index.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">⬅️ Volver al Panel</a>
+            </div>
         </header>
 
         <div class="bg-white p-6 rounded-[2.5rem] shadow-xl mb-10 border border-blue-100">
             <div class="flex flex-col md:flex-row gap-4">
                 <input type="text" id="inputBusqueda" placeholder="ESCRIBE EL CORREO DEL ASESOR..." class="flex-1 p-4 rounded-2xl border-2 border-slate-100 outline-none focus:border-blue-500 font-bold uppercase text-sm">
-                <button onclick="buscarAsesor()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black uppercase italic hover:bg-blue-700 transition-all">Buscar Asesor</button>
+                <button onclick="buscarAsesor()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-all">Buscar Asesor</button>
             </div>
         </div>
 
         <div id="resultadoBusqueda" class="hidden animate-fade">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-                <div class="stat-card border-blue-500 text-center">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Saldo Actual</p>
-                    <p id="resSaldo" class="text-3xl font-black text-blue-600">$0.00</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                <div class="stat-card border-blue-500">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Saldo Disponible</p>
+                    <p id="resSaldo" class="text-2xl font-black text-blue-600">$0.00</p>
                 </div>
-                <div class="stat-card border-emerald-500 text-center">
+                <div class="stat-card border-emerald-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Recargado</p>
-                    <p id="resAgregado" class="text-3xl font-black text-emerald-600">$0.00</p>
+                    <p id="resAgregado" class="text-2xl font-black text-emerald-600">$0.00</p>
                 </div>
-                <div class="stat-card border-orange-500 text-center">
+                <div class="stat-card border-orange-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Gastado</p>
-                    <p id="resGastado" class="text-3xl font-black text-orange-600">$0.00</p>
+                    <p id="resGastado" class="text-2xl font-black text-orange-600">$0.00</p>
                 </div>
-            </div>
-
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden mb-10">
-                <div class="p-6 bg-emerald-50 border-b border-emerald-100">
-                    <h3 class="font-black uppercase italic text-emerald-700">Historial de Recargas de Saldo</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[9px] uppercase font-black">
-                            <tr>
-                                <th class="p-4">Fecha y Hora</th>
-                                <th class="p-4">Monto</th>
-                                <th class="p-4">Estatus</th>
-                                <th class="p-4 text-right">Comprobante</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaRecargasAsesor" class="text-xs font-bold"></tbody>
-                    </table>
+                <div class="stat-card border-purple-500">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Devoluciones</p>
+                    <p id="resDevolucion" class="text-2xl font-black text-purple-600">$0.00</p>
                 </div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="p-6 border-b border-slate-100">
-                    <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites Realizados</h3>
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-black uppercase italic text-slate-700">Historial de Trámites</h3>
+                    <button onclick="window.print()" class="text-[10px] font-black uppercase text-blue-600 border border-blue-200 px-3 py-1 rounded-full">Imprimir</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-100 text-[9px] uppercase font-black">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
                             <tr>
                                 <th class="p-4">Fecha</th>
                                 <th class="p-4">Servicio</th>
-                                <th class="p-4">Cliente / Info</th>
+                                <th class="p-4">Cliente</th>
                                 <th class="p-4">Costo</th>
                                 <th class="p-4 text-center">Estatus</th>
                             </tr>
@@ -87,7 +75,7 @@
             </div>
         </div>
 
-        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse">Sincronizando con Firebase...</div>
+        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse">Consultando Firebase...</div>
     </div>
 
     <script type="module">
@@ -99,92 +87,90 @@
         const db = getFirestore(app);
 
         window.buscarAsesor = async () => {
-            // NORMALIZACIÓN: Quitamos espacios y probamos con minúsculas
-            const emailRaw = document.getElementById('inputBusqueda').value.trim();
-            if(!emailRaw) return alert("Ingresa un correo");
+            const inputEmail = document.getElementById('inputBusqueda').value.trim();
+            if(!inputEmail) return alert("Ingresa un correo");
 
             document.getElementById('loader').classList.remove('hidden');
             document.getElementById('resultadoBusqueda').classList.add('hidden');
 
             try {
-                // 1. BUSCAR ASESOR (Probamos exacto, luego minúsculas)
-                let snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", emailRaw)));
-                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", emailRaw.toLowerCase())));
+                let saldoActual = 0, totalAgregado = 0, totalGastado = 0, totalDevuelto = 0;
+
+                // 1. BUSCAR ASESOR (Normalización)
+                let snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail)));
+                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toLowerCase())));
+                if(snapAsesor.empty) snapAsesor = await getDocs(query(collection(db, "asesores"), where("email", "==", inputEmail.toUpperCase())));
 
                 if(snapAsesor.empty) {
-                    alert("Correo no encontrado. Verifica si tiene espacios o mayúsculas diferentes.");
+                    alert("Correo no encontrado");
                     document.getElementById('loader').classList.add('hidden');
                     return;
                 }
 
                 const dataA = snapAsesor.docs[0].data();
-                const emailFiel = dataA.email; // El email tal cual está en la DB
-                document.getElementById('resSaldo').innerText = `$${Number(dataA.saldo || 0).toLocaleString()}`;
+                saldoActual = dataA.saldo || 0;
+                const emailDB = dataA.email;
 
-                // 2. HISTORIAL DE RECARGAS (notificaciones_pago)
-                const qPagos = query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailFiel), orderBy("fecha", "desc"));
-                const snapPagos = await getDocs(qPagos);
+                // 2. CALCULAR RECARGAS
+                const snapPagos = await getDocs(query(collection(db, "notificaciones_pago"), where("asesorEmail", "==", emailDB), where("estatus", "==", "aprobado")));
+                snapPagos.forEach(p => totalAgregado += Number(p.data().monto || 0));
+
+                // 3. OBTENER SOLICITUDES
+                const snapSols = await getDocs(query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailDB), orderBy("fecha", "desc")));
                 
-                const tRecargas = document.getElementById('tablaRecargasAsesor');
-                tRecargas.innerHTML = "";
-                let totalAprobado = 0;
+                const tabla = document.getElementById('tablaHistorialAsesor');
+                tabla.innerHTML = "";
 
-                snapPagos.forEach(docP => {
-                    const p = docP.data();
-                    const fecha = p.fecha?.toDate().toLocaleString('es-MX') || '---';
-                    const monto = Number(p.monto || 0);
-                    const est = p.estatus || 'pendiente';
-                    if(est === 'aprobado') totalAprobado += monto;
+                snapSols.forEach(docSnap => {
+                    const s = docSnap.data();
+                    if(s.tipo === "RECARGA ASESOR") return;
 
-                    let colorEst = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
-
-                    tRecargas.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-4 text-slate-500 font-normal">${fecha}</td>
-                            <td class="p-4 text-emerald-600">$${monto.toLocaleString()}</td>
-                            <td class="p-4 uppercase ${colorEst}">${est}</td>
-                            <td class="p-4 text-right">
-                                <a href="${p.comprobante}" target="_blank" class="text-blue-500 underline text-[10px]">VER TICKET</a>
-                            </td>
-                        </tr>`;
-                });
-                document.getElementById('resAgregado').innerText = `$${totalAprobado.toLocaleString()}`;
-
-                // 3. HISTORIAL DE TRÁMITES
-                const qSols = query(collection(db, "solicitudes"), where("nombre_asesor", "==", emailFiel), orderBy("fecha", "desc"));
-                const snapSols = await getDocs(qSols);
-                
-                const tSols = document.getElementById('tablaHistorialAsesor');
-                tSols.innerHTML = "";
-                let totalGastado = 0;
-
-                snapSols.forEach(docS => {
-                    const s = docS.data();
                     const costo = Number(s.costo || 0);
-                    if(!s.estatus.includes("Error")) totalGastado += costo;
+                    const esDevolucion = s.estatus === "Error de Datos" || s.estatus?.includes("ERROR") || s.estatus === "Rechazada";
+
+                    if(esDevolucion) totalDevuelto += costo;
+                    else totalGastado += costo;
 
                     const fecha = s.fecha?.toDate().toLocaleDateString('es-MX') || '---';
-                    tSols.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="p-4 text-slate-400">${fecha}</td>
-                            <td class="p-4 font-black uppercase text-slate-700">${s.tipo}</td>
-                            <td class="p-4 uppercase text-[10px]">
-                                <div class="text-slate-900">${s.cliente_nombre || '---'}</div>
-                                <div class="text-blue-600">CURP: ${s.curp || '---'}</div>
+                    const colorEstatus = s.estatus === 'Terminado' ? 'text-emerald-600' : (esDevolucion ? 'text-red-500' : 'text-orange-500');
+
+                    tabla.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50 transition">
+                            <td class="p-4 text-slate-400 font-bold">${fecha}</td>
+                            <td class="p-4 font-black text-slate-700 uppercase">${s.tipo}</td>
+                            <td class="p-4 uppercase">
+                                <div class="font-bold text-slate-900">${s.cliente_nombre || 'S/N'}</div>
+                                <div class="text-[9px] text-slate-400 font-black tracking-tighter">CURP: ${s.curp || '---'}</div>
                             </td>
-                            <td class="p-4 font-bold text-slate-600">$${costo}</td>
-                            <td class="p-4 text-center font-black uppercase text-[10px] ${s.estatus === 'Terminado' ? 'text-emerald-500' : 'text-orange-500'}">${s.estatus}</td>
+                            <td class="p-4 font-black text-slate-700">$${costo.toLocaleString('es-MX')}</td>
+                            <td class="p-4 text-center font-black uppercase text-[10px] ${colorEstatus}">${s.estatus}</td>
                         </tr>`;
                 });
-                document.getElementById('resGastado').innerText = `$${totalGastado.toLocaleString()}`;
+
+                const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
+                document.getElementById('resSaldo').innerText = fmt(saldoActual);
+                document.getElementById('resAgregado').innerText = fmt(totalAgregado);
+                document.getElementById('resGastado').innerText = fmt(totalGastado);
+                document.getElementById('resDevolucion').innerText = fmt(totalDevuelto);
 
                 document.getElementById('loader').classList.add('hidden');
                 document.getElementById('resultadoBusqueda').classList.remove('hidden');
 
             } catch(e) {
-                console.error(e);
-                alert("Error técnico al consultar. Si es la primera vez, puede que falte un índice de Firebase.");
+                console.error("Error Firebase:", e);
                 document.getElementById('loader').classList.add('hidden');
+                
+                if (e.message.includes("index") || e.message.includes("FAILED_PRECONDITION")) {
+                    const regex = /(https:\/\/console\.firebase\.google\.com[^\s]+)/g;
+                    const link = e.message.match(regex);
+                    if (link) {
+                        prompt("FALTA CREAR UN ÍNDICE. Copia este enlace y ábrelo en otra pestaña del celular:", link[0]);
+                    } else {
+                        alert("Error de Índice: Se requiere un índice en Firebase. Abre este panel en una PC para activarlo.");
+                    }
+                } else {
+                    alert("Error al obtener información.");
+                }
             }
         };
     </script>
