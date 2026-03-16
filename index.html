@@ -3,291 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Pensiones e Infonavit</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Pensión Segura | Asesoría Especializada IMSS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #666D7D; scroll-behavior: smooth; }
-        .modal-active { overflow: hidden; }
-        .service-card { transition: all 0.3s ease; }
-        .service-card:hover { transform: translateY(-5px); }
-        input:focus, select:focus, textarea:focus { border-color: #2563eb; outline: none; }
-        .banorte-box { background-color: #EB0029; color: white; padding: 1.25rem; border-radius: 1.5rem; margin-bottom: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(235, 0, 41, 0.2); }
+        :root {
+            --primary: #003366; /* Azul formal */
+            --secondary: #d4af37; /* Dorado confianza */
+            --accent: #25d366; /* WhatsApp */
+            --light: #f4f7f6;
+            --dark: #333;
+        }
 
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; color: var(--dark); background: var(--light); }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            sticky: top;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-decoration: none; }
+        .nav-links a { text-decoration: none; color: var(--dark); margin-left: 20px; font-weight: 500; }
+        .btn-login {
+            background: var(--primary);
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .btn-login:hover { background: var(--secondary); }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,51,102,0.8), rgba(0,51,102,0.8)), url('https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=1200') center/cover;
+            color: white;
+            padding: 100px 10%;
+            text-align: center;
+        }
+        .hero h1 { font-size: 3rem; margin-bottom: 20px; }
+        .hero p { font-size: 1.2rem; margin-bottom: 30px; }
+
+        /* Services / Pricing */
+        .services { padding: 50px 10%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary);
+        }
+        .price { font-size: 2rem; color: var(--primary); font-weight: bold; margin: 15px 0; }
+
+        /* Blog Preview */
+        .blog-preview { background: white; padding: 50px 10%; }
+        .blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        .blog-item { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .blog-content { padding: 15px; }
+
+        /* Form */
+        .contact-form { background: var(--primary); color: white; padding: 50px 10%; }
+        form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 800px; margin: auto; }
+        form input, form textarea, form button { padding: 12px; border-radius: 5px; border: none; }
+        form textarea { grid-column: span 2; }
+        form button { background: var(--secondary); color: white; font-weight: bold; cursor: pointer; grid-column: span 2; }
+
+        /* Floating Button */
+        .btn-whatsapp {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-decoration: none;
+        }
     </style>
 </head>
-<body class="text-slate-900">
+<body>
 
-    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div class="max-w-6xl mx-auto p-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white w-8 h-8 rounded flex items-center justify-center font-black">DP</div>
-                <h1 class="font-black uppercase tracking-tighter text-lg">DPR <span class="text-blue-600">Consultoría</span></h1>
-            </div>
-           
-            <div class="flex items-center gap-4">
-                <button onclick="abrirModal('modalInfo')" class="text-[10px] font-black uppercase text-slate-500 hover:text-blue-600">¿Quiénes Somos?</button>
-                <a href="https://pensionsegura.org/login" 
-   class="inline-flex items-center justify-center bg-[#F97316] hover:bg-[#EA580C] text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-full shadow-2xl transition-all hover:scale-105 active:scale-95 border-b-4 border-orange-800">
-    🔏 Log In
-</a>
-                <a href="blog.html" class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase">BLOG</a>
-            </div>
-        </div>
+    <header>
+        <a href="#" class="logo">Pensión Segura</a>
+        <nav class="nav-links">
+            <a href="#servicios">Servicios</a>
+            <a href="/blog">Blog</a>
+            <a href="#contacto">Contacto</a>
+            <a href="https://pensionsegura.org/login" class="btn-login"><i class="fas fa-user-tie"></i> Soy Asesor / Iniciar Sesión</a>
+        </nav>
     </header>
- <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" 
-   class="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2 group">
-    <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 whitespace-nowrap font-black uppercase text-[10px] tracking-widest">
-        Únete al Canal de Avisos
-    </span>
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.224-3.92l.356.211c1.639.973 3.532 1.488 5.467 1.489 5.811 0 10.537-4.729 10.54-10.539 0-2.817-1.097-5.465-3.091-7.46s-4.644-3.091-7.463-3.091c-5.815 0-10.542 4.729-10.545 10.539 0 2.115.556 4.177 1.61 5.976l.233.396-1.06 3.869 3.967-1.041z"/></svg>
-</a>
-    <section class="pt-16 pb-12 px-6 text-center text-white">
-        <h2 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter uppercase leading-tight">Tu retiro merece <br><span class="text-blue-400">estrategia.</span></h2>
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <button onclick="abrirModal('modalEstatus')" class="bg-white text-blue-600 px-8 py-3 rounded-full font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-50 transition w-full sm:w-auto">Consultar Estatus</button>
+
+    <section class="hero">
+        <h1>Maximiza tu Pensión IMSS</h1>
+        <p>Expertos en Ley 73, Modalidad 40 y recuperación de semanas. Planeamos tu futuro financiero.</p>
+        <a href="#contacto" style="background:var(--secondary); color:white; padding:15px 30px; text-decoration:none; border-radius:5px; font-weight:bold;">SOLICITAR ASESORÍA</a>
+    </section>
+
+    <section id="servicios" class="services">
+        <div class="card">
+            <i class="fas fa-bolt fa-3x" style="color: var(--secondary);"></i>
+            <h3>Análisis Rápido</h3>
+            <p>Diagnóstico express de tu situación actual ante el IMSS.</p>
+            <div class="price">$200</div>
+            <a href="https://wa.me/528131983700" class="btn-login" style="display:block">Lo quiero</a>
+        </div>
+        <div class="card">
+            <i class="fas fa-chart-line fa-3x" style="color: var(--secondary);"></i>
+            <h3>Análisis Detallado</h3>
+            <p>Proyección completa con escenarios de inversión y Modalidad 40.</p>
+            <div class="price">$800</div>
+            <a href="https://wa.me/528131983700" class="btn-login" style="display:block">Ver Plan</a>
+        </div>
+        <div class="card">
+            <i class="fas fa-home fa-3x" style="color: var(--secondary);"></i>
+            <h3>DPR Consultoría</h3>
+            <p>Atención física en García, N.L. Gestión de Afores e Infonavit.</p>
+            <div class="price">Costo variable</div>
+            <a href="#contacto" class="btn-login" style="display:block">Consultar</a>
         </div>
     </section>
 
-    <main class="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <button onclick="abrirModal('modalLey')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
-            <span class="text-3xl mb-4 block">🔍</span>
-            <h3 class="font-black text-xl uppercase italic">¿Qué Ley Soy?</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">Gratis</p>
-        </button>
-        <button onclick="abrirModal('modalRapido')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
-            <span class="text-3xl mb-4 block">⚡</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Rápido</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$200 MXN</p>
-        </button>
-        <button onclick="abrirModal('modalDetallado')" class="service-card bg-blue-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
-            <span class="text-3xl mb-4 block">📊</span>
-            <h3 class="font-black text-xl uppercase italic">Análisis de Pensión Detallado</h3>
-            <p class="text-blue-200 font-bold text-[10px] uppercase">$800 MXN</p>
-        </button>
-        <button onclick="abrirModal('modalInfonavit')" class="service-card bg-red-600 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
-            <span class="text-3xl mb-4 block">🏠</span>
-            <h3 class="font-black text-xl uppercase italic">Precalificación Infonavit</h3>
-            <p class="text-red-200 font-bold text-[10px] uppercase">$210 MXN</p>
-        </button>
-    
-        <button onclick="abrirModal('modalRFCV')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
-            <span class="text-3xl mb-4 block">✅</span>
-            <h3 class="font-black text-xl uppercase italic">RFC Verificable</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$180 MXN</p>
-        </button>
-        <button onclick="abrirModal('modalCSF')" class="service-card bg-blue-800 text-white p-8 rounded-[2.5rem] shadow-xl text-left">
-            <span class="text-3xl mb-4 block">📜</span>
-            <h3 class="font-black text-xl uppercase italic">CSF Original</h3>
-            <p class="text-blue-200 font-bold text-[10px] uppercase">$230 MXN</p>
-        </button>
-        <button onclick="abrirModal('modalDocs')" class="service-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 text-left">
-            <span class="text-3xl mb-4 block">📄</span>
-            <h3 class="font-black text-xl uppercase italic">Documentos</h3>
-            <p class="text-blue-600 font-bold text-[10px] uppercase">$25 MXN</p>
-        </button>
-    </main>
-
-    <div id="modalBase" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-300 hover:text-red-500 text-4xl font-light">×</button>
-            <div id="contenidoModal"></div>
+    <section class="blog-preview">
+        <h2>Último en nuestro <a href="/blog" style="color:var(--primary)">Blog</a></h2>
+        <div class="blog-grid">
+            <div class="blog-item">
+                <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e772?auto=format&fit=crop&w=400" width="100%" alt="Blog 1">
+                <div class="blog-content">
+                    <h4>Guía Modalidad 40</h4>
+                    <p>Todo lo que necesitas saber para aumentar tu pensión este 2026...</p>
+                </div>
+            </div>
+            <div class="blog-item">
+                <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&w=400" width="100%" alt="Blog 2">
+                <div class="blog-content">
+                    <h4>Ley 73 vs Ley 97</h4>
+                    <p>Descubre en qué régimen estás y cuáles son tus beneficios.</p>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, updateDoc, increment, setDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <section id="contacto" class="contact-form">
+        <h2 style="text-align:center">Contáctanos</h2>
+        <p style="text-align:center">Déjanos tus datos y un asesor se pondrá en contacto contigo.</p>
+        <form action="mailto:tu-correo@ejemplo.com" method="post" enctype="text/plain">
+            <input type="text" placeholder="Nombre completo" required>
+            <input type="tel" placeholder="Teléfono / WhatsApp" required>
+            <input type="email" placeholder="Correo electrónico" required>
+            <input type="text" placeholder="Asunto (Ej: Modalidad 40)">
+            <textarea rows="4" placeholder="Cuéntanos tus dudas..."></textarea>
+            <button type="submit">ENVIAR SOLICITUD</button>
+        </form>
+    </section>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-            authDomain: "pensionsegura-9c817.firebaseapp.com",
-            projectId: "pensionsegura-9c817",
-            storageBucket: "pensionsegura-9c817.firebasestorage.app",
-            messagingSenderId: "169500313261",
-            appId: "1:169500313261:web:15e2b662571df505d36824"
-        };
+    <a href="https://wa.me/528131983700" class="btn-whatsapp" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    <footer style="text-align:center; padding: 20px; background:#eee;">
+        <p>&copy; 2026 DPR Consultoría | Calle Lerdo de Tejada #113, García, N.L.</p>
+    </footer>
 
-        const CLOUD_NAME = "de5abnhul";
-        const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        async function registrarVisitaDiaria() {
-            const hoy = new Date().toISOString().split('T')[0]; 
-            const visitaRef = doc(db, "visitas_diarias", hoy);
-            try { await updateDoc(visitaRef, { contador: increment(1) }); }
-            catch (e) { await setDoc(visitaRef, { contador: 1, fecha: hoy }); }
-        }
-        registrarVisitaDiaria();
-
-        const HTML_PAGO = `<div class="banorte-box"><p class="text-[10px] font-black uppercase mb-1 opacity-80">Transferencia Banorte</p><p class="text-lg font-black tracking-tighter mb-1">4915 6630 4036 4896</p><p class="text-[11px] font-bold uppercase italic text-white">Diana Puente Rodriguez</p></div>`;
-
-        window.abrirModal = (tipo) => {
-            const modal = document.getElementById('modalBase');
-            const contenido = document.getElementById('contenidoModal');
-            document.body.classList.add('modal-active');
-            modal.classList.remove('hidden');
-            contenido.innerHTML = "";
-
-            const confs = {
-                'modalRapido': { t: 'Análisis Rápido', p: 200, x: 'R', c: 'blue-600' },
-                'modalDetallado': { t: 'Análisis Detallado', p: 800, x: 'D', c: 'blue-600' },
-                'modalInfonavit': { t: 'Precalificación Infonavit', p: 210, x: 'INF', c: 'red-600' },
-                'modalRFC': { t: 'RFC Clon', p: 35, x: 'RFC', c: 'blue-600' },
-                'modalRFCV': { t: 'RFC Verificable', p: 140, x: 'RFCV', c: 'blue-600' },
-                'modalCSF': { t: 'CSF Original', p: 230, x: 'CSF', c: 'blue-800' }
-            };
-
-            if (tipo === 'modalInfo') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-4 uppercase italic text-center">DPR Consultoría</h2><p class="text-sm text-slate-600 mb-4 text-center">Asesoría profesional en pensiones.</p>`;
-            } else if (tipo === 'modalEstatus') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">Estatus</h2><input type="text" id="folioBusqueda" placeholder="FOLIO" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black border-2"><button onclick="buscarEstatus()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase italic">Consultar</button><div id="resBus" class="mt-6 hidden p-6 text-center font-black border-2"></div>`;
-            } else if (tipo === 'modalLey') {
-                contenido.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase text-center">¿Qué Ley Soy?</h2><input type="number" id="anioLey" placeholder="Año alta IMSS" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 text-center font-black text-2xl border-2"><button onclick="verificarLey()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Verificar</button><div id="resLey" class="mt-4 hidden p-4 rounded-2xl text-center font-bold"></div>`;
-            } else if (tipo === 'modalDocs') {
-                contenido.innerHTML = `
-                <h2 class="text-2xl font-black mb-1 uppercase text-blue-600 italic">Documentos</h2>
-                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">$15 MXN</p>
-                ${HTML_PAGO}
-                <div class="space-y-3">
-                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
-                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-4 bg-slate-50 rounded-2xl border-2 uppercase font-bold">
-                    
-                    <select id="extra_p" onchange="window.toggleNssDoc()" class="w-full p-4 bg-yellow-50 rounded-2xl border-2 border-yellow-400 font-black uppercase text-xs">
-                        <option value="" disabled selected>-- SELECCIONA EL DOCUMENTO --</option>
-                        <option value="Acta de Matrimonio">Acta de Matrimonio</option>
-                        <option value="Acta de Nacimiento">Acta de Nacimiento</option>
-                        <option value="Acta de Divorcio">Acta de Divorcio</option>
-                        <option value="Acta de Defunción">Acta de Defunción</option>
-                        <option value="Vigencia de Derechos">Vigencia de Derechos</option>
-                        <option value="Tarjeta NSS">Localizar NSS</option>
-                        <option value="Localizar Afore">Localizar AFORE</option>
-                    </select>
-
-                    <div id="contenedorNssDoc" class="hidden animate-fade">
-                        <input type="text" id="nss_p_doc" placeholder="NSS (REQUERIDO)" class="w-full p-4 bg-slate-50 rounded-2xl border-2 font-bold" maxlength="11">
-                    </div>
-
-                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
-                    <input type="file" id="file_p" class="block w-full text-xs">
-                </div>
-                <button onclick="ejecutarEnvio('DOC', 15)" id="btn_envio" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic mt-6 shadow-xl">Enviar</button>
-                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
-            } else {
-                const s = confs[tipo];
-                contenido.innerHTML = `
-                <h2 class="text-2xl font-black mb-1 uppercase text-${s.c} italic">${s.t}</h2>
-                <p class="text-[10px] font-black text-slate-400 mb-4 uppercase italic">Costo: $${s.p}</p>
-                ${HTML_PAGO}
-                <div class="space-y-2">
-                    <input type="text" id="nombre_p" placeholder="Nombre completo" class="w-full p-3 bg-slate-50 rounded-xl border">
-                    <input type="text" id="curp_p" placeholder="CURP" class="w-full p-3 bg-slate-50 rounded-xl border uppercase">
-                    <input type="text" id="nss_p" placeholder="NSS (Si aplica)" class="w-full p-3 bg-slate-50 rounded-xl border">
-                    <input type="tel" id="tel_p" placeholder="WhatsApp" class="w-full p-3 bg-slate-50 rounded-xl border">
-                    <h2 class="text-[10px] font-black text-red-600 italic uppercase">Sube comprobante</h2>
-                    <input type="file" id="file_p" class="block w-full text-xs">
-                </div>
-                <button onclick="ejecutarEnvio('${s.x}', ${s.p})" id="btn_envio" class="w-full bg-${s.c} text-white py-4 rounded-2xl font-black uppercase italic mt-4 shadow-xl">Enviar</button>
-                <div id="exito_p" class="hidden mt-4 p-4 bg-green-50 text-green-700 rounded-2xl text-center font-bold">¡Enviado! Folio: <span id="folio_p"></span></div>`;
-            }
-        };
-
-        window.toggleNssDoc = () => {
-            const docSel = document.getElementById('extra_p').value;
-            const cont = document.getElementById('contenedorNssDoc');
-            // Si es Vigencia de Derechos o Tarjeta NSS, mostrar el campo NSS
-            if (docSel === 'Vigencia de Derechos' || docSel === 'Tarjeta NSS') {
-                cont.classList.remove('hidden');
-            } else {
-                cont.classList.add('hidden');
-            }
-        };
-
-        window.ejecutarEnvio = async (prefix, costo) => {
-            const btn = document.getElementById('btn_envio');
-            const file = document.getElementById('file_p').files[0];
-            if (!file) return alert("Sube comprobante.");
-            
-            // Validar NSS si es Vigencia
-            const docSel = document.getElementById('extra_p')?.value;
-            if (prefix === 'DOC' && (docSel === 'Vigencia de Derechos' || docSel === 'Tarjeta NSS')) {
-                const nssDoc = document.getElementById('nss_p_doc').value;
-                if (!nssDoc || nssDoc.length < 11) return alert("Por favor ingresa un NSS válido para este trámite.");
-            }
-
-            btn.innerText = "ENVIANDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-                const resp = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const dImg = await resp.json();
-                
-                let tipoServicio = prefix;
-                let nssFinal = document.getElementById('nss_p')?.value || "N/A";
-
-                if(prefix === 'DOC') {
-                    tipoServicio = document.getElementById('extra_p').value;
-                    if (tipoServicio === 'Vigencia de Derechos' || tipoServicio === 'Tarjeta NSS') {
-                        nssFinal = document.getElementById('nss_p_doc').value;
-                    }
-                }
-
-                const folioStr = prefix + "-" + Math.floor(1000 + Math.random() * 9000);
-
-                await addDoc(collection(db, "solicitudes"), {
-                    origen: "WEB", 
-                    folio: folioStr, 
-                    tipo: tipoServicio,
-                    costo: Number(costo),
-                    nombre: document.getElementById('nombre_p')?.value || "CLIENTE WEB",
-                    curp: document.getElementById('curp_p').value.toUpperCase(),
-                    nss: nssFinal,
-                    tel: document.getElementById('tel_p')?.value || "N/A",
-                    comprobante: dImg.secure_url, 
-                    estatus: "En Proceso", 
-                    fecha: serverTimestamp()
-                });
-                
-                document.getElementById('exito_p').classList.remove('hidden');
-                document.getElementById('folio_p').innerText = folioStr;
-                btn.innerText = "¡LISTO!";
-            } catch(e) { alert("Error."); btn.disabled = false; btn.innerText = "Reintentar"; }
-        };
-
-        window.buscarEstatus = async () => {
-            const f = document.getElementById('folioBusqueda').value.trim();
-            const res = document.getElementById('resBus');
-            res.classList.remove('hidden'); res.innerText = "BUSCANDO...";
-            const q = query(collection(db, "solicitudes"), where("folio", "==", f));
-            const snap = await getDocs(q);
-            if (snap.empty) { res.innerText = "NO ENCONTRADO"; res.className = "mt-6 p-6 bg-red-50 text-red-700 rounded-[2rem]"; }
-            else {
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    if (d.archivoFinal) res.innerHTML = `<a href="${d.archivoFinal}" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-full font-black italic">📥 BAJAR RESULTADO</a>`;
-                    else { res.innerText = "ESTATUS: " + d.estatus; res.className = "mt-6 p-6 bg-yellow-50 text-yellow-700 rounded-[2rem] italic uppercase"; }
-                });
-            }
-        };
-
-        window.verificarLey = () => {
-            const a = document.getElementById('anioLey').value;
-            const r = document.getElementById('resLey');
-            r.classList.remove('hidden');
-            if (a < 1997) { r.innerText = "¡ERES LEY 73! Solicita un análisis de pensión para que sepas como aumentar hasta $50,000 tu pension ! " ; r.className = "mt-4 p-4 bg-green-100 text-green-700 rounded-2xl font-black uppercase"; }
-            else { r.innerText = "¡ERES LEY 97! el ahorro es tu mejor aliado, solicita un análisis para que aproveches cada centavo ahorrado"; r.className = "mt-4 p-4 bg-blue-100 text-blue-700 rounded-2xl font-black uppercase"; }
-        };
-
-        window.cerrarModal = () => { document.getElementById('modalBase').classList.add('hidden'); document.body.classList.remove('modal-active'); };
-    </script>
 </body>
 </html>
-
-
-
-
-
-
-
