@@ -321,31 +321,65 @@
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, special) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+       window.confirmarCompra = async (n, c, special, nota) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente."); 
+            
             const btn = document.querySelector("#modalTramite button:last-child");
-            btn.disabled = true; btn.innerText = "PROCESANDO...";
-            try {
-                const infoExtra = {};
-                if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
-                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
-                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
-                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
-                if(document.getElementById('nombre_cliente')) infoExtra.nombre_cliente = document.getElementById('nombre_cliente').value.toUpperCase();
-                if(document.getElementById('correo_p')) infoExtra.correo_cliente = document.getElementById('correo_p').value;
-                if(document.getElementById('tel_p')) infoExtra.telefono_cliente = document.getElementById('tel_p').value;
-                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value;
-                if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
+            const oldT = btn.innerText; 
+            btn.disabled = true; 
+            btn.innerText = "PROCESANDO...";
 
-                const subir = async (id) => {
-                    const el = document.getElementById(id);
-                    if (el && el.files[0]) {
-                        const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
-                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                        const data = await res.json(); return data.secure_url;
+            try {
+                let extraInfo = nota || "";
+                if(document.getElementById('nombre_cliente')) extraInfo += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
+                if(document.getElementById('rfc_p')) extraInfo += ` | RFC: ${document.getElementById('rfc_p').value}`;
+                if(document.getElementById('idcif_p')) extraInfo += ` | IDcif: ${document.getElementById('idcif_p').value}`;
+
+                // --- 1. GUARDADO EN FIREBASE ---
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                await addDoc(collection(db, "solicitudes"), {
+                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                    tipo: n, costo: c, curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
+                    nss: document.getElementById('nss_p')?.value || "N/A",
+                    extra: extraInfo, estatus: "En Proceso", fecha: serverTimestamp()
+                });
+
+                // --- 2. ENRUTAMIENTO A PROVEEDOR JOYA ---
+                const tramitesJoya = [
+                    'Acta de Nacimiento', 'Acta de Matrimonio', 'Acta de Divorcio', 
+                    'Acta de Defunción', 'RFC Clon', 'RFC con IDcif'
+                ];
+
+                const datosN8n = {
+                    asesor: emailAsesor,
+                    tramite: n,
+                    datos_extra: {
+                        curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
+                        rfc: document.getElementById('rfc_p')?.value.toUpperCase() || "N/A",
+                        idcif: document.getElementById('idcif_p')?.value || "N/A",
+                        extra: extraInfo
                     }
-                    return null;
                 };
+
+                if (tramitesJoya.includes(n)) {
+                    // Usamos la URL de producción sin el "-test"
+                    await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(datosN8n)
+                    }).catch(err => console.log("Aviso no enviado", err));
+                }
+
+                alert("Trámite enviado."); 
+                cerrarModal();
+                
+            } catch(e) { 
+                alert("Hubo un error al procesar el pago."); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = oldT; 
+            }
+        };
 
                 infoExtra.file_ine_f = await subir('file_ine_f');
                 if(special === 'RETIRO' || special === 'REGISTRO') {
