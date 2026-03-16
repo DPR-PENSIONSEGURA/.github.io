@@ -366,18 +366,27 @@
                 });
 
                 // --- 2. ENRUTAMIENTO A PROVEEDOR JOYA (N8N) ---
-                const tramitesJoya = ['Acta de Nacimiento', 'Acta de Matrimonio', 'Acta de Divorcio', 'Acta de Defunción', 'RFC Clon', 'RFC con IDcif'];
-                if (tramitesJoya.includes(n)) {
-                    const datosN8n = {
-                        asesor: emailAsesor, tramite: n,
-                        datos_extra: { curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A", ...infoExtra }
-                    };
-                    await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(datosN8n)
-                    }).catch(err => console.log("Aviso n8n no enviado", err));
-                }
+                // --- ENRUTAMIENTO GENERAL A N8N ---
+// Quitamos la lista 'tramitesJoya' para que TODO se mande
+const datosN8n = {
+    asesor: emailAsesor,
+    tramite: n,
+    datos_extra: {
+        curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
+        rfc: document.getElementById('rfc_p')?.value.toUpperCase() || "N/A",
+        nss: document.getElementById('nss_p')?.value || "N/A",
+        extra: extraInfo
+    }
+};
 
+// Mandamos el fetch sin condiciones
+await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(datosN8n)
+}).catch(err => console.log("Aviso n8n no enviado", err));
+
+                
                 alert("Trámite enviado."); 
                 cerrarModal();
                 
