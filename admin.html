@@ -55,21 +55,17 @@
                 📱 Enviar Corte WhatsApp
             </button>
         </div>
-
-        <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4 italic">Aprobación de Saldo</h2>
+            <section class="mb-12">
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                        <tr>
-                            <th class="p-5">Asesor / Email</th>
-                            <th class="p-5">Monto</th>
-                            <th class="p-5">Comprobante</th>
-                            <th class="p-5 text-center">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaRecargas"></tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
+                            <tr><th class="p-5">Asesor (Email)</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaRecargas"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -136,31 +132,25 @@
         });
 
         // 2. RECARGAS
-        onSnapshot(collection(db, "notificaciones_pago"), (snap) => {
-            const t = document.getElementById('tablaRecargas'); 
-            t.innerHTML = "";
-            const pendientes = snap.docs.filter(doc => doc.data().estatus?.toLowerCase() === "pendiente");
-            if(pendientes.length === 0) {
-                t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>';
-                return;
-            }
-            pendientes.forEach(d => {
+        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
+            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
+            snap.forEach(d => {
                 const r = d.data();
-                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${Number(r.monto).toLocaleString()}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase italic">Ver 📥</button></td>
+                t.innerHTML += `<tr class="border-b">
+                    <td class="p-5 font-bold">${r.asesorEmail}</td>
+                    <td class="p-5 font-black text-emerald-600">$${r.monto}</td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px]">PAGO 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2">
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1.5 rounded-xl font-black text-[8px] uppercase shadow-md">Aprobar</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
                     </td></tr>`;
             });
         });
 
         window.validarRecarga = async (docId, uid, monto, est) => {
-            if(est === 'aprobado') {
-                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("✅ Saldo cargado.");
-            }
+            await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+            await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
         };
+
 
         // 3. TRÁMITES Y VENTA HOY
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100)), (snap) => {
