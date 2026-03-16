@@ -321,7 +321,7 @@
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, special) => {
+       window.confirmarCompra = async (n, c, special, nota) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente."); 
             
             const btn = document.querySelector("#modalTramite button:last-child");
@@ -330,10 +330,10 @@
             btn.innerText = "PROCESANDO...";
 
             try {
-                const infoExtra = {};
-                if(document.getElementById('nombre_cliente')) infoExtra.nombre_cliente = document.getElementById('nombre_cliente').value.toUpperCase();
-                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
-                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
+                let extraInfo = nota || "";
+                if(document.getElementById('nombre_cliente')) extraInfo += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
+                if(document.getElementById('rfc_p')) extraInfo += ` | RFC: ${document.getElementById('rfc_p').value}`;
+                if(document.getElementById('idcif_p')) extraInfo += ` | IDcif: ${document.getElementById('idcif_p').value}`;
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
                 if(document.getElementById('correo_p')) infoExtra.correo = document.getElementById('correo_p').value;
                 if(document.getElementById('tel_p')) infoExtra.telefono = document.getElementById('tel_p').value;
@@ -369,35 +369,31 @@
                 // --- ENRUTAMIENTO GENERAL A N8N ---
 // Quitamos la lista 'tramitesJoya' para que TODO se mande
 const datosN8n = {
-    asesor: emailAsesor,
-    tramite: n,
-    datos_extra: {
-        curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
-        rfc: document.getElementById('rfc_p')?.value.toUpperCase() || "N/A",
-        nss: document.getElementById('nss_p')?.value || "N/A",
-        extra: extraInfo
-    }
-};
-
+                    asesor: emailAsesor,
+                    tramite: n,
+                    datos_extra: {
+                        curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
+                        rfc: document.getElementById('rfc_p')?.value.toUpperCase() || "N/A",
+                        nss: document.getElementById('nss_p')?.value || "N/A",
+                        extra: extraInfo
+                    }
+                };
 // Mandamos el fetch sin condiciones
 await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(datosN8n)
-}).catch(err => console.log("Aviso n8n no enviado", err));
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(datosN8n)
+                }).catch(err => console.log("Error de red n8n", err));
 
-                
-                alert("Trámite enviado."); 
+                alert("Trámite enviado con éxito."); 
                 cerrarModal();
                 
             } catch(e) { 
-                alert("Error al procesar el pago."); 
-                console.error(e);
+                alert("Hubo un error al procesar."); 
             } finally { 
                 btn.disabled = false; btn.innerText = oldT; 
             }
         };
-
         window.abrirPropuestaServicio = () => {
             const content = document.getElementById('formContent');
             content.innerHTML = `<div class="space-y-4"><h2 class="text-xl font-black text-orange-600 uppercase italic">Ofrecer Servicio</h2>
