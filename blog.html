@@ -3,125 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog de DPR Consultoría | Noticias y Guías IMSS</title>
+    <title>Artículo | Pensión Segura DPR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* ESTILO BEIGE Y VERDE DPR */
-        body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: #F5F5DC; color: #1E293B; }
         .header-dpr { background: #0F172A; color: white; border-bottom: 4px solid #059669; }
-        .card-blog { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; transition: all 0.3s ease; }
-        .sidebar-card { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; height: fit-content; }
-        
-        .input-dpr { width: 100%; padding: 12px; border: 2px solid #F1F5F9; border-radius: 15px; font-weight: 700; font-size: 12px; outline: none; transition: 0.3s; }
-        .input-dpr:focus { border-color: #059669; background: #F0FDF4; }
-        
+        .card-article { background: white; border-radius: 2rem; border: 1px solid #E2E8F0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
         .btn-wpp { background: #25D366; color: white; padding: 12px 24px; border-radius: 15px; font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .btn-wpp:hover { background: #128C7E; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(37, 211, 102, 0.3); }
+        .btn-wpp:hover { background: #128C7E; transform: translateY(-2px); }
+        .btn-login { background: #059669; color: white; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 900; text-transform: uppercase; }
         
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        /* Botón Volver Flotante Izquierda */
+        .btn-back { position: fixed; top: 120px; left: 20px; background: white; color: #0F172A; padding: 10px 15px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: 800; text-transform: uppercase; font-size: 10px; z-index: 50; border: 1px solid #E2E8F0; transition: 0.3s; }
+        .btn-back:hover { background: #0F172A; color: white; transform: translateX(5px); }
     </style>
 </head>
 <body>
 
-<header class="header-dpr p-6 text-center">
-    <div class="max-w-7xl mx-auto flex justify-center items-center gap-3">
-        <div class="bg-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg">DP</div>
-        <div class="text-xl font-black uppercase tracking-tighter italic">DPR <span class="text-emerald-500">Consultoría</span> | Blog</div>
+<a href="https://pensionsegura.org" class="btn-back">
+    <i class="fas fa-arrow-left mr-2"></i> Inicio
+</a>
+
+<header class="header-dpr p-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <a href="https://pensionsegura.org" class="flex items-center gap-3">
+            <div class="bg-emerald-600 w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg">DP</div>
+            <div class="text-xl font-black uppercase tracking-tighter italic">DPR <span class="text-emerald-500">Consultoría</span></div>
+        </a>
+        
+        <a href="https://pensionsegura.org/login" class="btn-login">
+            <i class="fas fa-user-tie mr-2"></i> Soy Asesor
+        </a>
     </div>
 </header>
 
-<div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-    
-    <main class="lg:col-span-2 space-y-8">
-        <section class="card-blog p-8 shadow-xl">
-            <span class="text-[10px] font-black text-orange-600 uppercase tracking-widest italic">Última Noticia</span>
-            <h1 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter mt-2 mb-6 border-l-4 border-emerald-600 pl-4">
-                Ley 97 del IMSS: ¿Cómo asegurar un retiro digno si eres generación AFORE?
-            </h1>
-            <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=800&q=80" class="w-full rounded-[2rem] mb-6 shadow-md" alt="Ley 97">
+<main class="max-w-4xl mx-auto px-6 py-12">
+    <article class="card-article p-8 md:p-12">
+        <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest italic">Recurso Gratuito</span>
+        <h1 class="text-3xl md:text-5xl font-black text-slate-800 uppercase italic tracking-tighter mt-4 mb-8 border-l-8 border-emerald-600 pl-6 leading-none">
+            Modalidad 40: ¿Cómo recuperar tu inversión en el primer año?
+        </h1>
+
+        <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&w=1200" class="w-full rounded-[2.5rem] mb-10 shadow-lg" alt="Asesoría Pensiones">
+
+        <div class="space-y-6 text-slate-600 font-medium leading-relaxed text-lg">
+            <p>Muchos de nuestros clientes en <strong>García, Nuevo León</strong>, llegan con la misma duda: ¿Realmente vale la pena pagar la Modalidad 40? La respuesta corta es <strong>SÍ</strong>, siempre y cuando tengas un plan de recuperación de inversión.</p>
             
-            <div class="prose prose-slate max-w-none text-slate-600 font-medium leading-relaxed">
-                <p>¿Empezaste a cotizar después de julio de 1997? Tu futuro depende de tu cuenta individual. Descubre cómo las semanas cotizadas y el saldo de tu AFORE definirán tu calidad de vida...</p>
-                <p class="mt-4">Para muchos mexicanos, la Ley 97 representa un reto financiero. A diferencia de la Ley 73, aquí no existe una pensión vitalicia pagada por el gobierno basada solo en tus últimos salarios; aquí, <strong>el ahorro es la clave.</strong></p>
+            <div class="bg-slate-50 p-6 rounded-[2rem] border-2 border-dashed border-slate-200">
+                <h3 class="text-slate-800 font-black uppercase italic mb-2">El dato clave de Diana Puente:</h3>
+                <p class="text-base italic italic">"No se trata de pagar por pagar. Se trata de comprar las semanas necesarias y el salario promedio ideal para que tu pensión pase de $7,000 a $35,000 o más."</p>
             </div>
-            <a href="guia-ley-97.html" class="mt-8 inline-block bg-slate-800 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-emerald-600 transition">Seguir leyendo →</a>
-        </section>
 
-        <section class="card-blog p-8 shadow-xl border-t-4 border-orange-500">
-            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Preguntas al Experto</h2>
+            <p>En el primer año de recibir tu pensión, el retroactivo y el excedente mensual suelen cubrir el 100% de lo invertido al IMSS. Es la mejor inversión financiera que puedes hacer en México.</p>
+        </div>
+
+        <div class="mt-16 p-8 bg-slate-900 rounded-[2.5rem] text-white">
+            <h3 class="text-2xl font-black uppercase italic text-emerald-400 mb-4 text-center">Calcula tu escenario</h3>
+            <p class="text-sm text-slate-400 text-center mb-8">Déjanos tus datos para un análisis rápido de $200</p>
             
-            <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 mb-8">
-                <p class="text-[10px] font-black text-orange-600 uppercase mb-4 tracking-widest italic">⚠️ Por favor, incluye tus semanas y salarios para una respuesta exacta:</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="p_nombre" placeholder="Nombre Completo" class="input-dpr">
-                    <input type="number" id="p_semanas" placeholder="Semanas Cotizadas (Ej: 1100)" class="input-dpr">
-                    <input type="text" id="p_salario" placeholder="Último Salario Mensual" class="input-dpr">
-                    <textarea id="p_duda" placeholder="Escribe tu duda o caso aquí..." class="input-dpr md:col-span-2 h-24"></textarea>
-                </div>
-                <button onclick="enviarDudaBlog()" class="btn-wpp w-full justify-center mt-6 shadow-lg">Enviar consulta por WhatsApp</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" id="art_nombre" placeholder="Nombre completo" class="w-full p-4 bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold">
+                <input type="number" id="art_semanas" placeholder="Semanas cotizadas" class="w-full p-4 bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold">
+                <textarea id="art_duda" placeholder="¿Cuál es tu duda principal?" class="w-full p-4 bg-slate-800 border-none rounded-2xl md:col-span-2 h-32 focus:ring-2 focus:ring-emerald-500 outline-none font-bold"></textarea>
+                <button onclick="enviarDudaArticulo()" class="btn-wpp w-full justify-center md:col-span-2 py-5 shadow-2xl">
+                    Hablar con Diana ahora
+                </button>
             </div>
+        </div>
+    </article>
 
-            <div class="space-y-4">
-                <div class="p-4 bg-white border border-slate-100 rounded-2xl">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Pedro M. pregunta:</p>
-                    <p class="text-xs font-bold text-slate-700 italic mt-1">"Tengo 1200 semanas y 58 años, ¿me conviene Modalidad 40?"</p>
-                    <div class="mt-3 p-3 bg-emerald-50 rounded-xl border-l-4 border-emerald-500 text-[11px] text-emerald-800 font-medium">
-                        <strong>Diana Puente:</strong> Definitivamente Pedro. Con tus semanas, invertir los últimos 2 años puede duplicar tu pensión proyectada.
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    <div class="text-center mt-12">
+        <a href="https://pensionsegura.org/blog" class="font-black text-slate-400 uppercase tracking-widest hover:text-emerald-600 transition">
+            ← Ver más artículos del blog
+        </a>
+    </div>
+</main>
 
-    <aside class="space-y-6">
-        <section class="sidebar-card p-6 shadow-lg">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 border-b pb-2">Temas Anteriores</h2>
-            
-            <div class="space-y-6">
-                <div class="group cursor-pointer">
-                    <span class="text-[9px] font-black text-emerald-600 uppercase">Guía Ley 73</span>
-                    <a ="ley-73-vs-97.html" class="block font-black text-sm text-slate-800 group-hover:text-emerald-600 transition uppercase tracking-tighter italic">Ley 73 vs 97: ¿Cuál es tu régimen?</a>
-                    <p class="text-[10px] text-slate-400 mt-1">Publicado: Febrero 2026</p>
-                </div>
-
-                <div class="group cursor-pointer">
-                    <span class="text-[9px] font-black text-orange-600 uppercase">Inversión</span>
-                   <div class="recent-item">
-    <a href="blog/queesmodalidad40.html">¿Qué es la Modalidad 40?</a>
-    <small>Publicado: Marzo 2026</small>
-</div>
-                </div>
-            </div>
-
-            <div class="mt-10 p-6 bg-emerald-600 rounded-[2rem] text-white text-center shadow-xl">
-                <p class="text-xs font-black uppercase mb-4">¿Necesitas asesoría privada?</p>
-                <a href="https://wa.me/528131983700?text=Hola%20Diana,%20vi%20tu%20blog%20y%20quiero%20asesoría" 
-                   target="_blank" 
-                   class="inline-block bg-white text-emerald-600 font-black px-6 py-3 rounded-xl uppercase text-[10px] hover:scale-105 transition">
-                    Contactar Ahora
-                </a>
-            </div>
-        </section>
-    </aside>
-
-</div>
-
-<footer class="text-center py-10 opacity-40 text-[10px] font-black uppercase tracking-[0.5em]">
-    © 2026 DPR Consultoría | García, Nuevo León
+<footer class="text-center py-12 opacity-30 text-[9px] font-black uppercase tracking-[0.5em]">
+    © 2026 DPR Consultoría | Calle Lerdo de Tejada #113, Centro, García, N.L.
 </footer>
 
 <script>
-    function enviarDudaBlog() {
-        const n = document.getElementById('p_nombre').value;
-        const s = document.getElementById('p_semanas').value;
-        const sa = document.getElementById('p_salario').value;
-        const d = document.getElementById('p_duda').value;
+    function enviarDudaArticulo() {
+        const n = document.getElementById('art_nombre').value;
+        const s = document.getElementById('art_semanas').value;
+        const d = document.getElementById('art_duda').value;
 
-        if(!n || !s || !d) return alert("Por favor completa los campos para ayudarte mejor.");
+        if(!n || !s) return alert("Por favor, llena tu nombre y semanas para asesorarte mejor.");
 
-        const msg = `✅ *DUDA DESDE EL BLOG*\n\n👤 *Nombre:* ${n}\n📈 *Semanas:* ${s}\n💰 *Salario:* ${sa}\n❓ *Duda:* ${d}`;
+        const msg = `📌 *CONSULTA DESDE ARTÍCULO*\n\n👤 *Nombre:* ${n}\n📈 *Semanas:* ${s}\n❓ *Duda:* ${d}`;
         window.open(`https://wa.me/528131983700?text=${encodeURIComponent(msg)}`, '_blank');
     }
 </script>
