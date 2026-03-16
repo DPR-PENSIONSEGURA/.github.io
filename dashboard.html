@@ -193,7 +193,7 @@
                 { nombre: 'Recuperar Contraseña', precio: 180, nss: true, curp: true }
             ],
             'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' }, // NUEVO
+                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
@@ -244,14 +244,14 @@
         }
 
         window.buscarServicio = () => {
-            const query = document.getElementById('inputBusqueda').value.toUpperCase();
-            if (query.length < 1) return window.resetearPanel();
+            const queryVal = document.getElementById('inputBusqueda').value.toUpperCase();
+            if (queryVal.length < 1) return window.resetearPanel();
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
             let html = '', encontrados = 0;
             Object.values(TRAMITES).flat().forEach(t => {
-                if (t.nombre.toUpperCase().includes(query)) {
+                if (t.nombre.toUpperCase().includes(queryVal)) {
                     encontrados++;
                     html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" class="category-card p-5 rounded-3xl animate-fade">
                         <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
@@ -321,7 +321,7 @@
             abrirModal('modalTramite');
         };
 
-       window.confirmarCompra = async (n, c, special, nota) => {
+        window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente."); 
             
             const btn = document.querySelector("#modalTramite button:last-child");
@@ -330,68 +330,63 @@
             btn.innerText = "PROCESANDO...";
 
             try {
-                let extraInfo = nota || "";
-                if(document.getElementById('nombre_cliente')) extraInfo += ` | Cliente: ${document.getElementById('nombre_cliente').value}`;
-                if(document.getElementById('rfc_p')) extraInfo += ` | RFC: ${document.getElementById('rfc_p').value}`;
-                if(document.getElementById('idcif_p')) extraInfo += ` | IDcif: ${document.getElementById('idcif_p').value}`;
+                const infoExtra = {};
+                if(document.getElementById('nombre_cliente')) infoExtra.nombre_cliente = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
+                if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
+                if(document.getElementById('correo_p')) infoExtra.correo = document.getElementById('correo_p').value;
+                if(document.getElementById('tel_p')) infoExtra.telefono = document.getElementById('tel_p').value;
+                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value;
+
+                const subir = async (id) => {
+                    const el = document.getElementById(id);
+                    if (el && el.files[0]) {
+                        const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
+                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                        const data = await res.json(); return data.secure_url;
+                    }
+                    return null;
+                };
+
+                infoExtra.file_ine_f = await subir('file_ine_f');
+                if(special === 'RETIRO' || special === 'REGISTRO') {
+                    infoExtra.file_ine_r = await subir('file_ine_r');
+                    infoExtra.file_selfie = await subir('file_selfie');
+                    if(special === 'RETIRO') infoExtra.file_edo_cta = await subir('file_edo_cta');
+                }
 
                 // --- 1. GUARDADO EN FIREBASE ---
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre: emailAsesor,
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
                     tipo: n, costo: c, curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
                     nss: document.getElementById('nss_p')?.value || "N/A",
-                    extra: extraInfo, estatus: "En Proceso", fecha: serverTimestamp()
+                    estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-                // --- 2. ENRUTAMIENTO A PROVEEDOR JOYA ---
-                const tramitesJoya = [
-                    'Acta de Nacimiento', 'Acta de Matrimonio', 'Acta de Divorcio', 
-                    'Acta de Defunción', 'RFC Clon', 'RFC con IDcif'
-                ];
-
-                const datosN8n = {
-                    asesor: emailAsesor,
-                    tramite: n,
-                    datos_extra: {
-                        curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A",
-                        rfc: document.getElementById('rfc_p')?.value.toUpperCase() || "N/A",
-                        idcif: document.getElementById('idcif_p')?.value || "N/A",
-                        extra: extraInfo
-                    }
-                };
-
+                // --- 2. ENRUTAMIENTO A PROVEEDOR JOYA (N8N) ---
+                const tramitesJoya = ['Acta de Nacimiento', 'Acta de Matrimonio', 'Acta de Divorcio', 'Acta de Defunción', 'RFC Clon', 'RFC con IDcif'];
                 if (tramitesJoya.includes(n)) {
-                    // Usamos la URL de producción sin el "-test"
+                    const datosN8n = {
+                        asesor: emailAsesor, tramite: n,
+                        datos_extra: { curp: document.getElementById('curp_p')?.value.toUpperCase() || "N/A", ...infoExtra }
+                    };
                     await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        method: "POST", headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(datosN8n)
-                    }).catch(err => console.log("Aviso no enviado", err));
+                    }).catch(err => console.log("Aviso n8n no enviado", err));
                 }
 
                 alert("Trámite enviado."); 
                 cerrarModal();
                 
             } catch(e) { 
-                alert("Hubo un error al procesar el pago."); 
+                alert("Error al procesar el pago."); 
+                console.error(e);
             } finally { 
-                btn.disabled = false; 
-                btn.innerText = oldT; 
+                btn.disabled = false; btn.innerText = oldT; 
             }
-        };
-
-                infoExtra.file_ine_f = await subir('file_ine_f');
-                if(special === 'RETIRO' || special === 'REGISTRO') {
-                    infoExtra.file_ine_r = await subir('file_ine_r');
-                    infoExtra.file_selfie = await subir('file_selfie');
-                    if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
-                }
-
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
-                alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error al procesar."); btn.disabled = false; btn.innerText = "PAGAR"; }
         };
 
         window.abrirPropuestaServicio = () => {
