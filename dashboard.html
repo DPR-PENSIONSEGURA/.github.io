@@ -393,12 +393,19 @@
                     estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-                const datosN8n = { asesor: emailAsesor, tramite: n, detalles: infoExtra };
+               // --- ESTO ES LO QUE DEBES ACTUALIZAR ---
+                const datosN8n = { 
+                    asesor: emailAsesor, 
+                    tramite: n, 
+                    ...infoExtra  // <--- Los tres puntitos son la clave
+                };
+
                 await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(datosN8n)
                 }).catch(err => console.log("Error N8N", err));
-
+                // ---------------------------------------
                 alert("Trámite enviado."); cerrarModal();
             } catch(e) { console.error(e); alert("Hubo un error."); }
             finally { btn.disabled = false; btn.innerText = oldT; }
