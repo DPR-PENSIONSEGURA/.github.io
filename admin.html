@@ -42,10 +42,8 @@
                     <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
-                 </div>
-            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
-</div>
             </div>
+            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
         </header>
 
         <div class="flex flex-wrap gap-3 mb-12">
@@ -55,7 +53,8 @@
                 📱 Enviar Corte WhatsApp
             </button>
         </div>
-            <section class="mb-12">
+
+        <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
                 <div class="overflow-x-auto">
@@ -118,20 +117,17 @@
 
         let todasSolicitudes = [], idTramiteActual = "";
         window.solicitudesCache = {};
-        let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
 
         // 1. CONTADORES REALES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
-            visitasGlobal = d.exists() ? d.data().contador : 0;
-            document.getElementById('txtVisitas').innerText = visitasGlobal;
+            document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0;
         });
         onSnapshot(collection(db, "asesores"), (snap) => {
-            asesoresGlobal = snap.size;
-            document.getElementById('txtAsesores').innerText = asesoresGlobal;
+            document.getElementById('txtAsesores').innerText = snap.size;
         });
 
-        // 2. RECARGAS
+        // 2. RECARGAS (CORREGIDO CON BOTÓN RECHAZAR)
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -142,17 +138,24 @@
                     <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px]">PAGO 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2">
                         <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button>
                     </td></tr>`;
             });
         });
 
         window.validarRecarga = async (docId, uid, monto, est) => {
-            await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-            await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+            if (est === 'aprobado') {
+                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                alert("Recarga aprobada con éxito");
+            } else {
+                if(confirm("¿Seguro que deseas rechazar y borrar este reporte de pago?")) {
+                    await deleteDoc(doc(db, "notificaciones_pago", docId));
+                }
+            }
         };
 
-
-        // 3. TRÁMITES Y VENTA HOY
+        // 3. TRÁMITES Y VENTA HOY (SINCRONIZADO RFC E IDCIF)
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100)), (snap) => {
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             todasSolicitudes = [];
@@ -164,8 +167,6 @@
                 if(s.fecha?.toDate().toLocaleDateString() === hoy && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
                 todasSolicitudes.push({ ...s, id: d.id });
             });
-            totalVentaGlobal = totalHoy;
-            pendientesGlobal = pendientes;
             document.getElementById('contadorPendientes').innerText = pendientes;
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
             renderizarTabla();
@@ -175,11 +176,13 @@
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
             todasSolicitudes.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                const nssFinal = s.nss || s.nss_p || "N/A";
-                const curpFinal = s.curp || s.curp_p || "N/A";
-
-                let detallesHtml = `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpFinal}</div>
-                                    <div class="text-[9px] text-slate-800 font-black uppercase bg-slate-100 px-1 rounded inline-block mt-0.5">NSS: ${nssFinal}</div>`;
+                
+                // Lógica de visualización de datos (CORREGIDA PARA RFC E IDCIF)
+                let detallesHtml = "";
+                if(s.curp || s.curp_p) detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${s.curp || s.curp_p}</div>`;
+                if(s.nss || s.nss_p) detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${s.nss || s.nss_p}</div>`;
+                if(s.rfc || s.rfc_p) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${s.rfc || s.rfc_p}</div>`;
+                if(s.idcif || s.idcif_p) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif || s.idcif_p}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie}];
@@ -199,14 +202,6 @@
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                                 <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR</option>
-                                                               <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
@@ -217,7 +212,6 @@
             });
         }
 
-        // LÓGICA DE WHATSAPP
         window.enviarCorteWhatsApp = () => {
             const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A` +
                             `📈 *Visitas:* ${visitasGlobal}%0A` +
@@ -261,8 +255,6 @@
             const filas = document.querySelectorAll('#tablaSolicitudes tr');
             filas.forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
         };
-
-        window.eliminarSolicitud = async (id) => { if (confirm("¿Eliminar?")) await deleteDoc(doc(db, "solicitudes", id)); };
     </script>
 </body>
 </html>
