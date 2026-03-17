@@ -127,7 +127,7 @@
             <div class="space-y-4">
                 <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
-                <button onclick="notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
+                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
             </div>
         </div>
     </div>
@@ -148,7 +148,6 @@
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
-        // --- TODA TU LISTA DE TRÁMITES RESTAURADA ---
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
@@ -228,6 +227,49 @@
                 lista.innerHTML = html;
             });
         }
+
+        // --- FUNCIONES DE RECARGA CORREGIDAS ---
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const f = document.getElementById('fileRecarga').files[0];
+            
+            if (!m || !f || m < 200) return alert("El mínimo es $200 y el comprobante es obligatorio.");
+            
+            const btn = document.getElementById('btnNotificar');
+            btn.disabled = true;
+            btn.innerText = "SUBIENDO...";
+
+            try {
+                const fd = new FormData();
+                fd.append('file', f);
+                fd.append('upload_preset', UPLOAD_PRESET);
+
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                
+                if(!data.secure_url) throw new Error("Error en subida");
+
+                await addDoc(collection(db, "notificaciones_pago"), {
+                    uid: userUID,
+                    asesorEmail: emailAsesor,
+                    monto: m,
+                    comprobante: data.secure_url,
+                    fecha: serverTimestamp(),
+                    estatus: "pendiente"
+                });
+
+                alert("Reportado con éxito.");
+                cerrarModal();
+                document.getElementById('depMonto').value = "";
+                document.getElementById('fileRecarga').value = "";
+            } catch(e) {
+                alert("Error al enviar reporte.");
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Informar Pago";
+            }
+        };
 
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
