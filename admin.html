@@ -48,7 +48,6 @@
 
         <div class="flex flex-wrap gap-3 mb-12">
             <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
-            <a href="admin/proveedores" class="bg-orange-600 hover:bg-orange-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📦 Propuestas</a>
             <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all flex items-center gap-2">
                 📱 Enviar Corte WhatsApp
             </button>
@@ -117,17 +116,20 @@
 
         let todasSolicitudes = [], idTramiteActual = "";
         window.solicitudesCache = {};
+        let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
 
-        // 1. CONTADORES REALES
+        // CONTADORES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
-            document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0;
+            visitasGlobal = d.exists() ? d.data().contador : 0;
+            document.getElementById('txtVisitas').innerText = visitasGlobal;
         });
         onSnapshot(collection(db, "asesores"), (snap) => {
-            document.getElementById('txtAsesores').innerText = snap.size;
+            asesoresGlobal = snap.size;
+            document.getElementById('txtAsesores').innerText = asesoresGlobal;
         });
 
-        // 2. RECARGAS (CORREGIDO CON BOTÓN RECHAZAR)
+        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -147,15 +149,13 @@
             if (est === 'aprobado') {
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("Recarga aprobada con éxito");
+                alert("Recarga aprobada.");
             } else {
-                if(confirm("¿Seguro que deseas rechazar y borrar este reporte de pago?")) {
-                    await deleteDoc(doc(db, "notificaciones_pago", docId));
-                }
+                if(confirm("¿Rechazar pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
             }
         };
 
-        // 3. TRÁMITES Y VENTA HOY (SINCRONIZADO RFC E IDCIF)
+        // SOLICITUDES
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100)), (snap) => {
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             todasSolicitudes = [];
@@ -177,16 +177,22 @@
             todasSolicitudes.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
                 
-                // Lógica de visualización de datos (CORREGIDA PARA RFC E IDCIF)
                 let detallesHtml = "";
                 if(s.curp || s.curp_p) detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${s.curp || s.curp_p}</div>`;
                 if(s.nss || s.nss_p) detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${s.nss || s.nss_p}</div>`;
                 if(s.rfc || s.rfc_p) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${s.rfc || s.rfc_p}</div>`;
-                if(s.idcif || s.idcif_p) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${s.idcif || s.idcif_p}</div>`;
+                
+                // --- NUEVO: CONTRASEÑA AFORE ---
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5 border border-red-100">PASS AFORE: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f},{l:'INE R',u:s.file_ine_r},{l:'FOTO',u:s.file_selfie}];
-                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase">${f.l} 📥</button>`; });
+                const fotos = [
+                    {l:'INE F',u:s.file_ine_f},
+                    {l:'INE R',u:s.file_ine_r},
+                    {l:'FOTO',u:s.file_selfie},
+                    {l:'EDO CTA',u:s.file_edocta} // --- NUEVO: BOTÓN ESTADO DE CUENTA ---
+                ];
+                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
                     <tr class="border-b hover:bg-blue-50 transition">
@@ -201,14 +207,7 @@
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                               <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
-                  
+                                <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
