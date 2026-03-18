@@ -356,7 +356,7 @@
 
                 // Envío a n8n con datos completos
                 const datosN8n = { asesor: emailAsesor, tramite: n, rfc: infoExtra.rfc || "N/A", curp: infoExtra.curp || "N/A", nss: infoExtra.nss || "N/A", ...infoExtra };
-                await fetch("http://localhost:5678/webhook/Nueva_acta", {
+                await fetch("http://localhost:5678/webhook-test/Nueva_acta", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(datosN8n)
                 }).catch(err => console.log("Error N8N", err));
