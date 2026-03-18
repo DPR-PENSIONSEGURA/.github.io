@@ -368,11 +368,18 @@
                 // Enviamos como JSON estándar pero con la URL de producción
                 await fetch("https://342356.appsneubox.com/webhook-test/Nueva_acta", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                   mode: 'no-cors', 
+                    headers: { 
+                        "Content-Type": "text/plain" 
+                    },
                     body: JSON.stringify(datosN8n)
+                })
                 }).catch(err => console.log("Error de red n8n:", err));
 
-                alert("Trámite enviado con éxito."); 
+              .then(() => console.log("Petición enviada"))
+                .catch(err => console.log("Error de red:", err));
+
+                alert("Trámite enviado con éxito.");             
                 cerrarModal();
 
             } catch(e) { 
