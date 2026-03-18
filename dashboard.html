@@ -363,12 +363,18 @@ const datosN8n = {
     ...infoExtra 
 };
 
-// Enviamos con modo relajado para evitar bloqueos de seguridad
+const datosN8n = { 
+    asesor: emailAsesor, 
+    tramite: n,
+    ...infoExtra 
+};
+
+// Usamos text/plain para que el navegador no bloquee el envío por seguridad
 fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
     method: "POST",
-    mode: 'no-cors', // <--- CLAVE: Evita que el navegador filtre los datos
+    mode: 'no-cors', 
     headers: { 
-        "Content-Type": "text/plain" // <--- TRUCO: Engañamos al servidor para que no pida permisos extra
+        "Content-Type": "text/plain" 
     },
     body: JSON.stringify(datosN8n)
 }).catch(err => console.log("Error de red:", err));
