@@ -366,21 +366,24 @@
                 };
 
                 // Enviamos como JSON estándar pero con la URL de producción
-                await fetch("https://342356.appsneubox.com/webhook-test/Nueva_acta", {
+                // Enviamos como texto plano para saltar la seguridad del navegador
+                fetch("https://342356.appsneubox.com/webhook-test/Nueva_acta", {
                     method: "POST",
-                   mode: 'no-cors', 
+                    mode: 'no-cors', 
                     headers: { 
                         "Content-Type": "text/plain" 
                     },
                     body: JSON.stringify(datosN8n)
                 })
-                }).catch(err => console.log("Error de red n8n:", err));
-
-              .then(() => console.log("Petición enviada"))
-                .catch(err => console.log("Error de red:", err));
-
-                alert("Trámite enviado con éxito.");             
-                cerrarModal();
+                .then(() => {
+                    console.log("Petición enviada con éxito");
+                    alert("Trámite enviado con éxito."); 
+                    cerrarModal();
+                })
+                .catch(err => {
+                    console.log("Error de red n8n:", err);
+                    alert("Error de conexión al enviar.");
+                });
 
             } catch(e) { 
                 alert("Error al procesar el trámite."); 
@@ -389,7 +392,6 @@
                 btn.innerText = "Reintentar"; 
             }
         };
-
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
