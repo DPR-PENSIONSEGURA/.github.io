@@ -356,7 +356,7 @@
                     tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-                // 2. Enviar a n8n organizado
+                // 2. Enviar a n8n de forma que no se bloquee (Sin mode no-cors)
                 const datosN8n = { 
                     asesor: emailAsesor, 
                     tramite: n,
@@ -365,13 +365,10 @@
                     ...infoExtra 
                 };
 
-                // URL de Producción corregida
-                fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
+                // Enviamos como JSON estándar pero con la URL de producción
+                await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
                     method: "POST",
-                    mode: 'no-cors', 
-                    headers: { 
-                        "Content-Type": "text/plain" 
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(datosN8n)
                 }).catch(err => console.log("Error de red n8n:", err));
 
