@@ -318,7 +318,7 @@
             abrirModal('modalTramite');
         };
 
-       window.confirmarCompra = async (n, c, special) => {
+        window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
@@ -349,14 +349,12 @@
                     if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
                 }
 
-                // 1. Guardar en Firebase
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
                     tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-                // 2. Enviar a n8n de forma que no se bloquee (Sin mode no-cors)
                 const datosN8n = { 
                     asesor: emailAsesor, 
                     tramite: n,
@@ -365,14 +363,10 @@
                     ...infoExtra 
                 };
 
-                // Enviamos como JSON estándar pero con la URL de producción
-                // Enviamos como texto plano para saltar la seguridad del navegador
                 fetch("https://342356.appsneubox.com/webhook-test/Nueva_acta", {
                     method: "POST",
                     mode: 'no-cors', 
-                    headers: { 
-                        "Content-Type": "text/plain" 
-                    },
+                    headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify(datosN8n)
                 })
                 .then(() => {
@@ -392,6 +386,7 @@
                 btn.innerText = "Reintentar"; 
             }
         };
+
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
