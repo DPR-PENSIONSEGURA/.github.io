@@ -354,20 +354,24 @@
                     tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-               const datosN8n = { 
+              // Preparamos los datos
+const datosN8n = { 
     asesor: emailAsesor, 
     tramite: n,
+    curp: infoExtra.curp || "N/A",
+    nss: infoExtra.nss || "N/A",
     ...infoExtra 
 };
 
-await fetch("http://localhost:5678/webhook-test/Nueva_acta", {
+// Enviamos con modo relajado para evitar bloqueos de seguridad
+fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
     method: "POST",
-    mode: 'no-cors', // Esto evita que el navegador bloquee el envío
+    mode: 'no-cors', // <--- CLAVE: Evita que el navegador filtre los datos
     headers: { 
-        "Content-Type": "application/json"
+        "Content-Type": "text/plain" // <--- TRUCO: Engañamos al servidor para que no pida permisos extra
     },
     body: JSON.stringify(datosN8n)
-}).catch(err => console.log("Error en el envío a n8n:", err));
+}).catch(err => console.log("Error de red:", err));
                 alert("Trámite enviado."); cerrarModal();
             } catch(e) { alert("Error al procesar."); btn.disabled = false; btn.innerText = "Reintentar"; }
         };
