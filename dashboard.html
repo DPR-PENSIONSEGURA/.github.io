@@ -318,10 +318,11 @@
             abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, special) => {
+       window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
             btn.disabled = true; btn.innerText = "PROCESANDO...";
+            
             try {
                 const infoExtra = {};
                 if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
@@ -348,22 +349,14 @@
                     if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
                 }
 
+                // 1. Guardar en Firebase
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
                     tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
                 });
 
-              // Preparamos los datos
-const datosN8n = { 
-    asesor: emailAsesor, 
-    tramite: n,
-    curp: infoExtra.curp || "N/A",
-    nss: infoExtra.nss || "N/A",
-    ...infoExtra 
-};
-
-// --- BLOQUE CORREGIDO ---
+                // 2. Enviar a n8n organizado
                 const datosN8n = { 
                     asesor: emailAsesor, 
                     tramite: n,
@@ -372,7 +365,7 @@ const datosN8n = {
                     ...infoExtra 
                 };
 
-                // Usamos la URL real de tu n8n en Neubox
+                // URL de Producción corregida
                 fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
                     method: "POST",
                     mode: 'no-cors', 
@@ -380,11 +373,17 @@ const datosN8n = {
                         "Content-Type": "text/plain" 
                     },
                     body: JSON.stringify(datosN8n)
-                }).catch(err => console.log("Error de red:", err));
+                }).catch(err => console.log("Error de red n8n:", err));
 
                 alert("Trámite enviado con éxito."); 
                 cerrarModal();
-            } catch(e) { alert("Error al procesar."); btn.disabled = false; btn.innerText = "Reintentar"; }
+
+            } catch(e) { 
+                alert("Error al procesar el trámite."); 
+                console.error(e);
+                btn.disabled = false; 
+                btn.innerText = "Reintentar"; 
+            }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
