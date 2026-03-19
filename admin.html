@@ -213,20 +213,22 @@
                             ${detallesHtml}
                         </td>
                         <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
+                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus.includes('REEMBOLSAR') ? 'selected' : ''}>❌ REEMBOLSAR</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ LIMITE DE CONSULTAS ALCANZADO' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ ERROR EN NSS O CURP' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ FOTOS ILEGIBLES' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ ERROR AL INVOCAR EL SERVICIO' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ ERROR EN IMSS CONSULTA MÁS TARDE' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
-                                <option value="Error de Datos" ${s.estatus === '❌ CONTRASEÑA INCORRECTA' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR DE DATOS</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
+                                
                             </select>
                         </td>
+
                         <td class="p-4 text-right">
                              <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
                              <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
