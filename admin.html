@@ -118,7 +118,7 @@
         window.solicitudesCache = {};
         let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
 
-        // CONTADORES
+        // CONTADORES REALES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
             visitasGlobal = d.exists() ? d.data().contador : 0;
@@ -177,20 +177,29 @@
             todasSolicitudes.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
                 
+                // --- SINCRONIZACIÓN DE VARIABLES PARA QUE SALGA IDCIF Y RFC ---
                 let detallesHtml = "";
-                if(s.curp || s.curp_p) detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${s.curp || s.curp_p}</div>`;
-                if(s.nss || s.nss_p) detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${s.nss || s.nss_p}</div>`;
-                if(s.rfc || s.rfc_p) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${s.rfc || s.rfc_p}</div>`;
-                
-                // --- NUEVO: CONTRASEÑA AFORE ---
-                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5 border border-red-100">PASS AFORE: ${s.pass_afore}</div>`;
+                const curpVal = s.curp || s.curp_p || "";
+                const nssVal = s.nss || s.nss_p || "";
+                const rfcVal = s.rfc || s.rfc_p || "";
+                const idcifVal = s.idcif || s.idcif_p || "";
+                const passNuevaVal = s.pass_nueva || "";
+                const cfeVal = s.num_servicio || "";
+
+                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
+                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
+                if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
+                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block">IDCIF: ${idcifVal}</div>`;
+                if(passNuevaVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase bg-orange-50 px-1 rounded inline-block">PASS NUEVA: ${passNuevaVal}</div>`;
+                if(cfeVal) detallesHtml += `<div class="text-[9px] text-blue-800 font-black uppercase bg-blue-50 px-1 rounded inline-block">CFE SERV: ${cfeVal}</div>`;
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS AFORE: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [
                     {l:'INE F',u:s.file_ine_f},
                     {l:'INE R',u:s.file_ine_r},
                     {l:'FOTO',u:s.file_selfie},
-                    {l:'EDO CTA',u:s.file_edocta} // --- NUEVO: BOTÓN ESTADO DE CUENTA ---
+                    {l:'EDO CTA',u:s.file_edocta}
                 ];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1">${f.l} 📥</button>`; });
 
@@ -208,15 +217,6 @@
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                                 <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-                  
                             </select>
                         </td>
                         <td class="p-4 text-right">
