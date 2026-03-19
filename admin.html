@@ -177,7 +177,7 @@
             todasSolicitudes.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
                 
-                // --- SINCRONIZACIÓN DE VARIABLES PARA QUE SALGA IDCIF Y RFC ---
+                // --- SINCRONIZACIÓN DE VARIABLES ---
                 let detallesHtml = "";
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
@@ -216,7 +216,15 @@
                             <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR</option>
+                                <option value="Error de Datos" ${s.estatus.includes('REEMBOLSAR') ? 'selected' : ''}>❌ REEMBOLSAR</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ LIMITE DE CONSULTAS ALCANZADO' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ ERROR EN NSS O CURP' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ FOTOS ILEGIBLES' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ ERROR AL INVOCAR EL SERVICIO' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ ERROR EN IMSS CONSULTA MÁS TARDE' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
+                                <option value="Error de Datos" ${s.estatus === '❌ CONTRASEÑA INCORRECTA' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
@@ -242,7 +250,7 @@
                 const s = window.solicitudesCache[id];
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("Saldo reembolsado.");
+                    alert("Saldo reembolsado automáticamente.");
                 }
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
