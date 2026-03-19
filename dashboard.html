@@ -169,6 +169,7 @@
             ],
             'DOC': [
                 { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'Recibo CFE', precio: 10, pideServicioCFE: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
                 { nombre: 'Acta de Matrimonio', precio: 15, curp: true },
@@ -187,6 +188,7 @@
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 90, special: 'REGISTRO' },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCliente: true },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
                 { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
@@ -304,6 +306,15 @@
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO CLIENTE" class="input-light mb-4 uppercase">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP CLIENTE" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+            if(pidePassNueva) fields += `<input type="text" id="pass_nueva" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4 font-bold uppercase">`;
+            if(pideServicioCFE) fields += `<input type="text" id="num_servicio_cfe" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
+            if(pideFotoCliente) {
+                      fields += `
+                      <div class="text-left mb-4">
+                      <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Foto del Cliente (Selfie):</label>
+                      <input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border">
+        </div>`;
+}
             if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
             if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
             if(pideFecha) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left italic">Fecha de Nacimiento:</p><input type="date" id="fecha_p" class="input-light mb-4">`;
@@ -333,6 +344,12 @@
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
                 if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value.toUpperCase();
 
+                if(document.getElementById('pass_nueva')) infoExtra.pass_nueva = document.getElementById('pass_nueva').value;
+                if(document.getElementById('num_servicio_cfe')) infoExtra.num_servicio = document.getElementById('num_servicio_cfe').value;
+                if(document.getElementById('file_selfie')) {
+                    const urlFoto = await subir('file_selfie');
+                if(urlFoto) infoExtra.file_selfie = urlFoto;
+}
                 const subir = async (id) => {
                     const el = document.getElementById(id);
                     if (el && el.files[0]) {
