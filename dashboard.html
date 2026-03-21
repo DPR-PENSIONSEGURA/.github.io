@@ -180,7 +180,7 @@
             'INF': [
                 { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+               { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
                 { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
@@ -292,7 +292,13 @@
             if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
             if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
             if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
-            
+ if(t.eligePlazo) {
+    fields += `
+        <label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo de Precalificación:</label>
+        <select id="plazo_mejoravit" class="input-light mb-4 font-bold">
+            ${[1,2,3,4,5,6,7,8,9,10].map(año => `<option value="${año} años">${año} ${año === 1 ? 'Año' : 'Años'}</option>`).join('')}
+        </select>`;
+}
             if(special === 'REGISTRO') {
                 fields += `<input type="tel" id="tel_asesor" placeholder="TU TELÉFONO (ASESOR)" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO DEL CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
             }
@@ -326,8 +332,10 @@
                 if(document.getElementById('num_servicio')) infoExtra.num_servicio = document.getElementById('num_servicio').value;
                 if(document.getElementById('tel_asesor')) infoExtra.telefono_asesor = document.getElementById('tel_asesor').value;
                 if(document.getElementById('correo_p')) infoExtra.correo_cliente = document.getElementById('correo_p').value;
+                if(document.getElementById('plazo_mejoravit')) infoExtra.plazo_mejoravit = document.getElementById('plazo_mejoravit').value;
                 if(document.getElementById('tel_p')) infoExtra.telefono_cliente = document.getElementById('tel_p').value;
 
+                
                 const subir = async (id) => {
                     const el = document.getElementById(id);
                     if (el && el.files[0]) {
