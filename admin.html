@@ -139,19 +139,30 @@
             renderizarTabla(snap);
             document.getElementById('btnPrev').disabled = (pageNumber === 1);
         }
+window.abrirSubida = (id, tipo) => { 
+    console.log("Abriendo modal para:", id); // Esto te servirá para ver si funciona en la consola
+    idTramiteActual = id; 
+    const modal = document.getElementById('modalSubir');
+    const txt = document.getElementById('txtFolio');
+    
+    if (modal && txt) {
+        txt.innerText = "ENTREGA: " + tipo; 
+        modal.classList.remove('hidden'); 
+        modal.classList.add('flex'); // Aseguramos que se vea como flexbox
+    } else {
+        console.error("No se encontró el elemento modalSubir en el HTML");
+    }
+};
 
-        function renderizarTabla(snap) {
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            snap.forEach(docSnap => {
-                const s = docSnap.data(), id = docSnap.id;
-                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                
-                let detallesHtml = "";
-                const curpVal = s.curp || s.curp_p || "";
-                const nssVal = s.nss || s.nss_p || "";
-                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black">CURP: ${curpVal}</div>`;
-                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black">NSS: ${nssVal}</div>`;
-                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
+// También asegúrate de que cerrarModal sea global
+window.cerrarModal = () => {
+    const modal = document.getElementById('modalSubir');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+};
+        
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
