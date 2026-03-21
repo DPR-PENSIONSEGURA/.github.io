@@ -11,6 +11,9 @@
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .card-stat:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
+        .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
+        .nav-pag:not(:disabled):hover { background: #F97316; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -26,19 +29,19 @@
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500">
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center">
                     <p class="text-[8px] font-black uppercase text-slate-400">Visitas Hoy</p>
                     <p id="txtVisitas" class="text-xl font-black text-slate-800">0</p>
                 </div>
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-purple-600">
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-purple-600 text-center">
                     <p class="text-[8px] font-black uppercase text-slate-400">Asesores</p>
                     <p id="txtAsesores" class="text-xl font-black text-slate-800">0</p>
                 </div>
-                <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800">
+                <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center">
                     <p class="text-[8px] font-black uppercase opacity-70">Venta Hoy</p>
                     <p id="gananciaHoy" class="text-xl font-black">$0.00</p>
                 </div>
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800">
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center">
                     <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
@@ -69,8 +72,14 @@
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4 italic">Solicitudes de Trámites</h2>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR POR NOMBRE, CURP, NSS..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
+                    <div class="flex gap-2">
+                        <button id="btnPrev" class="nav-pag" disabled>Anterior</button>
+                        <button id="btnNext" class="nav-pag">Siguiente</button>
+                    </div>
+                </div>
+                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR EN ESTA PÁGINA..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -85,7 +94,9 @@
                                 <th class="p-4 text-right">Resultado</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
+                        <tbody id="tablaSolicitudes" class="text-xs font-medium">
+                            <tr><td colspan="5" class="py-20 text-center opacity-30 font-black uppercase">Cargando trámites...</td></tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -104,7 +115,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
@@ -114,11 +125,12 @@
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let todasSolicitudes = [], idTramiteActual = "";
+        let firstDoc = null, lastDoc = null, pageNumber = 1;
+        const PAGE_SIZE = 20; 
         window.solicitudesCache = {};
         let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
 
-        // CONTADORES REALES
+        // CONTADORES REALES (SIMPRE EN VIVO)
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
             visitasGlobal = d.exists() ? d.data().contador : 0;
@@ -129,7 +141,7 @@
             document.getElementById('txtAsesores').innerText = asesoresGlobal;
         });
 
-        // RECARGAS
+        // RECARGAS PENDIENTES
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -150,57 +162,57 @@
                 await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
                 alert("Recarga aprobada.");
-            } else {
-                if(confirm("¿Rechazar pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId));
-            }
+            } else { if(confirm("¿Rechazar pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // SOLICITUDES
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(100)), (snap) => {
-            let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
-            todasSolicitudes = [];
-            snap.forEach(d => {
-                const s = d.data();
-                if(s.tipo === "RECARGA ASESOR") return;
-                window.solicitudesCache[d.id] = s;
-                if(s.estatus === 'En Proceso') pendientes++;
-                if(s.fecha?.toDate().toLocaleDateString() === hoy && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
-                todasSolicitudes.push({ ...s, id: d.id });
-            });
-            document.getElementById('contadorPendientes').innerText = pendientes;
-            document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
-            renderizarTabla();
-        });
+        // CARGA DE SOLICITUDES CON PAGINACIÓN
+        async function cargarSolicitudes(comando = 'next') {
+            const tabla = document.getElementById('tablaSolicitudes');
+            let q;
+            const baseQuery = collection(db, "solicitudes");
 
-        function renderizarTabla() {
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            todasSolicitudes.forEach(s => {
+            if (comando === 'next' && lastDoc) {
+                q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
+            } else if (comando === 'prev' && firstDoc) {
+                q = query(baseQuery, orderBy("fecha", "desc"), endBefore(firstDoc), limitToLast(PAGE_SIZE));
+            } else {
+                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
+            }
+
+            onSnapshot(q, (snap) => {
+                if (snap.empty) return;
+                firstDoc = snap.docs[0];
+                lastDoc = snap.docs[snap.docs.length - 1];
+                renderizarTabla(snap);
+                document.getElementById('btnPrev').disabled = (pageNumber === 1);
+            });
+        }
+
+        function renderizarTabla(snap) {
+            const tabla = document.getElementById('tablaSolicitudes'); 
+            tabla.innerHTML = "";
+            let hoyStr = new Date().toLocaleDateString();
+            
+            snap.forEach(docSnap => {
+                const s = docSnap.data();
+                if(s.tipo === "RECARGA ASESOR") return;
+                window.solicitudesCache[docSnap.id] = s;
+
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                
-                // --- SINCRONIZACIÓN DE VARIABLES ---
                 let detallesHtml = "";
+                
+                // Sincronización de variables
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
-                const idcifVal = s.idcif || s.idcif_p || "";
-                const passNuevaVal = s.pass_nueva || "";
-                const cfeVal = s.num_servicio || "";
 
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
                 if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block">IDCIF: ${idcifVal}</div>`;
-                if(passNuevaVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase bg-orange-50 px-1 rounded inline-block">PASS NUEVA: ${passNuevaVal}</div>`;
-                if(cfeVal) detallesHtml += `<div class="text-[9px] text-blue-800 font-black uppercase bg-blue-50 px-1 rounded inline-block">CFE SERV: ${cfeVal}</div>`;
-                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS AFORE: ${s.pass_afore}</div>`;
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
-                const fotos = [
-                    {l:'INE F',u:s.file_ine_f},
-                    {l:'INE R',u:s.file_ine_r},
-                    {l:'FOTO',u:s.file_selfie},
-                    {l:'EDO CTA',u:s.file_edocta}
-                ];
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
@@ -213,51 +225,46 @@
                             ${detallesHtml}
                         </td>
                         <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
+                            <select onchange="window.cambiarEstatus('${docSnap.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR DE DATOS</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ESTE NSS NO ESTÁ VINCULADO A MiCuentaInfonavit/option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
-                                
+                                <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR (ERROR)</option>
                             </select>
                         </td>
-
                         <td class="p-4 text-right">
                              <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${s.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
+                             <button onclick="window.abrirSubida('${docSnap.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
                         </td>
                     </tr>`;
             });
         }
 
-        window.enviarCorteWhatsApp = () => {
-            const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A` +
-                            `📈 *Visitas:* ${visitasGlobal}%0A` +
-                            `👥 *Asesores Activos:* ${asesoresGlobal}%0A` +
-                            `💰 *Venta del Día:* $${totalVentaGlobal.toFixed(2)}%0A` +
-                            `⏳ *Pendientes:* ${pendientesGlobal}%0A%0A` +
-                            `_Reporte generado desde el Panel Admin Diana Puente Rodríguez_`;
-            window.open(`https://wa.me/528131983700?text=${mensaje}`);
-        };
+        // Lógica de Venta Hoy y Pendientes (Independiente de la paginación para ser exacta)
+        onSnapshot(collection(db, "solicitudes"), (snap) => {
+            let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
+            snap.forEach(d => {
+                const s = d.data();
+                if(s.estatus === 'En Proceso') pendientes++;
+                if(s.fecha?.toDate().toLocaleDateString() === hoy && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
+            });
+            totalVentaGlobal = totalHoy; pendientesGlobal = pendientes;
+            document.getElementById('contadorPendientes').innerText = pendientes;
+            document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
+        });
 
         window.cambiarEstatus = async (id, est) => {
             if (est === "Error de Datos") {
                 const s = window.solicitudesCache[id];
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("Saldo reembolsado automáticamente.");
+                    alert("Saldo reembolsado.");
                 }
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
+
+        document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
+        document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
 
         window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
@@ -272,7 +279,7 @@
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 window.cerrarModal(); alert("✅ Entregado.");
-            } catch(e) { alert("Error al subir."); }
+            } catch(e) { alert("Error."); }
             btn.innerText = "Subir y Terminar"; btn.disabled = false;
         };
 
@@ -281,6 +288,19 @@
             const filas = document.querySelectorAll('#tablaSolicitudes tr');
             filas.forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
         };
+
+        window.enviarCorteWhatsApp = () => {
+            const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A` +
+                            `📈 *Visitas:* ${visitasGlobal}%0A` +
+                            `👥 *Asesores Activos:* ${asesoresGlobal}%0A` +
+                            `💰 *Venta del Día:* $${totalVentaGlobal.toFixed(2)}%0A` +
+                            `⏳ *Pendientes:* ${pendientesGlobal}%0A%0A` +
+                            `_Reporte generado desde el Panel Admin Diana Puente Rodríguez_`;
+            window.open(`https://wa.me/528131983700?text=${mensaje}`);
+        };
+
+        // Inicio
+        cargarSolicitudes();
     </script>
 </body>
 </html>
