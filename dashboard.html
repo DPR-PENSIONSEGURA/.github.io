@@ -280,42 +280,45 @@
             });
             document.getElementById('listaServicios').innerHTML = html;
         };
+          window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
+    const content = document.getElementById('formContent');
+    let fields = '';
+    
+    if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+    if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+    if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+    if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+    if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
+    if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha de Nacimiento</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+    if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
+    if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE) => {
-            const content = document.getElementById('formContent');
-            let fields = '';
-            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
-            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
-            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
-            if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
-            if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
-            if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
- if(t.eligePlazo) {
-    fields += `
-        <label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo de Precalificación:</label>
-        <select id="plazo_mejoravit" class="input-light mb-4 font-bold">
-            ${[1,2,3,4,5,6,7,8,9,10].map(año => `<option value="${año} años">${año} ${año === 1 ? 'Año' : 'Años'}</option>`).join('')}
-        </select>`;
-}
-            if(special === 'REGISTRO') {
-                fields += `<input type="tel" id="tel_asesor" placeholder="TU TELÉFONO (ASESOR)" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO DEL CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
-            }
+    // --- SECCIÓN DE PLAZO MEJORAVIT CORREGIDA ---
+    if(eligePlazo) {
+        fields += `
+            <label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo de Precalificación:</label>
+            <select id="plazo_mejoravit" class="input-light mb-4 font-bold">
+                ${[1,2,3,4,5,6,7,8,9,10].map(año => `<option value="${año} años">${año} ${año === 1 ? 'Año' : 'Años'}</option>`).join('')}
+            </select>`;
+    }
 
-            if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
-                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Foto INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
-                if(special === 'RETIRO' || special === 'REGISTRO') {
-                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Foto INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
-                    if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>`;
-                }
-                fields += `</div>`;
-            }
+    if(special === 'REGISTRO') {
+        fields += `<input type="tel" id="tel_asesor" placeholder="TU TELÉFONO (ASESOR)" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO DEL CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
+    }
 
-            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
-            abrirModal('modalTramite');
-        };
+    if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
+        fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Foto Documentos:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+        if(special === 'RETIRO' || special === 'REGISTRO') {
+            fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Foto Reverso/Selfie:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div><div><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+            if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>`;
+        }
+        fields += `</div>`;
+    }
+
+    content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
+        <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+    abrirModal('modalTramite');
+};
 
         window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
