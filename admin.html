@@ -46,7 +46,6 @@
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
             </div>
-            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
         </header>
 
         <div class="flex flex-wrap gap-3 mb-12">
@@ -55,20 +54,6 @@
                 📱 Enviar Corte WhatsApp
             </button>
         </div>
-
-        <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                            <tr><th class="p-5">Asesor (Email)</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
-                        </thead>
-                        <tbody id="tablaRecargas"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
 
         <section>
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -94,9 +79,7 @@
                                 <th class="p-4 text-right">Resultado</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaSolicitudes" class="text-xs font-medium">
-                            <tr><td colspan="5" class="py-20 text-center opacity-30 font-black uppercase">Cargando trámites...</td></tr>
-                        </tbody>
+                        <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
                     </table>
                 </div>
             </div>
@@ -130,7 +113,7 @@
         window.solicitudesCache = {};
         let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
 
-        // CONTADORES REALES (SIMPRE EN VIVO)
+        // CONTADORES REALES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
             visitasGlobal = d.exists() ? d.data().contador : 0;
@@ -141,33 +124,8 @@
             document.getElementById('txtAsesores').innerText = asesoresGlobal;
         });
 
-        // RECARGAS PENDIENTES
-        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
-            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-            snap.forEach(d => {
-                const r = d.data();
-                t.innerHTML += `<tr class="border-b">
-                    <td class="p-5 font-bold">${r.asesorEmail}</td>
-                    <td class="p-5 font-black text-emerald-600">$${r.monto}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px]">PAGO 📥</button></td>
-                    <td class="p-5 text-center flex justify-center gap-2">
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button>
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button>
-                    </td></tr>`;
-            });
-        });
-
-        window.validarRecarga = async (docId, uid, monto, est) => {
-            if (est === 'aprobado') {
-                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("Recarga aprobada.");
-            } else { if(confirm("¿Rechazar pago?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
-        };
-
-        // CARGA DE SOLICITUDES CON PAGINACIÓN
+        // CARGA CON PAGINACIÓN
         async function cargarSolicitudes(comando = 'next') {
-            const tabla = document.getElementById('tablaSolicitudes');
             let q;
             const baseQuery = collection(db, "solicitudes");
 
@@ -191,7 +149,6 @@
         function renderizarTabla(snap) {
             const tabla = document.getElementById('tablaSolicitudes'); 
             tabla.innerHTML = "";
-            let hoyStr = new Date().toLocaleDateString();
             
             snap.forEach(docSnap => {
                 const s = docSnap.data();
@@ -199,20 +156,20 @@
                 window.solicitudesCache[docSnap.id] = s;
 
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                let detallesHtml = "";
                 
-                // Sincronización de variables
+                // Variables sincronizadas
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
 
+                let detallesHtml = "";
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
                 if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
                 if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}];
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
@@ -225,21 +182,29 @@
                             ${detallesHtml}
                         </td>
                         <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${docSnap.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
+                            <select onchange="window.cambiarEstatus('${docSnap.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                                 <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus.includes('Error') ? 'selected' : ''}>❌ REEMBOLSAR (ERROR)</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'LIMITE' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'NO_ENCONTRADO' ? 'selected' : ''}>❌ NO ENCONTRADO</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'DATOS_ERR' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'ILEGIBLE' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'INVOCAR' ? 'selected' : ''}>❌ ERROR AL INVOCAR SERVICIO</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'IMSS_TARDE' ? 'selected' : ''}>❌ ERROR IMSS CONSULTA TARDE</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'PASS_INC' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'NO_VINCULADO' ? 'selected' : ''}>❌ NSS NO VINCULADO A INFONAVIT</option>
+                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'INCONSISTENCIA' ? 'selected' : ''}>❌ INCONSISTENCIAS / SUBDELEGACIÓN</option>
                             </select>
                         </td>
                         <td class="p-4 text-right">
                              <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${docSnap.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
+                             <button onclick="window.abrirSubida('${docSnap.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition">Subir</button>
                         </td>
                     </tr>`;
             });
         }
 
-        // Lógica de Venta Hoy y Pendientes (Independiente de la paginación para ser exacta)
+        // MONITOREO DE TOTALES (Global)
         onSnapshot(collection(db, "solicitudes"), (snap) => {
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => {
@@ -257,49 +222,22 @@
                 const s = window.solicitudesCache[id];
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("Saldo reembolsado.");
+                    alert("⚠️ Saldo reembolsado al asesor.");
                 }
             }
             await updateDoc(doc(db, "solicitudes", id), { estatus: est });
         };
 
-        document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
-        document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
-
-        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
-        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
-
-        document.getElementById('btnGuardar').onclick = async () => {
-            const file = document.getElementById('inputArchivo').files[0];
-            if(!file) return alert("Selecciona archivo.");
-            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            try {
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                window.cerrarModal(); alert("✅ Entregado.");
-            } catch(e) { alert("Error."); }
-            btn.innerText = "Subir y Terminar"; btn.disabled = false;
-        };
-
-        window.filtrarTabla = () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            const filas = document.querySelectorAll('#tablaSolicitudes tr');
-            filas.forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
-        };
-
         window.enviarCorteWhatsApp = () => {
-            const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A` +
-                            `📈 *Visitas:* ${visitasGlobal}%0A` +
-                            `👥 *Asesores Activos:* ${asesoresGlobal}%0A` +
-                            `💰 *Venta del Día:* $${totalVentaGlobal.toFixed(2)}%0A` +
-                            `⏳ *Pendientes:* ${pendientesGlobal}%0A%0A` +
-                            `_Reporte generado desde el Panel Admin Diana Puente Rodríguez_`;
+            const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A📈 *Visitas:* ${visitasGlobal}%0A👥 *Asesores:* ${asesoresGlobal}%0A💰 *Venta Hoy:* $${totalVentaGlobal.toFixed(2)}%0A⏳ *Pendientes:* ${pendientesGlobal}`;
             window.open(`https://wa.me/528131983700?text=${mensaje}`);
         };
 
-        // Inicio
+        document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
+        document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
+        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+        
         cargarSolicitudes();
     </script>
 </body>
