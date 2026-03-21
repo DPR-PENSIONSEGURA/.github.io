@@ -9,9 +9,8 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
-        .card-stat:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
         .nav-pag:not(:disabled):hover { background: #F97316; }
     </style>
@@ -21,7 +20,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl italic">DP</div>
+                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic">DP</div>
                 <div>
                     <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Admin</span></h1>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
@@ -50,9 +49,7 @@
 
         <div class="flex flex-wrap gap-3 mb-12">
             <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
-            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all flex items-center gap-2">
-                📱 Enviar Corte WhatsApp
-            </button>
+            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📱 WhatsApp Corte</button>
         </div>
 
         <section>
@@ -68,15 +65,15 @@
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto max-h-[700px]">
+                <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 sticky top-0 text-white text-[10px] uppercase font-black z-10 italic">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
                             <tr>
                                 <th class="p-4">Origen</th>
-                                <th class="p-4">Trámite / Fecha</th>
+                                <th class="p-4">Trámite</th>
                                 <th class="p-4">Asesor / Cliente / Datos</th>
                                 <th class="p-4 text-center">Estatus</th>
-                                <th class="p-4 text-right">Resultado</th>
+                                <th class="p-4 text-right">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
@@ -88,17 +85,17 @@
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic">Entregar Resultado</h2>
+            <h2 class="text-xl font-black mb-4 uppercase italic italic">Subir Resultado</h2>
             <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-[10px] uppercase"></p>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Subir y Terminar</button>
-            <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-black text-[10px] uppercase tracking-widest">Cancelar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Subir y Terminar</button>
+            <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-black text-[10px] uppercase italic">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, deleteDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
@@ -110,101 +107,12 @@
 
         let firstDoc = null, lastDoc = null, pageNumber = 1;
         const PAGE_SIZE = 20; 
-        window.solicitudesCache = {};
-        let totalVentaGlobal = 0, pendientesGlobal = 0, visitasGlobal = 0, asesoresGlobal = 0;
+        let idTramiteActual = "";
 
-        // CONTADORES REALES
+        // CONTADORES
         const hoyStr = new Date().toISOString().split('T')[0];
-        onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => {
-            visitasGlobal = d.exists() ? d.data().contador : 0;
-            document.getElementById('txtVisitas').innerText = visitasGlobal;
-        });
-        onSnapshot(collection(db, "asesores"), (snap) => {
-            asesoresGlobal = snap.size;
-            document.getElementById('txtAsesores').innerText = asesoresGlobal;
-        });
-
-        // CARGA CON PAGINACIÓN
-        async function cargarSolicitudes(comando = 'next') {
-            let q;
-            const baseQuery = collection(db, "solicitudes");
-
-            if (comando === 'next' && lastDoc) {
-                q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
-            } else if (comando === 'prev' && firstDoc) {
-                q = query(baseQuery, orderBy("fecha", "desc"), endBefore(firstDoc), limitToLast(PAGE_SIZE));
-            } else {
-                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
-            }
-
-            onSnapshot(q, (snap) => {
-                if (snap.empty) return;
-                firstDoc = snap.docs[0];
-                lastDoc = snap.docs[snap.docs.length - 1];
-                renderizarTabla(snap);
-                document.getElementById('btnPrev').disabled = (pageNumber === 1);
-            });
-        }
-
-        function renderizarTabla(snap) {
-            const tabla = document.getElementById('tablaSolicitudes'); 
-            tabla.innerHTML = "";
-            
-            snap.forEach(docSnap => {
-                const s = docSnap.data();
-                if(s.tipo === "RECARGA ASESOR") return;
-                window.solicitudesCache[docSnap.id] = s;
-
-                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                
-                // Variables sincronizadas
-                const curpVal = s.curp || s.curp_p || "";
-                const nssVal = s.nss || s.nss_p || "";
-                const rfcVal = s.rfc || s.rfc_p || "";
-
-                let detallesHtml = "";
-                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
-                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
-                if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
-
-                let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
-                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1">${f.l} 📥</button>`; });
-
-                tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div></td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>
-                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}
-                            ${detallesHtml}
-                        </td>
-                        <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${docSnap.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
-                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
-                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'LIMITE' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'NO_ENCONTRADO' ? 'selected' : ''}>❌ NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'DATOS_ERR' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'ILEGIBLE' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'INVOCAR' ? 'selected' : ''}>❌ ERROR AL INVOCAR SERVICIO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'IMSS_TARDE' ? 'selected' : ''}>❌ ERROR IMSS CONSULTA TARDE</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'PASS_INC' ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'NO_VINCULADO' ? 'selected' : ''}>❌ NSS NO VINCULADO A INFONAVIT</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' && s.motivo === 'INCONSISTENCIA' ? 'selected' : ''}>❌ INCONSISTENCIAS / SUBDELEGACIÓN</option>
-                            </select>
-                        </td>
-                        <td class="p-4 text-right">
-                             <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${docSnap.id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition">Subir</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        // MONITOREO DE TOTALES (Global)
+        onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => { document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
+        onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => {
@@ -212,32 +120,103 @@
                 if(s.estatus === 'En Proceso') pendientes++;
                 if(s.fecha?.toDate().toLocaleDateString() === hoy && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
             });
-            totalVentaGlobal = totalHoy; pendientesGlobal = pendientes;
             document.getElementById('contadorPendientes').innerText = pendientes;
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
+        // CARGA
+        async function cargarSolicitudes(comando = 'next') {
+            const baseQuery = collection(db, "solicitudes");
+            let q;
+            if (comando === 'next' && lastDoc) q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
+            else if (comando === 'prev' && firstDoc) q = query(baseQuery, orderBy("fecha", "desc"), endBefore(firstDoc), limitToLast(PAGE_SIZE));
+            else q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
+
+            const snap = await getDocs(q);
+            if (snap.empty) return;
+            firstDoc = snap.docs[0];
+            lastDoc = snap.docs[snap.docs.length - 1];
+            renderizarTabla(snap);
+            document.getElementById('btnPrev').disabled = (pageNumber === 1);
+        }
+
+        function renderizarTabla(snap) {
+            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
+            snap.forEach(docSnap => {
+                const s = docSnap.data(), id = docSnap.id;
+                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
+                
+                let detallesHtml = "";
+                const curpVal = s.curp || s.curp_p || "";
+                const nssVal = s.nss || s.nss_p || "";
+                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black">CURP: ${curpVal}</div>`;
+                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black">NSS: ${nssVal}</div>`;
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
+
+                let btnDescargas = '';
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
+                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
+
+                tabla.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50 transition">
+                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
+                        <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                        <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${detallesHtml}</td>
+                        <td class="p-4 text-center">
+                            <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
+                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
+                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                                <option value="Error de Datos: LIMITE ALCANZADO" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE DE CONSULTAS</option>
+                                <option value="Error de Datos: NO ENCONTRADO" ${s.estatus.includes('NO ENCONTRADO') ? 'selected' : ''}>❌ NO ENCONTRADO</option>
+                                <option value="Error de Datos: DATOS INCORRECTOS" ${s.estatus.includes('DATOS INCORRECTOS') ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
+                                <option value="Error de Datos: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                                <option value="Error de Datos: ERROR AL INVOCAR" ${s.estatus.includes('INVOCAR') ? 'selected' : ''}>❌ ERROR AL INVOCAR SERVICIO</option>
+                                <option value="Error de Datos: IMSS TARDE" ${s.estatus.includes('IMSS TARDE') ? 'selected' : ''}>❌ ERROR IMSS CONSULTA TARDE</option>
+                                <option value="Error de Datos: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                                <option value="Error de Datos: NO VINCULADO" ${s.estatus.includes('VINCULADO') ? 'selected' : ''}>❌ NSS NO VINCULADO</option>
+                                <option value="Error de Datos: INCONSISTENCIAS" ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ INCONSISTENCIAS / SUBDELEGACIÓN</option>
+                            </select>
+                        </td>
+                        <td class="p-4 text-right">
+                             <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
+                             <button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 shadow-sm">Subir</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
         window.cambiarEstatus = async (id, est) => {
-            if (est === "Error de Datos") {
-                const s = window.solicitudesCache[id];
+            const docRef = doc(db, "solicitudes", id);
+            if (est.includes("Error")) {
+                const snap = await getDoc(docRef);
+                const s = snap.data();
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("⚠️ Saldo reembolsado al asesor.");
+                    alert("⚠️ Reembolsado al asesor.");
                 }
             }
-            await updateDoc(doc(db, "solicitudes", id), { estatus: est });
+            await updateDoc(docRef, { estatus: est });
         };
 
-        window.enviarCorteWhatsApp = () => {
-            const mensaje = `*CORTE DE CAJA DPR - ${new Date().toLocaleDateString()}*%0A%0A📈 *Visitas:* ${visitasGlobal}%0A👥 *Asesores:* ${asesoresGlobal}%0A💰 *Venta Hoy:* $${totalVentaGlobal.toFixed(2)}%0A⏳ *Pendientes:* ${pendientesGlobal}`;
-            window.open(`https://wa.me/528131983700?text=${mensaje}`);
+        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+
+        document.getElementById('btnGuardar').onclick = async () => {
+            const file = document.getElementById('inputArchivo').files[0];
+            if(!file || !idTramiteActual) return alert("Faltan datos.");
+            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+            try {
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
+                alert("✅ Entregado."); window.cerrarModal(); cargarSolicitudes();
+            } catch(e) { alert("Error."); }
+            btn.innerText = "Subir y Terminar"; btn.disabled = false;
         };
 
         document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
         document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
-        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
-        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
-        
         cargarSolicitudes();
     </script>
 </body>
