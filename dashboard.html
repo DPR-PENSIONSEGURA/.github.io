@@ -30,7 +30,7 @@
 <body>
 
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-        ✅SEMANAS COTIZADAS TRABAJANDO BIEN EN EL SISTEMA DE $25 ✅| RECUERDA QUE LA RECARGA MÍNIMA ES DE $200 | ⚡ÚNETE A NUESTRO CANAL DE AVISOS ⚡🟢 VIGENCIA DE DERECHOS EN $9 🟢
+        ✅ SEMANAS COTIZADAS TRABAJANDO BIEN ✅ | RECUERDA LA RECARGA MÍNIMA DE $200 | ⚡ VIGENCIA DE DERECHOS EN $9 🟢
     </div>
 
     <header class="sticky top-0 z-40 header-glass">
@@ -101,7 +101,7 @@
                         </tr>
                     </thead>
                     <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30">Sincronizando historial...</td></tr>
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando historial...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -110,7 +110,7 @@
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border shadow-2xl overflow-y-auto max-h-[90vh] relative">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl hover:text-slate-800">×</button>
+            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <div id="formContent"></div>
         </div>
     </div>
@@ -121,7 +121,7 @@
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8 text-xs text-left italic">
                 <p class="font-black text-emerald-600 mb-2 text-center uppercase">Banorte | Diana Puente Rodríguez</p>
-                <p class="text-xl font-black text-emerald-700 text-center">4915 6630 4036 4896</p>
+                <p class="text-xl font-black text-emerald-700 text-center tracking-widest">4915 6630 4036 4896</p>
             </div>
             <div class="space-y-4">
                 <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
@@ -150,7 +150,6 @@
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
-                
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 55, nss: true },
                 { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
@@ -184,7 +183,7 @@
                 { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
-                ],
+            ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
@@ -194,9 +193,6 @@
                 { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
                 { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
                 { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
-                {nombre: 'ECTA: Principal', precio: 650, nss: true, curp: true },
-                {nombre: 'ECTA: Banamex', precio: 1000, nss: true, curp: true },
-                {nombre: 'ECTA: InverCap', precio: 1350, nss: true, curp: true },
                 { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
             ]
         };
@@ -215,70 +211,22 @@
             });
         }
 
-        let paginaActual = 1;
-        const tramitesPorPagina = 10;
-        let listaTramitesCompleta = [];
-
         function escucharHistorial() {
             if(!userUID) return;
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(100));
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
             onSnapshot(q, (snap) => {
-                listaTramitesCompleta = [];
+                const lista = document.getElementById('listaHistorial');
+                if (snap.empty) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase italic">Sin solicitudes</td></tr>`; return; }
+                let html = "";
                 snap.forEach(docSnap => {
-                    listaTramitesCompleta.push({ id: docSnap.id, ...docSnap.data() });
+                    const d = docSnap.data();
+                    const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
+                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
+                    html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${f}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black shadow-md">VER</a>` : '--'}</td></tr>`;
                 });
-                renderizarHistorialPaginado();
+                lista.innerHTML = html;
             });
         }
-
-        window.renderizarHistorialPaginado = () => {
-            const lista = document.getElementById('listaHistorial');
-            if (listaTramitesCompleta.length === 0) { 
-                lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30">Sin trámites registrados</td></tr>`; 
-                return; 
-            }
-            const inicio = (paginaActual - 1) * tramitesPorPagina;
-            const fin = inicio + tramitesPorPagina;
-            const tramitesPagina = listaTramitesCompleta.slice(inicio, fin);
-            let html = "";
-            tramitesPagina.forEach(d => {
-                const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
-                let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
-                let clienteInfo = d.cliente_nombre ? `<div class="text-[7px] text-slate-400 italic">Cliente: ${d.cliente_nombre}</div>` : '';
-                html += `<tr class="border-b hover:bg-slate-50 transition"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${f}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div>${clienteInfo}</td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black">VER</a>` : '--'}</td></tr>`;
-            });
-            const totalPaginas = Math.ceil(listaTramitesCompleta.length / tramitesPorPagina);
-            lista.innerHTML = html + `<tr><td colspan="4" class="py-6"><div class="flex justify-center items-center gap-4"><button onclick="window.cambiarPagina(-1)" ${paginaActual === 1 ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >⬅️ Ant.</button><span class="text-[10px] font-black uppercase text-slate-400 italic">Página ${paginaActual} de ${totalPaginas}</span><button onclick="window.cambiarPagina(1)" ${paginaActual === totalPaginas ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >Sig. ➡️</button></div></td></tr>`;
-        };
-
-        window.cambiarPagina = (dir) => { paginaActual += dir; renderizarHistorialPaginado(); };
-
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f || m < 200) return alert("Mínimo $200 y comprobante obligatorio.");
-            const btn = document.getElementById('btnNotificar'); btn.disabled = true; btn.innerText = "SUBIENDO...";
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Reportado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al enviar."); }
-            finally { btn.disabled = false; btn.innerText = "Informar Pago"; }
-        };
-
-        window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p></div>`;
-            });
-            document.getElementById('listaServicios').innerHTML = html;
-        };
 
         window.buscarServicio = () => {
             const queryV = document.getElementById('inputBusqueda').value.toUpperCase();
@@ -289,10 +237,12 @@
             let html = '';
             Object.values(TRAMITES).flat().forEach(t => {
                 if (t.nombre.toUpperCase().includes(queryV)) {
-                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p></div>`;
+                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
+                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                    </div>`;
                 }
             });
-            document.getElementById('listaServicios').innerHTML = html || `<div class="col-span-full py-10 text-center">Sin resultados</div>`;
+            document.getElementById('listaServicios').innerHTML = html || `<div class="col-span-full py-10 text-center uppercase">Sin resultados</div>`;
         };
 
         window.resetearPanel = () => {
@@ -303,94 +253,116 @@
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePassNueva, pideFotoCliente, pideServicioCFE) => {
-            const content = document.getElementById('formContent');
-            let fields = '';
-            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO CLIENTE" class="input-light mb-4 uppercase">`;
-            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP CLIENTE" class="input-light mb-4 uppercase font-bold tracking-widest">`;
-            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-            
-            // NUEVOS CAMPOS CFE Y PASS
-            if(pidePassNueva) fields += `<input type="text" id="pass_nueva" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4 font-bold uppercase">`;
-            if(pideServicioCFE) fields += `<input type="text" id="num_servicio_cfe" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
-            if(pideFotoCliente) {
-                fields += `<div class="text-left mb-4"><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Foto del Cliente (Selfie):</label><input type="file" id="file_selfie" class="w-full text-xs"></div>`;
-            }
-
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
-            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
-            if(pideFecha) fields += `<p class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-2 text-left italic">Fecha de Nacimiento:</p><input type="date" id="fecha_p" class="input-light mb-4">`;
-
-            if(special === 'REGISTRO' || special === 'RETIRO') {
-                fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold uppercase"><div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs"></div><div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs"></div><div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Selfie con INE:</label><input type="file" id="file_selfie_extra" class="w-full text-xs"></div>${special === 'RETIRO' ? '<div><label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs"></div>' : ''}</div>`;
-            } else if(pideIneFrente) {
-                fields += `<p class="text-[9px] font-black text-slate-400 mb-2 text-left italic">Foto INE Frente:</p><input type="file" id="file_ine_f" class="mb-4 text-xs w-full">`;
-            }
-
-            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
-            abrirModal('modalTramite');
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
+                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                </div>`;
+            });
+            document.getElementById('listaServicios').innerHTML = html;
         };
 
-        const subirArchivo = async (id) => {
-            const el = document.getElementById(id);
-            if (el && el.files[0]) {
-                const fd = new FormData();
-                fd.append('file', el.files[0]);
-                fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await res.json();
-                return d.secure_url;
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
+                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
+                </div>`;
+            });
+            document.getElementById('listaServicios').innerHTML = html;
+        };
+
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE) => {
+            const content = document.getElementById('formContent');
+            let fields = '';
+            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
+            if(pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+            if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
+            if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
+            
+            if(special === 'REGISTRO') {
+                fields += `<input type="tel" id="tel_asesor" placeholder="TU TELÉFONO (ASESOR)" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO DEL CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
             }
-            return null;
+
+            if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
+                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Foto INE Frente:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+                if(special === 'RETIRO' || special === 'REGISTRO') {
+                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Foto INE Reverso:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Selfie con INE:</label><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+                    if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>`;
+                }
+                fields += `</div>`;
+            }
+
+            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+            abrirModal('modalTramite');
         };
 
         window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
-            btn.disabled = true; btn.innerText = "PROCESANDO...";
-            
+            const oldT = btn.innerText; btn.disabled = true; btn.innerText = "PROCESANDO...";
             try {
                 const infoExtra = {};
                 if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
                 if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
                 if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
-                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
-                if(document.getElementById('fecha_p')) infoExtra.fecha_nac = document.getElementById('fecha_p').value;
-                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value.toUpperCase();
-                
-                // Nuevos campos
-                if(document.getElementById('pass_nueva')) infoExtra.pass_nueva = document.getElementById('pass_nueva').value.toUpperCase();
-                if(document.getElementById('num_servicio_cfe')) infoExtra.num_servicio = document.getElementById('num_servicio_cfe').value;
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
+                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value;
+                if(document.getElementById('num_servicio')) infoExtra.num_servicio = document.getElementById('num_servicio').value;
+                if(document.getElementById('tel_asesor')) infoExtra.telefono_asesor = document.getElementById('tel_asesor').value;
+                if(document.getElementById('correo_p')) infoExtra.correo_cliente = document.getElementById('correo_p').value;
+                if(document.getElementById('tel_p')) infoExtra.telefono_cliente = document.getElementById('tel_p').value;
 
-                // SUBIDA DE ARCHIVOS ORGANIZADA
-                infoExtra.file_ine_f = await subirArchivo('file_ine_f');
-                infoExtra.file_selfie = await subirArchivo('file_selfie'); // Para cambio de contraseña
+                const subir = async (id) => {
+                    const el = document.getElementById(id);
+                    if (el && el.files[0]) {
+                        const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
+                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                        const data = await res.json(); return data.secure_url;
+                    }
+                    return null;
+                };
 
+                infoExtra.file_ine_f = await subir('file_ine_f');
                 if(special === 'RETIRO' || special === 'REGISTRO') {
-                    infoExtra.file_ine_r = await subirArchivo('file_ine_r');
-                    infoExtra.file_selfie = await subirArchivo('file_selfie_extra');
-                    if(special === 'RETIRO') infoExtra.file_edocta = await subirArchivo('file_edo_cta');
+                    infoExtra.file_ine_r = await subir('file_ine_r');
+                    infoExtra.file_selfie = await subir('file_selfie');
+                    if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
                 }
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), {
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor,
-                    tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra
-                });
+                await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
+                alert("Trámite enviado."); cerrarModal();
+            } catch(e) { alert("Error."); }
+            finally { btn.disabled = false; btn.innerText = oldT; }
+        };
 
-                const datosN8n = { asesor: emailAsesor, tramite: n, curp: infoExtra.curp || "N/A", nss: infoExtra.nss || "N/A", ...infoExtra };
-                await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
-                    method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify(datosN8n)
-                });
-
-                alert("Trámite enviado con éxito."); 
-                cerrarModal();
-            } catch(e) { 
-                alert("Error al procesar el trámite."); 
-                console.error(e);
-                btn.disabled = false; btn.innerText = "Reintentar"; 
-            }
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const f = document.getElementById('fileRecarga').files[0];
+            if (!m || !f || m < 200) return alert("Mínimo $200 y comprobante.");
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Pago reportado."); cerrarModal();
+            } catch(e) { alert("Error."); }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
