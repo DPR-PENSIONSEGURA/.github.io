@@ -178,8 +178,16 @@
                 let detallesHtml = "";
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
+                const rfcVal = s.rfc || s.rfc_p || "";
+                const idcifVal = s.idcif || s.idcif_p || "";
+                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || ""; // Captura todas las variantes de fecha
+                const plazoVal = s.plazo_mejoravit || "";
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
+                if(plazoVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase bg-emerald-50 px-1 rounded inline-block mt-0.5 border border-emerald-100 ml-1">PLAZO: ${plazoVal}</div>`;
+                if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
+                if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase bg-orange-50 px-1 rounded inline-block mt-0.5 border border-orange-100 italic">FECHA NAC: ${fechaNacVal}</div>`;
+                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block">IDCIF: ${idcifVal}</div>`;           
                 if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
