@@ -30,7 +30,7 @@
 <body>
 
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-        ✅ SEMANAS COTIZADAS TRABAJANDO BIEN ✅ | RECUERDA LA RECARGA MÍNIMA DE $200 | ⚡ VIGENCIA DE DERECHOS EN $9 🟢
+        ✅ SISTEMA ESTABLE ✅ | RECUERDA LA RECARGA MÍNIMA DE $200 | ⚡ VIGENCIA DE DERECHOS EN $9 🟢
     </div>
 
     <header class="sticky top-0 z-40 header-glass">
@@ -41,12 +41,10 @@
             </div>
             <div class="flex items-center gap-4">
                 <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" class="expand-btn bg-emerald-100 text-emerald-600 border border-emerald-200">
-                    <span class="icon">🔔</span>
-                    <span class="text">Canal Informativo</span>
+                    <span class="icon">🔔</span><span class="text">Canal Informativo</span>
                 </a>
                 <a href="finanzas.html" class="expand-btn bg-blue-600 text-white shadow-lg">
-                    <span class="icon">📈</span>
-                    <span class="text">Mis Movimientos</span>
+                    <span class="icon">📈</span><span class="text">Mis Movimientos</span>
                 </a>
             </div>
             <div class="flex items-center gap-3">
@@ -60,18 +58,12 @@
 
     <main class="p-6 max-w-7xl mx-auto">
         <div class="max-w-2xl mx-auto mb-10">
-            <div class="relative group">
-                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE..." 
-                class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-sm outline-none focus:border-emerald-500 shadow-lg">
-                <span class="absolute left-6 top-5 text-xl opacity-30">🔍</span>
-            </div>
+            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-sm outline-none focus:border-emerald-500 shadow-lg">
         </div>
 
         <div class="flex justify-between items-center mb-6">
             <h2 id="tituloSeccion" class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
-            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[10px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">
-                ⬅️ Volver
-            </button>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[10px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">⬅️ Volver</button>
         </div>
         
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
@@ -81,28 +73,18 @@
             <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[10px] block font-black uppercase mt-2">INFONAVIT</span></button>
             <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[10px] block font-black uppercase mt-2">AFORE</span></button>
             <a href="https://pensionsegura.org/calculadora.html" target="_blank" class="calc-card p-5 rounded-3xl text-center flex flex-col items-center justify-center border-2 shadow-lg">
-                <span class="text-xl">🧮</span>
-                <span class="text-[10px] block font-black uppercase mt-2 text-orange-600">CALCULADORA</span>
+                <span class="text-xl">🧮</span><span class="text-[10px] block font-black uppercase mt-2 text-orange-600">CALCULADORA</span>
             </a>
         </div>
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
-        <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl overflow-hidden mt-12">
-            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
+        <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
+            <h2 class="text-xl font-black text-slate-800 uppercase italic mb-6">Historial</h2>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b border-slate-100 italic">
-                            <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-4">Información</th>
-                            <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando historial...</td></tr>
-                    </tbody>
+                <table class="w-full text-left">
+                    <thead><tr class="text-[10px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
+                    <tbody id="listaHistorial" class="text-xs font-bold italic"></tbody>
                 </table>
             </div>
         </section>
@@ -119,15 +101,13 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-6 rounded-[2.5rem] mb-8 text-xs text-left italic">
-                <p class="font-black text-emerald-600 mb-2 text-center uppercase">Banorte | Diana Puente Rodríguez</p>
-                <p class="text-xl font-black text-emerald-700 text-center tracking-widest">4915 6630 4036 4896</p>
+            <div class="bg-emerald-50 border-2 border-emerald-500 p-4 rounded-2xl mb-6">
+                <p class="font-black text-emerald-600 text-xs">Banorte | Diana Puente Rodríguez</p>
+                <p class="text-lg font-black text-emerald-700 tracking-widest">4915 6630 4036 4896</p>
             </div>
-            <div class="space-y-4">
-                <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center font-black text-lg">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] text-slate-400">
-                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
-            </div>
+            <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center mb-4">
+            <input type="file" id="fileRecarga" class="block w-full text-xs mb-4">
+            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Informar Pago</button>
         </div>
     </div>
 
@@ -141,11 +121,11 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; 
-        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let saldoGlobal = 0, userUID = "", emailAsesor = "";
+        let saldoGlobal = 0, userUID = "", emailAsesor = "", paginaActual = 1;
+        const tramitesPorPagina = 10; let listaTramitesCompleta = [];
 
         const TRAMITES = {
             'IMSS': [
@@ -168,7 +148,7 @@
                 { nombre: 'RFC con IDcif', precio: 27, rfc: true, idcif: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideServicioCFE: true },
+                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
                 { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 15, curp: true },
@@ -180,14 +160,14 @@
             'INF': [
                 { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-               { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
                 { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCliente: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
                 { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
@@ -202,31 +182,33 @@
             else { window.location.href = "login/index.html"; }
         });
 
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (d) => {
-                if (d.exists()) {
-                    saldoGlobal = d.data().saldo || 0;
-                    document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal);
-                }
-            });
-        }
+        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if (d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal); } }); }
 
         function escucharHistorial() {
             if(!userUID) return;
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(25));
-            onSnapshot(q, (snap) => {
-                const lista = document.getElementById('listaHistorial');
-                if (snap.empty) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase italic">Sin solicitudes</td></tr>`; return; }
-                let html = "";
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
-                    let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
-                    html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${f}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black shadow-md">VER</a>` : '--'}</td></tr>`;
-                });
-                lista.innerHTML = html;
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(100)), (snap) => {
+                listaTramitesCompleta = []; snap.forEach(docSnap => listaTramitesCompleta.push({ id: docSnap.id, ...docSnap.data() }));
+                renderizarHistorialPaginado();
             });
         }
+
+        window.renderizarHistorialPaginado = () => {
+            const lista = document.getElementById('listaHistorial');
+            if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase italic">Sin solicitudes</td></tr>`; return; }
+            const inicio = (paginaActual - 1) * tramitesPorPagina;
+            const fin = inicio + tramitesPorPagina;
+            const tramitesPagina = listaTramitesCompleta.slice(inicio, fin);
+            let html = "";
+            tramitesPagina.forEach(d => {
+                const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
+                let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('ERROR') ? "text-red-500" : "text-orange-500");
+                html += `<tr class="border-b"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${f}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black shadow-md">VER</a>` : '--'}</td></tr>`;
+            });
+            const totalPaginas = Math.ceil(listaTramitesCompleta.length / tramitesPorPagina);
+            lista.innerHTML = html + `<tr><td colspan="4" class="py-6"><div class="flex justify-center items-center gap-4"><button onclick="window.cambiarPagina(-1)" ${paginaActual === 1 ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >⬅️ Ant.</button><span class="text-[10px] font-black uppercase text-slate-400 italic">Página ${paginaActual} de ${totalPaginas}</span><button onclick="window.cambiarPagina(1)" ${paginaActual === totalPaginas ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >Sig. ➡️</button></div></td></tr>`;
+        };
+
+        window.cambiarPagina = (dir) => { paginaActual += dir; renderizarHistorialPaginado(); };
 
         window.buscarServicio = () => {
             const queryV = document.getElementById('inputBusqueda').value.toUpperCase();
@@ -237,21 +219,13 @@
             let html = '';
             Object.values(TRAMITES).flat().forEach(t => {
                 if (t.nombre.toUpperCase().includes(queryV)) {
-                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
-                        <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
-                    </div>`;
+                    html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p></div>`;
                 }
             });
-            document.getElementById('listaServicios').innerHTML = html || `<div class="col-span-full py-10 text-center uppercase">Sin resultados</div>`;
+            document.getElementById('listaServicios').innerHTML = html || `<div class="col-span-full py-10 text-center uppercase font-black opacity-30">Sin resultados</div>`;
         };
 
-        window.resetearPanel = () => {
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('inputBusqueda').value = "";
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
-        };
+        window.resetearPanel = () => { document.getElementById('gridCategorias').classList.remove('hidden'); document.getElementById('listaServicios').classList.add('hidden'); document.getElementById('btnVolver').classList.add('hidden'); document.getElementById('inputBusqueda').value = ""; document.getElementById('tituloSeccion').innerText = "Panel de Servicios"; };
 
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
@@ -260,120 +234,97 @@
             document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
-                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
-                </div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p></div>`;
             });
             document.getElementById('listaServicios').innerHTML = html;
         };
 
-        window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePassNueva || false}, ${t.pideFotoCliente || false}, ${t.pideServicioCFE || false})" class="category-card p-5 rounded-3xl animate-fade">
-                    <p class="font-black text-[10px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[9px] mt-1">$${t.precio}.00</p>
-                </div>`;
-            });
-            document.getElementById('listaServicios').innerHTML = html;
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
+            const content = document.getElementById('formContent');
+            let fields = '';
+            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
+            if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha de Nacimiento:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+            if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
+            if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
+            
+            if(eligePlazo) {
+                fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo de Precalificación:</label><select id="plazo_mejoravit" class="input-light mb-4 font-bold">${[1,2,3,4,5,6,7,8,9,10].map(a => `<option value="${a} años">${a} ${a===1?'Año':'Años'}</option>`).join('')}</select>`;
+            }
+
+            if(special === 'REGISTRO') fields += `<input type="tel" id="tel_asesor" placeholder="TELÉFONO ASESOR" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO CLIENTE" class="input-light mb-4">`;
+
+            if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
+                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 1:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+                if(special === 'RETIRO' || special === 'REGISTRO') {
+                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 2:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 3:</label><input type="file" id="file_selfie_extra" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
+                    if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>`;
+                }
+                fields += `</div>`;
+            }
+
+            content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
+            window.abrirModal('modalTramite');
         };
-          window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
-    const content = document.getElementById('formContent');
-    let fields = '';
-    
-    if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-    if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
-    if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
-    if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
-    if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
-    if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha de Nacimiento</label><input type="date" id="fecha_p" class="input-light mb-4">`;
-    if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
-    if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO (12 DÍGITOS)" class="input-light mb-4 font-bold">`;
 
-    // --- SECCIÓN DE PLAZO MEJORAVIT CORREGIDA ---
-    if(eligePlazo) {
-        fields += `
-            <label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo de Precalificación:</label>
-            <select id="plazo_mejoravit" class="input-light mb-4 font-bold">
-                ${[1,2,3,4,5,6,7,8,9,10].map(año => `<option value="${año} años">${año} ${año === 1 ? 'Año' : 'Años'}</option>`).join('')}
-            </select>`;
-    }
-
-    if(special === 'REGISTRO') {
-        fields += `<input type="tel" id="tel_asesor" placeholder="TU TELÉFONO (ASESOR)" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO DEL CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
-    }
-
-    if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
-        fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Foto Documentos:</label><input type="file" id="file_ine_f" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
-        if(special === 'RETIRO' || special === 'REGISTRO') {
-            fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Foto Reverso/Selfie:</label><input type="file" id="file_ine_r" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div><div><input type="file" id="file_selfie" class="w-full text-xs bg-slate-50 p-2 rounded-xl border"></div>`;
-            if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Estado de Cuenta:</label><input type="file" id="file_edo_cta" class="w-full text-xs bg-emerald-50 p-2 rounded-xl border"></div>`;
-        }
-        fields += `</div>`;
-    }
-
-    content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}
-        <button onclick="window.confirmarCompra('${nombre}', ${costo}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-xl">Pagar $${costo}</button>`;
-    abrirModal('modalTramite');
-};
+        const subirArchivo = async (id) => {
+            const el = document.getElementById(id);
+            if (el && el.files[0]) {
+                const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const d = await res.json(); return d.secure_url;
+            } return null;
+        };
 
         window.confirmarCompra = async (n, c, special) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             const btn = document.querySelector("#modalTramite button:last-child");
-            const oldT = btn.innerText; btn.disabled = true; btn.innerText = "PROCESANDO...";
+            btn.disabled = true; btn.innerText = "PROCESANDO...";
             try {
                 const infoExtra = {};
                 if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
                 if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
                 if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
-                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value;
-                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value;
+                if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
+                if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
+                if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value.toUpperCase();
                 if(document.getElementById('num_servicio')) infoExtra.num_servicio = document.getElementById('num_servicio').value;
+                if(document.getElementById('plazo_mejoravit')) infoExtra.plazo_mejoravit = document.getElementById('plazo_mejoravit').value;
                 if(document.getElementById('tel_asesor')) infoExtra.telefono_asesor = document.getElementById('tel_asesor').value;
                 if(document.getElementById('correo_p')) infoExtra.correo_cliente = document.getElementById('correo_p').value;
-                if(document.getElementById('plazo_mejoravit')) infoExtra.plazo_mejoravit = document.getElementById('plazo_mejoravit').value;
                 if(document.getElementById('tel_p')) infoExtra.telefono_cliente = document.getElementById('tel_p').value;
 
-                
-                const subir = async (id) => {
-                    const el = document.getElementById(id);
-                    if (el && el.files[0]) {
-                        const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
-                        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                        const data = await res.json(); return data.secure_url;
-                    }
-                    return null;
-                };
-
-                infoExtra.file_ine_f = await subir('file_ine_f');
+                infoExtra.file_ine_f = await subirArchivo('file_ine_f');
                 if(special === 'RETIRO' || special === 'REGISTRO') {
-                    infoExtra.file_ine_r = await subir('file_ine_r');
-                    infoExtra.file_selfie = await subir('file_selfie');
-                    if(special === 'RETIRO') infoExtra.file_edocta = await subir('file_edo_cta');
+                    infoExtra.file_ine_r = await subirArchivo('file_ine_r');
+                    infoExtra.file_selfie = await subirArchivo('file_selfie_extra');
+                    if(special === 'RETIRO') infoExtra.file_edocta = await subirArchivo('file_edo_cta');
                 }
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
+                
+                await fetch("https://342356.appsneubox.com/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
+
                 alert("Trámite enviado."); cerrarModal();
-            } catch(e) { alert("Error."); }
-            finally { btn.disabled = false; btn.innerText = oldT; }
+            } catch(e) { alert("Error al procesar."); btn.disabled = false; btn.innerText = "Reintentar"; }
         };
 
         window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const f = document.getElementById('fileRecarga').files[0];
+            const m = parseFloat(document.getElementById('depMonto').value); const f = document.getElementById('fileRecarga').files[0];
             if (!m || !f || m < 200) return alert("Mínimo $200 y comprobante.");
+            const btn = document.getElementById('btnNotificar'); btn.disabled = true; btn.innerText = "SUBIENDO...";
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: data.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                const d = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
                 alert("Pago reportado."); cerrarModal();
-            } catch(e) { alert("Error."); }
+            } catch(e) { alert("Error."); } finally { btn.disabled = false; btn.innerText = "Informar Pago"; }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
