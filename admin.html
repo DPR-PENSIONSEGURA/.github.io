@@ -12,7 +12,6 @@
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
-        .nav-pag:not(:disabled):hover { background: #F97316; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -85,10 +84,10 @@
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic italic">Subir Resultado</h2>
+            <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado</h2>
             <p id="txtFolio" class="text-blue-600 font-bold mb-6 text-[10px] uppercase"></p>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Subir y Terminar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Subir y Terminar</button>
             <button onclick="window.cerrarModal()" class="mt-4 text-slate-400 font-black text-[10px] uppercase italic">Cancelar</button>
         </div>
     </div>
@@ -139,30 +138,21 @@
             renderizarTabla(snap);
             document.getElementById('btnPrev').disabled = (pageNumber === 1);
         }
-window.abrirSubida = (id, tipo) => { 
-    console.log("Abriendo modal para:", id); // Esto te servirá para ver si funciona en la consola
-    idTramiteActual = id; 
-    const modal = document.getElementById('modalSubir');
-    const txt = document.getElementById('txtFolio');
-    
-    if (modal && txt) {
-        txt.innerText = "ENTREGA: " + tipo; 
-        modal.classList.remove('hidden'); 
-        modal.classList.add('flex'); // Aseguramos que se vea como flexbox
-    } else {
-        console.error("No se encontró el elemento modalSubir en el HTML");
-    }
-};
 
-// También asegúrate de que cerrarModal sea global
-window.cerrarModal = () => {
-    const modal = document.getElementById('modalSubir');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-};
-        
+        function renderizarTabla(snap) {
+            const tabla = document.getElementById('tablaSolicitudes'); 
+            tabla.innerHTML = "";
+            snap.forEach(docSnap => {
+                const s = docSnap.data();
+                const id = docSnap.id;
+                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
+                
+                let detallesHtml = "";
+                const curpVal = s.curp || s.curp_p || "";
+                const nssVal = s.nss || s.nss_p || "";
+                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
+                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
                 const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
@@ -172,7 +162,11 @@ window.cerrarModal = () => {
                     <tr class="border-b hover:bg-blue-50 transition">
                         <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
                         <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
-                        <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${detallesHtml}</td>
+                        <td class="p-4">
+                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>
+                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}
+                            ${detallesHtml}
+                        </td>
                         <td class="p-4 text-center">
                             <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                                 <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
@@ -190,7 +184,7 @@ window.cerrarModal = () => {
                         </td>
                         <td class="p-4 text-right">
                              <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 shadow-sm">Subir</button>
+                             <button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
                         </td>
                     </tr>`;
             });
@@ -209,8 +203,19 @@ window.cerrarModal = () => {
             await updateDoc(docRef, { estatus: est });
         };
 
-        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; document.getElementById('modalSubir').classList.remove('hidden'); };
-        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+        window.abrirSubida = (id, tipo) => { 
+            idTramiteActual = id; 
+            const modal = document.getElementById('modalSubir');
+            const txt = document.getElementById('txtFolio');
+            if (modal && txt) {
+                txt.innerText = "ENTREGA: " + tipo; 
+                modal.classList.remove('hidden'); 
+            }
+        };
+
+        window.cerrarModal = () => {
+            document.getElementById('modalSubir').classList.add('hidden');
+        };
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
@@ -226,8 +231,21 @@ window.cerrarModal = () => {
             btn.innerText = "Subir y Terminar"; btn.disabled = false;
         };
 
+        window.enviarCorteWhatsApp = () => {
+            const total = document.getElementById('gananciaHoy').innerText;
+            const pendientes = document.getElementById('contadorPendientes').innerText;
+            const mensaje = `*CORTE DPR - ${new Date().toLocaleDateString()}*%0A%0A💰 *Venta Hoy:* ${total}%0A⏳ *Pendientes:* ${pendientes}`;
+            window.open(`https://wa.me/528131983700?text=${mensaje}`);
+        };
+
         document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
         document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
+        
+        window.filtrarTabla = () => {
+            const bus = document.getElementById('buscador').value.toUpperCase();
+            document.querySelectorAll('#tablaSolicitudes tr').forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
+        };
+
         cargarSolicitudes();
     </script>
 </body>
