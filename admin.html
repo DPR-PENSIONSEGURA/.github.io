@@ -19,7 +19,7 @@
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic">DP</div>
+                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
                 <div>
                     <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Admin</span></h1>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
@@ -65,9 +65,7 @@
                                 <th class="p-5 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="tablaRecargas">
-                            <tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Cargando recargas...</td></tr>
-                        </tbody>
+                        <tbody id="tablaRecargas"></tbody>
                     </table>
                 </div>
             </div>
@@ -148,39 +146,20 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // 2. RECARGAS (LA PARTE QUE FALTABA)
+        // 2. RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
-            const t = document.getElementById('tablaRecargas'); 
-            t.innerHTML = "";
-            if (snap.empty) {
-                t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>';
-                return;
-            }
+            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
+            if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
             snap.forEach(d => {
                 const r = d.data();
-                t.innerHTML += `<tr class="border-b">
-                    <td class="p-5 font-bold text-slate-700 text-[11px]">${r.asesorEmail}</td>
-                    <td class="p-5 font-black text-emerald-600">$${r.monto}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">PAGO 📥</button></td>
-                    <td class="p-5 text-center flex justify-center gap-2">
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-emerald-600 transition">APROBAR</button>
-                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-red-600 transition">RECHAZAR</button>
-                    </td></tr>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-slate-700 text-[11px]">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">PAGO 📥</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-emerald-600 transition">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-red-600 transition">RECHAZAR</button></td></tr>`;
             });
         });
 
         window.validarRecarga = async (docId, uid, monto, est) => {
             if (est === 'aprobado') {
-                try {
-                    await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                    await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                    alert("✅ Recarga aprobada con éxito.");
-                } catch (e) { alert("Error al aprobar."); }
-            } else {
-                if(confirm("¿Seguro que deseas rechazar y borrar este reporte?")) {
-                    await deleteDoc(doc(db, "notificaciones_pago", docId));
-                }
-            }
+                try { await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" }); alert("✅ Recarga aprobada."); } catch (e) { alert("Error al aprobar."); }
+            } else { if(confirm("¿Rechazar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
         // 3. SOLICITUDES Y PAGINACIÓN
@@ -200,20 +179,12 @@
         }
 
         function renderizarTabla(snap) {
-            const tabla = document.getElementById('tablaSolicitudes'); 
-            tabla.innerHTML = "";
+            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
             snap.forEach(docSnap => {
-                const s = docSnap.data();
-                const id = docSnap.id;
+                const s = docSnap.data(), id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
-                
                 let detallesHtml = "";
-                const curpVal = s.curp || s.curp_p || "";
-                const nssVal = s.nss || s.nss_p || "";
-                const rfcVal = s.rfc || s.rfc_p || "";
-                const idcifVal = s.idcif || s.idcif_p || "";
-                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || "";
-                const plazoVal = s.plazo_mejoravit || "";
+                const curpVal = s.curp || s.curp_p || "", nssVal = s.nss || s.nss_p || "", rfcVal = s.rfc || s.rfc_p || "", idcifVal = s.idcif || s.idcif_p || "", fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || "", plazoVal = s.plazo_mejoravit || "";
 
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
@@ -227,35 +198,7 @@
                 const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
 
-                tabla.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
-                        <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
-                        <td class="p-4">
-                            <div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>
-                            ${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}
-                            ${detallesHtml}
-                        </td>
-                        <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
-                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
-                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos: LIMITE ALCANZADO" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE DE CONSULTAS</option>
-                                <option value="Error de Datos: NO ENCONTRADO" ${s.estatus.includes('NO ENCONTRADO') ? 'selected' : ''}>❌ NO ENCONTRADO</option>
-                                <option value="Error de Datos: DATOS INCORRECTOS" ${s.estatus.includes('DATOS INCORRECTOS') ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-                                <option value="Error de Datos: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                                <option value="Error de Datos: ERROR AL INVOCAR" ${s.estatus.includes('INVOCAR') ? 'selected' : ''}>❌ ERROR AL INVOCAR SERVICIO</option>
-                                <option value="Error de Datos: IMSS TARDE" ${s.estatus.includes('IMSS TARDE') ? 'selected' : ''}>❌ ERROR IMSS CONSULTA TARDE</option>
-                                <option value="Error de Datos: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-                                <option value="Error de Datos: NO VINCULADO" ${s.estatus.includes('VINCULADO') ? 'selected' : ''}>❌ NSS NO VINCULADO</option>
-                                <option value="Error de Datos: INCONSISTENCIAS" ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ INCONSISTENCIAS / SUBDELEGACIÓN</option>
-                            </select>
-                        </td>
-                        <td class="p-4 text-right">
-                             <div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div>
-                             <button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button>
-                        </td>
-                    </tr>`;
+                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition"><td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td><td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td><td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td><td class="p-4 text-center"><select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none"><option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option><option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option><option value="Error de Datos: LIMITE ALCANZADO" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE DE CONSULTAS</option><option value="Error de Datos: NO ENCONTRADO" ${s.estatus.includes('NO ENCONTRADO') ? 'selected' : ''}>❌ NO ENCONTRADO</option><option value="Error de Datos: DATOS INCORRECTOS" ${s.estatus.includes('DATOS INCORRECTOS') ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option><option value="Error de Datos: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option><option value="Error de Datos: ERROR AL INVOCAR" ${s.estatus.includes('INVOCAR') ? 'selected' : ''}>❌ ERROR AL INVOCAR SERVICIO</option><option value="Error de Datos: IMSS TARDE" ${s.estatus.includes('IMSS TARDE') ? 'selected' : ''}>❌ ERROR IMSS CONSULTA TARDE</option><option value="Error de Datos: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option><option value="Error de Datos: NO VINCULADO" ${s.estatus.includes('VINCULADO') ? 'selected' : ''}>❌ NSS NO VINCULADO</option><option value="Error de Datos: INCONSISTENCIAS" ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ INCONSISTENCIAS / SUBDELEGACIÓN</option></select></td><td class="p-4 text-right"><div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div><button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button></td></tr>`;
             });
         }
 
@@ -264,38 +207,17 @@
             if (est.includes("Error")) {
                 const snap = await getDoc(docRef);
                 const s = snap.data();
-                if (s && s.asesor_uid && s.costo > 0) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert("⚠️ Reembolsado al asesor.");
-                }
+                if (s && s.asesor_uid && s.costo > 0) { await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) }); alert("⚠️ Reembolsado."); }
             }
             await updateDoc(docRef, { estatus: est });
         };
 
-        window.abrirSubida = (id, tipo) => { 
-            idTramiteActual = id; 
-            const modal = document.getElementById('modalSubir');
-            const txt = document.getElementById('txtFolio');
-            if (modal && txt) { txt.innerText = "ENTREGA: " + tipo; modal.classList.remove('hidden'); }
-        };
-
-        window.cerrarModal = () => { document.getElementById('modalSubir').classList.add('hidden'); };
+        window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; };
+        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
-            if(!file || !idTramiteActual) return alert("Faltan datos.");
-            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            try {
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const
-        window.cerrarModal = () => {
-            document.getElementById('modalSubir').classList.add('hidden');
-        };
-
-        document.getElementById('btnGuardar').onclick = async () => {
-            const file = document.getElementById('inputArchivo').files[0];
-            if(!file || !idTramiteActual) return alert("Faltan datos.");
+            if(!file || !idTramiteActual) return alert("Selecciona archivo.");
             const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
@@ -303,20 +225,17 @@
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
                 alert("✅ Entregado."); window.cerrarModal(); cargarSolicitudes();
-            } catch(e) { alert("Error."); }
-            btn.innerText = "Subir y Terminar"; btn.disabled = false;
+            } catch(e) { alert("Error al subir."); }
+            finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
         };
 
         window.enviarCorteWhatsApp = () => {
             const total = document.getElementById('gananciaHoy').innerText;
-            const pendientes = document.getElementById('contadorPendientes').innerText;
-            const mensaje = `*CORTE DPR - ${new Date().toLocaleDateString()}*%0A%0A💰 *Venta Hoy:* ${total}%0A⏳ *Pendientes:* ${pendientes}`;
-            window.open(`https://wa.me/528131983700?text=${mensaje}`);
+            window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${total}`);
         };
 
         document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
         document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
-        
         window.filtrarTabla = () => {
             const bus = document.getElementById('buscador').value.toUpperCase();
             document.querySelectorAll('#tablaSolicitudes tr').forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
