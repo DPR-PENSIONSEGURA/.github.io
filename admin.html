@@ -129,7 +129,6 @@
         let idTramiteActual = "";
         window.solicitudesCache = {};
 
-        // 1. CONTADORES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => { document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
@@ -146,7 +145,6 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // 2. RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
@@ -162,14 +160,12 @@
             } else { if(confirm("¿Rechazar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // 3. SOLICITUDES Y PAGINACIÓN
         async function cargarSolicitudes(comando = 'next') {
             const baseQuery = collection(db, "solicitudes");
             let q;
             if (comando === 'next' && lastDoc) q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
             else if (comando === 'prev' && firstDoc) q = query(baseQuery, orderBy("fecha", "desc"), endBefore(firstDoc), limitToLast(PAGE_SIZE));
             else q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
-
             const snap = await getDocs(q);
             if (snap.empty) return;
             firstDoc = snap.docs[0];
@@ -183,15 +179,26 @@
             snap.forEach(docSnap => {
                 const s = docSnap.data(), id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
+                
+                // --- SECCIÓN DE VARIABLES REESTABLECIDAS ---
                 let detallesHtml = "";
-                const curpVal = s.curp || s.curp_p || "", nssVal = s.nss || s.nss_p || "", rfcVal = s.rfc || s.rfc_p || "", idcifVal = s.idcif || s.idcif_p || "", fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || "", plazoVal = s.plazo_mejoravit || "";
+                const curpVal = s.curp || s.curp_p || "";
+                const nssVal = s.nss || s.nss_p || "";
+                const rfcVal = s.rfc || s.rfc_p || "";
+                const idcifVal = s.idcif || s.idcif_p || "";
+                const passNuevaVal = s.pass_nueva || "";
+                const cfeVal = s.num_servicio || "";
+                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || "";
+                const plazoVal = s.plazo_mejoravit || "";
 
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
-                if(plazoVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase bg-emerald-50 px-1 rounded inline-block mt-0.5 border border-emerald-100 ml-1">PLAZO: ${plazoVal}</div>`;
+                if(plazoVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase bg-emerald-50 px-1 rounded inline-block">PLAZO: ${plazoVal}</div>`;
                 if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase bg-orange-50 px-1 rounded inline-block mt-0.5 border border-orange-100 italic">FECHA NAC: ${fechaNacVal}</div>`;
-                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block">IDCIF: ${idcifVal}</div>`;           
+                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block ml-1">IDCIF: ${idcifVal}</div>`;
+                if(cfeVal) detallesHtml += `<div class="text-[9px] text-blue-800 font-black uppercase bg-blue-50 px-1 rounded inline-block">CFE: ${cfeVal}</div>`;
+                if(passNuevaVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase bg-orange-50 px-1 rounded inline-block">NUEVA PASS: ${passNuevaVal}</div>`;
+                if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase border border-orange-100 px-1 rounded inline-block">FECHA NAC: ${fechaNacVal}</div>`;
                 if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
@@ -215,19 +222,44 @@
         window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
-        document.getElementById('btnGuardar').onclick = async () => {
-            const file = document.getElementById('inputArchivo').files[0];
-            if(!file || !idTramiteActual) return alert("Selecciona archivo.");
-            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
-            try {
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                alert("✅ Entregado."); window.cerrarModal(); cargarSolicitudes();
-            } catch(e) { alert("Error al subir."); }
-            finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
-        };
+document.getElementById('btnGuardar').onclick = async () => {
+    const file = document.getElementById('inputArchivo').files[0];
+    if(!file || !idTramiteActual) return alert("Selecciona un archivo.");
+    
+    const btn = document.getElementById('btnGuardar'); 
+    btn.innerText = "SUBIENDO..."; 
+    btn.disabled = true;
+    
+    const fd = new FormData(); 
+    fd.append('file', file); 
+    fd.append('upload_preset', UPLOAD_PRESET);
+    
+    try {
+        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+        const data = await res.json();
+        
+        await updateDoc(doc(db, "solicitudes", idTramiteActual), { 
+            archivoFinal: data.secure_url, 
+            estatus: "Terminado" 
+        });
+
+        alert("✅ Entregado con éxito.");
+        window.cerrarModal();
+
+        // --- SOLUCIÓN: RESETEAR A PÁGINA 1 ---
+        firstDoc = null;
+        lastDoc = null;
+        pageNumber = 1;
+        cargarSolicitudes(); // Recarga desde el principio
+
+    } catch(e) { 
+        alert("Error al subir el archivo."); 
+        console.error(e);
+    } finally { 
+        btn.innerText = "Subir y Terminar"; 
+        btn.disabled = false; 
+    }
+};
 
         window.enviarCorteWhatsApp = () => {
             const total = document.getElementById('gananciaHoy').innerText;
