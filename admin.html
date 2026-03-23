@@ -12,6 +12,9 @@
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
+        /* Estilo para el botón de pendientes */
+        .btn-filter { background: #F97316; color: white; padding: 10px 20px; border-radius: 15px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
+        .btn-filter:hover { background: #EA580C; transform: scale(1.05); }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -75,12 +78,13 @@
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
                     <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
+                    <button onclick="window.filtrarSoloPendientes()" class="btn-filter shadow-lg">🟠 Solo Pendientes</button>
                     <div class="flex gap-2">
                         <button id="btnPrev" class="nav-pag" disabled>Anterior</button>
                         <button id="btnNext" class="nav-pag">Siguiente</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.filtrarTabla()" placeholder="BUSCAR EN ESTA PÁGINA..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -160,6 +164,22 @@
             } else { if(confirm("¿Rechazar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
+        // --- FUNCIÓN DE BÚSQUEDA GLOBAL ---
+        window.buscarGlobal = async () => {
+            const bus = document.getElementById('buscador').value.toUpperCase();
+            if (bus.length < 1) return cargarSolicitudes();
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(200));
+            const snap = await getDocs(q);
+            renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
+        };
+
+        // --- FUNCIÓN DE SOLO PENDIENTES ---
+        window.filtrarSoloPendientes = async () => {
+            const q = query(collection(db, "solicitudes"), where("estatus", "==", "En Proceso"), orderBy("fecha", "desc"), limit(100));
+            const snap = await getDocs(q);
+            renderizarTablaPersonalizada(snap.docs);
+        };
+
         async function cargarSolicitudes(comando = 'next') {
             const baseQuery = collection(db, "solicitudes");
             let q;
@@ -170,17 +190,17 @@
             if (snap.empty) return;
             firstDoc = snap.docs[0];
             lastDoc = snap.docs[snap.docs.length - 1];
-            renderizarTabla(snap);
+            renderizarTablaPersonalizada(snap.docs);
             document.getElementById('btnPrev').disabled = (pageNumber === 1);
         }
 
-        function renderizarTabla(snap) {
+        function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            snap.forEach(docSnap => {
-                const s = docSnap.data(), id = docSnap.id;
+            docsArray.forEach(docSnap => {
+                const s = typeof docSnap.data === 'function' ? docSnap.data() : docSnap;
+                const id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
                 
-                // --- SECCIÓN DE VARIABLES REESTABLECIDAS ---
                 let detallesHtml = "";
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
@@ -222,56 +242,24 @@
         window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; };
         window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
 
-document.getElementById('btnGuardar').onclick = async () => {
-    const file = document.getElementById('inputArchivo').files[0];
-    if(!file || !idTramiteActual) return alert("Selecciona un archivo.");
-    
-    const btn = document.getElementById('btnGuardar'); 
-    btn.innerText = "SUBIENDO..."; 
-    btn.disabled = true;
-    
-    const fd = new FormData(); 
-    fd.append('file', file); 
-    fd.append('upload_preset', UPLOAD_PRESET);
-    
-    try {
-        const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-        const data = await res.json();
-        
-        await updateDoc(doc(db, "solicitudes", idTramiteActual), { 
-            archivoFinal: data.secure_url, 
-            estatus: "Terminado" 
-        });
-
-        alert("✅ Entregado con éxito.");
-        window.cerrarModal();
-
-        // --- SOLUCIÓN: RESETEAR A PÁGINA 1 ---
-        firstDoc = null;
-        lastDoc = null;
-        pageNumber = 1;
-        cargarSolicitudes(); // Recarga desde el principio
-
-    } catch(e) { 
-        alert("Error al subir el archivo."); 
-        console.error(e);
-    } finally { 
-        btn.innerText = "Subir y Terminar"; 
-        btn.disabled = false; 
-    }
-};
-
-        window.enviarCorteWhatsApp = () => {
-            const total = document.getElementById('gananciaHoy').innerText;
-            window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${total}`);
+        document.getElementById('btnGuardar').onclick = async () => {
+            const file = document.getElementById('inputArchivo').files[0];
+            if(!file || !idTramiteActual) return alert("Selecciona un archivo.");
+            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+            try {
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const data = await res.json();
+                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
+                alert("✅ Entregado con éxito."); window.cerrarModal(); 
+                firstDoc = null; lastDoc = null; pageNumber = 1; cargarSolicitudes();
+            } catch(e) { alert("Error al subir."); }
+            finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
         };
 
+        window.enviarCorteWhatsApp = () => { window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${document.getElementById('gananciaHoy').innerText}`); };
         document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
         document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
-        window.filtrarTabla = () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            document.querySelectorAll('#tablaSolicitudes tr').forEach(f => f.style.display = f.innerText.toUpperCase().includes(bus) ? "" : "none");
-        };
 
         cargarSolicitudes();
     </script>
