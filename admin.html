@@ -48,35 +48,29 @@
 
         <div class="flex flex-wrap gap-3 mb-12">
             <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
+            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg transition-all hover:bg-slate-900">📦 Corte e Inventario</a>
             <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📱 WhatsApp Corte</button>
         </div>
-<div class="flex flex-wrap gap-3 mb-12">
-    <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">
-        👥 Control Asesores
-    </a>
-    
-    <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-3 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">
-        📦 Corte e Inventario
-    </a>
-</div>
+
         <section class="mb-12">
-    <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-    <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                    <tr>
-                        <th class="p-5">Asesor (Email)</th>
-                        <th class="p-5">Monto</th>
-                        <th class="p-5">Comprobante</th>
-                        <th class="p-5 text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaRecargas">
-                    </tbody>
-            </table>
-        </div>
-    </div>
+            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
+                            <tr>
+                                <th class="p-5">Asesor (Email)</th>
+                                <th class="p-5">Monto</th>
+                                <th class="p-5">Comprobante</th>
+                                <th class="p-5 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRecargas">
+                            <tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">Cargando recargas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
         
         <section>
@@ -122,7 +116,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
@@ -135,15 +129,18 @@
         let firstDoc = null, lastDoc = null, pageNumber = 1;
         const PAGE_SIZE = 20; 
         let idTramiteActual = "";
+        window.solicitudesCache = {};
 
-        // CONTADORES
+        // 1. CONTADORES
         const hoyStr = new Date().toISOString().split('T')[0];
         onSnapshot(doc(db, "visitas_diarias", hoyStr), (d) => { document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
+        
         onSnapshot(collection(db, "solicitudes"), (snap) => {
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => {
                 const s = d.data();
+                window.solicitudesCache[d.id] = s;
                 if(s.estatus === 'En Proceso') pendientes++;
                 if(s.fecha?.toDate().toLocaleDateString() === hoy && !s.estatus.includes('Error')) totalHoy += Number(s.costo || 0);
             });
@@ -151,7 +148,42 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // CARGA
+        // 2. RECARGAS (LA PARTE QUE FALTABA)
+        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
+            const t = document.getElementById('tablaRecargas'); 
+            t.innerHTML = "";
+            if (snap.empty) {
+                t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>';
+                return;
+            }
+            snap.forEach(d => {
+                const r = d.data();
+                t.innerHTML += `<tr class="border-b">
+                    <td class="p-5 font-bold text-slate-700 text-[11px]">${r.asesorEmail}</td>
+                    <td class="p-5 font-black text-emerald-600">$${r.monto}</td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">PAGO 📥</button></td>
+                    <td class="p-5 text-center flex justify-center gap-2">
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-emerald-600 transition">APROBAR</button>
+                        <button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px] hover:bg-red-600 transition">RECHAZAR</button>
+                    </td></tr>`;
+            });
+        });
+
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if (est === 'aprobado') {
+                try {
+                    await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                    await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                    alert("✅ Recarga aprobada con éxito.");
+                } catch (e) { alert("Error al aprobar."); }
+            } else {
+                if(confirm("¿Seguro que deseas rechazar y borrar este reporte?")) {
+                    await deleteDoc(doc(db, "notificaciones_pago", docId));
+                }
+            }
+        };
+
+        // 3. SOLICITUDES Y PAGINACIÓN
         async function cargarSolicitudes(comando = 'next') {
             const baseQuery = collection(db, "solicitudes");
             let q;
@@ -180,8 +212,9 @@
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
                 const idcifVal = s.idcif || s.idcif_p || "";
-                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || ""; // Captura todas las variantes de fecha
+                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || s.fecha_nac || "";
                 const plazoVal = s.plazo_mejoravit || "";
+
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
                 if(plazoVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase bg-emerald-50 px-1 rounded inline-block mt-0.5 border border-emerald-100 ml-1">PLAZO: ${plazoVal}</div>`;
@@ -191,7 +224,7 @@
                 if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
 
                 let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edo_cta}];
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `
@@ -243,12 +276,19 @@
             idTramiteActual = id; 
             const modal = document.getElementById('modalSubir');
             const txt = document.getElementById('txtFolio');
-            if (modal && txt) {
-                txt.innerText = "ENTREGA: " + tipo; 
-                modal.classList.remove('hidden'); 
-            }
+            if (modal && txt) { txt.innerText = "ENTREGA: " + tipo; modal.classList.remove('hidden'); }
         };
 
+        window.cerrarModal = () => { document.getElementById('modalSubir').classList.add('hidden'); };
+
+        document.getElementById('btnGuardar').onclick = async () => {
+            const file = document.getElementById('inputArchivo').files[0];
+            if(!file || !idTramiteActual) return alert("Faltan datos.");
+            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
+            const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+            try {
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const
         window.cerrarModal = () => {
             document.getElementById('modalSubir').classList.add('hidden');
         };
