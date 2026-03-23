@@ -175,10 +175,28 @@
 
         // --- FUNCIÓN DE SOLO PENDIENTES ---
         window.filtrarSoloPendientes = async () => {
-            const q = query(collection(db, "solicitudes"), where("estatus", "==", "En Proceso"), orderBy("fecha", "desc"), limit(100));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs);
-        };
+    const tabla = document.getElementById('tablaSolicitudes');
+    tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">FILTRANDO PENDIENTES...</td></tr>`;
+
+    try {
+        // Traemos los últimos 150 trámites (sin importar el estatus)
+        const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(150));
+        const snap = await getDocs(q);
+        
+        // Filtramos solo los que están "En Proceso" aquí mismo en el código
+        const pendientes = snap.docs.filter(d => d.data().estatus === "En Proceso");
+
+        if (pendientes.length === 0) {
+            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black">NO HAY TRÁMITES PENDIENTES EN LOS ÚLTIMOS REGISTROS</td></tr>`;
+            return;
+        }
+
+        renderizarTablaPersonalizada(pendientes);
+    } catch (e) {
+        console.error("Error al filtrar:", e);
+        alert("Error al cargar pendientes.");
+    }
+};
 
         async function cargarSolicitudes(comando = 'next') {
             const baseQuery = collection(db, "solicitudes");
