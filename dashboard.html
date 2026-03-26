@@ -116,13 +116,13 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-xl font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-6">
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-6 text-center">
                 <p class="font-black text-emerald-600 text-[10px] uppercase">Banorte | Diana Puente Rodríguez</p>
                 <p class="text-lg font-black text-emerald-700 tracking-widest uppercase">4915 6630 4036 4896</p>
             </div>
             <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center mb-4">
             <input type="file" id="fileRecarga" class="block w-full text-[10px] mb-4">
-            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
+            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Informar Pago</button>
         </div>
     </div>
 
@@ -150,7 +150,7 @@
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10' },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta para Desempleo con linea de captura', precio: 170, nss: true, curp: true, pideNombre: true }
@@ -181,7 +181,7 @@
             ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO' },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO' },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
                 { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
@@ -201,11 +201,7 @@
             } else { window.location.href = "login/index.html"; }
         });
 
-        window.cerrarAvisoBaneo = () => {
-            document.getElementById('avisoBaneo').classList.add('hidden');
-            localStorage.setItem('avisoVisto', 'true');
-        };
-
+        window.cerrarAvisoBaneo = () => { document.getElementById('avisoBaneo').classList.add('hidden'); localStorage.setItem('avisoVisto', 'true'); };
         function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if (d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal); } }); }
 
         function escucharHistorial() {
@@ -218,10 +214,9 @@
 
         window.renderizarHistorialPaginado = () => {
             const lista = document.getElementById('listaHistorial');
-            if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase italic">Sin solicitudes</td></tr>`; return; }
+            if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sin solicitudes</td></tr>`; return; }
             const inicio = (paginaActual - 1) * tramitesPorPagina;
-            const fin = inicio + tramitesPorPagina;
-            const tramitesPagina = listaTramitesCompleta.slice(inicio, fin);
+            const tramitesPagina = listaTramitesCompleta.slice(inicio, inicio + tramitesPorPagina);
             let html = "";
             tramitesPagina.forEach(d => {
                 const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
@@ -229,7 +224,7 @@
                 html += `<tr class="border-b hover:bg-slate-50 transition"><td class="py-4 px-2 text-slate-400 text-[10px] font-black">${f}</td><td class="py-4 px-4"><div class="font-black uppercase text-slate-700">${d.tipo}</div><div class="text-[8px] text-emerald-600 uppercase font-black">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center font-black uppercase text-[10px] ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[9px] font-black shadow-md">VER</a>` : '--'}</td></tr>`;
             });
             const totalPaginas = Math.ceil(listaTramitesCompleta.length / tramitesPorPagina);
-            lista.innerHTML = html + `<tr><td colspan="4" class="py-6"><div class="flex justify-center items-center gap-4"><button onclick="window.cambiarPagina(-1)" ${paginaActual === 1 ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >⬅️ Ant.</button><span class="text-[10px] font-black uppercase text-slate-400 italic">Página ${paginaActual} de ${totalPaginas}</span><button onclick="window.cambiarPagina(1)" ${paginaActual === totalPaginas ? 'disabled class="opacity-20"' : 'class="bg-slate-800 text-white px-4 py-1 rounded-lg font-black text-[9px] uppercase"'} >Sig. ➡️</button></div></td></tr>`;
+            lista.innerHTML = html + `<tr><td colspan="4" class="py-6 text-center"><div class="flex justify-center gap-4"><button onclick="window.cambiarPagina(-1)" class="nav-pag bg-slate-800 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase">⬅️ Ant.</button><span class="text-[10px] font-black uppercase text-slate-400">Pág ${paginaActual} de ${totalPaginas}</span><button onclick="window.cambiarPagina(1)" class="nav-pag bg-slate-800 text-white px-3 py-1 rounded-lg text-[9px] font-black uppercase">Sig. ➡️</button></div></td></tr>`;
         };
 
         window.cambiarPagina = (dir) => { paginaActual += dir; renderizarHistorialPaginado(); };
@@ -266,40 +261,45 @@
         window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
             const content = document.getElementById('formContent');
             let fields = '';
-            
-            // 1. PRECIO ESPECIAL CORRECTO
             let precioFinal = costo;
             const correoAsesorEspecial = "prestamoefectivo.tramites@gmail.com";
-            if (emailAsesor === correoAsesorEspecial && nombre === 'Semanas Cotizadas') {
-                precioFinal = 23;
-            }
+            if (emailAsesor === correoAsesorEspecial && nombre === 'Semanas Cotizadas') { precioFinal = 23; }
 
-            // 2. CONSTRUCCIÓN DE CAMPOS
-            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
+            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
+            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
             if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
             if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4 font-bold">`;
-            if(eligePlazo) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo:</label><select id="plazo_mejoravit" class="input-light mb-4 font-bold">${[1,2,3,4,5,6,7,8,9,10].map(a => `<option value="${a} años">${a} ${a===1?'Año':'Años'}</option>`).join('')}</select>`;
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
-            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
-            if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha Nac:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
             
-            if(special === 'REGISTRO') {
-                fields += `<input type="tel" id="tel_asesor" placeholder="TELÉFONO ASESOR" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO CLIENTE" class="input-light mb-4">`;
+            if(special === 'MOD10') {
+                fields += `<input type="email" id="correo_p" placeholder="CORREO ELECTRÓNICO" class="input-light mb-4"><input type="email" id="correo_respaldo" placeholder="CORREO DE RESPALDO" class="input-light mb-4"><input type="text" id="ocupacion" placeholder="OCUPACIÓN" class="input-light mb-4 uppercase"><input type="number" id="sueldo_mensual" placeholder="SUELDO MENSUAL" class="input-light mb-4"><input type="text" id="rfc_p" placeholder="RFC ESCRITO" class="input-light mb-4 uppercase">`;
             }
 
-            if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli) {
-                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 1:</label><input type="file" id="file_ine_f" class="w-full text-xs"></div>`;
+            if(eligePlazo) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400 block mb-1">Plazo:</label><select id="plazo_mejoravit" class="input-light mb-4 font-bold">${[1,2,3,4,5,6,7,8,9,10].map(a => `<option value="${a} años">${a} ${a===1?'Año':'Años'}</option>`).join('')}</select>`;
+            if(pideRfc && special !== 'MOD10') fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase font-bold">`;
+            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase font-bold">`;
+            if(pideFecha) fields += `<label class="text-[9px] font-black ml-2 uppercase text-slate-400">Fecha Nac:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+            if(special === 'RETIRO') fields += `<textarea id="notas_p" placeholder="NOTAS ADICIONALES" class="input-light mb-4 uppercase text-xs" rows="2"></textarea>`;
+
+            if(special === 'REGISTRO') { fields += `<input type="tel" id="tel_asesor" placeholder="TELÉFONO ASESOR" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO CLIENTE" class="input-light mb-4">`; }
+
+            if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli || special === 'MOD10') {
+                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 1 (INE FRENTE):</label><input type="file" id="file_ine_f" class="w-full text-xs"></div>`;
                 if(special === 'RETIRO' || special === 'REGISTRO') {
-                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 2:</label><input type="file" id="file_ine_r" class="w-full text-xs"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 3:</label><input type="file" id="file_selfie_extra" class="w-full text-xs"></div>`;
+                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 2 (INE REV):</label><input type="file" id="file_ine_r" class="w-full text-xs"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 3 (SELFIE):</label><input type="file" id="file_selfie_extra" class="w-full text-xs"></div>`;
                     if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Edo Cta:</label><input type="file" id="file_edo_cta" class="w-full text-xs"></div>`;
+                }
+                if(special === 'MOD10') {
+                    fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Comprobante de Domicilio:</label><input type="file" id="file_comp_domicilio" class="w-full text-xs"></div>`;
                 }
                 fields += `</div>`;
             }
+            if(special === 'MOD10') {
+                fields += `<p class="text-[9px] text-slate-500 font-bold bg-slate-100 p-3 rounded-xl italic mb-4">⚠️ Se le enviará el acuse de sus aportaciones lo más pronto posible.</p>`;
+            }
 
             content.innerHTML = `<h2 class="text-xl font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Pagar $${precioFinal}.00</button>`;
-            abrirModal('modalTramite');
+            window.abrirModal('modalTramite');
         };
 
         const subirArchivo = async (id) => {
@@ -324,7 +324,11 @@
                 if(document.getElementById('idcif_p')) infoExtra.idcif = document.getElementById('idcif_p').value.toUpperCase();
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
                 if(document.getElementById('pass_afore')) infoExtra.pass_afore = document.getElementById('pass_afore').value.toUpperCase();
-                if(document.getElementById('num_servicio')) infoExtra.num_servicio = document.getElementById('num_servicio').value;
+                if(document.getElementById('notas_p')) infoExtra.notas = document.getElementById('notas_p').value.toUpperCase();
+                if(document.getElementById('correo_p')) infoExtra.correo_p = document.getElementById('correo_p').value;
+                if(document.getElementById('correo_respaldo')) infoExtra.correo_respaldo = document.getElementById('correo_respaldo').value;
+                if(document.getElementById('ocupacion')) infoExtra.ocupacion = document.getElementById('ocupacion').value.toUpperCase();
+                if(document.getElementById('sueldo_mensual')) infoExtra.sueldo_mensual = document.getElementById('sueldo_mensual').value;
                 if(document.getElementById('plazo_mejoravit')) infoExtra.plazo_mejoravit = document.getElementById('plazo_mejoravit').value;
                 
                 infoExtra.file_ine_f = await subirArchivo('file_ine_f');
@@ -333,12 +337,11 @@
                     infoExtra.file_selfie = await subirArchivo('file_selfie_extra');
                     if(special === 'RETIRO') infoExtra.file_edocta = await subirArchivo('file_edo_cta');
                 }
+                if(special === 'MOD10') { infoExtra.file_comp_domicilio = await subirArchivo('file_comp_domicilio'); }
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
-                
                 fetch("https://342356.appsneubox.com/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
-
                 alert("Trámite enviado."); cerrarModal();
             } catch(e) { alert("Error."); btn.disabled = false; }
         };
