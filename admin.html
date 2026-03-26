@@ -49,7 +49,7 @@
 
         <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
@@ -105,13 +105,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const CLOUD_NAME = "de5abnhul"; 
-        const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let firstDoc = null, lastDoc = null, pageNumber = 1;
-        const PAGE_SIZE = 20; 
-        let idTramiteActual = "";
+        const PAGE_SIZE = 20; let idTramiteActual = "";
 
         // CONTADORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(document.getElementById('txtVisitas')) document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
@@ -144,32 +142,29 @@
             } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // FILTROS Y BÚSQUEDA
+        // FILTROS
         window.buscarGlobal = async () => {
             const bus = document.getElementById('buscador').value.toUpperCase();
             if (bus.length < 1) return cargarSolicitudes();
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(200));
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
         window.filtrarSoloPendientes = async () => {
             const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">CARGANDO TODOS LOS PENDIENTES...</td></tr>`;
-            // Buscamos en un rango más amplio (300 trámites) para encontrar todos los pendientes
+            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">BUSCANDO PENDIENTES (300 REGISTROS)...</td></tr>`;
             const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300));
             const snap = await getDocs(q);
-            const pendientes = snap.docs.filter(d => d.data().estatus === "En Proceso");
-            renderizarTablaPersonalizada(pendientes);
+            renderizarTablaPersonalizada(snap.docs.filter(d => d.data().estatus === "En Proceso"));
         };
 
         window.filtrarPorSeccion = async (seccion) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">FILTRANDO ${seccion}...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(200));
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250));
             const snap = await getDocs(q);
-            const filtrados = snap.docs.filter(d => d.data().tipo.toUpperCase().includes(seccion) || (seccion === 'AFORE' && d.data().tipo.includes('ECTA')));
-            renderizarTablaPersonalizada(filtrados);
+            renderizarTablaPersonalizada(snap.docs.filter(d => d.data().tipo.toUpperCase().includes(seccion) || (seccion === 'AFORE' && d.data().tipo.includes('ECTA'))));
         };
 
         window.cargarSolicitudes = async (comando = 'next') => {
@@ -196,37 +191,42 @@
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
-                const idcifVal = s.idcif || s.idcif_p || "";
-                const passAforeVal = s.pass_afore || ""; // Captura contraseña de retiros/registros
-                const cfeVal = s.num_servicio || "";
+                const passAforeVal = s.pass_afore || ""; 
                 const fechaNacVal = s.fecha_nacimiento || s.fecha_p || "";
-                const plazoVal = s.plazo_mejoravit || "";
 
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
-                if(plazoVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase bg-emerald-50 px-1 rounded inline-block">PLAZO: ${plazoVal}</div>`;
                 if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase bg-purple-50 px-1 rounded inline-block ml-1">IDCIF: ${idcifVal}</div>`;
-                if(cfeVal) detallesHtml += `<div class="text-[9px] text-blue-800 font-black uppercase bg-blue-50 px-1 rounded inline-block">CFE: ${cfeVal}</div>`;
                 if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase border border-orange-100 px-1 rounded inline-block">FECHA NAC: ${fechaNacVal}</div>`;
                 if(passAforeVal) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${passAforeVal}</div>`;
+                if(s.plazo_mejoravit) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black">PLAZO: ${s.plazo_mejoravit}</div>`;
+                if(s.notas) detallesHtml += `<div class="text-[8px] text-slate-500 italic mt-1 border-t pt-1">Nota: ${s.notas}</div>`;
 
                 let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}];
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}, {l:'COMP. DOM',u:s.file_comp_domicilio}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
 
-                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition"><td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td><td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td><td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td><td class="p-4 text-center">;
-                                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
-                                <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
-                                <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
-                                <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
-<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ NO GENERÓ ESTADODE CUENTA</option>
+                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
+                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                    <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td>
+                    <td class="p-4 text-center">
+                        <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
+                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
+                            <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                            <option value="Error: LIMITE DE CONSULTAS ALCANZADO" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE ALCANZADO</option>
+                            <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ NO ENCONTRADO</option>
+                            <option value="Error: ERROR EN NSS O CURP" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ ERROR NSS/CURP</option>
+                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                            <option value="Error: ERROR AL INVOCAR EL SERVICIO" ${s.estatus.includes('INVOCAR') ? 'selected' : ''}>❌ ERROR SERVICIO</option>
+                            <option value="Error: ERROR EN IMSS CONSULTA MÁS TARDE" ${s.estatus.includes('MÁS TARDE') ? 'selected' : ''}>❌ IMSS TARDE</option>
+                            <option value="Error: INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN" ${s.estatus.includes('SUBDELEGACIÓN') ? 'selected' : ''}>❌ INCONSISTENCIAS</option>
+                            <option value="Error: NO GENERÓ ESTADO DE CUENTA" ${s.estatus.includes('ESTADO DE CUENTA') ? 'selected' : ''}>❌ SIN EDO CTA</option>
+                            <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ PASS INCORRECTA</option>
+                        </select>
+                    </td>
+                    <td class="p-4 text-right"><div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div><button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button></td>
+                </tr>`;
             });
         }
 
@@ -248,7 +248,7 @@
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
-            if(!file || !idTramiteActual) return alert("Faltan datos.");
+            if(!file || !idTramiteActual) return alert("Selecciona archivo.");
             const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
             const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
             try {
