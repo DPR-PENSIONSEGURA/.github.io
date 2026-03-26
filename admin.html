@@ -38,18 +38,25 @@
             </div>
         </header>
 
+        <div class="flex flex-wrap gap-3 mb-8">
+            <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
+            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-900 transition-all">📦 Corte e Inventario</a>
+            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📱 WhatsApp Corte</button>
+        </div>
+
         <div class="flex flex-wrap gap-2 mb-6">
             <button onclick="window.filtrarPorSeccion('IMSS')" class="btn-sec">🏥 IMSS</button>
             <button onclick="window.filtrarPorSeccion('SAT')" class="btn-sec">⚖️ SAT</button>
             <button onclick="window.filtrarPorSeccion('AFORE')" class="btn-sec">💰 AFORE</button>
             <button onclick="window.filtrarPorSeccion('INFONAVIT')" class="btn-sec">🏠 INFONAVIT</button>
             <button onclick="window.filtrarPorSeccion('DOC')" class="btn-sec">📄 DOCS</button>
+            <button onclick="window.filtrarSoloProveedores()" class="btn-sec bg-blue-50 text-blue-600">🚚 PROVEEDORES</button>
             <button onclick="window.cargarSolicitudes()" class="btn-sec bg-slate-100 italic">🔄 REINICIAR</button>
         </div>
 
         <section class="mb-12">
             <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
@@ -128,6 +135,7 @@
         // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
+            if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
             snap.forEach(d => {
                 const r = d.data();
                 t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-[11px]">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">PAGO 📥</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td></tr>`;
@@ -153,16 +161,24 @@
 
         window.filtrarSoloPendientes = async () => {
             const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">BUSCANDO PENDIENTES (300 REGISTROS)...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300));
+            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">BUSCANDO PENDIENTES...</td></tr>`;
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(400));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => d.data().estatus === "En Proceso"));
+        };
+
+        window.filtrarSoloProveedores = async () => {
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">CARGANDO SOLICITUDES DE PROVEEDORES...</td></tr>`;
+            const q = query(collection(db, "solicitudes"), where("origen", "==", "PROVEEDOR"), orderBy("fecha", "desc"), limit(100));
+            const snap = await getDocs(q);
+            renderizarTablaPersonalizada(snap.docs);
         };
 
         window.filtrarPorSeccion = async (seccion) => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">FILTRANDO ${seccion}...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250));
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => d.data().tipo.toUpperCase().includes(seccion) || (seccion === 'AFORE' && d.data().tipo.includes('ECTA'))));
         };
@@ -207,7 +223,7 @@
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase badge-portal">Portal</span></td>
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'badge-portal'}">${s.origen || 'Portal'}</span></td>
                     <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                     <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td>
                     <td class="p-4 text-center">
@@ -237,7 +253,7 @@
                 const s = snap.data();
                 if (s && s.asesor_uid && s.costo > 0) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert(`⚠️ Reembolso de $${s.costo} aplicado al asesor.`);
+                    alert(`⚠️ Reembolso de $${s.costo} aplicado.`);
                 }
             }
             await updateDoc(docRef, { estatus: est });
