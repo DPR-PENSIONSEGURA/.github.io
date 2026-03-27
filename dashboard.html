@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -36,14 +36,14 @@
             <p class="text-[11px] font-bold text-slate-700 uppercase mb-6 leading-relaxed">
                 Las cuentas que han subido <span class="text-red-600 underline">recargas ficticias</span> serán <span class="text-red-600 font-black">baneadas permanentemente</span> de nuestra plataforma.
             </p>
-            <button onclick="cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-red-700 transition active:scale-95">
+            <button onclick="window.cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-red-700 transition active:scale-95">
                 Entendido y Acepto
             </button>
         </div>
     </div>
 
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[10px] tracking-widest text-center">
-     ✅ Recuerda que la recarga mínima es de $200 ✅| ⚡ SINDO BAJÓ A $45 🟢
+      ✅ Recuerda que la recarga mínima es de $200 ✅| ⚡ SINDO BAJÓ A $45 🟢
     </div>
 
     <header class="sticky top-0 z-40 header-glass">
@@ -122,7 +122,7 @@
             </div>
             <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center mb-4">
             <input type="file" id="fileRecarga" class="block w-full text-[10px] mb-4">
-            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase">Informar Pago</button>
+            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg">Informar Pago</button>
         </div>
     </div>
 
@@ -216,7 +216,8 @@
             const lista = document.getElementById('listaHistorial');
             if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sin solicitudes</td></tr>`; return; }
             const inicio = (paginaActual - 1) * tramitesPorPagina;
-            const tramitesPagina = listaTramitesCompleta.slice(inicio, inicio + tramitesPorPagina);
+            const fin = inicio + tramitesPorPagina;
+            const tramitesPagina = listaTramitesCompleta.slice(inicio, fin);
             let html = "";
             tramitesPagina.forEach(d => {
                 const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX') : 'Hoy';
@@ -261,11 +262,19 @@
         window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
             const content = document.getElementById('formContent');
             let fields = '';
+            
+            // 1. LÓGICA DE PRECIOS ESPECIALES
             let precioFinal = costo;
-            const correoAsesorEspecial = "prestamoefectivo.tramites@gmail.com",
-        "kingmc019@gmail.com";
-            if (emailAsesor === correoAsesorEspecial && nombre === 'Semanas Cotizadas') { precioFinal = 19; }
+            const correosVip = [
+                "prestamoefectivo.tramites@gmail.com",
+                "kingmc019@gmail.com"
+            ];
+            
+            if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') {
+                precioFinal = 19;
+            }
 
+            // 2. CONSTRUCCIÓN DE CAMPOS
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
