@@ -14,6 +14,8 @@
         .gold-gradient { background: linear-gradient(135deg, #C5A059 0%, #F1D299 50%, #B88A44 100%); }
         .card-glass { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-blur: 10px; }
         @media print { .no-print { display: none; } body { background-color: white; color: black; } .card-glass { border: 1px solid #ccc; } }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
     </style>
 </head>
 <body>
@@ -56,7 +58,7 @@
             const [edad, setEdad] = useState(60);
             const [tieneEsposa, setTieneEsposa] = useState(true);
             const [hijos, setHijos] = useState(0);
-            const [tienePadres, setTienePadres] = useState(false);
+            const [mesesSinCotizar, setMesesSinCotizar] = useState(0);
 
             // ESTADOS M40
             const [usaM40, setUsaM40] = useState(false);
@@ -80,7 +82,7 @@
                     salPromedio = ((salarioM40 * semsNuevas) + (salarioActual * semsViejas)) / 250;
                 }
 
-                // 1. Grupos Salariales (EC0485 / Art 167)
+                // 1. Grupos Salariales (EC0485)
                 const relacion = salPromedio / UMA_2026;
                 let cBasica = 0.13, iAnual = 0.0245;
 
@@ -92,36 +94,35 @@
                 else if (relacion <= 2.25) { cBasica = 0.3765; iAnual = 0.01756; }
                 else if (relacion <= 2.50) { cBasica = 0.3368; iAnual = 0.01868; }
 
-                const cuantíaBasicaDiaria = salPromedio * cBasica;
+                const cuantiaBAnual = salPromedio * 365 * cBasica;
                 const semsExcedentes = Math.max(0, semsFinales - 500);
                 const incrementosNum = Math.floor(semsExcedentes / 52);
-                const incrementoDiario = salPromedio * iAnual * incrementosNum;
+                const incrementoAnual = salPromedio * 365 * iAnual * incrementosNum;
 
                 const tablaEdad = { 60: 0.75, 61: 0.80, 62: 0.85, 63: 0.90, 64: 0.95, 65: 1.0 };
                 const fEdad = tablaEdad[edad] || 1.0;
 
-                const cuantiaTotalDiaria = (cuantíaBasicaDiaria + incrementoDiario) * fEdad;
-                
-                // Asignaciones
-                let porcAsig = 0;
-                if (tieneEsposa) porcAsig += 0.15;
-                else if (!tieneEsposa && hijos === 0 && !tienePadres) porcAsig += 0.15; // Ayuda soledad
-                porcAsig += (hijos * 0.10);
-                if (!tieneEsposa && hijos === 0 && tienePadres) porcAsig += 0.10;
-
-                const asigMonto = cuantiaTotalDiaria * porcAsig;
-                const totalDiario = (cuantiaTotalDiaria + asigMonto) * 1.11; // Factor Fox
-                let mensual = totalDiario * 30.4;
+                let asignacion = (tieneEsposa ? 0.15 : 0.15) + (hijos * 0.10);
+                const subTotal = (cuantiaBAnual + incrementoAnual) * fEdad;
+                const totalConAsignaciones = subTotal * (1 + asignacion);
+                let mensual = (totalConAsignaciones / 12) * 1.11;
 
                 const esMinima = mensual < PENSION_MINIMA_2026;
                 mensual = Math.max(mensual, PENSION_MINIMA_2026);
 
-                // Conservación de Derechos (25% de semanas)
-                const semanasConservacion = Math.floor(semsFinales / 4);
-                const añosConservacion = (semanasConservacion / 52).toFixed(1);
+                // LÓGICA DE REACTIVACIÓN
+                let necesitaReactivarse = mesesSinCotizar > 12;
+                let tiempoReactivacion = "";
+                if (mesesSinCotizar > 12 && mesesSinCotizar <= 36) tiempoReactivacion = "Inmediata (Al cotizar)";
+                else if (mesesSinCotizar > 36 && mesesSinCotizar <= 72) tiempoReactivacion = "26 Semanas (6 meses)";
+                else if (mesesSinCotizar > 72) tiempoReactivacion = "52 Semanas (12 meses)";
 
-                return { mensual, semsFinales, salPromedio, cBasica, iAnual, incrementosNum, porcAsig, esMinima, añosConservacion, cuotaM40: (salarioM40 * 30.4 * 0.14438) };
-            }, [semanas, salarioActual, edad, tieneEsposa, hijos, tienePadres, usaM40, mesesM40, salarioM40]);
+                return { 
+                    mensual, semsFinales, salPromedio, cBasica, iAnual, incrementosNum, 
+                    esMinima, necesitaReactivarse, tiempoReactivacion,
+                    cuotaM40: (salarioM40 * 30.4 * 0.14438) 
+                };
+            }, [semanas, salarioActual, edad, tieneEsposa, hijos, mesesSinCotizar, usaM40, mesesM40, salarioM40]);
 
             return (
                 <div className="max-w-7xl mx-auto p-4 md:p-8">
@@ -133,19 +134,16 @@
                                     <div className="space-y-4">
                                         <div><label className="text-[9px] font-black text-slate-400 uppercase">Semanas Cotizadas</label><input type="number" value={semanas} onChange={e => setSemanas(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black" /></div>
                                         <div><label className="text-[9px] font-black text-slate-400 uppercase">Salario Diario Promedio</label><input type="number" value={salarioActual} onChange={e => setSalarioActual(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black text-blue-600" /></div>
+                                        <div><label className="text-[9px] font-black text-slate-400 uppercase">Meses sin Cotizar</label><input type="number" value={mesesSinCotizar} onChange={e => setMesesSinCotizar(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black text-orange-600" /></div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className="text-[9px] font-black text-slate-400 uppercase">Edad Retiro</label><select value={edad} onChange={e => setEdad(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black">{[60,61,62,63,64,65].map(e => <option key={e} value={e}>{e} años</option>)}</select></div>
                                             <div><label className="text-[9px] font-black text-slate-400 uppercase">Hijos</label><input type="number" value={hijos} onChange={e => setHijos(Number(e.target.value))} className="w-full p-3 bg-slate-50 border rounded-xl font-black" /></div>
-                                        </div>
-                                        <div className="flex flex-col gap-2 pt-2">
-                                            <label className="flex items-center gap-2 text-xs font-bold uppercase"><input type="checkbox" checked={tieneEsposa} onChange={e => setTieneEsposa(e.target.checked)} /> Cónyuge (15%)</label>
-                                            <label className="flex items-center gap-2 text-xs font-bold uppercase"><input type="checkbox" checked={tienePadres} onChange={e => setTienePadres(e.target.checked)} /> Ascendientes (10%)</label>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="bg-emerald-900 p-8 rounded-[2.5rem] text-white">
                                     <div className="flex justify-between items-center mb-4"><h2 className="text-xs font-black uppercase italic text-emerald-400">Escenario Modalidad 40</h2><input type="checkbox" checked={usaM40} onChange={e => setUsaM40(e.target.checked)} className="w-5 h-5" /></div>
-                                    {usaM40 && <div className="space-y-4 animate-fade">
+                                    {usaM40 && <div className="space-y-4">
                                         <input type="range" min="1" max="60" value={mesesM40} onChange={e => setMesesM40(Number(e.target.value))} className="w-full accent-emerald-400" />
                                         <p className="text-center font-black">{mesesM40} Meses de inversión</p>
                                         <input type="number" value={salarioM40} onChange={e => setSalarioM40(Number(e.target.value))} className="w-full p-3 bg-white/10 rounded-xl text-center font-black" />
@@ -154,43 +152,51 @@
                             </div>
 
                             <div className="lg:col-span-8 space-y-6">
-                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-                                    <div className="relative z-10">
-                                        <p className="text-blue-400 font-black uppercase text-[10px] tracking-widest mb-2">Pensión Mensual Estimada</p>
-                                        <h2 className="text-7xl font-black italic mb-6">{fmt(calculo.mensual)}</h2>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-white/10 pt-8">
-                                            <div><p className="text-[9px] text-slate-500 uppercase font-black">Semanas Finales</p><p className="text-xl font-black">{calculo.semsFinales}</p></div>
-                                            <div><p className="text-[9px] text-slate-500 uppercase font-black">Promedio Final</p><p className="text-xl font-black text-blue-400">{fmt(calculo.salPromedio)}</p></div>
-                                            <div><p className="text-[9px] text-slate-500 uppercase font-black">Incrementos</p><p className="text-xl font-black">{calculo.incrementosNum}</p></div>
-                                            <div><p className="text-[9px] text-slate-500 uppercase font-black">Cons. Derechos</p><p className="text-xl font-black text-orange-400">{calculo.añosConservacion} años</p></div>
+                                {/* ALERTA DE REACTIVACIÓN */}
+                                {calculo.necesitaReactivarse && (
+                                    <div className="bg-red-600 p-6 rounded-[2rem] text-white flex items-center justify-between shadow-xl animate-pulse-slow">
+                                        <div>
+                                            <h3 className="font-black uppercase italic text-lg leading-none mb-1">⚠️ REQUIERE REACTIVACIÓN</h3>
+                                            <p className="text-xs font-bold opacity-90 uppercase">El cliente ha perdido vigencia de derechos.</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase opacity-70">Tiempo necesario:</p>
+                                            <p className="text-xl font-black italic">{calculo.tiempoReactivacion}</p>
                                         </div>
                                     </div>
+                                )}
+
+                                <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                                    <p className="text-blue-400 font-black uppercase text-[10px] tracking-widest mb-2">Pensión Mensual Proyectada</p>
+                                    <h2 className="text-7xl font-black italic mb-6">{fmt(calculo.mensual)}</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 border-t border-white/10 pt-8">
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Semanas al Retiro</p><p className="text-2xl font-black">{calculo.semsFinales}</p></div>
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Promedio Final</p><p className="text-2xl font-black text-blue-400">{fmt(calculo.salPromedio)}</p></div>
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Incrementos</p><p className="text-2xl font-black">{calculo.incrementosNum}</p></div>
+                                    </div>
+                                    {calculo.esMinima && <span className="text-[10px] bg-blue-600 px-4 py-1 rounded-full font-black uppercase mt-6 inline-block italic">Pensión Mínima Garantizada 2026</span>}
                                 </div>
 
-                                {/* TABLAS TÉCNICAS EC0485 - SOLO LECTURA */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="card-glass p-6 rounded-[2rem] text-white">
-                                        <h3 className="text-[10px] font-black uppercase text-blue-400 mb-4 tracking-widest">Memoria de Cuantía (Art. 167)</h3>
-                                        <div className="space-y-3 text-xs">
-                                            <div className="flex justify-between border-b border-white/5 pb-2"><span>% Cuantía Básica:</span><span className="font-black">{(calculo.cBasica * 100).toFixed(2)}%</span></div>
-                                            <div className="flex justify-between border-b border-white/5 pb-2"><span>% Increm. Anual:</span><span className="font-black">{(calculo.iAnual * 100).toFixed(4)}%</span></div>
-                                            <div className="flex justify-between border-b border-white/5 pb-2"><span>Factor Fox (Decreto):</span><span className="font-black text-emerald-400">1.11 (11%)</span></div>
-                                            <div className="flex justify-between"><span>Asignación Familiar:</span><span className="font-black">{(calculo.porcAsig * 100)}%</span></div>
+                                    <div className="card-glass p-8 rounded-[2.5rem] text-white">
+                                        <h3 className="text-[10px] font-black uppercase text-blue-400 mb-6 tracking-widest border-b border-white/10 pb-2">Memoria de Cálculo (EC0485)</h3>
+                                        <div className="space-y-4 text-xs font-bold">
+                                            <div className="flex justify-between"><span>% Cuantía Básica:</span><span className="text-blue-300">{(calculo.cBasica * 100).toFixed(2)}%</span></div>
+                                            <div className="flex justify-between"><span>% Increm. Anual:</span><span className="text-blue-300">{(calculo.iAnual * 100).toFixed(4)}%</span></div>
+                                            <div className="flex justify-between text-emerald-400 font-black"><span>Decreto Fox:</span><span>+11% Aplicado</span></div>
+                                            <div className="flex justify-between"><span>Asignación Familiar:</span><span>{((calculo.porcAsig || 0.15) * 100)}%</span></div>
                                         </div>
                                     </div>
-                                    <div className="card-glass p-6 rounded-[2rem] text-white">
-                                        <h3 className="text-[10px] font-black uppercase text-emerald-400 mb-4 tracking-widest">Análisis de Modalidad 40</h3>
-                                        <div className="space-y-3 text-xs">
-                                            <div className="flex justify-between border-b border-white/5 pb-2"><span>Costo Mensual (2026):</span><span className="font-black">{fmt(calculo.cuotaM40)}</span></div>
-                                            <div className="flex justify-between border-b border-white/5 pb-2"><span>Inversión Estimada:</span><span className="font-black text-emerald-400">{fmt(calculo.cuotaM40 * mesesM40)}</span></div>
-                                            <div className="bg-white/5 p-3 rounded-xl mt-2">
-                                                <p className="text-[9px] font-black uppercase opacity-50 mb-1">Nota legal:</p>
-                                                <p className="text-[9px] leading-tight italic">Cálculos basados en el Estándar EC0485 y el valor UMA proyectado para 2026.</p>
-                                            </div>
+                                    <div className="card-glass p-8 rounded-[2.5rem] text-white">
+                                        <h3 className="text-[10px] font-black uppercase text-emerald-400 mb-6 tracking-widest border-b border-white/10 pb-2">Análisis Modalidad 40</h3>
+                                        <div className="space-y-4 text-xs font-bold">
+                                            <div className="flex justify-between"><span>Costo Mensual:</span><span>{fmt(calculo.cuotaM40)}</span></div>
+                                            <div className="flex justify-between"><span>Inversión Total:</span><span className="text-emerald-400 text-lg">{fmt(calculo.cuotaM40 * mesesM40)}</span></div>
+                                            <p className="text-[9px] italic opacity-40 mt-4 leading-tight">Proyección basada en el incremento patronal de 2026.</p>
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={() => window.print()} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic no-print shadow-xl">Imprimir Estudio Pro</button>
+                                <button onClick={() => window.print()} className="w-full bg-white text-slate-900 py-5 rounded-3xl font-black uppercase italic no-print shadow-2xl hover:scale-105 transition-all">Generar Estudio Técnico PDF</button>
                             </div>
                         </div>
                     ) : (
@@ -219,7 +225,6 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -231,7 +236,6 @@
         const auth = getAuth(app);
 
         let uID = "", miSaldo = 0;
-
         onAuthStateChanged(auth, user => {
             if(user) {
                 uID = user.uid;
@@ -252,7 +256,6 @@
         window.confirmarCompraHerramienta = async () => {
             const { costo, tab } = window.herramientaTemp;
             if(miSaldo < costo) return alert("Saldo insuficiente");
-            
             await updateDoc(doc(db, "asesores", uID), { saldo: increment(-costo) });
             document.getElementById('pantallaCobro').classList.add('hidden');
             document.getElementById('root').classList.remove('hidden');
