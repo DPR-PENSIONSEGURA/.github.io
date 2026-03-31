@@ -295,7 +295,7 @@
             if(special === 'REGISTRO') { fields += `<input type="tel" id="tel_asesor" placeholder="TELÉFONO ASESOR" class="input-light mb-4 border-blue-200"><input type="email" id="correo_p" placeholder="CORREO CLIENTE" class="input-light mb-4"><input type="tel" id="tel_p" placeholder="TELÉFONO CLIENTE" class="input-light mb-4">`; }
 
             if(pideIneFrente || special === 'RETIRO' || special === 'REGISTRO' || pideFotoCli || special === 'MOD10') {
-                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 1 (INE FRENTE):</label><input type="file" id="file_ine_f" class="w-full text-xs"></div>`;
+                fields += `<div class="text-left space-y-4 mb-6"><div><label class="text-[9px] font-black text-slate-400 uppercase">FOTO DEL CLIENTE:</label><input type="file" id="file_ine_f" class="w-full text-xs"></div>`;
                 if(special === 'RETIRO' || special === 'REGISTRO') {
                     fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 2 (INE REV):</label><input type="file" id="file_ine_r" class="w-full text-xs"></div><div><label class="text-[9px] font-black text-slate-400 uppercase">Documento 3 (SELFIE):</label><input type="file" id="file_selfie_extra" class="w-full text-xs"></div>`;
                     if(special === 'RETIRO') fields += `<div><label class="text-[9px] font-black text-slate-400 uppercase">Edo Cta:</label><input type="file" id="file_edo_cta" class="w-full text-xs"></div>`;
