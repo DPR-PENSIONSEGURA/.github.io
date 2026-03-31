@@ -35,6 +35,9 @@
                     <p class="text-2xl font-black text-white">$25.00</p>
                 </button>
             </div>
+            <div class="mb-4">
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Mi Saldo: <span id="txtSaldoAsesor" class="text-blue-400">$0.00</span></p>
+            </div>
             <button id="btnPagarAcceso" onclick="confirmarCompraHerramienta()" disabled class="w-full gold-gradient py-4 rounded-2xl font-black uppercase italic text-slate-900 opacity-50">Selecciona una opción</button>
         </div>
     </div>
@@ -46,12 +49,7 @@
 
         const App = () => {
             const [view, setView] = useState(null);
-            useEffect(() => {
-                const handleInit = (e) => setView(e.detail);
-                window.addEventListener('inicioApp', handleInit);
-                return () => window.removeEventListener('inicioApp', handleInit);
-            }, []);
-
+            
             // ESTADOS LEY 73
             const [semanas, setSemanas] = useState(1000);
             const [salarioActual, setSalarioActual] = useState(500);
@@ -65,8 +63,18 @@
             const [mesesM40, setMesesM40] = useState(12);
             const [salarioM40, setSalarioM40] = useState(2932.75);
 
+            // ESTADOS SALARIO PROMEDIO
+            const [filas, setFilas] = useState([{ desde: '', hasta: '', salario: 0 }]);
+
+            useEffect(() => {
+                const handleInit = (e) => setView(e.detail);
+                window.addEventListener('inicioApp', handleInit);
+                return () => window.removeEventListener('inicioApp', handleInit);
+            }, []);
+
             const fmt = (v) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v || 0);
 
+            // CÁLCULO PENSIÓN
             const calculo = useMemo(() => {
                 const UMA_2026 = 117.31;
                 const PENSION_MINIMA_2026 = 10636.54;
@@ -82,7 +90,6 @@
                     salPromedio = ((salarioM40 * semsNuevas) + (salarioActual * semsViejas)) / 250;
                 }
 
-                // 1. Grupos Salariales (EC0485)
                 const relacion = salPromedio / UMA_2026;
                 let cBasica = 0.13, iAnual = 0.0245;
 
@@ -110,19 +117,26 @@
                 const esMinima = mensual < PENSION_MINIMA_2026;
                 mensual = Math.max(mensual, PENSION_MINIMA_2026);
 
-                // LÓGICA DE REACTIVACIÓN
                 let necesitaReactivarse = mesesSinCotizar > 12;
                 let tiempoReactivacion = "";
                 if (mesesSinCotizar > 12 && mesesSinCotizar <= 36) tiempoReactivacion = "Inmediata (Al cotizar)";
                 else if (mesesSinCotizar > 36 && mesesSinCotizar <= 72) tiempoReactivacion = "26 Semanas (6 meses)";
                 else if (mesesSinCotizar > 72) tiempoReactivacion = "52 Semanas (12 meses)";
 
-                return { 
-                    mensual, semsFinales, salPromedio, cBasica, iAnual, incrementosNum, 
-                    esMinima, necesitaReactivarse, tiempoReactivacion,
-                    cuotaM40: (salarioM40 * 30.4 * 0.14438) 
-                };
+                return { mensual, semsFinales, salPromedio, cBasica, iAnual, incrementosNum, porcAsig: asignacion, esMinima, necesitaReactivarse, tiempoReactivacion, cuotaM40: (salarioM40 * 30.4 * 0.14438) };
             }, [semanas, salarioActual, edad, tieneEsposa, hijos, mesesSinCotizar, usaM40, mesesM40, salarioM40]);
+
+            // CÁLCULO SALARIO PROMEDIO
+            const resultSalario = useMemo(() => {
+                let dTot = 0, sPond = 0;
+                filas.forEach(f => {
+                    if(f.desde && f.hasta && f.salario > 0) {
+                        const d = Math.ceil((new Date(f.hasta) - new Date(f.desde)) / (86400000)) + 1;
+                        dTot += d; sPond += (d * f.salario);
+                    }
+                });
+                return { promedio: dTot > 0 ? (sPond / dTot) : 0, sems: (dTot / 7).toFixed(1) };
+            }, [filas]);
 
             return (
                 <div className="max-w-7xl mx-auto p-4 md:p-8">
@@ -152,7 +166,6 @@
                             </div>
 
                             <div className="lg:col-span-8 space-y-6">
-                                {/* ALERTA DE REACTIVACIÓN */}
                                 {calculo.necesitaReactivarse && (
                                     <div className="bg-red-600 p-6 rounded-[2rem] text-white flex items-center justify-between shadow-xl animate-pulse-slow">
                                         <div>
@@ -170,9 +183,9 @@
                                     <p className="text-blue-400 font-black uppercase text-[10px] tracking-widest mb-2">Pensión Mensual Proyectada</p>
                                     <h2 className="text-7xl font-black italic mb-6">{fmt(calculo.mensual)}</h2>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 border-t border-white/10 pt-8">
-                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Semanas al Retiro</p><p className="text-2xl font-black">{calculo.semsFinales}</p></div>
-                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Promedio Final</p><p className="text-2xl font-black text-blue-400">{fmt(calculo.salPromedio)}</p></div>
-                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Incrementos</p><p className="text-2xl font-black">{calculo.incrementosNum}</p></div>
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Semanas al Retiro</p><p className="text-xl font-black">{calculo.semsFinales}</p></div>
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Promedio Final</p><p className="text-xl font-black text-blue-400">{fmt(calculo.salPromedio)}</p></div>
+                                        <div><p className="text-[9px] text-slate-500 uppercase font-black">Incrementos</p><p className="text-xl font-black">{calculo.incrementosNum}</p></div>
                                     </div>
                                     {calculo.esMinima && <span className="text-[10px] bg-blue-600 px-4 py-1 rounded-full font-black uppercase mt-6 inline-block italic">Pensión Mínima Garantizada 2026</span>}
                                 </div>
@@ -202,20 +215,22 @@
                     ) : (
                         <div className="bg-white p-10 rounded-[3rem] shadow-2xl">
                              <h2 className="text-3xl font-black uppercase italic mb-10">Desglose de Salario Promedio</h2>
-                             <div className="space-y-2">
+                             <div className="space-y-4">
                                 {filas.map((f, i) => (
-                                    <div key={i} className="flex gap-4 p-4 bg-slate-50 rounded-2xl border">
-                                        <input type="date" value={f.desde} onChange={e => { const n = [...filas]; n[i].desde = e.target.value; setFilas(n); }} className="p-2 rounded border font-bold text-xs" />
-                                        <input type="date" value={f.hasta} onChange={e => { const n = [...filas]; n[i].hasta = e.target.value; setFilas(n); }} className="p-2 rounded border font-bold text-xs" />
-                                        <input type="number" placeholder="Salario" value={f.salario} onChange={e => { const n = [...filas]; n[i].salario = Number(e.target.value); setFilas(n); }} className="p-2 rounded border font-black text-blue-600 text-xs w-32" />
+                                    <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-slate-50 rounded-3xl border">
+                                        <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Desde</label><input type="date" value={f.desde} onChange={e => { const n = [...filas]; n[i].desde = e.target.value; setFilas(n); }} className="w-full p-3 rounded-xl border font-bold text-xs" /></div>
+                                        <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Hasta</label><input type="date" value={f.hasta} onChange={e => { const n = [...filas]; n[i].hasta = e.target.value; setFilas(n); }} className="w-full p-3 rounded-xl border font-bold text-xs" /></div>
+                                        <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Salario Diario</label><input type="number" placeholder="Salario" value={f.salario} onChange={e => { const n = [...filas]; n[i].salario = Number(e.target.value); setFilas(n); }} className="w-full p-3 rounded-xl border font-black text-blue-600 text-sm" /></div>
                                     </div>
                                 ))}
                              </div>
                              <button onClick={() => setFilas([...filas, { desde: '', hasta: '', salario: 0 }])} className="w-full mt-4 py-3 border-2 border-dashed rounded-2xl text-slate-400 font-bold uppercase">+ Agregar Periodo</button>
-                             <div className="mt-10 bg-slate-900 p-8 rounded-3xl text-center text-white">
-                                <p className="text-xs font-black uppercase text-blue-400">Promedio Resultante</p>
-                                <p className="text-5xl font-black italic">{fmt(resultSalario.promedio)}</p>
+                             <div className="mt-10 bg-slate-900 p-10 rounded-[3rem] text-center text-white">
+                                <p className="text-xs font-black uppercase text-blue-400 mb-2">Promedio Resultante (250 Semanas)</p>
+                                <p className="text-6xl font-black italic">{fmt(resultSalario.promedio)}</p>
+                                <div className="mt-6 text-slate-500 font-bold uppercase text-[10px]">Semanas detectadas: {resultSalario.sems}</div>
                              </div>
+                             <button onClick={() => window.location.reload()} className="w-full mt-8 text-slate-400 font-black uppercase text-[10px] italic">⬅️ Volver a Selección</button>
                         </div>
                     )}
                 </div>
@@ -225,6 +240,7 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -240,8 +256,10 @@
             if(user) {
                 uID = user.uid;
                 onSnapshot(doc(db, "asesores", uID), d => {
-                    miSaldo = d.data().saldo || 0;
-                    document.getElementById('txtSaldoAsesor').innerText = `$${miSaldo.toFixed(2)}`;
+                    if(d.exists()){
+                        miSaldo = d.data().saldo || 0;
+                        document.getElementById('txtSaldoAsesor').innerText = `$${miSaldo.toFixed(2)}`;
+                    }
                 });
             }
         });
@@ -256,10 +274,14 @@
         window.confirmarCompraHerramienta = async () => {
             const { costo, tab } = window.herramientaTemp;
             if(miSaldo < costo) return alert("Saldo insuficiente");
-            await updateDoc(doc(db, "asesores", uID), { saldo: increment(-costo) });
-            document.getElementById('pantallaCobro').classList.add('hidden');
-            document.getElementById('root').classList.remove('hidden');
-            window.dispatchEvent(new CustomEvent('inicioApp', { detail: tab }));
+            try {
+                await updateDoc(doc(db, "asesores", uID), { saldo: increment(-costo) });
+                document.getElementById('pantallaCobro').classList.add('hidden');
+                document.getElementById('root').classList.remove('hidden');
+                window.dispatchEvent(new CustomEvent('inicioApp', { detail: tab }));
+            } catch(e) {
+                alert("Error al procesar el pago.");
+            }
         };
     </script>
 </body>
