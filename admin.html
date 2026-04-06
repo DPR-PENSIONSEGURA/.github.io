@@ -204,7 +204,7 @@ const PASS_ASISTENTE = "DPR2026";
             } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        // --- BÚSQUEDA POR FECHA ---
+// --- BÚSQUEDA POR FECHA CORREGIDA ---
         window.buscarPorFecha = async () => {
             const fechaInput = document.getElementById('filtroFecha').value;
             if(!fechaInput) return cargarSolicitudes();
@@ -212,20 +212,31 @@ const PASS_ASISTENTE = "DPR2026";
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">BUSCANDO FECHA ${fechaInput}...</td></tr>`;
             
-            const start = new Date(fechaInput + "T00:00:00");
-            const end = new Date(fechaInput + "T23:59:59");
-            
-            const q = query(collection(db, "solicitudes"), 
-                where("fecha", ">=", Timestamp.fromDate(start)),
-                where("fecha", "<=", Timestamp.fromDate(end)),
-                orderBy("fecha", "desc")
-            );
-            
-            const snap = await getDocs(q);
-            if(snap.empty) {
-                tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black uppercase">Sin resultados en esa fecha</td></tr>`;
-            } else {
-                renderizarTablaPersonalizada(snap.docs);
+            try {
+                // Creamos el rango de 24 horas para ese día
+                const start = new Date(fechaInput + "T00:00:00");
+                const end = new Date(fechaInput + "T23:59:59");
+                
+                // Quitamos el 'orderBy' temporalmente para que no se congele la página
+                // si no tienes el índice creado en Firebase.
+                const q = query(collection(db, "solicitudes"), 
+                    where("fecha", ">=", Timestamp.fromDate(start)),
+                    where("fecha", "<=", Timestamp.fromDate(end))
+                );
+                
+                const snap = await getDocs(q);
+                
+                if(snap.empty) {
+                    tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black uppercase">Sin resultados en esa fecha</td></tr>`;
+                } else {
+                    // Ordenamos los resultados manualmente aquí para evitar que la página se trabe
+                    const docsOrdenados = snap.docs.sort((a, b) => b.data().fecha - a.data().fecha);
+                    renderizarTablaPersonalizada(docsOrdenados);
+                }
+            } catch (error) {
+                console.error("Error en búsqueda:", error);
+                alert("Hubo un error al consultar esta fecha.");
+                cargarSolicitudes();
             }
         };
 
