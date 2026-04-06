@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; } /* Oculto hasta validar pass */
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
@@ -30,11 +30,19 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center"><p class="text-[8px] font-black uppercase text-slate-400">Visitas</p><p id="txtVisitas" class="text-xl font-black">0</p></div>
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-purple-600 text-center"><p class="text-[8px] font-black uppercase text-slate-400">Asesores</p><p id="txtAsesores" class="text-xl font-black">0</p></div>
-                <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center"><p class="text-[8px] font-black uppercase opacity-70">Venta Hoy</p><p id="gananciaHoy" class="text-xl font-black">$0.00</p></div>
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center"><p class="text-[8px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-xl font-black">0</p></div>
+            <div class="flex gap-4 w-full lg:w-auto">
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase text-slate-400">Visitas</p>
+                    <p id="txtVisitas" class="text-xl font-black">0</p>
+                </div>
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
+                    <p id="contadorPendientes" class="text-xl font-black">0</p>
+                </div>
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
+                    <p class="text-[8px] font-black uppercase opacity-70 italic group-hover:text-blue-400"></p>
+                    <p class="text-xl font-black">⚡</p>
+                </button>
             </div>
         </header>
 
@@ -78,7 +86,10 @@
                         <button id="btnNext" class="nav-pag">Siguiente</button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="w-full md:w-80 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase bg-white">
+                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="flex-1 md:w-64 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                </div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
@@ -94,6 +105,23 @@
         </section>
     </div>
 
+    <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
+            <h2 class="text-2xl font-black mb-6 uppercase italic">Datos Confidenciales</h2>
+            <div class="space-y-6">
+                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día</p>
+                    <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
+                </div>
+                <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
+                    <p class="text-[10px] font-black uppercase text-purple-600 mb-1">Total Asesores</p>
+                    <p id="txtAsesores" class="text-4xl font-black text-purple-800">0</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('modalCajaFuerte').classList.add('hidden')" class="mt-8 text-slate-400 font-black text-[10px] uppercase italic">Cerrar Caja Fuerte</button>
+        </div>
+    </div>
+
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
             <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado</h2>
@@ -106,11 +134,37 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+const PASS_ASISTENTE = "DPR2026"; 
+        const PASS_DIANA = "Sashimi$";   
+
+        // Validar entrada al Panel (Asistente o Diana)
+        const validarEntrada = () => {
+            const p = prompt("ACCESO RESTRINGIDO - DPR ADMIN\nIngresa la contraseña de acceso:");
+            // Cualquiera de las dos claves permite entrar al panel
+            if(p === PASS_ASISTENTE || p === PASS_DIANA) {
+                document.body.style.display = "block";
+            } else {
+                alert("Acceso denegado.");
+                window.location.href = "https://pensionsegura.org";
+            }
+        };
+        validarEntrada();
+
+        // Validar apertura de Caja Fuerte (Solo Diana)
+        window.abrirCajaFuerte = () => {
+            const p = prompt("🔒 ÁREA CONFIDENCIAL\nIngresa tu contraseña maestra:");
+            if(p === PASS_DIANA) {
+                document.getElementById('modalCajaFuerte').classList.remove('hidden');
+            } else {
+                alert("❌ Contraseña incorrecta.");
+            }
+        };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
@@ -138,7 +192,7 @@
             if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
             snap.forEach(d => {
                 const r = d.data();
-                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-[11px]">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase">PAGO 📥</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td></tr>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-[11px]">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase text-xs">PAGO 📥</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td></tr>`;
             });
         });
 
@@ -148,6 +202,31 @@
                 await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
                 alert("✅ Recarga aplicada.");
             } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
+        };
+
+        // --- BÚSQUEDA POR FECHA ---
+        window.buscarPorFecha = async () => {
+            const fechaInput = document.getElementById('filtroFecha').value;
+            if(!fechaInput) return cargarSolicitudes();
+            
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">BUSCANDO FECHA ${fechaInput}...</td></tr>`;
+            
+            const start = new Date(fechaInput + "T00:00:00");
+            const end = new Date(fechaInput + "T23:59:59");
+            
+            const q = query(collection(db, "solicitudes"), 
+                where("fecha", ">=", Timestamp.fromDate(start)),
+                where("fecha", "<=", Timestamp.fromDate(end)),
+                orderBy("fecha", "desc")
+            );
+            
+            const snap = await getDocs(q);
+            if(snap.empty) {
+                tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black uppercase">Sin resultados en esa fecha</td></tr>`;
+            } else {
+                renderizarTablaPersonalizada(snap.docs);
+            }
         };
 
         // FILTROS
@@ -162,7 +241,7 @@
         window.filtrarSoloPendientes = async () => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">BUSCANDO PENDIENTES...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(400));
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(500));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => d.data().estatus === "En Proceso"));
         };
@@ -184,6 +263,7 @@
         };
 
         window.cargarSolicitudes = async (comando = 'next') => {
+            document.getElementById('filtroFecha').value = "";
             const baseQuery = collection(db, "solicitudes");
             let q;
             if (comando === 'next' && lastDoc) q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
@@ -201,7 +281,7 @@
             docsArray.forEach(docSnap => {
                 const s = typeof docSnap.data === 'function' ? docSnap.data() : docSnap;
                 const id = docSnap.id;
-                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit'}) || '...';
+                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}) || '...';
                 
                 let detallesHtml = "";
                 const curpVal = s.curp || s.curp_p || "";
