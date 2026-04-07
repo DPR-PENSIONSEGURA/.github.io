@@ -10,12 +10,13 @@
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: opacity 0.2s; }
         .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-filter { background: #F97316; color: white; padding: 10px 20px; border-radius: 15px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
         .btn-sec { background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 12px; font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; transition: all 0.2s; }
         .btn-sec:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
         select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -31,16 +32,25 @@
             </div>
 
             <div class="flex gap-4 w-full lg:w-auto">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1"><p class="text-[8px] font-black uppercase text-slate-400">Visitas</p><p id="txtVisitas" class="text-xl font-black">0</p></div>
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1"><p class="text-[8px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-xl font-black">0</p></div>
-                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors"><p class="text-xl font-black">⚡</p></button>
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase text-slate-400">Visitas</p>
+                    <p id="txtVisitas" class="text-xl font-black">0</p>
+                </div>
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
+                    <p id="contadorPendientes" class="text-xl font-black">0</p>
+                </div>
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
+                    <p class="text-[8px] font-black uppercase opacity-70 italic group-hover:text-blue-400">Finanzas</p>
+                    <p class="text-xl font-black">🔒</p>
+                </button>
             </div>
         </header>
 
         <div class="flex flex-wrap gap-3 mb-8">
-            <a href="admin/asesores" class="bg-purple-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl">👥 Control Asesores</a>
-            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
-            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl">📱 WhatsApp Corte</button>
+            <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
+            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-900 transition-all">📦 Corte e Inventario</a>
+            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📱 WhatsApp Corte</button>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-6">
@@ -59,7 +69,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                            <tr><th class="p-5">Asesor / Rastreo</th><th class="p-5 text-center">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
+                            <tr><th class="p-5">Asesor / Rastreo</th><th class="p-5 text-center">Monto / Estatus</th><th class="p-5 text-center">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
                         </thead>
                         <tbody id="tablaRecargas"></tbody>
                     </table>
@@ -72,31 +82,40 @@
                 <div class="flex items-center gap-4">
                     <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
                     <button onclick="window.filtrarSoloPendientes()" class="btn-filter shadow-lg">🟠 Solo Pendientes</button>
-                    
                     <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
                         <button id="btnPrev" class="nav-pag"> < </button>
-                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select">
-                            </select>
+                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
                         <button id="btnNext" class="nav-pag"> > </button>
                     </div>
                 </div>
                 <div class="flex gap-2 w-full md:w-auto">
-                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border border-slate-300 text-[10px] font-bold outline-none uppercase bg-white">
-                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="flex-1 md:w-64 p-3 rounded-2xl border border-slate-300 text-[10px] font-bold outline-none uppercase">
+                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase bg-white">
+                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="flex-1 md:w-64 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
                 </div>
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[8px] uppercase font-black italic">
-                            <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Cliente / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                            <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Datos Principales</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
                     </table>
                 </div>
             </div>
         </section>
+    </div>
+
+    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
+            <h2 class="text-2xl font-black text-blue-600 uppercase italic mb-6 border-b pb-4">Detalles del Trámite</h2>
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
+            <div class="mt-8 pt-6 border-t flex justify-end">
+                <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="bg-slate-800 text-white px-8 py-3 rounded-2xl font-black uppercase italic">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
@@ -128,17 +147,18 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, startAfter, limitToLast, endBefore, getDocs, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, getDocs, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // SEGURIDAD
         const PASS_ASISTENTE = "DPR2026"; 
         const PASS_DIANA = "Sashimi$";   
 
         const validarEntrada = () => {
-            const p = prompt("ACCESO RESTRINGIDO - DPR ADMIN\nIngresa la contraseña de acceso:");
+            const p = prompt("ACCESO RESTRINGIDO - DPR ADMIN\nIngresa contraseña:");
             if(p === PASS_ASISTENTE || p === PASS_DIANA) { document.body.style.display = "block"; } 
             else { alert("Acceso denegado."); window.location.href = "https://pensionsegura.org"; }
         };
@@ -146,52 +166,21 @@
 
         window.abrirCajaFuerte = () => {
             const p = prompt("🔒 ÁREA CONFIDENCIAL\nIngresa tu contraseña maestra:");
-            if(p === PASS_DIANA) { document.getElementById('modalCajaFuerte').classList.remove('hidden'); } 
-            else { alert("❌ Contraseña incorrecta."); }
+            if(p === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden');
+            else alert("❌ Contraseña incorrecta.");
         };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // --- LÓGICA DE PAGINACIÓN CON MEMORIA ---
-        let currentPage = 1;
-        const PAGE_SIZE = 80;
-        let pageDocs = { 1: null }; // Guardamos el primer documento de cada página
-        let lastDocGlobal = null;
-        let idTramiteActual = "";
+        let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
 
-        // Inicializar selector de páginas
+        // SELECTOR DE PÁGINAS
         const selector = document.getElementById('selectorPagina');
-        for(let i=1; i<=50; i++) { selector.innerHTML += `<option value="${i}">Página ${i}</option>`; }
-
-        window.cambiarPaginaDirecto = (p) => {
-            currentPage = parseInt(p);
-            cargarSolicitudes(currentPage);
-        };
-
-        document.getElementById('btnNext').onclick = () => { currentPage++; document.getElementById('selectorPagina').value = currentPage; cargarSolicitudes(currentPage); };
-        document.getElementById('btnPrev').onclick = () => { if(currentPage > 1) { currentPage--; document.getElementById('selectorPagina').value = currentPage; cargarSolicitudes(currentPage); } };
-
-        // CARGAR SOLICITUDES (Modificada para no perderse)
-        window.cargarSolicitudes = async (pagina = 1) => {
-            const baseQuery = collection(db, "solicitudes");
-            let q;
-
-            if (pagina === 1) {
-                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
-            } else {
-                // Para saltar a páginas lejanas, necesitamos calcular el offset aproximado
-                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
-            }
-
-            const snap = await getDocs(q);
-            // Obtenemos solo los últimos 20 de esa gran consulta para simular la página exacta
-            const startIdx = (pagina - 1) * PAGE_SIZE;
-            const finalDocs = snap.docs.slice(startIdx, startIdx + PAGE_SIZE);
-            
-            renderizarTablaPersonalizada(finalDocs);
-            document.getElementById('btnPrev').disabled = (pagina === 1);
-        };
+        for(let i=1; i<=50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+        window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
+        document.getElementById('btnNext').onclick = () => { currentPage++; selector.value = currentPage; cargarSolicitudes(currentPage); };
+        document.getElementById('btnPrev').onclick = () => { if(currentPage > 1) { currentPage--; selector.value = currentPage; cargarSolicitudes(currentPage); } };
 
         // CONTADORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(document.getElementById('txtVisitas')) document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
@@ -207,27 +196,42 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // RECARGAS
-        onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
+        // RECARGAS CON ESTATUS
+        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(20)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-            if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
+            if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay movimientos</td></tr>'; return; }
             snap.forEach(d => {
-                const r = d.data();
-                t.innerHTML += `<tr class="border-b">
-                    <td class="p-5 font-bold text-[11px]"><div class="text-slate-900">${r.asesorEmail}</div><div class="text-blue-600 font-black text-[9px] mt-1">RASTREO: ${r.rastreo || 'SIN CLAVE'}</div></td>
-                    <td class="p-5 font-black text-emerald-600 text-center">$${r.monto}</td>
-                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase text-xs">PAGO 📥</button></td>
-                    <td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td>
-                </tr>`;
+                const r = d.data(); const id = d.id;
+                let estStyle = "", bHtml = "";
+                if (r.estatus === "pendiente" || r.estatus === "PENDIENTE") {
+                    estStyle = "bg-orange-100 text-orange-600";
+                    bHtml = `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1.5 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-3 py-1.5 rounded-xl font-black text-[9px]">RECHAZAR</button>`;
+                } else if (r.estatus === "aprobado") {
+                    estStyle = "bg-emerald-100 text-emerald-700"; bHtml = `<span class="text-[8px] font-black text-slate-400 italic">PROCESADO ✅</span>`;
+                } else {
+                    estStyle = "bg-red-100 text-red-700"; bHtml = `<span class="text-[8px] font-black text-slate-400 italic">RECHAZADO ❌</span>`;
+                }
+                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-[11px]"><div>${r.asesorEmail}</div><div class="text-blue-600 font-black text-[9px] mt-1 uppercase">RASTREO: ${r.rastreo || 'N/A'}</div></td><td class="p-5 text-center"><div class="font-black text-emerald-600">$${r.monto}</div><div class="px-2 py-0.5 rounded-full border text-[8px] font-black uppercase ${estStyle}">${r.estatus}</div></td><td class="p-5 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px]">VER PAGO 📥</button></td><td class="p-5 text-center"><div class="flex justify-center gap-2">${bHtml}</div></td></tr>`;
             });
         });
 
         window.validarRecarga = async (docId, uid, monto, est) => {
             if (est === 'aprobado') {
-                await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-                alert("✅ Recarga aplicada.");
-            } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
+                if(confirm(`¿Confirmar $${monto}?`)) {
+                    await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
+                    await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
+                    alert("✅ Aplicado.");
+                }
+            } else { if(confirm("¿Rechazar?")) await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "rechazado" }); }
+        };
+
+        // CARGAR SOLICITUDES PAGINADAS
+        window.cargarSolicitudes = async (pagina = 1) => {
+            const baseQuery = collection(db, "solicitudes");
+            const q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
+            const snap = await getDocs(q);
+            const startIdx = (pagina - 1) * PAGE_SIZE;
+            renderizarTablaPersonalizada(snap.docs.slice(startIdx, startIdx + PAGE_SIZE));
         };
 
         function renderizarTablaPersonalizada(docsArray) {
@@ -235,56 +239,48 @@
             docsArray.forEach(docSnap => {
                 const s = docSnap.data(); const id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}) || '...';
-                let detallesHtml = "";
-                const curpVal = s.curp || s.curp_p || "";
-                const nssVal = s.nss || s.nss_p || "";
-                const rfcVal = s.rfc || s.rfc_p || "";
-                const idcifVal = s.idcif || s.idcif_p || "";
-                if(curpVal) detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
-                if(nssVal) detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
-                if(rfcVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${idcifVal}</div>`;
-                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
-                if(s.notas) detallesHtml += `<div class="text-[8px] text-slate-500 italic mt-1 border-t pt-1">Nota: ${s.notas}</div>`;
-                let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}, {l:'COMP DOM',u:s.file_comp_domicilio}];
-                fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
+                let detalles = `<div class="font-black text-slate-900 uppercase">${s.cliente_nombre || 'S/N'}</div>`;
+                if(s.curp) detalles += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+                if(s.nss) detalles += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+                if(s.rfc) detalles += `<div class="text-[9px] text-emerald-600 font-bold uppercase">RFC: ${s.rfc}</div>`;
+                if(s.idcif) detalles += `<div class="text-[9px] text-purple-600 font-bold uppercase">IDCIF: ${s.idcif}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
                     <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'badge-portal'}">${s.origen || 'Portal'}</span></td>
-                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1 text-[10px]">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
-                    <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td>
+                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                    <td class="p-4">${detalles}</td>
                     <td class="p-4 text-center">
                         <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="Error: LIMITE DE CONSULTAS ALCANZADO" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE ALCANZADO</option>
-                            <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ NO ENCONTRADO</option>
-                            <option value="Error: ERROR EN NSS O CURP" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ ERROR NSS/CURP</option>
-                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                            <option value="Error: ERROR AL INVOCAR EL SERVICIO" ${s.estatus.includes('INVOCAR') ? 'selected' : ''}>❌ ERROR SERVICIO</option>
-                            <option value="Error: ERROR EN IMSS CONSULTA MÁS TARDE" ${s.estatus.includes('MÁS TARDE') ? 'selected' : ''}>❌ IMSS TARDE</option>
-                            <option value="Error: INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN" ${s.estatus.includes('SUBDELEGACIÓN') ? 'selected' : ''}>❌ INCONSISTENCIAS</option>
-                            <option value="Error: NO GENERÓ ESTADO DE CUENTA" ${s.estatus.includes('ESTADO DE CUENTA') ? 'selected' : ''}>❌ SIN EDO CTA</option>
-                            <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ PASS INCORRECTA</option>
                         </select>
                     </td>
-                    <td class="p-4 text-right"><div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div><button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px]">Subir</button></td>
+                    <td class="p-4 text-right space-x-1">
+                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] hover:bg-blue-600 hover:text-white transition">👁️</button>
+                        <button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase">Subir</button>
+                    </td>
                 </tr>`;
             });
         }
 
-        window.cambiarEstatus = async (id, est) => {
-            const docRef = doc(db, "solicitudes", id);
-            if (est.includes("Error")) {
-                const snap = await getDoc(docRef); const s = snap.data();
-                if (s?.asesor_uid && s.costo > 0) { await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) }); alert(`⚠️ Reembolso aplicado.`); }
-            }
-            await updateDoc(docRef, { estatus: est });
+        window.verDetalles = (data) => {
+            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
+            const campos = [
+                {l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"Cliente", v:data.cliente_nombre},
+                {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif},
+                {l:"Sueldo", v:data.sueldo_mensual}, {l:"Ocupación", v:data.ocupacion}, {l:"Notas", v:data.notas},
+                {l:"Extras SINDO", v:data.extras_sindo}, {l:"Pass Afore", v:data.pass_afore}
+            ];
+            campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-100"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
+            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
+            let fHtml = `<div class="col-span-full mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">`;
+            fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white p-2 rounded-xl font-black text-[9px] uppercase italic">${f.l} 📥</button>`; });
+            cont.innerHTML += fHtml + `</div>`;
+            document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); document.getElementById('txtFolio').innerText = "ENTREGA: " + tipo; };
-        window.cerrarModal = () => document.getElementById('modalSubir').classList.add('hidden');
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
 
         document.getElementById('btnGuardar').onclick = async () => {
             const file = document.getElementById('inputArchivo').files[0];
@@ -295,32 +291,35 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                alert("✅ Entregado."); 
-                window.cerrarModal(); 
-                // AQUÍ ESTÁ EL CAMBIO: Recarga la página actual en lugar de ir a la 1
-                cargarSolicitudes(currentPage);
+                alert("✅ Entregado."); window.cerrarModal(); cargarSolicitudes(currentPage);
             } catch(e) { alert("Error."); } finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
         };
 
         window.buscarPorFecha = async () => {
-            const fechaInput = document.getElementById('filtroFecha').value;
-            if(!fechaInput) return cargarSolicitudes(1);
-            const start = new Date(fechaInput + "T00:00:00"); const end = new Date(fechaInput + "T23:59:59");
+            const fi = document.getElementById('filtroFecha').value; if(!fi) return cargarSolicitudes(1);
+            const start = new Date(fi + "T00:00:00"); const end = new Date(fi + "T23:59:59");
             const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(start)), where("fecha", "<=", Timestamp.fromDate(end)));
             const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.sort((a, b) => b.data().fecha - a.data().fecha));
+            renderizarTablaPersonalizada(snap.docs.sort((a,b) => b.data().fecha - a.data().fecha));
         };
 
         window.buscarGlobal = async () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            if (bus.length < 1) return cargarSolicitudes(1);
+            const bus = document.getElementById('buscador').value.toUpperCase(); if (bus.length < 1) return cargarSolicitudes(1);
             const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(400));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
-        window.enviarCorteWhatsApp = () => { window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${document.getElementById('gananciaHoy').innerText}`); };
+        window.cambiarEstatus = async (id, est) => {
+            const docRef = doc(db, "solicitudes", id);
+            if (est.includes("Error")) {
+                const snap = await getDoc(docRef); const s = snap.data();
+                if (s?.asesor_uid && s.costo > 0) await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+            }
+            await updateDoc(docRef, { estatus: est });
+        };
 
+        window.enviarCorteWhatsApp = () => { window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta:* ${document.getElementById('gananciaHoy').innerText}`); };
         cargarSolicitudes(1);
     </script>
 </body>
