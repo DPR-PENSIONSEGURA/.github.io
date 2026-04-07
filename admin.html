@@ -246,6 +246,7 @@
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: DATOS</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
+                            <option value="Error: INCONSISTENCIAS, ACUDIR A LA SUBDELEGACIÓN PARA ACLARACIÓN O EN EL SIGUIENTE LINK https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/  " ${s.estatus.includes('ICONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
