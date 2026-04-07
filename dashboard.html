@@ -23,7 +23,6 @@
         .expand-btn:hover span.text { opacity: 1; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Ajuste de letra pequeña en tablas */
         table { font-size: 9px; }
         .nav-pag { background: #1e293b; color: white; padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
     </style>
@@ -66,7 +65,10 @@
         </div>
     </header>
 
-    
+    <main class="p-6 max-w-7xl mx-auto">
+        <div class="max-w-2xl mx-auto mb-10">
+            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+        </div>
 
         <div class="flex justify-between items-center mb-6">
             <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
@@ -86,11 +88,6 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
-<main class="p-6 max-w-7xl mx-auto">
-        <div class="max-w-2xl mx-auto mb-10">
-            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
-        </div>
-    
         <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
             <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
@@ -114,12 +111,19 @@
     <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
-            <h2 class="text-lg font-black text-slate-800 uppercase mb-6 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-6 text-center">
+            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-4 text-center">
                 <p class="font-black text-emerald-600 text-[9px] uppercase">Banorte | Diana Puente Rodríguez</p>
                 <p class="text-base font-black text-emerald-700 tracking-widest uppercase">4915 6630 4036 4896</p>
             </div>
-            <input type="number" id="depMonto" placeholder="MÍNIMO $200" class="input-light text-center mb-4">
+            
+            <input type="number" id="depMonto" placeholder="MONTO DE RECARGA (MÍN $200)" class="input-light text-center mb-3">
+            <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / REFERENCIA" class="input-light text-center mb-3 uppercase">
+            
+            <div class="bg-slate-50 p-4 rounded-2xl mb-4 text-[9px] text-slate-500 font-bold leading-tight text-left border border-slate-200">
+                ⚠️ <span class="text-red-600">DISCLAIMER:</span> No se hacen devoluciones en recargas menores a $200. Solo transferencias del mismo día. Cuentas con recargas falsas serán <span class="text-red-600">baneadas</span>. El saldo se reflejará automáticamente al confirmar en cuenta bancaria.
+            </div>
+
             <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
             <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg text-xs">Informar Pago</button>
         </div>
@@ -141,14 +145,13 @@
         let saldoGlobal = 0, userUID = "", emailAsesor = "", paginaActual = 1;
         const tramitesPorPagina = 50; 
         let listaTramitesCompleta = []; 
-        let listaOriginalParaBusqueda = []; // Para el buscador global
+        let listaOriginalParaBusqueda = [];
 
-        // --- LOS TRÁMITES QUEDAN IGUAL ---
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'Semanas Cotizadas', precio: 25, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉICO', precio: 55, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
@@ -206,7 +209,6 @@
 
         function escucharHistorial() {
             if(!userUID) return;
-            // Aumentamos el límite a 400 para permitir búsquedas globales extensas
             onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(400)), (snap) => {
                 listaOriginalParaBusqueda = []; 
                 snap.forEach(docSnap => listaOriginalParaBusqueda.push({ id: docSnap.id, ...docSnap.data() }));
@@ -218,42 +220,22 @@
         window.renderizarHistorialPaginado = () => {
             const lista = document.getElementById('listaHistorial');
             if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase text-[9px]">Sin registros encontrados</td></tr>`; return; }
-            
             const inicio = (paginaActual - 1) * tramitesPorPagina;
             const tramitesPagina = listaTramitesCompleta.slice(inicio, inicio + tramitesPorPagina);
             let html = "";
-            
             tramitesPagina.forEach(d => {
                 const f = d.fecha ? d.fecha.toDate().toLocaleDateString('es-MX', {day:'2-digit', month:'2-digit', year:'2-digit'}) : 'Hoy';
                 let color = d.estatus === 'Terminado' ? "text-emerald-600" : (d.estatus.includes('Error') ? "text-red-500" : "text-orange-500");
-                html += `<tr class="border-b hover:bg-slate-50 transition">
-                    <td class="py-3 px-2 text-slate-400 font-black">${f}</td>
-                    <td class="py-3 px-4">
-                        <div class="font-black uppercase text-slate-700 leading-tight">${d.tipo}</div>
-                        <div class="text-[8px] text-blue-600 uppercase font-black tracking-tighter">${d.curp || d.nss || ''} ${d.cliente_nombre ? '| ' + d.cliente_nombre : ''}</div>
-                    </td>
-                    <td class="py-3 px-2 text-center font-black uppercase ${color}">${d.estatus}</td>
-                    <td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[8px] font-black">DESCARGAR</a>` : '--'}</td>
-                </tr>`;
+                html += `<tr class="border-b hover:bg-slate-50 transition"><td class="py-3 px-2 text-slate-400 font-black">${f}</td><td class="py-3 px-4"><div class="font-black uppercase text-slate-700 leading-tight">${d.tipo}</div><div class="text-[8px] text-blue-600 uppercase font-black tracking-tighter">${d.curp || d.nss || ''} ${d.cliente_nombre ? '| ' + d.cliente_nombre : ''}</div></td><td class="py-3 px-2 text-center font-black uppercase ${color}">${d.estatus}</td><td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[8px] font-black">DESCARGAR</a>` : '--'}</td></tr>`;
             });
-
             const totalPaginas = Math.ceil(listaTramitesCompleta.length / tramitesPorPagina);
-            lista.innerHTML = html + `<tr><td colspan="4" class="py-6 text-center">
-                <div class="flex justify-center items-center gap-4">
-                    <button onclick="window.cambiarPagina(-1)" class="nav-pag" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button>
-                    <span class="text-[9px] font-black uppercase text-slate-400">Página ${paginaActual} de ${totalPaginas}</span>
-                    <button onclick="window.cambiarPagina(1)" class="nav-pag" ${paginaActual >= totalPaginas ? 'disabled' : ''}>Siguiente</button>
-                </div>
-            </td></tr>`;
+            lista.innerHTML = html + `<tr><td colspan="4" class="py-6 text-center"><div class="flex justify-center items-center gap-4"><button onclick="window.cambiarPagina(-1)" class="nav-pag" ${paginaActual === 1 ? 'disabled' : ''}>Anterior</button><span class="text-[9px] font-black uppercase text-slate-400">Página ${paginaActual} de ${totalPaginas}</span><button onclick="window.cambiarPagina(1)" class="nav-pag" ${paginaActual >= totalPaginas ? 'disabled' : ''}>Siguiente</button></div></td></tr>`;
         };
 
         window.cambiarPagina = (dir) => { paginaActual += dir; renderizarHistorialPaginado(); };
 
-        // BUSCADOR GLOBAL (Busca en los 400 registros descargados por CURP o Nombre)
         window.buscarServicio = () => {
             const queryV = document.getElementById('inputBusqueda').value.toUpperCase();
-            
-            // Si el buscador está vacío, volvemos al estado original
             if (queryV.length < 1) {
                 listaTramitesCompleta = [...listaOriginalParaBusqueda];
                 paginaActual = 1;
@@ -261,27 +243,17 @@
                 window.resetearPanel();
                 return;
             }
-
-            // Ocultamos categorías para mostrar resultados
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
-
-            // Filtrar trámites nuevos
             let htmlTramites = '';
             Object.values(TRAMITES).flat().forEach(t => {
                 if (t.nombre.toUpperCase().includes(queryV)) {
-                    htmlTramites += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                    htmlTramites += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false}, ${t.pideExtras || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
                 }
             });
-            document.getElementById('listaServicios').innerHTML = htmlTramites || `<div class="col-span-full py-4 text-center uppercase font-black opacity-30 text-[9px]">Sin nuevos trámites que coincidan</div>`;
-
-            // Filtrar historial de forma GLOBAL (Cualquier coincidencia en CURP o Nombre)
-            listaTramitesCompleta = listaOriginalParaBusqueda.filter(d => 
-                (d.curp && d.curp.includes(queryV)) || 
-                (d.cliente_nombre && d.cliente_nombre.toUpperCase().includes(queryV)) ||
-                (d.nss && d.nss.includes(queryV))
-            );
+            document.getElementById('listaServicios').innerHTML = htmlTramites || `<div class="col-span-full py-4 text-center uppercase font-black opacity-30 text-[9px]">Sin resultados</div>`;
+            listaTramitesCompleta = listaOriginalParaBusqueda.filter(d => (d.curp && d.curp.includes(queryV)) || (d.cliente_nombre && d.cliente_nombre.toUpperCase().includes(queryV)) || (d.nss && d.nss.includes(queryV)));
             paginaActual = 1;
             renderizarHistorialPaginado();
         };
@@ -303,13 +275,12 @@
             document.getElementById('tituloSeccion').innerText = `Servicios: ${cat}`;
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false}, ${t.pideExtras || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             document.getElementById('listaServicios').innerHTML = html;
         };
 
-        // --- EL RESTO DE FUNCIONES (confirmarCompra, notificarPago, etc.) SE MANTIENEN IGUAL QUE TU ÚLTIMO CÓDIGO ---
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo) => {
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo, pideExtras) => {
             const content = document.getElementById('formContent');
             let fields = '';
             let precioFinal = costo;
@@ -319,6 +290,7 @@
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
+            if(pideExtras) fields += `<textarea id="notas_p" placeholder="DATO EXTRAS PARA BÚSQUEDA (NOMBRE, PADRES, FECHA NAC, LUGAR NAC)" class="input-light mb-4 uppercase text-[10px]" rows="3"></textarea>`;
             if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE WEB" class="input-light mb-4 font-bold">`;
             if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4 font-bold">`;
             
@@ -393,16 +365,28 @@
         };
 
         window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value); const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !f || m < 200) return alert("Mínimo $200 y comprobante.");
+            const m = parseFloat(document.getElementById('depMonto').value); 
+            const rastreo = document.getElementById('claveRastreo').value;
+            const f = document.getElementById('fileRecarga').files[0];
+            
+            if (!m || !rastreo || !f || m < 200) return alert("Completa Monto, Clave de Rastreo y Comprobante (Mínimo $200).");
+            
             const btn = document.getElementById('btnNotificar'); btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await res.json();
-                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); cerrarModal();
-            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
+                await addDoc(collection(db, "notificaciones_pago"), { 
+                    uid: userUID, 
+                    asesorEmail: emailAsesor, 
+                    monto: m, 
+                    rastreo: rastreo.toUpperCase(), 
+                    comprobante: d.secure_url, 
+                    fecha: serverTimestamp(), 
+                    estatus: "pendiente" 
+                });
+                alert("Pago reportado con éxito."); cerrarModal();
+            } catch(e) { alert("Error al subir comprobante."); } finally { btn.disabled = false; }
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
