@@ -66,10 +66,7 @@
         </div>
     </header>
 
-    <main class="p-6 max-w-7xl mx-auto">
-        <div class="max-w-2xl mx-auto mb-10">
-            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
-        </div>
+    
 
         <div class="flex justify-between items-center mb-6">
             <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
@@ -89,6 +86,11 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden animate-fade"></div>
 
+<main class="p-6 max-w-7xl mx-auto">
+        <div class="max-w-2xl mx-auto mb-10">
+            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+        </div>
+    
         <section class="bg-white rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
             <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
