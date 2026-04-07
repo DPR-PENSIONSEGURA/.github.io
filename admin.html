@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; } /* Oculto hasta validar pass */
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .badge-portal { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
@@ -68,7 +68,12 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                            <tr><th class="p-5">Asesor</th><th class="p-5">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
+                            <tr>
+                                <th class="p-5">Asesor / Rastreo</th>
+                                <th class="p-5 text-center">Monto</th>
+                                <th class="p-5">Comprobante</th>
+                                <th class="p-5 text-center">Acciones</th>
+                            </tr>
                         </thead>
                         <tbody id="tablaRecargas"></tbody>
                     </table>
@@ -140,13 +145,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-const PASS_ASISTENTE = "DPR2026"; 
+        const PASS_ASISTENTE = "DPR2026"; 
         const PASS_DIANA = "Sashimi$";   
 
-        // Validar entrada al Panel (Asistente o Diana)
         const validarEntrada = () => {
             const p = prompt("ACCESO RESTRINGIDO - DPR ADMIN\nIngresa la contraseña de acceso:");
-            // Cualquiera de las dos claves permite entrar al panel
             if(p === PASS_ASISTENTE || p === PASS_DIANA) {
                 document.body.style.display = "block";
             } else {
@@ -156,7 +159,6 @@ const PASS_ASISTENTE = "DPR2026";
         };
         validarEntrada();
 
-        // Validar apertura de Caja Fuerte (Solo Diana)
         window.abrirCajaFuerte = () => {
             const p = prompt("🔒 ÁREA CONFIDENCIAL\nIngresa tu contraseña maestra:");
             if(p === PASS_DIANA) {
@@ -172,7 +174,6 @@ const PASS_ASISTENTE = "DPR2026";
         let firstDoc = null, lastDoc = null, pageNumber = 1;
         const PAGE_SIZE = 20; let idTramiteActual = "";
 
-        // CONTADORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(document.getElementById('txtVisitas')) document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
@@ -186,13 +187,21 @@ const PASS_ASISTENTE = "DPR2026";
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // RECARGAS
+        // RECARGAS ACTUALIZADAS CON CLAVE DE RASTREO
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
             snap.forEach(d => {
                 const r = d.data();
-                t.innerHTML += `<tr class="border-b"><td class="p-5 font-bold text-[11px]">${r.asesorEmail}</td><td class="p-5 font-black text-emerald-600">$${r.monto}</td><td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase text-xs">PAGO 📥</button></td><td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td></tr>`;
+                t.innerHTML += `<tr class="border-b">
+                    <td class="p-5 font-bold text-[11px]">
+                        <div class="text-slate-900">${r.asesorEmail}</div>
+                        <div class="text-blue-600 font-black text-[9px] mt-1">RASTREO: ${r.rastreo || 'SIN CLAVE'}</div>
+                    </td>
+                    <td class="p-5 font-black text-emerald-600 text-center">$${r.monto}</td>
+                    <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase text-xs">PAGO 📥</button></td>
+                    <td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td>
+                </tr>`;
             });
         });
 
@@ -204,43 +213,28 @@ const PASS_ASISTENTE = "DPR2026";
             } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-// --- BÚSQUEDA POR FECHA CORREGIDA ---
         window.buscarPorFecha = async () => {
             const fechaInput = document.getElementById('filtroFecha').value;
             if(!fechaInput) return cargarSolicitudes();
-            
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">BUSCANDO FECHA ${fechaInput}...</td></tr>`;
-            
             try {
-                // Creamos el rango de 24 horas para ese día
                 const start = new Date(fechaInput + "T00:00:00");
                 const end = new Date(fechaInput + "T23:59:59");
-                
-                // Quitamos el 'orderBy' temporalmente para que no se congele la página
-                // si no tienes el índice creado en Firebase.
                 const q = query(collection(db, "solicitudes"), 
                     where("fecha", ">=", Timestamp.fromDate(start)),
                     where("fecha", "<=", Timestamp.fromDate(end))
                 );
-                
                 const snap = await getDocs(q);
-                
                 if(snap.empty) {
                     tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black uppercase">Sin resultados en esa fecha</td></tr>`;
                 } else {
-                    // Ordenamos los resultados manualmente aquí para evitar que la página se trabe
                     const docsOrdenados = snap.docs.sort((a, b) => b.data().fecha - a.data().fecha);
                     renderizarTablaPersonalizada(docsOrdenados);
                 }
-            } catch (error) {
-                console.error("Error en búsqueda:", error);
-                alert("Hubo un error al consultar esta fecha.");
-                cargarSolicitudes();
-            }
+            } catch (error) { cargarSolicitudes(); }
         };
 
-        // FILTROS
         window.buscarGlobal = async () => {
             const bus = document.getElementById('buscador').value.toUpperCase();
             if (bus.length < 1) return cargarSolicitudes();
@@ -298,12 +292,14 @@ const PASS_ASISTENTE = "DPR2026";
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
+                const idcifVal = s.idcif || s.idcif_p || "";
                 const passAforeVal = s.pass_afore || ""; 
                 const fechaNacVal = s.fecha_nacimiento || s.fecha_p || "";
 
                 if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
                 if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
                 if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
+                if(idcifVal && idcifVal !== "N/A") detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${idcifVal}</div>`;
                 if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase border border-orange-100 px-1 rounded inline-block">FECHA NAC: ${fechaNacVal}</div>`;
                 if(passAforeVal) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${passAforeVal}</div>`;
                 if(s.plazo_mejoravit) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black">PLAZO: ${s.plazo_mejoravit}</div>`;
