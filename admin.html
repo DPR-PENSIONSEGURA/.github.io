@@ -241,13 +241,16 @@
                     <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                     <td class="p-4">${infoAsesor}</td>
                     <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
-                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
-                            <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: DATOS</option>
-                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
-                            <option value="Error: INCONSISTENCIAS, ACUDIR A LA SUBDELEGACIÓN PARA ACLARACIÓN O EN EL SIGUIENTE LINK https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/  " ${s.estatus.includes('ICONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
-                        </select>
+                     <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50">
+                     <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
+                     <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                      <option value="Error de Datos" ${s.estatus === 'Error de }}os' ? 'selected' : ''}>❌ LIMITE DE CONSULTAS ALCANZADO</option>
+                      <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ DOCUMENTO INEXISTENTE O NO ENCONTRADO</option>
+                      <option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN NSS O CURP</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR AL INVOCAR EL SERVICIO</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ ERROR EN IMSS CONSULTA MÁS TARDE</option>
+<option value="Error de Datos" ${s.estatus === 'Error de Datos' ? 'selected' : ''}>❌ INCONSISTENCIAS. ACUDIR A SUBDELEGACIÓN</option>
                     </td>
                     <td class="p-4 text-right space-x-1">
                         <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] shadow-sm hover:bg-blue-600 hover:text-white transition">👁️</button>
