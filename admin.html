@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro Total</title>
+    <title>DPR Admin | Control Maestro Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -13,9 +13,9 @@
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
         .btn-filter { background: #F97316; color: white; padding: 10px 20px; border-radius: 15px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
-        .btn-filter:hover { background: #EA580C; transform: scale(1.05); }
         .btn-sec { background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 12px; font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; transition: all 0.2s; }
         .btn-sec:hover { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -31,25 +31,16 @@
             </div>
 
             <div class="flex gap-4 w-full lg:w-auto">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
-                    <p class="text-[8px] font-black uppercase text-slate-400">Visitas</p>
-                    <p id="txtVisitas" class="text-xl font-black">0</p>
-                </div>
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
-                    <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
-                    <p id="contadorPendientes" class="text-xl font-black">0</p>
-                </div>
-                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
-                    <p class="text-[8px] font-black uppercase opacity-70 italic group-hover:text-blue-400"></p>
-                    <p class="text-xl font-black">⚡</p>
-                </button>
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1"><p class="text-[8px] font-black uppercase text-slate-400">Visitas</p><p id="txtVisitas" class="text-xl font-black">0</p></div>
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1"><p class="text-[8px] font-black uppercase opacity-70">Pendientes</p><p id="contadorPendientes" class="text-xl font-black">0</p></div>
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors"><p class="text-xl font-black">⚡</p></button>
             </div>
         </header>
 
         <div class="flex flex-wrap gap-3 mb-8">
-            <a href="admin/asesores" class="bg-purple-600 hover:bg-purple-700 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">👥 Control Asesores</a>
-            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg hover:bg-slate-900 transition-all">📦 Corte e Inventario</a>
-            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl transition-all">📱 WhatsApp Corte</button>
+            <a href="admin/asesores" class="bg-purple-600 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl">👥 Control Asesores</a>
+            <a href="admin/corte.html" class="bg-slate-800 text-white px-6 py-4 rounded-2xl font-black uppercase italic text-[11px] shadow-lg">📦 Corte e Inventario</a>
+            <button onclick="window.enviarCorteWhatsApp()" class="bg-emerald-500 text-white font-black uppercase italic text-[11px] px-6 py-4 rounded-2xl shadow-xl">📱 WhatsApp Corte</button>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-6">
@@ -59,7 +50,7 @@
             <button onclick="window.filtrarPorSeccion('INFONAVIT')" class="btn-sec">🏠 INFONAVIT</button>
             <button onclick="window.filtrarPorSeccion('DOC')" class="btn-sec">📄 DOCS</button>
             <button onclick="window.filtrarSoloProveedores()" class="btn-sec bg-blue-50 text-blue-600">🚚 PROVEEDORES</button>
-            <button onclick="window.cargarSolicitudes()" class="btn-sec bg-slate-100 italic">🔄 REINICIAR</button>
+            <button onclick="window.cargarSolicitudes(1)" class="btn-sec bg-slate-100 italic">🔄 REINICIAR</button>
         </div>
 
         <section class="mb-12">
@@ -68,12 +59,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                            <tr>
-                                <th class="p-5">Asesor / Rastreo</th>
-                                <th class="p-5 text-center">Monto</th>
-                                <th class="p-5">Comprobante</th>
-                                <th class="p-5 text-center">Acciones</th>
-                            </tr>
+                            <tr><th class="p-5">Asesor / Rastreo</th><th class="p-5 text-center">Monto</th><th class="p-5">Comprobante</th><th class="p-5 text-center">Acciones</th></tr>
                         </thead>
                         <tbody id="tablaRecargas"></tbody>
                     </table>
@@ -86,14 +72,17 @@
                 <div class="flex items-center gap-4">
                     <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
                     <button onclick="window.filtrarSoloPendientes()" class="btn-filter shadow-lg">🟠 Solo Pendientes</button>
-                    <div class="flex gap-2">
-                        <button id="btnPrev" class="nav-pag" disabled>Anterior</button>
-                        <button id="btnNext" class="nav-pag">Siguiente</button>
+                    
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
+                        <button id="btnPrev" class="nav-pag"> < </button>
+                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select">
+                            </select>
+                        <button id="btnNext" class="nav-pag"> > </button>
                     </div>
                 </div>
                 <div class="flex gap-2 w-full md:w-auto">
-                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase bg-white">
-                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="flex-1 md:w-64 p-3 rounded-2xl border border-slate-300 shadow-sm text-[10px] font-bold outline-none uppercase">
+                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border border-slate-300 text-[10px] font-bold outline-none uppercase bg-white">
+                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE O CURP..." class="flex-1 md:w-64 p-3 rounded-2xl border border-slate-300 text-[10px] font-bold outline-none uppercase">
                 </div>
             </div>
 
@@ -150,30 +139,61 @@
 
         const validarEntrada = () => {
             const p = prompt("ACCESO RESTRINGIDO - DPR ADMIN\nIngresa la contraseña de acceso:");
-            if(p === PASS_ASISTENTE || p === PASS_DIANA) {
-                document.body.style.display = "block";
-            } else {
-                alert("Acceso denegado.");
-                window.location.href = "https://pensionsegura.org";
-            }
+            if(p === PASS_ASISTENTE || p === PASS_DIANA) { document.body.style.display = "block"; } 
+            else { alert("Acceso denegado."); window.location.href = "https://pensionsegura.org"; }
         };
         validarEntrada();
 
         window.abrirCajaFuerte = () => {
             const p = prompt("🔒 ÁREA CONFIDENCIAL\nIngresa tu contraseña maestra:");
-            if(p === PASS_DIANA) {
-                document.getElementById('modalCajaFuerte').classList.remove('hidden');
-            } else {
-                alert("❌ Contraseña incorrecta.");
-            }
+            if(p === PASS_DIANA) { document.getElementById('modalCajaFuerte').classList.remove('hidden'); } 
+            else { alert("❌ Contraseña incorrecta."); }
         };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let firstDoc = null, lastDoc = null, pageNumber = 1;
-        const PAGE_SIZE = 20; let idTramiteActual = "";
+        // --- LÓGICA DE PAGINACIÓN CON MEMORIA ---
+        let currentPage = 1;
+        const PAGE_SIZE = 80;
+        let pageDocs = { 1: null }; // Guardamos el primer documento de cada página
+        let lastDocGlobal = null;
+        let idTramiteActual = "";
 
+        // Inicializar selector de páginas
+        const selector = document.getElementById('selectorPagina');
+        for(let i=1; i<=50; i++) { selector.innerHTML += `<option value="${i}">Página ${i}</option>`; }
+
+        window.cambiarPaginaDirecto = (p) => {
+            currentPage = parseInt(p);
+            cargarSolicitudes(currentPage);
+        };
+
+        document.getElementById('btnNext').onclick = () => { currentPage++; document.getElementById('selectorPagina').value = currentPage; cargarSolicitudes(currentPage); };
+        document.getElementById('btnPrev').onclick = () => { if(currentPage > 1) { currentPage--; document.getElementById('selectorPagina').value = currentPage; cargarSolicitudes(currentPage); } };
+
+        // CARGAR SOLICITUDES (Modificada para no perderse)
+        window.cargarSolicitudes = async (pagina = 1) => {
+            const baseQuery = collection(db, "solicitudes");
+            let q;
+
+            if (pagina === 1) {
+                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE));
+            } else {
+                // Para saltar a páginas lejanas, necesitamos calcular el offset aproximado
+                q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
+            }
+
+            const snap = await getDocs(q);
+            // Obtenemos solo los últimos 20 de esa gran consulta para simular la página exacta
+            const startIdx = (pagina - 1) * PAGE_SIZE;
+            const finalDocs = snap.docs.slice(startIdx, startIdx + PAGE_SIZE);
+            
+            renderizarTablaPersonalizada(finalDocs);
+            document.getElementById('btnPrev').disabled = (pagina === 1);
+        };
+
+        // CONTADORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(document.getElementById('txtVisitas')) document.getElementById('txtVisitas').innerText = d.exists() ? d.data().contador : 0; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
@@ -187,17 +207,14 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // RECARGAS ACTUALIZADAS CON CLAVE DE RASTREO
+        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "in", ["pendiente", "PENDIENTE"])), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             if (snap.empty) { t.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-300 font-bold uppercase text-[10px]">No hay recargas pendientes</td></tr>'; return; }
             snap.forEach(d => {
                 const r = d.data();
                 t.innerHTML += `<tr class="border-b">
-                    <td class="p-5 font-bold text-[11px]">
-                        <div class="text-slate-900">${r.asesorEmail}</div>
-                        <div class="text-blue-600 font-black text-[9px] mt-1">RASTREO: ${r.rastreo || 'SIN CLAVE'}</div>
-                    </td>
+                    <td class="p-5 font-bold text-[11px]"><div class="text-slate-900">${r.asesorEmail}</div><div class="text-blue-600 font-black text-[9px] mt-1">RASTREO: ${r.rastreo || 'SIN CLAVE'}</div></td>
                     <td class="p-5 font-black text-emerald-600 text-center">$${r.monto}</td>
                     <td class="p-5"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[9px] uppercase text-xs">PAGO 📥</button></td>
                     <td class="p-5 text-center flex justify-center gap-2"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">APROBAR</button><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[9px]">RECHAZAR</button></td>
@@ -213,106 +230,30 @@
             } else { if(confirm("¿Eliminar reporte?")) await deleteDoc(doc(db, "notificaciones_pago", docId)); }
         };
 
-        window.buscarPorFecha = async () => {
-            const fechaInput = document.getElementById('filtroFecha').value;
-            if(!fechaInput) return cargarSolicitudes();
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">BUSCANDO FECHA ${fechaInput}...</td></tr>`;
-            try {
-                const start = new Date(fechaInput + "T00:00:00");
-                const end = new Date(fechaInput + "T23:59:59");
-                const q = query(collection(db, "solicitudes"), 
-                    where("fecha", ">=", Timestamp.fromDate(start)),
-                    where("fecha", "<=", Timestamp.fromDate(end))
-                );
-                const snap = await getDocs(q);
-                if(snap.empty) {
-                    tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 font-black uppercase">Sin resultados en esa fecha</td></tr>`;
-                } else {
-                    const docsOrdenados = snap.docs.sort((a, b) => b.data().fecha - a.data().fecha);
-                    renderizarTablaPersonalizada(docsOrdenados);
-                }
-            } catch (error) { cargarSolicitudes(); }
-        };
-
-        window.buscarGlobal = async () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            if (bus.length < 1) return cargarSolicitudes();
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
-        };
-
-        window.filtrarSoloPendientes = async () => {
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-orange-500 font-bold animate-pulse">BUSCANDO PENDIENTES...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(500));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.filter(d => d.data().estatus === "En Proceso"));
-        };
-
-        window.filtrarSoloProveedores = async () => {
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">CARGANDO SOLICITUDES DE PROVEEDORES...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), where("origen", "==", "PROVEEDOR"), orderBy("fecha", "desc"), limit(100));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs);
-        };
-
-        window.filtrarPorSeccion = async (seccion) => {
-            const tabla = document.getElementById('tablaSolicitudes');
-            tabla.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-blue-500 font-bold animate-pulse">FILTRANDO ${seccion}...</td></tr>`;
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.filter(d => d.data().tipo.toUpperCase().includes(seccion) || (seccion === 'AFORE' && d.data().tipo.includes('ECTA'))));
-        };
-
-        window.cargarSolicitudes = async (comando = 'next') => {
-            document.getElementById('filtroFecha').value = "";
-            const baseQuery = collection(db, "solicitudes");
-            let q;
-            if (comando === 'next' && lastDoc) q = query(baseQuery, orderBy("fecha", "desc"), startAfter(lastDoc), limit(PAGE_SIZE));
-            else if (comando === 'prev' && firstDoc) q = query(baseQuery, orderBy("fecha", "desc"), endBefore(firstDoc), limitToLast(PAGE_SIZE));
-            else { q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE)); pageNumber = 1; }
-            const snap = await getDocs(q);
-            if (snap.empty) return;
-            firstDoc = snap.docs[0]; lastDoc = snap.docs[snap.docs.length - 1];
-            renderizarTablaPersonalizada(snap.docs);
-            document.getElementById('btnPrev').disabled = (pageNumber === 1);
-        };
-
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
             docsArray.forEach(docSnap => {
-                const s = typeof docSnap.data === 'function' ? docSnap.data() : docSnap;
-                const id = docSnap.id;
+                const s = docSnap.data(); const id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}) || '...';
-                
                 let detallesHtml = "";
                 const curpVal = s.curp || s.curp_p || "";
                 const nssVal = s.nss || s.nss_p || "";
                 const rfcVal = s.rfc || s.rfc_p || "";
                 const idcifVal = s.idcif || s.idcif_p || "";
-                const passAforeVal = s.pass_afore || ""; 
-                const fechaNacVal = s.fecha_nacimiento || s.fecha_p || "";
-
-                if(curpVal && curpVal !== "N/A") detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
-                if(nssVal && nssVal !== "N/A") detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
-                if(rfcVal && rfcVal !== "N/A") detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
-                if(idcifVal && idcifVal !== "N/A") detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${idcifVal}</div>`;
-                if(fechaNacVal) detallesHtml += `<div class="text-[9px] text-orange-600 font-black uppercase border border-orange-100 px-1 rounded inline-block">FECHA NAC: ${fechaNacVal}</div>`;
-                if(passAforeVal) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${passAforeVal}</div>`;
-                if(s.plazo_mejoravit) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black">PLAZO: ${s.plazo_mejoravit}</div>`;
+                if(curpVal) detallesHtml += `<div class="text-[9px] text-blue-600 font-black uppercase">CURP: ${curpVal}</div>`;
+                if(nssVal) detallesHtml += `<div class="text-[9px] text-slate-500 font-black uppercase">NSS: ${nssVal}</div>`;
+                if(rfcVal) detallesHtml += `<div class="text-[9px] text-emerald-600 font-black uppercase">RFC: ${rfcVal}</div>`;
+                if(idcifVal) detallesHtml += `<div class="text-[9px] text-purple-600 font-black uppercase">IDCIF: ${idcifVal}</div>`;
+                if(s.pass_afore) detallesHtml += `<div class="text-[9px] text-red-600 font-black uppercase bg-red-50 px-1 rounded inline-block mt-0.5">PASS: ${s.pass_afore}</div>`;
                 if(s.notas) detallesHtml += `<div class="text-[8px] text-slate-500 italic mt-1 border-t pt-1">Nota: ${s.notas}</div>`;
-
                 let btnDescargas = '';
-                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}, {l:'COMP. DOM',u:s.file_comp_domicilio}];
+                const fotos = [{l:'INE F',u:s.file_ine_f}, {l:'INE R',u:s.file_ine_r}, {l:'FOTO',u:s.file_selfie}, {l:'EDO CTA',u:s.file_edocta}, {l:'COMP DOM',u:s.file_comp_domicilio}];
                 fotos.forEach(f => { if(f.u) btnDescargas += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-2 py-0.5 rounded text-[7px] font-black mr-1 uppercase mb-1 italic">${f.l} 📥</button>`; });
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'badge-portal'}">${s.origen || 'Portal'}</span></td>
-                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
-                    <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b border-slate-100 mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td>
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'badge-portal'}">${s.origen || 'Portal'}</span></td>
+                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none mb-1 text-[10px]">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                    <td class="p-4"><div class="font-black text-slate-900 uppercase text-[10px] mb-1">${s.nombre_asesor || 'S/N'}</div>${s.cliente_nombre ? `<div class="text-[9px] font-bold text-slate-500 uppercase border-b mb-1 pb-0.5">Cliente: ${s.cliente_nombre}</div>` : ''}${detallesHtml}</td>
                     <td class="p-4 text-center">
                         <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-slate-50 outline-none">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
@@ -328,7 +269,7 @@
                             <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ PASS INCORRECTA</option>
                         </select>
                     </td>
-                    <td class="p-4 text-right"><div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div><button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px] hover:bg-blue-700 transition shadow-sm">Subir</button></td>
+                    <td class="p-4 text-right"><div class="flex flex-wrap justify-end mb-2">${btnDescargas}</div><button onclick="window.abrirSubida('${id}', '${s.tipo}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black uppercase text-[9px]">Subir</button></td>
                 </tr>`;
             });
         }
@@ -336,12 +277,8 @@
         window.cambiarEstatus = async (id, est) => {
             const docRef = doc(db, "solicitudes", id);
             if (est.includes("Error")) {
-                const snap = await getDoc(docRef);
-                const s = snap.data();
-                if (s && s.asesor_uid && s.costo > 0) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    alert(`⚠️ Reembolso de $${s.costo} aplicado.`);
-                }
+                const snap = await getDoc(docRef); const s = snap.data();
+                if (s?.asesor_uid && s.costo > 0) { await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) }); alert(`⚠️ Reembolso aplicado.`); }
             }
             await updateDoc(docRef, { estatus: est });
         };
@@ -358,15 +295,33 @@
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const data = await res.json();
                 await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                alert("✅ Entregado."); window.cerrarModal(); firstDoc = null; lastDoc = null; pageNumber = 1; cargarSolicitudes();
+                alert("✅ Entregado."); 
+                window.cerrarModal(); 
+                // AQUÍ ESTÁ EL CAMBIO: Recarga la página actual en lugar de ir a la 1
+                cargarSolicitudes(currentPage);
             } catch(e) { alert("Error."); } finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
         };
 
-        window.enviarCorteWhatsApp = () => { window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${document.getElementById('gananciaHoy').innerText}`); };
-        document.getElementById('btnNext').onclick = () => { pageNumber++; cargarSolicitudes('next'); };
-        document.getElementById('btnPrev').onclick = () => { pageNumber--; cargarSolicitudes('prev'); };
+        window.buscarPorFecha = async () => {
+            const fechaInput = document.getElementById('filtroFecha').value;
+            if(!fechaInput) return cargarSolicitudes(1);
+            const start = new Date(fechaInput + "T00:00:00"); const end = new Date(fechaInput + "T23:59:59");
+            const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(start)), where("fecha", "<=", Timestamp.fromDate(end)));
+            const snap = await getDocs(q);
+            renderizarTablaPersonalizada(snap.docs.sort((a, b) => b.data().fecha - a.data().fecha));
+        };
 
-        cargarSolicitudes();
+        window.buscarGlobal = async () => {
+            const bus = document.getElementById('buscador').value.toUpperCase();
+            if (bus.length < 1) return cargarSolicitudes(1);
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(400));
+            const snap = await getDocs(q);
+            renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
+        };
+
+        window.enviarCorteWhatsApp = () => { window.open(`https://wa.me/528131983700?text=*CORTE DPR*%0A💰 *Venta Hoy:* ${document.getElementById('gananciaHoy').innerText}`); };
+
+        cargarSolicitudes(1);
     </script>
 </body>
 </html>
