@@ -10,9 +10,13 @@
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-        .btn-filter { background: #F97316; color: white; padding: 10px 20px; border-radius: 15px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: all 0.3s; }
         .btn-sec { background: white; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 12px; font-size: 9px; font-weight: 900; color: #64748b; text-transform: uppercase; transition: all 0.2s; }
         select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
+        /* Estilo para las secciones colapsables */
+        .seccion-contenido { transition: all 0.4s ease-in-out; overflow: hidden; }
+        .seccion-cerrada { max-height: 0 !important; opacity: 0; margin-bottom: 0 !important; }
+        .seccion-abierta { max-height: 2000px; opacity: 1; }
+        .cursor-pointer { cursor: pointer; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -33,37 +37,48 @@
             </div>
         </header>
 
-        <section class="mb-12">
-            <h2 class="text-xl font-black uppercase italic mb-6 text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="tablaRecargas"></tbody></table></div>
+        <section class="mb-8">
+            <div onclick="window.toggleSeccion('contenidoSaldo', 'flechaSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200/50 p-4 rounded-2xl hover:bg-slate-200 transition">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+                <span id="flechaSaldo" class="font-black text-slate-400">▼</span>
+            </div>
+            <div id="contenidoSaldo" class="seccion-contenido seccion-abierta mt-4">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="tablaRecargas"></tbody></table></div>
+                </div>
             </div>
         </section>
         
         <section>
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
-                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
-                        <button id="btnPrev" class="nav-pag"> < </button>
-                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
-                        <button id="btnNext" class="nav-pag"> > </button>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase">
-                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O CORREO..." class="p-3 rounded-2xl border text-[10px] font-black uppercase">
-                </div>
+            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'flechaSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200/50 p-4 rounded-2xl hover:bg-slate-200 transition mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes de Trámites</h2>
+                <span id="flechaSoli" class="font-black text-slate-400">▼</span>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                            <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
-                        </thead>
-                        <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
-                    </table>
+            <div id="contenidoSolicitudes" class="seccion-contenido seccion-abierta">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
+                            <button id="btnPrev" class="nav-pag"> < </button>
+                            <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
+                            <button id="btnNext" class="nav-pag"> > </button>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase">
+                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase w-64">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -72,16 +87,16 @@
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 text-3xl">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4">Detalles Completos</h2>
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4">Detalles</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
         </div>
     </div>
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase">Subir Resultado</h2>
+            <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado</h2>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Subir y Terminar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Subir y Terminar</button>
         </div>
     </div>
 
@@ -93,15 +108,27 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Claves igual
         const PASS_DIANA = "Sashimi$";
         const PASS_ASISTENTE = "DPR2026";
-
         const vPass = prompt("Contraseña:");
         if(vPass === PASS_DIANA || vPass === PASS_ASISTENTE) { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
 
+        // --- FUNCION RETRÁCTIL ---
+        window.toggleSeccion = (idContenido, idFlecha) => {
+            const contenido = document.getElementById(idContenido);
+            const flecha = document.getElementById(idFlecha);
+            if(contenido.classList.contains('seccion-abierta')) {
+                contenido.classList.replace('seccion-abierta', 'seccion-cerrada');
+                flecha.innerText = "▶";
+            } else {
+                contenido.classList.replace('seccion-cerrada', 'seccion-abierta');
+                flecha.innerText = "▼";
+            }
+        };
+
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
         let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
 
         const selector = document.getElementById('selectorPagina');
@@ -109,11 +136,9 @@
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
 
         window.cargarSolicitudes = async (pagina = 1) => {
-            const baseQuery = collection(db, "solicitudes");
-            const q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
+            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
             const snap = await getDocs(q);
-            const docs = snap.docs.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE);
-            renderizarTablaPersonalizada(docs);
+            renderizarTablaPersonalizada(snap.docs.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE));
         };
 
         function renderizarTablaPersonalizada(docsArray) {
@@ -121,8 +146,6 @@
             docsArray.forEach(docSnap => {
                 const s = docSnap.data(); const id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
-                
-                // AJUSTE: Eliminamos S/N y mostramos Correo del Asesor
                 let infoAsesor = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/E'}</div>`;
                 if(s.curp) infoAsesor += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) infoAsesor += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
@@ -137,8 +160,6 @@
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ ERROR DATOS</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                            <option value="Error: DOCUMENTO INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ NO EXISTE</option>
-                            <option value="Error: LIMITE DE CONSULTAS" ${s.estatus.includes('LIMITE') ? 'selected' : ''}>❌ LIMITE ALCANZADO</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
@@ -151,25 +172,13 @@
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif}, {l:"Ocupación", v:data.ocupacion}, {l:"Notas", v:data.notas}, {l:"Extras", v:data.extras_sindo}];
+            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif}, {l:"Notas", v:data.notas}];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
-            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
+            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}];
             let fHtml = `<div class="col-span-full mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">`;
             fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white p-2 rounded-xl font-black text-[9px] uppercase italic">${f.l} 📥</button>`; });
             cont.innerHTML += fHtml + `</div>`;
             document.getElementById('modalDetalles').classList.remove('hidden');
-        };
-
-        window.cambiarEstatus = async (id, est) => {
-            const docRef = doc(db, "solicitudes", id);
-            if (est.includes("Error")) {
-                const snap = await getDoc(docRef); const s = snap.data();
-                if (s?.asesor_uid && s.costo > 0) { 
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) }); 
-                    alert("Reembolso aplicado.");
-                }
-            }
-            await updateDoc(docRef, { estatus: est });
         };
 
         window.abrirSubida = (id, tipo) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
@@ -185,12 +194,12 @@
             cargarSolicitudes(currentPage);
         };
 
-        // CONTADORES Y RECARGAS (Mantenemos la lógica de estatus de la unificación anterior)
+        // SALDO SNAPSHOT
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
                 const r = d.data(); const id = d.id;
-                let bHtml = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button>` : `<span class="text-[8px] font-black opacity-30">${r.estatus.toUpperCase()}</span>`;
+                let bHtml = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
                 t.innerHTML += `<tr class="border-b"><td class="p-3 text-[10px]"><b>${r.asesorEmail}</b><br><small>RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-3 text-center font-black text-emerald-600">$${r.monto}</td><td class="p-3 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER</button></td><td class="p-3 text-center">${bHtml}</td></tr>`;
             });
         });
@@ -198,20 +207,6 @@
         window.validarRecarga = async (docId, uid, monto, est) => {
             await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
             await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: "aprobado" });
-        };
-
-        window.buscarPorFecha = async () => {
-            const fi = document.getElementById('filtroFecha').value; if(!fi) return cargarSolicitudes(1);
-            const start = new Date(fi + "T00:00:00"); const end = new Date(fi + "T23:59:59");
-            const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(start)), where("fecha", "<=", Timestamp.fromDate(end)));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.sort((a,b) => b.data().fecha - a.data().fecha));
-        };
-
-        window.buscarGlobal = async () => {
-            const bus = document.getElementById('buscador').value.toUpperCase(); if(bus.length < 1) return cargarSolicitudes(1);
-            const snap = await getDocs(query(collection(db, "solicitudes"), limit(300)));
-            renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
         cargarSolicitudes(1);
