@@ -359,7 +359,7 @@
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
-                fetch("https://342356.appsneubox.com/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook-test/Nueva_acta", { method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
                 alert("Trámite enviado."); cerrarModal();
             } catch(e) { alert("Error."); btn.disabled = false; }
         };
