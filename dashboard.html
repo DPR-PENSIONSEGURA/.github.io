@@ -57,7 +57,7 @@
                 </a>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
+                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">...</span>
                 </button>
                 <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500 transition">Salir</button>
@@ -76,12 +76,12 @@
         </div>
         
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
-            <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
-            <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
-              <button onclick="mostrarTramites('PENSIONES')" class="category-card p-5 rounded-3xl text-center">📈<span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
-            <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
+            <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
+            <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
+            <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
+            <button onclick="window.mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
+            <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 rounded-3xl text-center">📈<span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
+            <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
             <a href="https://pensionsegura.org/calculadora.html" target="_blank" class="category-card p-5 rounded-3xl text-center border-orange-500/30">
                 <span class="text-xl">🧮</span><span class="text-[9px] block font-black uppercase mt-2 text-orange-600">CALCULADORA</span>
             </a>
@@ -104,19 +104,19 @@
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border shadow-2xl overflow-y-auto max-h-[90vh] relative">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <div id="formContent"></div>
         </div>
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-4 text-center">
                 <p class="font-black text-emerald-600 text-[9px] uppercase">Banorte | Diana Puente Rodríguez</p>
                 <p class="text-base font-black text-emerald-700 tracking-widest uppercase">4915 6630 4036 4896</p>
-                 <p class="font-black text-emerald-600 text-[9px] uppercase">Banorte | DPR CONSULTORÍA</p>
+                <p class="font-black text-emerald-600 text-[9px] uppercase">Banorte | DPR CONSULTORÍA</p>
                 <p class="text-base font-black text-emerald-700 tracking-widest uppercase">4915 6630 4036 4896</p>
             </div>
             
@@ -124,7 +124,7 @@
             <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center mb-3 uppercase">
             
             <div class="bg-slate-50 p-4 rounded-2xl mb-4 text-[9px] text-slate-500 font-bold leading-tight text-left border border-slate-200">
-                ⚠️ <span class="text-red-600">DISCLAIMER:<span class="text-red-600">SOLO RECARGAS DE BANCOS NACIONALES, SI LA RECARGA NO ES RASTRAEABLE EN BANXICO NO SE ACEPTA LA RECARGA. NO RECARGAR DE BANORTE A BANORTE YA QUE NO GENERA CLAVE DE RASTREO</span></span> No se hacen devoluciones en recargas menores a $200. Solo transferencias del mismo día. Cuentas con recargas falsas serán <span class="text-red-600">baneadas</span>. El saldo se reflejará automáticamente al confirmar en cuenta bancaria.
+                ⚠️ <span class="text-red-600">DISCLAIMER: SOLO RECARGAS DE BANCOS NACIONALES, SI LA RECARGA NO ES RASTRAEABLE EN BANXICO NO SE ACEPTA LA RECARGA. NO RECARGAR DE BANORTE A BANORTE YA QUE NO GENERA CLAVE DE RASTREO.</span> No se hacen devoluciones en recargas menores a $200. Solo transferencias del mismo día. Cuentas con recargas falsas serán <span class="text-red-600">baneadas</span>. El saldo se reflejará automáticamente al confirmar en cuenta bancaria.
             </div>
 
             <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
@@ -199,7 +199,7 @@
                 { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
             ],
             'PENSIONES': [
-            { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true}
+                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true}
             ]
         };
 
@@ -211,7 +211,15 @@
         });
 
         window.cerrarAvisoBaneo = () => { document.getElementById('avisoBaneo').classList.add('hidden'); localStorage.setItem('avisoVisto', 'true'); };
-        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if (d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal); } }); }
+        
+        function escucharSaldo() { 
+            onSnapshot(doc(db, "asesores", userUID), (d) => { 
+                if (d.exists()) { 
+                    saldoGlobal = d.data().saldo || 0; 
+                    document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal); 
+                } 
+            }); 
+        }
 
         function escucharHistorial() {
             if(!userUID) return;
@@ -292,9 +300,8 @@
             let precioFinal = costo;
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
             if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 19;
-const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
+            const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
             if (correosUltraVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 17;
-            
             
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
@@ -369,7 +376,7 @@ const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
                 fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
-                alert("Trámite enviado."); cerrarModal();
+                alert("Trámite enviado."); window.cerrarModal();
             } catch(e) { alert("Error."); btn.disabled = false; }
         };
 
@@ -394,12 +401,20 @@ const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
                     fecha: serverTimestamp(), 
                     estatus: "pendiente" 
                 });
-                alert("Pago reportado con éxito."); cerrarModal();
+                alert("Pago reportado con éxito."); window.cerrarModal();
             } catch(e) { alert("Error al subir comprobante."); } finally { btn.disabled = false; }
         };
 
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        window.abrirModal = (id) => {
+            const modal = document.getElementById(id);
+            if(modal) modal.classList.remove('hidden');
+        };
+
+        window.cerrarModal = () => {
+            document.getElementById('modalTramite').classList.add('hidden');
+            document.getElementById('modalSaldo').classList.add('hidden');
+        };
+
         window.cerrarSesion = () => signOut(auth).then(() => { localStorage.clear(); window.location.href = "login/index.html"; });
     </script>
 </body>
