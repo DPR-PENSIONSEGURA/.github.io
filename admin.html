@@ -208,8 +208,13 @@
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
+                                       <option value="Error: INCONSISTENCIAS, Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link:
+
+https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ " ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
-                            <option value="Error: DOCUMENTO INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
+                            <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
+                            <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
+                        <option value="Error: LIMITE DE CONSULTAS ALCANZADO" ${s.estatus.includes('LIMITE DE CONSULTAS') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
