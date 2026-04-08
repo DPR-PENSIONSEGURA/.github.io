@@ -54,7 +54,10 @@
 
     <main class="p-6 max-w-7xl mx-auto">
         <div class="max-w-2xl mx-auto mb-10">
-            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+            <div class="relative">
+                <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+                <button id="btnVolver" onclick="window.resetearPanel()" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black uppercase bg-slate-800 text-white px-3 py-1 rounded-full">⬅ Volver</button>
+            </div>
         </div>
 
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
@@ -100,9 +103,7 @@
             <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center mb-3 uppercase">
             <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
             <div class="bg-slate-50 p-4 rounded-2xl mb-4 text-[9px] text-slate-500 font-bold leading-tight text-left border border-slate-200">
-
-                ⚠️ <span class="text-red-600">DISCLAIMER:<span class="text-red-400">SOLO RECARGAS DE BANCOS NACIONALES, SI LA RECARGA NO ES RASTRAEABLE EN BANXICO NO SE ACEPTA LA RECARGA. NO RECARGAR DE BANORTE A BANORTE YA QUE NO GENERA CLAVE DE RASTREO</span></span> No se hacen devoluciones en recargas menores a $200. Solo transferencias del mismo día. Cuentas con recargas falsas serán <span class="text-red-600">baneadas</span>. El saldo se reflejará automáticamente al confirmar en cuenta bancaria.
-
+                ⚠️ <span class="text-red-600">DISCLAIMER: <span class="text-red-400">SOLO RECARGAS DE BANCOS NACIONALES, SI LA RECARGA NO ES RASTRAEABLE EN BANXICO NO SE ACEPTA LA RECARGA. NO RECARGAR DE BANORTE A BANORTE YA QUE NO GENERA CLAVE DE RASTREO.</span></span> No se hacen devoluciones en recargas menores a $200. Solo transferencias del mismo día. Cuentas con recargas falsas serán <span class="text-red-600">baneadas</span>. El saldo se reflejará automáticamente al confirmar en cuenta bancaria.
             </div>
             <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase shadow-lg text-xs">Informar Pago</button>
         </div>
@@ -132,7 +133,6 @@
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true }
-                // Agrega el resto según necesites
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 27, curp: true },
@@ -207,7 +207,7 @@
             let htmlTramites = '';
             Object.values(TRAMITES).flat().forEach(t => {
                 if (t.nombre.toUpperCase().includes(queryV)) {
-                    htmlTramites += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                    htmlTramites += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pideExtras || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
                 }
             });
             document.getElementById('listaServicios').innerHTML = htmlTramites || `<div class="col-span-full py-4 text-center uppercase font-black opacity-30 text-[9px]">Sin resultados</div>`;
@@ -229,12 +229,12 @@
             document.getElementById('btnVolver').classList.remove('hidden');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pideExtras || false})" class="category-card p-5 rounded-3xl animate-fade"><p class="font-black text-[9px] uppercase text-slate-800">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             document.getElementById('listaServicios').innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente) => {
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pideExtras) => {
             const content = document.getElementById('formContent');
             let fields = '';
             let precioFinal = costo;
@@ -243,34 +243,22 @@
             if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
             if(pideFecha) fields += `<label class="text-[8px] font-black ml-2 uppercase text-slate-400">Fecha Nac:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+            if(pideExtras) fields += `<textarea id="extras_p" placeholder="DATOS ADICIONALES (PADRES, LUGAR DE NAC, ETC)" class="input-light mb-4 uppercase text-[10px]" rows="3"></textarea>`;
 
             content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
             window.abrirModal('modalTramite');
         };
 
-        const subirArchivo = async (id) => {
-            const el = document.getElementById(id);
-            if (el && el.files[0]) {
-                const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await res.json(); return d.secure_url;
-            } return null;
-        };
-
-        // --- LÓGICA DE RECARGA (CORREGIDA) ---
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const rastreo = document.getElementById('claveRastreo').value;
             const f = document.getElementById('fileRecarga').files[0];
-            
             if (!m || !rastreo || !f || m < 200) return alert("Completa Monto, Clave de Rastreo y Comprobante (Mínimo $200).");
-            
             const btn = document.getElementById('btnNotificar'); btn.disabled = true; btn.innerText = "Subiendo...";
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await res.json();
-                
                 await addDoc(collection(db, "notificaciones_pago"), { 
                     uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: rastreo.toUpperCase(), 
                     comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" 
@@ -289,6 +277,7 @@
                 if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
                 if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
                 if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
+                if(document.getElementById('extras_p')) infoExtra.extras_sindo = document.getElementById('extras_p').value.toUpperCase();
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
@@ -297,7 +286,7 @@
         };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); document.getElementById('modalSaldo').classList.add('hidden'); };
+        window.cerrarModal = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
         window.cerrarSesion = () => signOut(auth).then(() => { localStorage.clear(); window.location.href = "login/index.html"; });
     </script>
 </body>
