@@ -39,7 +39,7 @@
     </div>
 
     <div class="bg-orange-600 border-y border-orange-500 py-2 text-white font-black uppercase italic text-[9px] tracking-widest text-center">
-      ⚠️ SEMANAS SALIENDO EN 10 MIN ⚠️ | ✅ Recarga mínima $200 ✅ | 🟢 RFC CLON E IDCIF ACTIVOS
+      ⚠️ SEMANAS LENTAS⚠️ | ✅ NUEVO SERVICIO DE ANÁLISIS DE PENSIÓN RÁPIDO ✅ | 🟢 ACTAS SALIENDO AL MINUTO
     </div>
 
     <header class="sticky top-0 z-40 header-glass">
@@ -64,11 +64,6 @@
             </div>
         </div>
     </header>
-
-    <main class="p-6 max-w-7xl mx-auto">
-        <div class="max-w-2xl mx-auto mb-10">
-            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
-        </div>
 
         <div class="flex justify-between items-center mb-6">
             <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
@@ -230,7 +225,10 @@
                 renderizarHistorialPaginado();
             });
         }
-
+ <main class="p-6 max-w-7xl mx-auto">
+        <div class="max-w-2xl mx-auto mb-10">
+            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP EN TODO EL HISTORIAL..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+        </div>
         window.renderizarHistorialPaginado = () => {
             const lista = document.getElementById('listaHistorial');
             if (listaTramitesCompleta.length === 0) { lista.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase text-[9px]">Sin registros encontrados</td></tr>`; return; }
