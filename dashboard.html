@@ -234,11 +234,35 @@
             document.getElementById('listaServicios').innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pideExtras) => {
+       window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pideExtras) => {
             const content = document.getElementById('formContent');
             let fields = '';
+            
+            // --- LÓGICA DE PRECIOS VIP Y ULTRA VIP ---
             let precioFinal = costo;
             
+            const correosUltraVip = ["prestamoefectivo.tramites@gmail.com"];
+            const correosVip = [
+                "kingmc019@gmail.com", 
+                "symconsultoria2.2024@gmail.com", 
+                "symconsultoria3.2024@gmail.com", 
+                "symconsultoria2024@gmail.com", 
+                "ompesa86@gmail.com", 
+                "symconsultoria4.2024@gmail.com", 
+                "cris19330@outlook.com",
+                "draperrapmorelia@gmail.com", 
+                "inburpriego@gmail.com"
+            ];
+
+            // Si es Semanas Cotizadas, aplicamos descuento según el nivel
+            if (nombre === 'Semanas Cotizadas') {
+                if (correosUltraVip.includes(emailAsesor)) {
+                    precioFinal = 15;
+                } else if (correosVip.includes(emailAsesor)) {
+                    precioFinal = 19;
+                }
+            }
+
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
             if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4 font-bold">`;
