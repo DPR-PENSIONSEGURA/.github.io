@@ -142,7 +142,6 @@
 
         let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
 
-        // SELECTOR PÁGINAS
         const selector = document.getElementById('selectorPagina');
         for(let i=1; i<=50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
@@ -154,7 +153,6 @@
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // CONTADORES REPARADOS
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
@@ -164,7 +162,6 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -208,9 +205,7 @@
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
-                                       <option value="Error: INCONSISTENCIAS, Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link:
-
-https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ " ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
+                                       <option value="Error: INCONSISTENCIAS, Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ " ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS ILEGIBLES</option>
                             <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
                             <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
@@ -226,21 +221,35 @@ https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wi
             });
         }
 
-        // REEMBOLSO BLINDADO
+        // REEMBOLSO BLINDADO (CORRECCIÓN CLAVE)
         window.cambiarEstatus = async (id, est) => {
             const docRef = doc(db, "solicitudes", id);
             try {
+                // Obtenemos el documento primero para verificar si ya fue reembolsado
+                const snap = await getDoc(docRef);
+                const s = snap.data();
+
                 if (est.includes("Error")) {
-                    const snap = await getDoc(docRef); const s = snap.data();
-                    if (s.estatus.includes("Error")) return alert("Ya reembolsado.");
-                    if (s?.asesor_uid && s.costo > 0) {
+                    // Si ya tiene la marca de reembolsado, no hacemos nada más que cambiar el texto
+                    if (s.reembolsado === true) {
+                        await updateDoc(docRef, { estatus: est });
+                        alert("Estatus actualizado (Ya se había devuelto el saldo antes).");
+                    } else if (s?.asesor_uid && s.costo > 0) {
+                        // 1. Devolvemos saldo
                         await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+                        // 2. Marcamos como reembolsado y fijamos el estatus
                         await updateDoc(docRef, { estatus: est, reembolsado: true });
-                        alert(`✅ Reembolso de $${s.costo} aplicado.`);
+                        alert(`✅ Saldo de $${s.costo} devuelto y error fijado.`);
                     }
-                } else { await updateDoc(docRef, { estatus: est }); }
+                } else {
+                    // Si es Terminado o Proceso, simplemente actualizamos
+                    await updateDoc(docRef, { estatus: est });
+                }
                 cargarSolicitudes(currentPage);
-            } catch (e) { alert("Error al actualizar."); }
+            } catch (e) { 
+                console.error(e);
+                alert("Error al actualizar."); 
+            }
         };
 
         window.verDetalles = (data) => {
