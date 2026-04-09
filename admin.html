@@ -67,7 +67,6 @@
             <div id="contenidoSolicitudes" class="seccion-contenido">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div class="flex items-center gap-4">
-                        <button onclick="window.filtrarSoloPendientes()" class="bg-orange-500 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-md hover:bg-orange-600 transition">🟠 Ver Pendientes</button>
                         <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-300">
                             <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
                             <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
@@ -75,12 +74,12 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase shadow-sm">
-                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O ASESOR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase shadow-sm w-64">
+                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase">
+                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase w-64">
                     </div>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
@@ -97,7 +96,7 @@
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente del Cliente</h2>
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic">Expediente DPR</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
         </div>
     </div>
@@ -123,8 +122,7 @@
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
             <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado</h2>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Subir y Terminar</button>
-            <button onclick="document.getElementById('modalSubir').classList.add('hidden')" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Subir y Terminar</button>
         </div>
     </div>
 
@@ -148,7 +146,7 @@
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
 
-        window.abrirCajaFuerte = () => { if(prompt("Pass Maestro:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); };
+        window.abrirCajaFuerte = () => { if(prompt("Contraseña Maestra:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); };
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); if(c.classList.contains('seccion-cerrada')){ c.classList.remove('seccion-cerrada'); i.innerText="▼"; } else { c.classList.add('seccion-cerrada'); i.innerText="▶"; } };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
@@ -158,7 +156,7 @@
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
-            let totalHoy = 0, pendientes = 0; const hoy = new Date().toLocaleDateString();
+            let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => { const s = d.data(); if(s.estatus === 'En Proceso') pendientes++; if(s.fecha?.toDate().toLocaleDateString() === hoy && s.estatus === 'Terminado') totalHoy += Number(s.costo || 0); });
             document.getElementById('contadorPendientes').innerText = pendientes;
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
@@ -170,8 +168,8 @@
             snap.forEach(d => {
                 const r = d.data(), id = d.id;
                 let color = (r.estatus === "pendiente") ? "bg-orange-100 text-orange-600" : (r.estatus === "aprobado" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700");
-                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-2 py-1 rounded font-black text-[8px] ml-1">RECHAZAR</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
-                t.innerHTML += `<tr class="border-b"><td class="p-4 text-[10px]"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b><br><span class="px-2 rounded-full text-[7px] border font-black ${color}">${r.estatus.toUpperCase()}</span></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-center">${btns}</td></tr>`;
+                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-2 py-1 rounded font-black text-[8px] ml-1">X</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-4 text-[10px]"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b><br><span class="px-2 rounded-full text-[7px] border font-black ${color}">${r.estatus.toUpperCase()}</span></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER TICKET</button></td><td class="p-4 text-center">${btns}</td></tr>`;
             });
         });
 
@@ -182,9 +180,9 @@
             }
         };
 
-        // CARGAR SOLICITUDES
         window.cargarSolicitudes = async (pagina = 1) => {
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
+            const baseQuery = collection(db, "solicitudes");
+            const q = query(baseQuery, orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
             const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE));
         };
@@ -198,6 +196,7 @@
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
                 if(s.idcif) info += `<div class="text-[9px] text-purple-600 font-bold uppercase">IDCIF: ${s.idcif}</div>`;
+                if(s.rfc) info += `<div class="text-[9px] text-emerald-600 font-bold uppercase">RFC: ${s.rfc}</div>`;
                 if(s.sueldo_mensual) info += `<div class="text-[9px] text-orange-600 font-black uppercase">SUELDO: $${s.sueldo_mensual}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
@@ -208,7 +207,7 @@
                         <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: DATOS</option>
+                            <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
                             <option value="Error: ERROR FATAL EN IMSS" ${s.estatus.includes('FATAL') ? 'selected' : ''}>❌ REEMBOLSO: FALLO IMSS</option>
                         </select>
@@ -264,11 +263,6 @@
             cargarSolicitudes(currentPage);
         };
 
-        window.filtrarSoloPendientes = async () => {
-            const q = query(collection(db, "solicitudes"), where("estatus", "==", "En Proceso"), limit(100));
-            const snap = await getDocs(q); renderizarTablaPersonalizada(snap.docs);
-        };
-
         window.buscarPorFecha = async () => {
             const fi = document.getElementById('filtroFecha').value; if(!fi) return;
             const start = new Date(fi + "T00:00:00"), end = new Date(fi + "T23:59:59");
@@ -284,30 +278,48 @@
             renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
-        // --- CANCELACIÓN MASIVA CORREGIDA ---
+        // --- FUNCIÓN DE CANCELACIÓN MASIVA DEFINITIVA (SÚPER SEGURA) ---
         window.ejecutarCancelacionMasiva = async () => {
-            if (!confirm("¿Confirmar cancelación masiva? Se reembolsarán TODAS las Semanas Cotizadas desde las 4:00 PM de hoy.")) return;
-            const hoy = new Date(); hoy.setHours(16, 0, 0, 0); 
+            const confirmacion = confirm("⚠️ ATENCIÓN DIANA\n\n¿Estás segura de cancelar TODAS las Semanas Cotizadas desde las 4:00 PM de hoy?\n\nEsta acción devolverá el saldo automáticamente a cada asesor.");
+            if (!confirmacion) return;
+
+            const hoy = new Date();
+            hoy.setHours(16, 0, 0, 0); 
+            const timestampCorte = Timestamp.fromDate(hoy);
+            const mensajeError = "Error: ERROR FATAL EN IMSS";
+
             try {
-                const q = query(collection(db, "solicitudes"), where("tipo", "==", "Semanas Cotizadas"), where("estatus", "==", "En Proceso"), where("fecha", ">=", Timestamp.fromDate(hoy)));
+                const q = query(collection(db, "solicitudes"), 
+                    where("tipo", "==", "Semanas Cotizadas"),
+                    where("estatus", "==", "En Proceso"),
+                    where("fecha", ">=", timestampCorte)
+                );
+
                 const snap = await getDocs(q);
-                if (snap.empty) return alert("Nada por cancelar.");
+                if (snap.empty) return alert("No hay trámites pendientes después de las 4 PM.");
+
+                alert(`Se encontraron ${snap.docs.length} trámites. Iniciando reembolsos secuenciales...`);
+
                 let procesados = 0;
                 for (const docSnap of snap.docs) {
                     const data = docSnap.data(), id = docSnap.id;
-                    if (data.asesor_uid && data.costo > 0 && !data.reembolsado) {
-                        await updateDoc(doc(db, "asesores", data.asesor_uid), { saldo: increment(Number(data.costo)) });
-                    }
-                    await updateDoc(doc(db, "solicitudes", id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
-                    procesados++;
+                    try {
+                        if (data.asesor_uid && data.costo > 0 && !data.reembolsado) {
+                            await updateDoc(doc(db, "asesores", data.asesor_uid), { saldo: increment(Number(data.costo)) });
+                        }
+                        await updateDoc(doc(db, "solicitudes", id), { estatus: mensajeError, reembolsado: true });
+                        procesados++;
+                    } catch (err) { console.error(err); }
                 }
-                alert(`✅ ${procesados} reembolsados.`); cargarSolicitudes(1);
-            } catch (error) { alert("Error."); }
+
+                alert(`✅ Se cancelaron y reembolsaron ${procesados} trámites exitosamente.`);
+                cargarSolicitudes(currentPage);
+            } catch (error) { alert("Error de conexión."); }
         };
 
         const btnMasivo = document.createElement("button");
         btnMasivo.innerHTML = "⚠️ CANCELAR SEMANAS (4PM)";
-        btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border:none;";
+        btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer;";
         btnMasivo.onclick = window.ejecutarCancelacionMasiva; document.body.appendChild(btnMasivo);
 
         cargarSolicitudes(1);
