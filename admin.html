@@ -142,7 +142,6 @@
 
         let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
 
-        // SELECTOR PÁGINAS
         const selector = document.getElementById('selectorPagina');
         for(let i=1; i<=50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
@@ -154,7 +153,6 @@
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // CONTADORES REPARADOS
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         onSnapshot(collection(db, "solicitudes"), (snap) => {
@@ -164,7 +162,6 @@
             document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
-        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -208,9 +205,7 @@
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
-                                       <option value="Error: INCONSISTENCIAS, Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link:
-
-https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ " ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
+                                       <option value="Error: INCONSISTENCIAS, Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ " ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS ILEGIBLES</option>
                             <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
                             <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
@@ -225,7 +220,6 @@ https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wi
             });
         }
 
-        // REEMBOLSO BLINDADO
         window.cambiarEstatus = async (id, est) => {
             const docRef = doc(db, "solicitudes", id);
             try {
@@ -275,76 +269,47 @@ https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wi
 
         window.buscarGlobal = async () => {
             const bus = document.getElementById('buscador').value.toUpperCase(); if (bus.length < 1) return cargarSolicitudes(1);
-            const snap = await getDocs(query(collection(db, "solicitudes"), limit(400)));
+            const q = query(collection(db, "solicitudes"), limit(400));
+            const snap = await getDocs(q);
             renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
+        window.ejecutarCancelacionMasiva = async () => {
+            if (!confirm("¿Estás segura? Se cancelarán TODAS las Semanas Cotizadas desde las 4:00 PM de hoy y se devolverá el dinero.")) return;
+            const mensajeError = "Error: ERROR FATAL EN IMSS";
+            const hoy = new Date();
+            hoy.setHours(16, 0, 0, 0); 
+            const timestampCorte = Timestamp.fromDate(hoy);
+            try {
+                const q = query(collection(db, "solicitudes"), 
+                    where("tipo", "==", "Semanas Cotizadas"),
+                    where("estatus", "==", "En Proceso"),
+                    where("fecha", ">=", timestampCorte)
+                );
+                const snap = await getDocs(q);
+                if (snap.empty) return alert("Nada por cancelar.");
+                let procesados = 0;
+                for (const documento of snap.docs) { // CORRECCIÓN: 'of' en lugar de 'de'
+                    const data = documento.data();
+                    const id = documento.id;
+                    if (data.asesor_uid && data.costo > 0) {
+                        await updateDoc(doc(db, "asesores", data.asesor_uid), { saldo: increment(Number(data.costo)) });
+                    }
+                    await updateDoc(doc(db, "solicitudes", id), { estatus: mensajeError, reembolsado: true });
+                    procesados++;
+                }
+                alert(`✅ Éxito: ${procesados} reembolsados.`);
+                cargarSolicitudes(1);
+            } catch (error) { alert("Error."); }
+        };
+
+        const btnMasivo = document.createElement("button");
+        btnMasivo.innerHTML = "⚠️ CANCELAR SEMANAS (4PM)";
+        btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer; box-shadow: 0 10px 15px rgba(0,0,0,0.3); border:none;";
+        btnMasivo.onclick = window.ejecutarCancelacionMasiva;
+        document.body.appendChild(btnMasivo);
+
         cargarSolicitudes(1);
-        // --- FUNCIÓN DE CANCELACIÓN MASIVA POR FALLO DE IMSS ---
-window.ejecutarCancelacionMasiva = async () => {
-    if (!confirm("¿Estás segura? Se cancelarán TODAS las Semanas Cotizadas desde las 4:00 PM de hoy y se devolverá el dinero.")) return;
-
-    const tabla = document.getElementById('tablaSolicitudes');
-    const mensajeError = "Error: ERROR FATAL EN IMSS";
-    
-    // Configuramos la hora de corte: Hoy a las 4:00 PM
-    const hoy = new Date();
-    hoy.setHours(16, 0, 0, 0); 
-    const timestampCorte = Timestamp.fromDate(hoy);
-
-    try {
-        // Buscamos Semanas Cotizadas en Proceso desde las 4 PM
-        const q = query(collection(db, "solicitudes"), 
-            where("tipo", "==", "Semanas Cotizadas"),
-            where("estatus", "==", "En Proceso"),
-            where("fecha", ">=", timestampCorte)
-        );
-
-        const snap = await getDocs(q);
-        
-        if (snap.empty) {
-            alert("No se encontraron Semanas Cotizadas en proceso después de las 4:00 PM.");
-            return;
-        }
-
-        let procesados = 0;
-
-        for (const documento de snap.docs) {
-            const data = documento.data();
-            const id = documento.id;
-
-            // 1. Devolvemos el saldo al asesor
-            if (data.asesor_uid && data.costo > 0) {
-                await updateDoc(doc(db, "asesores", data.asesor_uid), { 
-                    saldo: increment(Number(data.costo)) 
-                });
-            }
-
-            // 2. Marcamos como Error Fatal
-            await updateDoc(doc(db, "solicitudes", id), { 
-                estatus: mensajeError,
-                reembolsado: true,
-                fecha_cancelacion_masiva: serverTimestamp()
-            });
-
-            procesados++;
-        }
-
-        alert(`✅ Éxito: Se cancelaron y reembolsaron ${procesados} trámites correctamente.`);
-        cargarSolicitudes(1); // Recargar la tabla
-
-    } catch (error) {
-        console.error("Error en cancelación masiva:", error);
-        alert("Hubo un error al procesar la cancelación.");
-    }
-};
-
-// --- Botón visual temporal para ejecutarlo ---
-const btnMasivo = document.createElement("button");
-btnMasivo.innerHTML = "⚠️ CANCELAR SEMANAS (4PM)";
-btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer; box-shadow: 0 10px 15px rgba(0,0,0,0.3); border:none;";
-btnMasivo.onclick = window.ejecutarCancelacionMasiva;
-document.body.appendChild(btnMasivo);
     </script>
 </body>
 </html>
