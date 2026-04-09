@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro Pro</title>
+    <title>DPR Admin | Control Maestro Directo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
+        /* Eliminamos el display:none para entrar directo */
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         .seccion-contenido { transition: max-height 0.4s ease-in-out; overflow: hidden; }
         .seccion-cerrada { max-height: 0 !important; }
         .seccion-abierta { max-height: 5000px; }
         table { width: 100%; border-collapse: collapse; }
+        .btn-eye { background: #dbeafe; color: #2563eb; padding: 8px; border-radius: 10px; transition: all 0.2s; }
+        .btn-eye:hover { background: #2563eb; color: white; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -24,17 +27,19 @@
                 <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
                 <div>
                     <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Admin</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acceso Directo | DPR Consultoría</p>
                 </div>
             </div>
             <div class="flex gap-4 w-full lg:w-auto">
                 <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase text-slate-400 mb-1">Visitas</p>
                     <p id="txtVisitas" class="text-xl font-black">0</p>
                 </div>
                 <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
+                    <p class="text-[8px] font-black uppercase opacity-70 mb-1">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
-                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1">
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
                     <p class="text-xl font-black">🔒</p>
                 </button>
             </div>
@@ -44,13 +49,13 @@
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div class="flex items-center gap-4">
                     <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Trámites Recientes</h2>
-                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-300">
                         <button class="nav-pag" onclick="window.cambiarPag(-1)"> < </button>
                         <span id="txtPagina" class="text-[10px] font-black px-4">PÁGINA 1</span>
                         <button class="nav-pag" onclick="window.cambiarPag(1)"> > </button>
                     </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR POR CURP, NSS O CORREO..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-full md:w-80 shadow-lg outline-none focus:border-blue-600">
+                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR POR CURP, NSS O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-full md:w-80 shadow-lg outline-none focus:border-blue-600">
             </div>
 
             <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
@@ -71,8 +76,9 @@
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase italic mb-6 border-b pb-4 text-center">Expediente del Cliente</h2>
-            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <h2 class="text-2xl font-black text-blue-600 uppercase italic mb-6 border-b pb-4 text-center tracking-tighter">Expediente del Cliente</h2>
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                </div>
         </div>
     </div>
 
@@ -93,18 +99,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // SEGURIDAD
-        const PASS_DIANA = "Sashimi$";
-        const vPass = prompt("Panel de Seguridad DPR\nContraseña:");
-        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
-
         let paginaActual = 1; const LIMITE = 25; 
         let cacheSolicitudes = []; 
         let idTramiteActual = "";
 
-        // --- CARGAR DATOS (SIN BLOQUEOS) ---
+        // --- CARGAR DATOS DIRECTO ---
         const cargarDatos = () => {
-            // Bajamos los últimos 300 para filtrar en el navegador (más rápido, sin errores de conexión)
+            // Bajamos los últimos 300 para filtrar en el navegador (más rápido)
             onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300)), (snap) => {
                 cacheSolicitudes = [];
                 snap.forEach(d => cacheSolicitudes.push({ id: d.id, ...d.data() }));
@@ -124,18 +125,18 @@
             const inicio = (paginaActual - 1) * LIMITE;
             const items = cacheSolicitudes.slice(inicio, inicio + LIMITE);
 
-            if(items.length === 0) { tabla.innerHTML = "<tr><td colspan='5' class='p-10 text-center opacity-30'>No hay datos</td></tr>"; return; }
+            if(items.length === 0) { tabla.innerHTML = "<tr><td colspan='5' class='p-10 text-center opacity-30'>Sin datos disponibles</td></tr>"; return; }
 
             items.forEach((s, index) => {
                 const f = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-40">${s.nombre_asesor || 'S/N'}</div>`;
-                if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold">CURP: ${s.curp}</div>`;
-                if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold">NSS: ${s.nss}</div>`;
-                if(s.sueldo_mensual) info += `<div class="text-[9px] text-orange-600 font-black">SUELDO: $${s.sueldo_mensual}</div>`;
+                if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+                if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+                if(s.sueldo_mensual) info += `<div class="text-[9px] text-orange-600 font-black uppercase">SUELDO: $${s.sueldo_mensual}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
                     <td class="p-4 text-center"><span class="bg-slate-100 px-2 py-1 rounded-full font-black text-[8px] uppercase">${s.origen || 'Portal'}</span></td>
-                    <td class="p-4"><b>${s.tipo}</b><br><span class="text-[8px] text-slate-400 font-bold italic">${f}</span></td>
+                    <td class="p-4"><div class="font-black leading-tight mb-1 text-slate-700 uppercase">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${f}</div></td>
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
                         <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="text-[9px] font-black border rounded p-1 outline-none uppercase bg-white shadow-sm">
@@ -143,21 +144,16 @@
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: DATOS INCORRECTOS" ${s.estatus.includes('DATOS') ? 'selected' : ''}>❌ REEMBOLSO: DATOS</option>
                             <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
-                            <option value="Error: ERROR FATAL EN IMSS" ${s.estatus.includes('FATAL') ? 'selected' : ''}>❌ REEMBOLSO: IMSS</option>
+                            <option value="Error: ERROR FATAL EN IMSS" ${s.estatus.includes('FATAL') ? 'selected' : ''}>❌ REEMBOLSO: FALLO IMSS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
-                        <button onclick="window.verDetalles(${inicio + index})" class="bg-blue-100 text-blue-600 p-2 rounded-xl text-[12px] hover:bg-blue-600 hover:text-white transition">👁️</button>
-                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-black text-[9px] uppercase">Subir</button>
+                        <button onclick="window.verDetalles(${inicio + index})" class="bg-blue-100 text-blue-600 p-2 rounded-xl text-[12px] hover:bg-blue-600 hover:text-white transition shadow-sm">👁️</button>
+                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-black text-[9px] uppercase shadow-sm">Subir</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('txtPagina').innerText = `PÁGINA ${paginaActual}`;
-        };
-
-        window.cambiarPag = (dir) => { 
-            let n = paginaActual + dir;
-            if(n > 0 && n <= Math.ceil(cacheSolicitudes.length / LIMITE)) { paginaActual = n; renderizarTabla(); }
         };
 
         window.verDetalles = (idx) => {
@@ -169,10 +165,10 @@
                 {l:"CURP", v:s.curp}, {l:"NSS", v:s.nss}, {l:"RFC", v:s.rfc}, {l:"IDCIF", v:s.idcif},
                 {l:"Sueldo", v:s.sueldo_mensual}, {l:"Ocupación", v:s.ocupacion}, {l:"Correo Respaldo", v:s.correo_respaldo}, {l:"Notas", v:s.notas}
             ];
-            campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-2xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
-            const fotos = [{l:"INE F", u:s.file_ine_f}, {l:"INE R", u:s.file_ine_r}, {l:"FOTO", u:s.file_selfie}, {l:"DOMICILIO", u:s.file_comp_domicilio}, {l:"EDO CTA", u:s.file_edocta}];
+            campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-2xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
+            const fotos = [{l:"INE FRENTE", u:s.file_ine_f}, {l:"INE REVERSO", u:s.file_ine_r}, {l:"SELFIE", u:s.file_selfie}, {l:"COMP. DOMICILIO", u:s.file_comp_domicilio}, {l:"EDO CUENTA", u:s.file_edocta}];
             let fHtml = `<div class="col-span-full mt-4 flex flex-wrap gap-2">`;
-            fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-sm">📥 ${f.l}</button>`; });
+            fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-sm italic">📥 ${f.l}</button>`; });
             cont.innerHTML += fHtml + `</div>`;
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
@@ -181,62 +177,33 @@
             const ref = doc(db, "solicitudes", id);
             try {
                 if(est.includes("Error")) {
-                    const s = (await getDoc(ref)).data();
+                    const snap = await getDoc(ref);
+                    const s = snap.data();
                     if(!s.reembolsado && s.costo > 0) {
                         await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
                         await updateDoc(ref, { estatus: est, reembolsado: true });
-                        alert("✅ Saldo devuelto al asesor.");
+                        alert("✅ Reembolso automático aplicado.");
                     }
                 } else { await updateDoc(ref, { estatus: est }); }
-            } catch(e) { alert("Error al actualizar."); }
+            } catch(e) { alert("Fallo al actualizar estatus."); }
         };
 
-        window.buscarGlobal = () => {
-            const b = document.getElementById('buscador').value.toUpperCase();
-            if(!b) { renderizarTabla(); return; }
-            const filtrados = cacheSolicitudes.filter(s => JSON.stringify(s).toUpperCase().includes(b));
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            filtrados.forEach((s) => {
-                tabla.innerHTML += `<tr class="border-b"><td class="p-4 text-center text-[8px] uppercase font-black">${s.origen}</td><td class="p-4"><b>${s.tipo}</b></td><td class="p-4 font-bold text-blue-600">${s.curp || s.nss || s.nombre_asesor}</td><td class="p-4 text-center font-black uppercase text-orange-500">${s.estatus}</td><td class="p-4 text-right"><button onclick="window.open('${s.archivoFinal || '#'}')" class="bg-emerald-600 text-white p-2 rounded-lg font-black text-[9px] ${s.archivoFinal ? '' : 'hidden'}">VER</button></td></tr>`;
-            });
-        };
-
-        // --- CANCELACIÓN MASIVA ANTI-BLOQUEO ---
         window.ejecutarCancelacionMasiva = async () => {
-            if(!confirm("⚠️ EMERGENCIA DIANA\n\n¿Cancelar TODAS las Semanas Cotizadas desde las 4 PM y devolver el dinero?\n\nEl proceso será lento para evitar errores de conexión.")) return;
-            
+            if(!confirm("⚠️ EMERGENCIA DIANA\n\n¿Cancelar TODAS las Semanas Cotizadas desde las 4 PM y devolver el dinero?")) return;
             const hoy = new Date(); hoy.setHours(16,0,0,0);
-            const ts = Timestamp.fromDate(hoy);
-            
-            try {
-                const q = query(collection(db, "solicitudes"), 
-                    where("tipo", "==", "Semanas Cotizadas"), 
-                    where("estatus", "==", "En Proceso"), 
-                    where("fecha", ">=", ts)
-                );
-                
-                const snap = await getDocs(q);
-                if(snap.empty) return alert("No hay trámites pendientes de hoy 4 PM.");
-                
-                let count = 0;
-                alert(`Iniciando devolución de ${snap.docs.length} trámites. No cierres la ventana.`);
-
-                for(const docSnap of snap.docs) {
-                    const d = docSnap.data();
-                    try {
-                        // REEMBOLSO UNO POR UNO
-                        if(d.asesor_uid && !d.reembolsado) {
-                            await updateDoc(doc(db, "asesores", d.asesor_uid), { saldo: increment(Number(d.costo)) });
-                        }
-                        await updateDoc(doc(db, "solicitudes", docSnap.id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
-                        count++;
-                        console.log(`Progreso: ${count}/${snap.docs.length}`);
-                    } catch (err) { console.error("Error en ID:", docSnap.id); }
-                }
-                alert(`✅ Éxito: Se reembolsaron ${count} trámites sin errores.`);
-            } catch(e) { alert("Error de conexión con Firebase."); }
+            const snap = await getDocs(query(collection(db, "solicitudes"), where("tipo", "==", "Semanas Cotizadas"), where("estatus", "==", "En Proceso"), where("fecha", ">=", Timestamp.fromDate(hoy))));
+            if(snap.empty) return alert("No hay trámites de hoy 4PM.");
+            let count = 0;
+            for(const docSnap of snap.docs) {
+                const d = docSnap.data();
+                if(d.asesor_uid && !d.reembolsado) { await updateDoc(doc(db, "asesores", d.asesor_uid), { saldo: increment(Number(d.costo)) }); }
+                await updateDoc(doc(db, "solicitudes", docSnap.id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
+                count++;
+            }
+            alert(`✅ Se reembolsaron ${count} trámites.`);
         };
 
+        // BOTÓN ROJO DE EMERGENCIA
         const btnM = document.createElement("button");
         btnM.innerHTML = "⚠️ CANCELAR 4PM";
         btnM.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:20px; z-index:100; font-size:9px; cursor:pointer; shadow: 0 10px 20px rgba(0,0,0,0.4); border:none;";
@@ -244,19 +211,9 @@
 
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
         window.cerrarModales = () => { document.getElementById('modalDetalles').classList.add('hidden'); document.getElementById('modalSubir').classList.add('hidden'); };
+        window.cambiarPag = (dir) => { let n = paginaActual + dir; if(n > 0 && n <= Math.ceil(cacheSolicitudes.length / LIMITE)) { paginaActual = n; renderizarTabla(); } };
         
-        document.getElementById('btnGuardar').onclick = async () => {
-            const f = document.getElementById('inputArchivo').files[0]; if(!f) return;
-            const btn = document.getElementById('btnGuardar'); btn.innerText="SUBIENDO..."; btn.disabled=true;
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
-            const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
-            const d = await res.json();
-            await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
-            window.cerrarModales(); btn.innerText="Subir y Terminar"; btn.disabled=false;
-        };
-
         cargarDatos();
     </script>
 </body>
-    </html>
-    
+</html>
