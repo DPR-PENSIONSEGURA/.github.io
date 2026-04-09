@@ -280,6 +280,71 @@ https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wi
         };
 
         cargarSolicitudes(1);
+        // --- FUNCIÓN DE CANCELACIÓN MASIVA POR FALLO DE IMSS ---
+window.ejecutarCancelacionMasiva = async () => {
+    if (!confirm("¿Estás segura? Se cancelarán TODAS las Semanas Cotizadas desde las 4:00 PM de hoy y se devolverá el dinero.")) return;
+
+    const tabla = document.getElementById('tablaSolicitudes');
+    const mensajeError = "Error: ERROR FATAL EN IMSS";
+    
+    // Configuramos la hora de corte: Hoy a las 4:00 PM
+    const hoy = new Date();
+    hoy.setHours(16, 0, 0, 0); 
+    const timestampCorte = Timestamp.fromDate(hoy);
+
+    try {
+        // Buscamos Semanas Cotizadas en Proceso desde las 4 PM
+        const q = query(collection(db, "solicitudes"), 
+            where("tipo", "==", "Semanas Cotizadas"),
+            where("estatus", "==", "En Proceso"),
+            where("fecha", ">=", timestampCorte)
+        );
+
+        const snap = await getDocs(q);
+        
+        if (snap.empty) {
+            alert("No se encontraron Semanas Cotizadas en proceso después de las 4:00 PM.");
+            return;
+        }
+
+        let procesados = 0;
+
+        for (const documento de snap.docs) {
+            const data = documento.data();
+            const id = documento.id;
+
+            // 1. Devolvemos el saldo al asesor
+            if (data.asesor_uid && data.costo > 0) {
+                await updateDoc(doc(db, "asesores", data.asesor_uid), { 
+                    saldo: increment(Number(data.costo)) 
+                });
+            }
+
+            // 2. Marcamos como Error Fatal
+            await updateDoc(doc(db, "solicitudes", id), { 
+                estatus: mensajeError,
+                reembolsado: true,
+                fecha_cancelacion_masiva: serverTimestamp()
+            });
+
+            procesados++;
+        }
+
+        alert(`✅ Éxito: Se cancelaron y reembolsaron ${procesados} trámites correctamente.`);
+        cargarSolicitudes(1); // Recargar la tabla
+
+    } catch (error) {
+        console.error("Error en cancelación masiva:", error);
+        alert("Hubo un error al procesar la cancelación.");
+    }
+};
+
+// --- Botón visual temporal para ejecutarlo ---
+const btnMasivo = document.createElement("button");
+btnMasivo.innerHTML = "⚠️ CANCELAR SEMANAS (4PM)";
+btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer; box-shadow: 0 10px 15px rgba(0,0,0,0.3); border:none;";
+btnMasivo.onclick = window.ejecutarCancelacionMasiva;
+document.body.appendChild(btnMasivo);
     </script>
 </body>
 </html>
