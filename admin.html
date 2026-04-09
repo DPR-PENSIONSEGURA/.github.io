@@ -3,221 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | EMERGENCIA</title>
+    <title>DPR Admin | Control Maestro Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
-        .card-stat { border-bottom: 4px solid rgba(0,0,0,0.1); }
-        .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; }
-        select { background: #fff; border: 1px solid #cbd5e1; padding: 5px; border-radius: 8px; font-size: 10px; }
-        .seccion-cerrada { display: none; }
+        .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        .seccion-contenido { transition: max-height 0.4s ease-in-out; overflow: hidden; }
+        .seccion-cerrada { max-height: 0 !important; }
+        .seccion-abierta { max-height: 5000px; }
+        table { width: 100%; border-collapse: collapse; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div id="overlayProgreso" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[200] flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl">
-            <div class="animate-spin text-4xl mb-4">⚙️</div>
-            <h2 class="text-xl font-black text-blue-600 uppercase italic mb-2">Cancelación en Curso</h2>
-            <p id="txtProgreso" class="text-sm font-bold text-slate-500 mb-6">Iniciando proceso...</p>
-            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-                <div id="barraProgreso" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
-            </div>
-            <p class="text-[9px] font-black text-red-500 mt-6 uppercase tracking-widest">No cierres esta ventana hasta terminar</p>
-        </div>
-    </div>
-
     <div class="max-w-7xl mx-auto">
-        <header class="flex justify-between items-center mb-10">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white italic text-xl">DP</div>
-                <h1 class="text-2xl font-black uppercase italic">Panel <span class="text-blue-600">Admin</span></h1>
-            </div>
-            <div class="flex gap-3">
-                <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-orange-500 text-center">
-                    <p id="contadorPendientes" class="text-xl font-black">0</p>
-                    <p class="text-[8px] font-black text-slate-400 uppercase">En Proceso</p>
+                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
+                <div>
+                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Admin</span></h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
                 </div>
-                <button onclick="window.abrirCajaFuerte()" class="bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-xl">🔒</button>
+            </div>
+            <div class="flex gap-4 w-full lg:w-auto">
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
+                    <p id="txtVisitas" class="text-xl font-black">0</p>
+                </div>
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
+                    <p id="contadorPendientes" class="text-xl font-black">0</p>
+                </div>
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1">
+                    <p class="text-xl font-black">🔒</p>
+                </button>
             </div>
         </header>
 
-        <section class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
-            <div class="p-6 border-b flex flex-wrap justify-between items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <button class="nav-pag" onclick="window.cambiarPag(-1)"> < </button>
-                    <span id="txtPagina" class="text-[10px] font-black px-4">PÁGINA 1</span>
-                    <button class="nav-pag" onclick="window.cambiarPag(1)"> > </button>
+        <section>
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Trámites Recientes</h2>
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
+                        <button class="nav-pag" onclick="window.cambiarPag(-1)"> < </button>
+                        <span id="txtPagina" class="text-[10px] font-black px-4">PÁGINA 1</span>
+                        <button class="nav-pag" onclick="window.cambiarPag(1)"> > </button>
+                    </div>
                 </div>
-                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O ASESOR..." class="p-3 rounded-2xl border text-[10px] font-bold uppercase w-64 shadow-sm outline-none focus:border-blue-600">
+                <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR POR CURP, NSS O CORREO..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-full md:w-80 shadow-lg outline-none focus:border-blue-600">
             </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-black">
-                        <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Datos / Asesor</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
-                    </thead>
-                    <tbody id="tablaSolicitudes" class="text-[11px]">
-                        <tr><td colspan="5" class="p-20 text-center font-black uppercase opacity-20">Cargando base de datos...</td></tr>
-                    </tbody>
-                </table>
+
+            <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                            <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                        </thead>
+                        <tbody id="tablaSolicitudes" class="text-[11px] font-medium">
+                            <tr><td colspan="5" class="p-20 text-center font-black uppercase opacity-20 animate-pulse">Conectando con base de datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
 
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModalDetalles()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase italic mb-6 border-b pb-4 text-center">Expediente</h2>
+            <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
+            <h2 class="text-2xl font-black text-blue-600 uppercase italic mb-6 border-b pb-4 text-center">Expediente del Cliente</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+
+    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl border">
+            <h2 class="text-xl font-black mb-6 uppercase italic">Subir Resultado Final</h2>
+            <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-4 rounded-2xl bg-slate-50">
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg hover:bg-blue-700 transition">Subir y Terminar</button>
+            <button onclick="window.cerrarModales()" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, getDocs, Timestamp, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         // SEGURIDAD
-        if(prompt("DPR SECURITY\nContraseña:") !== "Sashimi$") window.location.href="https://pensionsegura.org";
-        else document.body.style.display="block";
+        const PASS_DIANA = "Sashimi$";
+        const vPass = prompt("Panel de Seguridad DPR\nContraseña:");
+        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
 
         let paginaActual = 1; const LIMITE = 25; 
-        let solicitudesRaw = []; 
+        let cacheSolicitudes = []; 
+        let idTramiteActual = "";
 
-        // CARGA INICIAL ULTRA-LIGERA
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300)), (snap) => {
-            solicitudesRaw = [];
-            snap.forEach(d => solicitudesRaw.push({ id: d.id, ...d.data() }));
-            renderizarTabla();
-            document.getElementById('contadorPendientes').innerText = solicitudesRaw.filter(s => s.estatus === "En Proceso").length;
-        });
+        // --- CARGAR DATOS (SIN BLOQUEOS) ---
+        const cargarDatos = () => {
+            // Bajamos los últimos 300 para filtrar en el navegador (más rápido, sin errores de conexión)
+            onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(300)), (snap) => {
+                cacheSolicitudes = [];
+                snap.forEach(d => cacheSolicitudes.push({ id: d.id, ...d.data() }));
+                renderizarTabla();
+                
+                // Actualizar contador de pendientes
+                const p = cacheSolicitudes.filter(s => s.estatus === "En Proceso").length;
+                document.getElementById('contadorPendientes').innerText = p;
+            });
 
-        function renderizarTabla() {
+            onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
+        };
+
+        const renderizarTabla = () => {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = "";
             const inicio = (paginaActual - 1) * LIMITE;
-            const items = solicitudesRaw.slice(inicio, inicio + LIMITE);
+            const items = cacheSolicitudes.slice(inicio, inicio + LIMITE);
 
-            items.forEach((s, idx) => {
+            if(items.length === 0) { tabla.innerHTML = "<tr><td colspan='5' class='p-10 text-center opacity-30'>No hay datos</td></tr>"; return; }
+
+            items.forEach((s, index) => {
                 const f = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-40">${s.nombre_asesor || 'S/N'}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold">NSS: ${s.nss}</div>`;
                 if(s.sueldo_mensual) info += `<div class="text-[9px] text-orange-600 font-black">SUELDO: $${s.sueldo_mensual}</div>`;
 
-                tabla.innerHTML += `<tr class="border-b hover:bg-slate-50">
-                    <td class="p-4"><span class="bg-slate-100 px-2 py-1 rounded-full font-black text-[8px] uppercase">${s.origen || 'Portal'}</span></td>
+                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
+                    <td class="p-4 text-center"><span class="bg-slate-100 px-2 py-1 rounded-full font-black text-[8px] uppercase">${s.origen || 'Portal'}</span></td>
                     <td class="p-4"><b>${s.tipo}</b><br><span class="text-[8px] text-slate-400 font-bold italic">${f}</span></td>
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="text-[9px] font-black border bg-white">
+                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="text-[9px] font-black border rounded p-1 outline-none uppercase bg-white shadow-sm">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: DATOS INCORRECTOS" ${s.estatus.includes('DATOS') ? 'selected' : ''}>❌ REEMBOLSO: DATOS</option>
+                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
+                            <option value="Error: ERROR FATAL EN IMSS" ${s.estatus.includes('FATAL') ? 'selected' : ''}>❌ REEMBOLSO: IMSS</option>
                         </select>
                     </td>
-                    <td class="p-4 text-right">
-                        <button onclick="window.verDetalles(${inicio + idx})" class="bg-blue-100 text-blue-600 p-2 rounded-lg text-lg">👁️</button>
+                    <td class="p-4 text-right space-x-1">
+                        <button onclick="window.verDetalles(${inicio + index})" class="bg-blue-100 text-blue-600 p-2 rounded-xl text-[12px] hover:bg-blue-600 hover:text-white transition">👁️</button>
+                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-xl font-black text-[9px] uppercase">Subir</button>
                     </td>
                 </tr>`;
             });
             document.getElementById('txtPagina').innerText = `PÁGINA ${paginaActual}`;
-        }
+        };
 
-        window.cambiarPag = (dir) => { paginaActual += dir; if(paginaActual < 1) paginaActual = 1; renderizarTabla(); };
-        window.cerrarModalDetalles = () => document.getElementById('modalDetalles').classList.add('hidden');
+        window.cambiarPag = (dir) => { 
+            let n = paginaActual + dir;
+            if(n > 0 && n <= Math.ceil(cacheSolicitudes.length / LIMITE)) { paginaActual = n; renderizarTabla(); }
+        };
 
         window.verDetalles = (idx) => {
-            const s = solicitudesRaw[idx];
+            const s = cacheSolicitudes[idx];
             const cont = document.getElementById('contenedorDetalles');
             cont.innerHTML = "";
             const campos = [
                 {l:"Asesor", v:s.nombre_asesor}, {l:"Cliente", v:s.cliente_nombre}, {l:"Trámite", v:s.tipo},
                 {l:"CURP", v:s.curp}, {l:"NSS", v:s.nss}, {l:"RFC", v:s.rfc}, {l:"IDCIF", v:s.idcif},
-                {l:"Sueldo", v:s.sueldo_mensual}, {l:"Correo Respaldo", v:s.correo_respaldo}, {l:"Notas", v:s.notas}
+                {l:"Sueldo", v:s.sueldo_mensual}, {l:"Ocupación", v:s.ocupacion}, {l:"Correo Respaldo", v:s.correo_respaldo}, {l:"Notas", v:s.notas}
             ];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-2xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
+            const fotos = [{l:"INE F", u:s.file_ine_f}, {l:"INE R", u:s.file_ine_r}, {l:"FOTO", u:s.file_selfie}, {l:"DOMICILIO", u:s.file_comp_domicilio}, {l:"EDO CTA", u:s.file_edocta}];
+            let fHtml = `<div class="col-span-full mt-4 flex flex-wrap gap-2">`;
+            fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-sm">📥 ${f.l}</button>`; });
+            cont.innerHTML += fHtml + `</div>`;
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.cambiarEstatus = async (id, est) => {
             const ref = doc(db, "solicitudes", id);
-            if(est.includes("Error")) {
-                const s = (await getDoc(ref)).data();
-                if(!s.reembolsado && s.costo > 0) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    await updateDoc(ref, { estatus: est, reembolsado: true });
-                    alert("Reembolso OK");
-                }
-            } else { await updateDoc(ref, { estatus: est }); }
+            try {
+                if(est.includes("Error")) {
+                    const s = (await getDoc(ref)).data();
+                    if(!s.reembolsado && s.costo > 0) {
+                        await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+                        await updateDoc(ref, { estatus: est, reembolsado: true });
+                        alert("✅ Saldo devuelto al asesor.");
+                    }
+                } else { await updateDoc(ref, { estatus: est }); }
+            } catch(e) { alert("Error al actualizar."); }
         };
 
-        // --- FUNCIÓN DE CANCELACIÓN MASIVA ANTI-ERROR ---
-        const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+        window.buscarGlobal = () => {
+            const b = document.getElementById('buscador').value.toUpperCase();
+            if(!b) { renderizarTabla(); return; }
+            const filtrados = cacheSolicitudes.filter(s => JSON.stringify(s).toUpperCase().includes(b));
+            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
+            filtrados.forEach((s) => {
+                tabla.innerHTML += `<tr class="border-b"><td class="p-4 text-center text-[8px] uppercase font-black">${s.origen}</td><td class="p-4"><b>${s.tipo}</b></td><td class="p-4 font-bold text-blue-600">${s.curp || s.nss || s.nombre_asesor}</td><td class="p-4 text-center font-black uppercase text-orange-500">${s.estatus}</td><td class="p-4 text-right"><button onclick="window.open('${s.archivoFinal || '#'}')" class="bg-emerald-600 text-white p-2 rounded-lg font-black text-[9px] ${s.archivoFinal ? '' : 'hidden'}">VER</button></td></tr>`;
+            });
+        };
 
+        // --- CANCELACIÓN MASIVA ANTI-BLOQUEO ---
         window.ejecutarCancelacionMasiva = async () => {
-            if(!confirm("⚠️ EMERGENCIA DIANA\n\n¿Cancelar TODAS las Semanas Cotizadas desde las 4 PM y devolver el dinero?\n\nEl proceso será uno por uno para no marcar error.")) return;
+            if(!confirm("⚠️ EMERGENCIA DIANA\n\n¿Cancelar TODAS las Semanas Cotizadas desde las 4 PM y devolver el dinero?\n\nEl proceso será lento para evitar errores de conexión.")) return;
             
             const hoy = new Date(); hoy.setHours(16,0,0,0);
-            const overlay = document.getElementById('overlayProgreso');
-            const txt = document.getElementById('txtProgreso');
-            const barra = document.getElementById('barraProgreso');
-
+            const ts = Timestamp.fromDate(hoy);
+            
             try {
                 const q = query(collection(db, "solicitudes"), 
                     where("tipo", "==", "Semanas Cotizadas"), 
                     where("estatus", "==", "En Proceso"), 
-                    where("fecha", ">=", Timestamp.fromDate(hoy))
+                    where("fecha", ">=", ts)
                 );
                 
                 const snap = await getDocs(q);
-                if(snap.empty) return alert("Nada por cancelar.");
+                if(snap.empty) return alert("No hay trámites pendientes de hoy 4 PM.");
                 
-                overlay.classList.remove('hidden');
                 let count = 0;
-                const total = snap.docs.length;
+                alert(`Iniciando devolución de ${snap.docs.length} trámites. No cierres la ventana.`);
 
                 for(const docSnap of snap.docs) {
                     const d = docSnap.data();
-                    count++;
-                    txt.innerText = `Procesando: ${count} de ${total}`;
-                    barra.style.width = `${(count/total)*100}%`;
-
                     try {
-                        // 1. Reembolsar si no se ha hecho
+                        // REEMBOLSO UNO POR UNO
                         if(d.asesor_uid && !d.reembolsado) {
                             await updateDoc(doc(db, "asesores", d.asesor_uid), { saldo: increment(Number(d.costo)) });
                         }
-                        // 2. Marcar como error
-                        await updateDoc(doc(db, "solicitudes", docSnap.id), { 
-                            estatus: "Error: ERROR FATAL EN IMSS", 
-                            reembolsado: true 
-                        });
-                        
-                        // 3. ESPERA DE SEGURIDAD (500ms) - Esto es lo que evita el error de conexión
-                        await sleep(500);
-
-                    } catch (err) { console.error("Fallo en ID:", docSnap.id); }
+                        await updateDoc(doc(db, "solicitudes", docSnap.id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
+                        count++;
+                        console.log(`Progreso: ${count}/${snap.docs.length}`);
+                    } catch (err) { console.error("Error en ID:", docSnap.id); }
                 }
-                
-                alert(`✅ Éxito total: ${count} trámites reembolsados.`);
-                overlay.classList.add('hidden');
-            } catch(e) { 
-                alert("Error de conexión con Firebase. Revisa tu internet."); 
-                overlay.classList.add('hidden');
-            }
+                alert(`✅ Éxito: Se reembolsaron ${count} trámites sin errores.`);
+            } catch(e) { alert("Error de conexión con Firebase."); }
         };
 
         const btnM = document.createElement("button");
         btnM.innerHTML = "⚠️ CANCELAR 4PM";
-        btnM.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:20px; z-index:100; font-size:9px; cursor:pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.4); border:none;";
+        btnM.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:20px; z-index:100; font-size:9px; cursor:pointer; shadow: 0 10px 20px rgba(0,0,0,0.4); border:none;";
         btnM.onclick = window.ejecutarCancelacionMasiva; document.body.appendChild(btnM);
 
+        window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
+        window.cerrarModales = () => { document.getElementById('modalDetalles').classList.add('hidden'); document.getElementById('modalSubir').classList.add('hidden'); };
+        
+        document.getElementById('btnGuardar').onclick = async () => {
+            const f = document.getElementById('inputArchivo').files[0]; if(!f) return;
+            const btn = document.getElementById('btnGuardar'); btn.innerText="SUBIENDO..."; btn.disabled=true;
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
+            const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
+            const d = await res.json();
+            await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
+            window.cerrarModales(); btn.innerText="Subir y Terminar"; btn.disabled=false;
+        };
+
+        cargarDatos();
     </script>
 </body>
-</html>
+    </html>
+    
