@@ -290,9 +290,9 @@
             let fields = '';
             let precioFinal = costo;
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 19;
+            if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 30;
             const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-            if (correosUltraVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 17;
+            if (correosUltraVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 29;
             
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
