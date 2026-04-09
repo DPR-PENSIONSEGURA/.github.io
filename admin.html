@@ -215,6 +215,7 @@ https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wi
                             <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
                             <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
                         <option value="Error: LIMITE DE CONSULTAS ALCANZADO" ${s.estatus.includes('LIMITE DE CONSULTAS') ? 'selected' : ''}>❌ REEMBOLSO: LIMITE </option>
+                         <option value="Error: ERROR EN IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ REEMBOLSO: ERROR IMSS </option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
