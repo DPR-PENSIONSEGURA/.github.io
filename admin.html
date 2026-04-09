@@ -35,26 +35,31 @@
                     <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
-                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1">
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
                     <p class="text-xl font-black">🔒</p>
                 </button>
             </div>
         </header>
 
         <section class="mb-8">
-            <div onclick="window.toggleSeccion('contenidoSaldo', 'icoSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl select-none">
+            <div onclick="window.toggleSeccion('contenidoSaldo', 'icoSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
                 <div id="icoSaldo" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
             </div>
             <div id="contenidoSaldo" class="seccion-contenido mt-4">
                 <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden">
-                    <table class="w-full text-left"><tbody id="tablaRecargas"></tbody></table>
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                            <tr><th class="p-5">Asesor / Rastreo</th><th class="p-5 text-center">Monto / Estatus</th><th class="p-5 text-center">Ticket</th><th class="p-5 text-center">Acciones</th></tr>
+                        </thead>
+                        <tbody id="tablaRecargas"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
         
         <section>
-            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl mb-4 select-none">
+            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes de Trámites</h2>
                 <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
             </div>
@@ -62,7 +67,7 @@
             <div id="contenidoSolicitudes" class="seccion-contenido">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div class="flex items-center gap-4">
-                        <button onclick="window.filtrarSoloPendientes()" class="bg-orange-500 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-md">🟠 Ver Pendientes</button>
+                        <button onclick="window.filtrarSoloPendientes()" class="bg-orange-500 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-md hover:bg-orange-600 transition">🟠 Ver Pendientes</button>
                         <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-300">
                             <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
                             <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
@@ -70,8 +75,8 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase">
-                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O ASESOR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase w-64">
+                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase shadow-sm">
+                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O ASESOR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase shadow-sm w-64">
                     </div>
                 </div>
 
@@ -92,7 +97,7 @@
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic">Expediente DPR</h2>
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente del Cliente</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
         </div>
     </div>
@@ -118,8 +123,8 @@
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
             <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado</h2>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-2 rounded-lg">
-            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic">Subir y Terminar</button>
-            <button onclick="window.cerrarModalSubir()" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
+            <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Subir y Terminar</button>
+            <button onclick="document.getElementById('modalSubir').classList.add('hidden')" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
         </div>
     </div>
 
@@ -143,8 +148,8 @@
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
 
-        window.abrirCajaFuerte = () => { if(prompt("Contraseña Maestra:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); };
-        window.toggleSeccion = (id, ico) => { const c = document.getElementById(id); const i = document.getElementById(ico); if(c.classList.contains('seccion-cerrada')){ c.classList.remove('seccion-cerrada'); i.innerText="▼"; } else { c.classList.add('seccion-cerrada'); i.innerText="▶"; } };
+        window.abrirCajaFuerte = () => { if(prompt("Pass Maestro:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); };
+        window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); if(c.classList.contains('seccion-cerrada')){ c.classList.remove('seccion-cerrada'); i.innerText="▼"; } else { c.classList.add('seccion-cerrada'); i.innerText="▶"; } };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
@@ -163,10 +168,10 @@
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
-                const r = d.data(); const id = d.id;
+                const r = d.data(), id = d.id;
                 let color = (r.estatus === "pendiente") ? "bg-orange-100 text-orange-600" : (r.estatus === "aprobado" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700");
-                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-2 py-1 rounded font-black text-[8px] ml-1">X</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
-                t.innerHTML += `<tr class="border-b"><td class="p-4 text-[10px]"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b><br><span class="px-2 rounded-full text-[7px] border font-black ${color}">${r.estatus.toUpperCase()}</span></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER TICKET</button></td><td class="p-4 text-center">${btns}</td></tr>`;
+                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px]">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-2 py-1 rounded font-black text-[8px] ml-1">RECHAZAR</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-4 text-[10px]"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b><br><span class="px-2 rounded-full text-[7px] border font-black ${color}">${r.estatus.toUpperCase()}</span></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-center">${btns}</td></tr>`;
             });
         });
 
@@ -177,6 +182,7 @@
             }
         };
 
+        // CARGAR SOLICITUDES
         window.cargarSolicitudes = async (pagina = 1) => {
             const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
             const snap = await getDocs(q);
@@ -186,7 +192,7 @@
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
             docsArray.forEach(docSnap => {
-                const s = docSnap.data(); const id = docSnap.id;
+                const s = docSnap.data(), id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 let info = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
@@ -215,75 +221,93 @@
             });
         }
 
-        window.filtrarSoloPendientes = async () => {
-            const q = query(collection(db, "solicitudes"), where("estatus", "==", "En Proceso"), limit(100));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs);
-        };
-
         window.cambiarEstatus = async (id, est) => {
             const docRef = doc(db, "solicitudes", id);
-            if (est.includes("Error")) {
-                const snap = await getDoc(docRef); const s = snap.data();
-                if (s?.asesor_uid && s.costo > 0 && !s.reembolsado) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    await updateDoc(docRef, { estatus: est, reembolsado: true });
-                    alert("Reembolso aplicado.");
-                }
-            } else { await updateDoc(docRef, { estatus: est }); }
-            cargarSolicitudes(currentPage);
+            try {
+                if (est.includes("Error")) {
+                    const snap = await getDoc(docRef), s = snap.data();
+                    if (s.reembolsado) return alert("Ya reembolsado.");
+                    if (s?.asesor_uid && s.costo > 0) {
+                        await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+                        await updateDoc(docRef, { estatus: est, reembolsado: true });
+                        alert(`✅ Reembolso de $${s.costo} aplicado.`);
+                    }
+                } else { await updateDoc(docRef, { estatus: est }); }
+                cargarSolicitudes(currentPage);
+            } catch (e) { alert("Error."); }
         };
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"IDCIF", v:data.idcif}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Respaldo", v:data.correo_respaldo}, {l:"Notas", v:data.notas}];
+            const campos = [
+                {l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo},
+                {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif},
+                {l:"Ocupación", v:data.ocupacion}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Respaldo", v:data.correo_respaldo}, {l:"Notas", v:data.notas}
+            ];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
-            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}];
+            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
             fotos.forEach(f => { if(f.u) cont.innerHTML += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white p-2 rounded-xl font-black text-[9px] mr-2 italic">${f.l} 📥</button>`; });
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
-        window.cerrarModalSubir = () => document.getElementById('modalSubir').classList.add('hidden');
-
         document.getElementById('btnGuardar').onclick = async () => {
             const f = document.getElementById('inputArchivo').files[0];
             if(!f) return;
+            const btn = document.getElementById('btnGuardar'); btn.innerText="SUBIENDO..."; btn.disabled=true;
             const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
             const data = await res.json();
             await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-            window.cerrarModalSubir(); cargarSolicitudes(currentPage);
+            document.getElementById('modalSubir').classList.add('hidden');
+            btn.innerText="Subir y Terminar"; btn.disabled=false;
+            cargarSolicitudes(currentPage);
+        };
+
+        window.filtrarSoloPendientes = async () => {
+            const q = query(collection(db, "solicitudes"), where("estatus", "==", "En Proceso"), limit(100));
+            const snap = await getDocs(q); renderizarTablaPersonalizada(snap.docs);
         };
 
         window.buscarPorFecha = async () => {
             const fi = document.getElementById('filtroFecha').value; if(!fi) return;
-            const start = new Date(fi + "T00:00:00"); const end = new Date(fi + "T23:59:59");
+            const start = new Date(fi + "T00:00:00"), end = new Date(fi + "T23:59:59");
             const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(start)), where("fecha", "<=", Timestamp.fromDate(end)));
-            const snap = await getDocs(q); renderizarTablaPersonalizada(snap.docs);
+            const snap = await getDocs(q); 
+            const docs = snap.docs.sort((a,b) => b.data().fecha - a.data().fecha);
+            renderizarTablaPersonalizada(docs);
         };
 
         window.buscarGlobal = async () => {
             const bus = document.getElementById('buscador').value.toUpperCase(); if(!bus) return;
-            const snap = await getDocs(query(collection(db, "solicitudes"), limit(300)));
+            const snap = await getDocs(query(collection(db, "solicitudes"), limit(400)));
             renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
         };
 
+        // --- CANCELACIÓN MASIVA CORREGIDA ---
         window.ejecutarCancelacionMasiva = async () => {
-            if (!confirm("Se cancelarán Semanas de hoy 4PM y se devolverá el dinero.")) return;
-            const hoy = new Date(); hoy.setHours(16,0,0,0);
-            const snap = await getDocs(query(collection(db, "solicitudes"), where("tipo","==","Semanas Cotizadas"), where("estatus","==","En Proceso"), where("fecha",">=",Timestamp.fromDate(hoy))));
-            for (const docu of snap.docs) {
-                const d = docu.data();
-                if(d.asesor_uid) await updateDoc(doc(db, "asesores", d.asesor_uid), { saldo: increment(Number(d.costo)) });
-                await updateDoc(doc(db,"solicitudes",docu.id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
-            }
-            alert("Listo."); cargarSolicitudes(1);
+            if (!confirm("¿Confirmar cancelación masiva? Se reembolsarán TODAS las Semanas Cotizadas desde las 4:00 PM de hoy.")) return;
+            const hoy = new Date(); hoy.setHours(16, 0, 0, 0); 
+            try {
+                const q = query(collection(db, "solicitudes"), where("tipo", "==", "Semanas Cotizadas"), where("estatus", "==", "En Proceso"), where("fecha", ">=", Timestamp.fromDate(hoy)));
+                const snap = await getDocs(q);
+                if (snap.empty) return alert("Nada por cancelar.");
+                let procesados = 0;
+                for (const docSnap of snap.docs) {
+                    const data = docSnap.data(), id = docSnap.id;
+                    if (data.asesor_uid && data.costo > 0 && !data.reembolsado) {
+                        await updateDoc(doc(db, "asesores", data.asesor_uid), { saldo: increment(Number(data.costo)) });
+                    }
+                    await updateDoc(doc(db, "solicitudes", id), { estatus: "Error: ERROR FATAL EN IMSS", reembolsado: true });
+                    procesados++;
+                }
+                alert(`✅ ${procesados} reembolsados.`); cargarSolicitudes(1);
+            } catch (error) { alert("Error."); }
         };
 
         const btnMasivo = document.createElement("button");
         btnMasivo.innerHTML = "⚠️ CANCELAR SEMANAS (4PM)";
-        btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer;";
+        btnMasivo.style = "position:fixed; bottom:20px; right:20px; background:red; color:white; font-weight:black; padding:15px; border-radius:15px; z-index:9999; font-size:10px; cursor:pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border:none;";
         btnMasivo.onclick = window.ejecutarCancelacionMasiva; document.body.appendChild(btnMasivo);
 
         cargarSolicitudes(1);
