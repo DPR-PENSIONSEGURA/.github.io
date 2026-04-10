@@ -28,63 +28,38 @@
             </div>
             <div class="flex gap-4 w-full lg:w-auto">
                 <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1">
-                    <p class="text-[8px] font-black uppercase text-slate-400">Visitas</p>
                     <p id="txtVisitas" class="text-xl font-black">0</p>
                 </div>
                 <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1">
-                    <p class="text-[8px] font-black uppercase opacity-70">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
-                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1 group hover:bg-slate-700 transition-colors">
-                    <p class="text-[8px] font-black uppercase opacity-70 italic group-hover:text-blue-400">Finanzas</p>
+                <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1">
                     <p class="text-xl font-black">🔒</p>
                 </button>
             </div>
         </header>
 
-        <section class="mb-8">
-            <div onclick="window.toggleSeccion('contenidoSaldo', 'icoSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
-                <div id="icoSaldo" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
-            </div>
-            <div id="contenidoSaldo" class="seccion-contenido mt-4">
-                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[10px]">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                            <tr><th class="p-5">Asesor / Rastreo</th><th class="p-5 text-center">Monto</th><th class="p-5 text-center">Ticket</th><th class="p-5 text-right">Acción</th></tr>
-                        </thead>
-                        <tbody id="tablaRecargas"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-        
         <section>
             <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes de Trámites</h2>
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes</h2>
                 <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
             </div>
 
             <div id="contenidoSolicitudes" class="seccion-contenido">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-300">
-                            <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
-                            <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
-                            <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
-                        </div>
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border">
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
+                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
                     </div>
-                    <div class="flex gap-2">
-                        <input type="date" id="filtroFecha" onchange="window.buscarPorFecha()" class="p-3 rounded-2xl border text-[10px] font-black uppercase">
-                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR..." class="p-3 rounded-2xl border text-[10px] font-black uppercase w-64">
-                    </div>
+                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP, NSS O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
                 </div>
 
                 <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Información</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
                             </thead>
                             <tbody id="tablaSolicitudes" class="text-xs font-medium"></tbody>
                         </table>
@@ -97,14 +72,14 @@
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="document.getElementById('modalDetalles').classList.add('hidden')" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic">Expediente DPR</h2>
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
         </div>
     </div>
 
     <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic text-blue-600">Subir Resultado Final</h2>
+            <h2 class="text-xl font-black mb-4 uppercase italic">Subir Resultado Final</h2>
             <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-4 rounded-2xl bg-slate-50">
             <button id="btnGuardar" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Subir y Terminar</button>
             <button onclick="document.getElementById('modalSubir').classList.add('hidden')" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
@@ -120,103 +95,91 @@
         const db = getFirestore(app);
 
         const PASS_DIANA = "Sashimi$";
-        const PASS_ASISTENTE = "DPR2026";
-        const vPass = prompt("Contraseña:");
-        if(vPass === PASS_DIANA || vPass === PASS_ASISTENTE) { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
+        const vPass = prompt("Contraseña Admin:");
+        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
 
-        let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
+        let currentPage = 1; const PAGE_SIZE = 30; 
+        let idTramiteActual = "";
+        let todasLasSoliCargadas = [];
+
+        // DICCIONARIO DE MENSAJES LARGOS (RESTABLECIDO)
+        const LISTA_ERRORES_DPR = {
+            "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
+            "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/",
+            "ERR_FOTOS": "Error: FOTOS ILEGIBLES",
+            "ERR_INEXISTENTE": "Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO",
+            "ERR_PASS": "Error: CONTRASEÑA INCORRECTA",
+            "ERR_LIMITE": "Error: alguien más las consultó intenta más tarde",
+            "ERR_IMSS": "Error: ERROR EN IMSS"
+        };
 
         const selector = document.getElementById('selectorPagina');
         for(let i=1; i<=50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+        
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
-
-        window.abrirCajaFuerte = () => { if(prompt("Contraseña Maestra:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); else alert("Acceso Denegado"); };
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); if(c.classList.contains('seccion-cerrada')){ c.classList.remove('seccion-cerrada'); i.innerText="▼"; } else { c.classList.add('seccion-cerrada'); i.innerText="▶"; } };
 
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        // CONTADORES
-        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
-        onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
-        onSnapshot(collection(db, "solicitudes"), (snap) => {
-            let pendientes = 0;
-            snap.forEach(d => { if(d.data().estatus === 'En Proceso') pendientes++; });
-            document.getElementById('contadorPendientes').innerText = pendientes;
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250)), (snap) => {
+            todasLasSoliCargadas = [];
+            snap.forEach(d => todasLasSoliCargadas.push({ id: d.id, ...d.data() }));
+            cargarSolicitudes(currentPage);
+            document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
         });
 
-        // RECARGAS (LISTA DESPLEGABLE)
-        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
-            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-            snap.forEach(d => {
-                const r = d.data(), id = d.id;
-                let color = (r.estatus === "pendiente") ? "bg-orange-100 text-orange-600" : (r.estatus === "aprobado" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700");
-                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-2 py-1 rounded font-black text-[8px] hover:bg-emerald-600 transition">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-2 py-1 rounded font-black text-[8px] ml-1">RECHAZAR</button>` : `<span class="text-[8px] font-black opacity-30 uppercase">${r.estatus}</span>`;
-                t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b><br><span class="px-2 rounded-full text-[7px] border font-black ${color}">${r.estatus.toUpperCase()}</span></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-right">${btns}</td></tr>`;
-            });
-        });
-
-        window.validarRecarga = async (docId, uid, monto, est) => {
-            if(confirm(`¿Confirmar acción?`)){
-                if(est === 'aprobado') await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est });
-            }
-        };
-
-        window.cargarSolicitudes = async (pagina = 1) => {
-            const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(PAGE_SIZE * pagina));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE));
+        window.cargarSolicitudes = (pagina = 1) => {
+            const inicio = (pagina - 1) * PAGE_SIZE;
+            renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE));
         };
 
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            docsArray.forEach(docSnap => {
-                const s = docSnap.data(), id = docSnap.id;
+            docsArray.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 
-                // VARIABLES VISIBLES EN TABLA (SE AÑADE CONTRASEÑA)
-                let info = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
+                let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                if(s.pass_afore) info += `<div class="text-[9px] text-red-600 font-black uppercase">PASS: ${s.pass_afore}</div>`;
+                if(s.pass_afore) info += `<div class="text-[9px] text-red-600 font-black uppercase tracking-tighter">PASS: ${s.pass_afore}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}">${s.origen || 'Portal'}</span></td>
-                    <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span></td>
+                    <td class="p-4"><div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div></td>
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white">
+                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white shadow-sm outline-none">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
-                            <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
+                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp está mal') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
+                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
+                            <option value="ERR_FOTOS" ${s.estatus.includes('FOTOS ILEGIBLES') ? 'selected' : ''}>❌ ERR: FOTOS</option>
+                            <option value="ERR_INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ ERR: NO EXISTE</option>
+                            <option value="ERR_PASS" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ ERR: CONTRASEÑA</option>
+                            <option value="ERR_LIMITE" ${s.estatus.includes('alguien más las consultó') ? 'selected' : ''}>❌ ERR: LIMITE</option>
+                            <option value="ERR_IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
-                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] hover:bg-blue-600 hover:text-white transition">👁️</button>
-                        <button onclick="window.abrirSubida('${id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase shadow-sm">Subir</button>
+                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px]">👁️</button>
+                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[9px]">SUBIR</button>
                     </td>
                 </tr>`;
             });
         }
 
-        window.cambiarEstatus = async (id, est) => {
+        window.cambiarEstatus = async (id, val) => {
             const docRef = doc(db, "solicitudes", id);
             try {
                 const snap = await getDoc(docRef), s = snap.data();
-                if (est.includes("Error")) {
-                    if (s.reembolsado === true) {
-                        await updateDoc(docRef, { estatus: est });
-                        alert("Estatus actualizado (Saldo ya devuelto).");
-                    } else if (s?.asesor_uid && s.costo > 0) {
-                        await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                        await updateDoc(docRef, { estatus: est, reembolsado: true });
-                        alert(`✅ Reembolso de $${s.costo} aplicado.`);
-                    }
-                } else { await updateDoc(docRef, { estatus: est }); }
-                cargarSolicitudes(currentPage);
+                let est = LISTA_ERRORES_DPR[val] || val;
+
+                if (val.startsWith("ERR_") && !s.reembolsado) {
+                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+                    await updateDoc(docRef, { estatus: est, reembolsado: true });
+                    alert(`✅ Reembolso de $${s.costo} aplicado y estatus fijado.`);
+                } else { 
+                    await updateDoc(docRef, { estatus: est }); 
+                }
             } catch (e) { alert("Error al actualizar."); }
         };
 
@@ -225,48 +188,36 @@
             const campos = [
                 {l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo},
                 {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif},
-                {l:"Sueldo", v:data.sueldo_mensual}, {l:"CONTRASEÑA", v:data.pass_afore}, {l:"Correo Respaldo", v:data.correo_respaldo}, {l:"Notas", v:data.notas}, {l:"Fecha Nac", v:data.fecha_nacimiento}
+                {l:"PASS", v:data.pass_afore}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Notas", v:data.notas}
             ];
-            campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
-            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
-            let fHtml = `<div class="col-span-full mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">`;
-            fotos.forEach(f => { if(f.u) fHtml += `<button onclick="window.open('${f.u}')" class="bg-purple-600 text-white p-2 rounded-xl font-black text-[9px] uppercase italic">${f.l} 📥</button>`; });
-            cont.innerHTML += fHtml + `</div>`;
+            campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
-
+        
         document.getElementById('btnGuardar').onclick = async () => {
             const f = document.getElementById('inputArchivo').files[0];
-            if(!f) return alert("Selecciona un archivo");
-            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                document.getElementById('modalSubir').classList.add('hidden');
-                alert("✅ Resultado subido con éxito");
-                cargarSolicitudes(currentPage);
-            } catch (e) { alert("Error al subir"); } finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
+            if(!f) return alert("Selecciona archivo");
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
+            const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
+            const d = await res.json();
+            await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: d.secure_url, estatus: "Terminado" });
+            document.getElementById('modalSubir').classList.add('hidden');
+            alert("Subido con éxito.");
         };
 
-        window.buscarPorFecha = async () => {
-            const fi = document.getElementById('filtroFecha').value; if(!fi) return cargarSolicitudes(1);
-            const start = new Date(fi + "T00:00:00"), end = new Date(fi + "T23:59:59");
-            const q = query(collection(db, "solicitudes"), where("fecha", ">=", Timestamp.fromDate(start)), where("fecha", "<=", Timestamp.fromDate(end)));
-            const snap = await getDocs(q);
-            renderizarTablaPersonalizada(snap.docs.sort((a,b) => b.data().fecha - a.data().fecha));
+        window.buscarGlobal = () => {
+            const bus = document.getElementById('buscador').value.toUpperCase();
+            if (bus.length < 1) return cargarSolicitudes(currentPage);
+            const filtrados = todasLasSoliCargadas.filter(s => 
+                (s.curp && s.curp.includes(bus)) || 
+                (s.nss && s.nss.includes(bus)) || 
+                (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))
+            );
+            renderizarTablaPersonalizada(filtrados);
         };
 
-        window.buscarGlobal = async () => {
-            const bus = document.getElementById('buscador').value.toUpperCase(); if (bus.length < 1) return cargarSolicitudes(1);
-            const snap = await getDocs(query(collection(db, "solicitudes"), limit(400)));
-            renderizarTablaPersonalizada(snap.docs.filter(d => JSON.stringify(d.data()).toUpperCase().includes(bus)));
-        };
-
-        cargarSolicitudes(1);
     </script>
 </body>
 </html>
