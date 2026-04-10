@@ -47,18 +47,7 @@
             <div id="contenidoSaldo" class="seccion-contenido mt-4">
                 <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                            <tr>
-                                <th class="p-5">Asesor / Rastreo</th>
-                                <th class="p-5 text-center">Monto</th>
-                                <th class="p-5 text-center">Estatus</th>
-                                <th class="p-5 text-center">Ticket</th>
-                                <th class="p-5 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaRecargas" class="text-[11px] font-bold">
-                            <tr><td colspan="5" class="p-10 text-center opacity-30">Cargando recargas...</td></tr>
-                        </tbody>
+                        <tbody id="tablaRecargas"></tbody>
                     </table>
                 </div>
             </div>
@@ -84,11 +73,9 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Asesor / Datos</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Información</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
                             </thead>
-                            <tbody id="tablaSolicitudes" class="text-xs font-medium italic">
-                                <tr><td colspan="5" class="p-20 text-center opacity-20 font-black text-lg">Cargando base de datos...</td></tr>
-                            </tbody>
+                            <tbody id="tablaSolicitudes" class="text-xs font-medium italic"></tbody>
                         </table>
                     </div>
                 </div>
@@ -100,21 +87,21 @@
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
             <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
-            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-[11px]"></div>
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </div>
     </div>
 
     <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
-            <h2 class="text-2xl font-black mb-6 uppercase italic text-slate-800">Finanzas DPR</h2>
+            <h2 class="text-2xl font-black mb-6 uppercase italic">Finanzas Hoy</h2>
             <div class="space-y-6">
-                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500 text-emerald-800">
-                    <p class="text-[10px] font-black uppercase mb-1">Venta del Día</p>
-                    <p id="gananciaHoy" class="text-4xl font-black">$0.00</p>
+                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día</p>
+                    <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
                 </div>
-                <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500 text-purple-800">
-                    <p class="text-[10px] font-black uppercase mb-1">Asesores</p>
-                    <p id="txtAsesores" class="text-4xl font-black">0</p>
+                <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
+                    <p class="text-[10px] font-black uppercase text-purple-600 mb-1">Asesores</p>
+                    <p id="txtAsesores" class="text-4xl font-black text-purple-800">0</p>
                 </div>
             </div>
             <button onclick="window.cerrarModales()" class="mt-8 text-slate-400 font-black text-[10px] uppercase italic">Cerrar</button>
@@ -138,14 +125,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const PASS_DIANA = "Sashimi$";
-        const vPass = prompt("Contraseña:");
-        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
+        if(prompt("Contraseña:") === "Sashimi$" || "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
 
-        let currentPage = 1; const PAGE_SIZE = 30; 
-        let idTramiteActual = "";
-        let todasLasSoliCargadas = [];
+        let currentPage = 1; const PAGE_SIZE = 30; let idTramiteActual = ""; let todasLasSoliCargadas = [];
 
+        // --- LISTA MAESTRA DE ERRORES RESTABLECIDA ---
         const LISTA_ERRORES_DPR = {
             "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
             "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/",
@@ -158,39 +142,19 @@
 
         const selector = document.getElementById('selectorPagina');
         for(let i=1; i<=50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
-        
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
-        
-        window.toggleSeccion = (id, ico) => { 
-            const c = document.getElementById(id), i = document.getElementById(ico); 
-            c.classList.toggle('seccion-cerrada');
-            i.innerText = c.classList.contains('seccion-cerrada') ? "▶" : "▼";
-        };
+        window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); c.classList.toggle('seccion-cerrada'); i.innerText = c.classList.contains('seccion-cerrada') ? "▶" : "▼"; };
+        window.abrirCajaFuerte = () => { if(prompt("Contraseña Maestra:") === "Sashimi$") document.getElementById('modalCajaFuerte').classList.remove('hidden'); else alert("Acceso Denegado"); };
+        window.cerrarModales = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
 
-        window.abrirCajaFuerte = () => { 
-            if(prompt("Contraseña Maestra:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); 
-            else alert("Acceso Denegado"); 
-        };
-
-        window.cerrarModales = () => {
-            document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-        };
-
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        // TIEMPO REAL VISITAS Y ASESORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
         
-        // TIEMPO REAL SOLICITUDES
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250)), (snap) => {
-            todasLasSoliCargadas = [];
-            let ganancia = 0; let hoy = new Date().toLocaleDateString();
+            todasLasSoliCargadas = []; let ganancia = 0; let hoy = new Date().toLocaleDateString();
             snap.forEach(d => { 
-                const data = d.data();
-                todasLasSoliCargadas.push({ id: d.id, ...data });
+                const data = d.data(); todasLasSoliCargadas.push({ id: d.id, ...data });
                 if(data.fecha?.toDate().toLocaleDateString() === hoy && data.estatus === 'Terminado') ganancia += Number(data.costo || 0);
             });
             cargarSolicitudes(currentPage);
@@ -198,44 +162,18 @@
             document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
         });
 
-        // --- REPARACIÓN: PANEL DE RECARGAS ---
-        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(12)), (snap) => {
+        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-            if(snap.empty) { t.innerHTML = "<tr><td colspan='5' class='p-10 text-center opacity-30'>Sin recargas pendientes</td></tr>"; return; }
-            
             snap.forEach(d => {
                 const r = d.data(), id = d.id;
-                let colorStatus = (r.estatus === "pendiente") ? "text-orange-600 bg-orange-50" : (r.estatus === "aprobado" ? "text-emerald-600 bg-emerald-50" : "text-red-600 bg-red-50");
-                
-                let btns = (r.estatus === 'pendiente') ? 
-                    `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>
-                     <button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-3 py-1 rounded-lg font-black">X</button>` 
-                    : `<span class="opacity-30 uppercase text-[9px]">Procesado</span>`;
-
-                t.innerHTML += `<tr class="border-b">
-                    <td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'S/N'}</small></td>
-                    <td class="p-4 text-center font-black text-slate-800">$${r.monto}</td>
-                    <td class="p-4 text-center"><span class="px-2 py-0.5 rounded-full border text-[8px] font-black ${colorStatus}">${r.estatus.toUpperCase()}</span></td>
-                    <td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black">VER TICKET</button></td>
-                    <td class="p-4 text-right">${btns}</td>
-                </tr>`;
+                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button><button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'rechazado')" class="bg-red-500 text-white px-3 py-1 rounded-lg font-black">X</button>` : `<span class="opacity-30 uppercase">${r.estatus}</span>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER TICKET</button></td><td class="p-4 text-right">${btns}</td></tr>`;
             });
         });
 
-        window.validarRecarga = async (docId, uid, monto, est) => {
-            if(confirm(`¿Deseas ${est} esta recarga de $${monto}?`)){
-                try {
-                    if(est === 'aprobado') await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) });
-                    await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est });
-                    alert("Hecho.");
-                } catch(e) { alert("Error de conexión."); }
-            }
-        };
+        window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Confirmar acción?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
 
-        window.cargarSolicitudes = (pagina = 1) => {
-            const inicio = (pagina - 1) * PAGE_SIZE;
-            renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE));
-        };
+        window.cargarSolicitudes = (pagina = 1) => { const inicio = (pagina - 1) * PAGE_SIZE; renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE)); };
 
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
@@ -256,12 +194,16 @@
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="ERR_NSS_CURP" ${s.estatus.includes('curp está mal') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
                             <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
+                            <option value="ERR_FOTOS" ${s.estatus.includes('FOTOS ILEGIBLES') ? 'selected' : ''}>❌ ERR: FOTOS</option>
+                            <option value="ERR_INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ ERR: NO EXISTE</option>
                             <option value="ERR_PASS" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ ERR: CONTRASEÑA</option>
+                            <option value="ERR_LIMITE" ${s.estatus.includes('alguien más las consultó') ? 'selected' : ''}>❌ ERR: LIMITE</option>
+                            <option value="ERR_IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
-                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] hover:bg-blue-600 hover:text-white transition">👁️</button>
-                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase shadow-sm">SUBIR</button>
+                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px]">👁️</button>
+                        <button onclick="window.abrirSubida('${s.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase">SUBIR</button>
                     </td>
                 </tr>`;
             });
@@ -275,31 +217,25 @@
                 if (val.startsWith("ERR_") && !s.reembolsado) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
                     await updateDoc(docRef, { estatus: est, reembolsado: true });
-                    alert("Reembolso OK.");
+                    alert(`✅ Reembolso de $${s.costo} aplicado.`);
                 } else { await updateDoc(docRef, { estatus: est }); }
             } catch (e) { alert("Error."); }
         };
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"PASS", v:data.pass_afore}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Notas", v:data.notas}];
+            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"PASS", v:data.pass_afore}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Notas", v:data.notas}];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
-        
         document.getElementById('btnGuardar').onclick = async () => {
-            const f = document.getElementById('inputArchivo').files[0];
-            if(!f) return alert("Selecciona archivo");
-            const btn = document.getElementById('btnGuardar'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                window.cerrarModales(); alert("✅ Subido.");
-            } catch (e) { alert("Error."); } finally { btn.innerText = "Subir y Terminar"; btn.disabled = false; }
+            const f = document.getElementById('inputArchivo').files[0]; if(!f) return alert("Selecciona archivo");
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
+            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+            const data = await res.json(); await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
+            window.cerrarModales(); alert("✅ Subido.");
         };
 
         window.buscarGlobal = () => {
@@ -308,7 +244,6 @@
             const filtrados = todasLasSoliCargadas.filter(s => (s.curp && s.curp.includes(bus)) || (s.nss && s.nss.includes(bus)) || (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus)));
             renderizarTablaPersonalizada(filtrados);
         };
-
     </script>
 </body>
 </html>
