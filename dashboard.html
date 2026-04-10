@@ -13,6 +13,9 @@
         select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
         .seccion-contenido { transition: all 0.3s ease-in-out; overflow: hidden; max-height: 5000px; opacity: 1; }
         .seccion-cerrada { max-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; }
+        /* Estilos para Distintivos VIP */
+        .badge-vip { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 900; margin-left: 4px; }
+        .badge-ultra { background: #dcfce7; color: #166534; border: 1px solid #22c55e; padding: 2px 6px; border-radius: 6px; font-size: 8px; font-weight: 900; margin-left: 4px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -102,23 +105,6 @@
         </div>
     </div>
 
-    <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
-            <h2 class="text-2xl font-black mb-6 uppercase italic">Finanzas Hoy</h2>
-            <div class="space-y-6">
-                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
-                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día</p>
-                    <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
-                </div>
-                <div id="cardAsesores" class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
-                    <p class="text-[10px] font-black uppercase text-purple-600 mb-1">Total Asesores</p>
-                    <p id="txtAsesores" class="text-4xl font-black text-purple-800">0</p>
-                </div>
-            </div>
-            <button onclick="document.getElementById('modalCajaFuerte').classList.add('hidden')" class="mt-8 text-slate-400 font-black text-[10px] uppercase italic">Cerrar</button>
-        </div>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -131,6 +117,10 @@
         const PASS_ASISTENTE = "DPR2026";
         const vPass = prompt("Contraseña:");
         if(vPass === PASS_DIANA || vPass === PASS_ASISTENTE) { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
+
+        // LISTA DE CORREOS VIP PARA IDENTIFICACIÓN VISUAL
+        const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+        const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
 
         let currentPage = 1; const PAGE_SIZE = 20; let idTramiteActual = "";
 
@@ -151,7 +141,6 @@
             let totalHoy = 0, pendientes = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => { const s = d.data(); if(s.estatus === 'En Proceso') pendientes++; if(s.fecha?.toDate().toLocaleDateString() === hoy && s.estatus === 'Terminado') totalHoy += Number(s.costo || 0); });
             document.getElementById('contadorPendientes').innerText = pendientes;
-            document.getElementById('gananciaHoy').innerText = `$${totalHoy.toFixed(2)}`;
         });
 
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
@@ -182,14 +171,18 @@
             docsArray.forEach(docSnap => {
                 const s = docSnap.data(); const id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
-                let info = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
+                
+                // Identificación de Nivel
+                let badge = "";
+                if(correosUltraVip.includes(s.nombre_asesor)) badge = `<span class="badge-ultra">ULTRA VIP</span>`;
+                else if(correosVip.includes(s.nombre_asesor)) badge = `<span class="badge-vip">VIP</span>`;
+
+                let info = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/N'}${badge}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                if(s.idcif) info += `<div class="text-[9px] text-purple-600 font-bold uppercase">IDCIF: ${s.idcif}</div>`;
-                if(s.rfc) info += `<div class="text-[9px] text-emerald-600 font-bold uppercase">RFC: ${s.rfc}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'badge-portal'}">${s.origen || 'Portal'}</span></td>
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}">${s.origen || 'Portal'}</span></td>
                     <td class="p-4"><div class="font-black text-slate-700 uppercase leading-none text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold">${fStr}</div></td>
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
@@ -197,26 +190,21 @@
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="ERR_NSS_CURP" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
-                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
-                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS ILEGIBLES</option>
-                            <option value="Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
-                            <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
-                            <option value="ERR_LIMITE" ${s.estatus.includes('LIMITE DE CONSULTAS') ? 'selected' : ''}>❌ REEMBOLSO: LIMITE </option>
-                            <option value="Error: ERROR EN IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ REEMBOLSO: ERROR IMSS </option>
+                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
                         </select>
                     </td>
-                    <td class="p-4 text-right space-x-1">
-                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] hover:bg-blue-600 hover:text-white">👁️</button>
+                    <td class="p-4 text-right">
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-[9px] font-black text-emerald-600">PAGÓ: $${s.costo || '0'}</span>
+                            <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] hover:bg-blue-600 hover:text-white">👁️</button>
+                        </div>
                     </td>
                 </tr>`;
             });
         }
 
-        // DICCIONARIO DE MENSAJES LARGOS
         const MENSAJES_ERROR = {
             "ERR_NSS_CURP": "el curp está mal / mal escrito etc",
-            "ERR_INCONSISTENCIAS": "Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/",
-            "ERR_LIMITE": "alguien más las consultó intenta más tarde"
         };
 
         window.cambiarEstatus = async (id, val) => {
@@ -224,8 +212,6 @@
             try {
                 const snap = await getDoc(docRef);
                 const s = snap.data();
-                
-                // Traducimos el valor corto al mensaje largo si existe
                 let est = MENSAJES_ERROR[val] || val;
 
                 if (est.toUpperCase().includes("ERROR") || val.startsWith("ERR_")) {
@@ -246,7 +232,7 @@
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif}, {l:"Notas", v:data.notas}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Fecha Nac", v:data.fecha_nacimiento}];
+            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"Notas", v:data.notas}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"Fecha Nac", v:data.fecha_nacimiento}];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
