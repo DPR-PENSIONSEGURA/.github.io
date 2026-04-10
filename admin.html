@@ -131,6 +131,7 @@
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
 
+        window.abrirCajaFuerte = () => { if(prompt("Contraseña Maestra:") === PASS_DIANA) document.getElementById('modalCajaFuerte').classList.remove('hidden'); else alert("Acceso Denegado"); };
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); if(c.classList.contains('seccion-cerrada')){ c.classList.remove('seccion-cerrada'); i.innerText="▼"; } else { c.classList.add('seccion-cerrada'); i.innerText="▶"; } };
 
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
@@ -175,12 +176,11 @@
                 const s = docSnap.data(), id = docSnap.id;
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 
-                // VARIABLES VISIBLES EN TABLA
+                // VARIABLES VISIBLES EN TABLA (SE AÑADE CONTRASEÑA)
                 let info = `<div class="font-black text-slate-800 text-[10px] uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                if(s.rfc) info += `<div class="text-[9px] text-emerald-600 font-bold uppercase">RFC: ${s.rfc}</div>`;
-                if(s.idcif) info += `<div class="text-[9px] text-purple-600 font-bold uppercase">IDCIF: ${s.idcif}</div>`;
+                if(s.pass_afore) info += `<div class="text-[9px] text-red-600 font-black uppercase">PASS: ${s.pass_afore}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
                     <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase ${s.origen === 'PROVEEDOR' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}">${s.origen || 'Portal'}</span></td>
@@ -191,12 +191,7 @@
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
                             <option value="Error: NSS O CURP INCORRECTO" ${s.estatus.includes('NSS O CURP') ? 'selected' : ''}>❌ REEMBOLSO: NSS/CURP</option>
-                            <option value="Error: INCONSISTENCIAS IMSS" ${s.estatus.includes('INCONSISTENCIAS') ? 'selected' : ''}>❌ REEMBOLSO: INCONSISTENCIAS</option>
-                            <option value="Error: FOTOS ILEGIBLES" ${s.estatus.includes('ILEGIBLES') ? 'selected' : ''}>❌ REEMBOLSO: FOTOS</option>
-                            <option value="Error: DOCUMENTO INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ REEMBOLSO: NO EXISTE</option>
                             <option value="Error: CONTRASEÑA INCORRECTA" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ REEMBOLSO: CONTRASEÑA</option>
-                            <option value="Error: LIMITE DE CONSULTAS" ${s.estatus.includes('LIMITE DE CONSULTAS') ? 'selected' : ''}>❌ REEMBOLSO: LIMITE </option>
-                            <option value="Error: ERROR EN IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ REEMBOLSO: ERROR IMSS </option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
@@ -230,7 +225,7 @@
             const campos = [
                 {l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo},
                 {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif},
-                {l:"Sueldo", v:data.sueldo_mensual}, {l:"Correo Respaldo", v:data.correo_respaldo}, {l:"Notas", v:data.notas}, {l:"Fecha Nac", v:data.fecha_nacimiento}
+                {l:"Sueldo", v:data.sueldo_mensual}, {l:"CONTRASEÑA", v:data.pass_afore}, {l:"Correo Respaldo", v:data.correo_respaldo}, {l:"Notas", v:data.notas}, {l:"Fecha Nac", v:data.fecha_nacimiento}
             ];
             campos.forEach(c => { if(c.v) cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
             const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
