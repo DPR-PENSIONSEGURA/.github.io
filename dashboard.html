@@ -151,7 +151,8 @@
 
         const TRAMITES = {
             'IMSS': [
-               
+
+                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
@@ -290,9 +291,9 @@
             let fields = '';
             let precioFinal = costo;
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 30;
+            if (correosVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 19;
             const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-            if (correosUltraVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 29;
+            if (correosUltraVip.includes(emailAsesor) && nombre === 'Semanas Cotizadas') precioFinal = 18;
             
             if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase font-bold">`;
             if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase font-bold tracking-widest">`;
