@@ -13,10 +13,8 @@
         select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
         .seccion-contenido { transition: all 0.3s ease-in-out; overflow: hidden; max-height: 10000px; opacity: 1; }
         .seccion-cerrada { max-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; }
-        .btn-subir { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
-        .btn-descarga { background: #9333ea; color: white; padding: 10px; border-radius: 12px; font-size: 9px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        /* Resaltado de Contraseña */
         .pass-text { font-family: 'Courier New', monospace; color: #dc2626; font-weight: 900; background: #fee2e2; padding: 2px 4px; border-radius: 4px; }
+        .btn-descarga { background: #9333ea; color: white; padding: 10px; border-radius: 12px; font-size: 9px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -70,7 +68,7 @@
                         <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
                         <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
                     </div>
-                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP O NSS..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
+                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR POR CURP O NSS..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
                 </div>
 
                 <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
@@ -91,9 +89,7 @@
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
             <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
-            
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
-            
             <div class="border-t pt-6">
                 <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Documentos Adjuntos</h3>
                 <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
@@ -113,8 +109,9 @@
         const vPass = prompt("Contraseña Admin:");
         if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
 
-        let currentPage = 1; const PAGE_SIZE = 30; let idTramiteActual = ""; let todasLasSoliCargadas = [];
+        let currentPage = 1; const PAGE_SIZE = 30; let todasLasSoliCargadas = [];
 
+        // --- LISTA DE ERRORES BLINDADA ---
         const LISTA_ERRORES_DPR = {
             "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
             "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/",
@@ -131,71 +128,65 @@
         window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
         window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 50) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); c.classList.toggle('seccion-cerrada'); i.innerText = c.classList.contains('seccion-cerrada') ? "▶" : "▼"; };
-        window.abrirCajaFuerte = () => { if(prompt("Clave Maestra:") === "Sashimi$") document.getElementById('modalCajaFuerte').classList.remove('hidden'); else alert("Denegado"); };
+        window.abrirCajaFuerte = () => { if(prompt("Clave Maestra:") === "Sashimi$") alert("Función de Finanzas Activa"); };
         window.cerrarModales = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
 
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250)), (snap) => {
             todasLasSoliCargadas = [];
             snap.forEach(d => todasLasSoliCargadas.push({ id: d.id, ...d.data() }));
-            renderizarTablaPersonalizada(todasLasSoliCargadas.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+            cargarSolicitudes(currentPage);
             document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
         });
+
+        // RECARGAS
+        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
+            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
+            snap.forEach(d => {
+                const r = d.data(), id = d.id;
+                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>` : `<span class="opacity-30 uppercase">${r.estatus}</span>`;
+                t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER TICKET</button></td><td class="p-4 text-right">${btns}</td></tr>`;
+            });
+        });
+
+        window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Aprobar saldo?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
+
+        window.cargarSolicitudes = (pagina = 1) => {
+            const inicio = (pagina - 1) * PAGE_SIZE;
+            renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE));
+        };
 
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
             docsArray.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
-                
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                
-                // --- AJUSTE CLAVE: RESPETAR MAYÚSCULAS/MINÚSCULAS EN PASS ---
-                if(s.pass_afore) info += `<div class="text-[9px] font-black uppercase text-red-500">PASS: <span class="pass-text" style="text-transform: none !important;">${s.pass_afore}</span></div>`;
+                if(s.pass_afore) info += `<div class="text-[9px] font-black text-red-500">PASS: <span style="text-transform: none !important;" class="pass-text">${s.pass_afore}</span></div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
                     <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span></td>
                     <td class="p-4"><div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div></td>
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white">
+                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp está mal') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
+                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
+                            <option value="ERR_FOTOS" ${s.estatus.includes('FOTOS ILEGIBLES') ? 'selected' : ''}>❌ ERR: FOTOS</option>
+                            <option value="ERR_INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ ERR: NO EXISTE</option>
                             <option value="ERR_PASS" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ ERR: CONTRASEÑA</option>
+                            <option value="ERR_LIMITE" ${s.estatus.includes('alguien más las consultó') ? 'selected' : ''}>❌ ERR: LIMITE</option>
+                            <option value="ERR_IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
                         </select>
                     </td>
-                    <td class="p-4 text-right space-x-1">
+                    <td class="p-4 text-right">
                         <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px]">👁️</button>
                     </td>
                 </tr>`;
             });
         }
-
-        window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [
-                {l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo},
-                {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, 
-                {l:"CONTRASEÑA", v:data.pass_afore, isPass: true}, // Marca para no forzar mayúsculas
-                {l:"RFC", v:data.rfc}, {l:"IDCIF", v:data.idcif}, {l:"Sueldo", v:data.sueldo_mensual}
-            ];
-            
-            campos.forEach(c => { 
-                if(c.v) {
-                    const style = c.isPass ? 'text-transform: none !important; font-family: monospace;' : 'text-transform: uppercase;';
-                    cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p>
-                        <p class="text-[11px] font-bold text-slate-800" style="${style}">${c.v}</p>
-                    </div>`;
-                }
-            });
-            
-            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
-            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}];
-            fotos.forEach(f => { if(f.u) contFotos.innerHTML += `<button onclick="window.open('${f.u}')" class="btn-descarga">📥 ${f.l}</button>`; });
-
-            document.getElementById('modalDetalles').classList.remove('hidden');
-        };
 
         window.cambiarEstatus = async (id, val) => {
             const docRef = doc(db, "solicitudes", id);
@@ -205,9 +196,24 @@
                 if (val.startsWith("ERR_") && !s.reembolsado) {
                     await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
                     await updateDoc(docRef, { estatus: est, reembolsado: true });
-                    alert("Reembolso aplicado.");
+                    alert("✅ Reembolso aplicado.");
                 } else { await updateDoc(docRef, { estatus: est }); }
             } catch (e) { alert("Error."); }
+        };
+
+        window.verDetalles = (data) => {
+            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
+            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"PASS", v:data.pass_afore, isPass: true}, {l:"Sueldo", v:data.sueldo_mensual}];
+            campos.forEach(c => { 
+                if(c.v) {
+                    const style = c.isPass ? 'text-transform: none !important;' : 'text-transform: uppercase;';
+                    cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800" style="${style}">${c.v}</p></div>`;
+                }
+            });
+            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
+            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
+            fotos.forEach(f => { if(f.u) contFotos.innerHTML += `<button onclick="window.open('${f.u}')" class="btn-descarga">📥 ${f.l}</button>`; });
+            document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
         window.buscarGlobal = () => {
