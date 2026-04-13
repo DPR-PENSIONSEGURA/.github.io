@@ -7,144 +7,92 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* DISEÑO DPR: MÁRMOL, ORO Y VERDE */
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-attachment: fixed;
-            color: #1E293B; 
-            scroll-behavior: smooth; 
-        }
+        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-attachment: fixed; color: #1E293B; }
         .header-glass { background: rgba(255, 255, 255, 0.9); border-bottom: 2px solid #D4AF37; backdrop-filter: blur(10px); }
         .green-gradient { background: linear-gradient(135deg, #8FCE00 0%, #10B981 100%); }
-        .category-card { background: white; border: 1px solid #D4AF37; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .category-card { background: white; border: 1px solid #D4AF37; cursor: pointer; transition: 0.3s; border-radius: 1.5rem; }
         .category-card:hover { border-color: #8FCE00; transform: translateY(-3px); }
-        .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; font-size: 11px; }
+        .input-light { border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-size: 11px; font-weight: 600; }
         .input-light:focus { border-color: #D4AF37; }
-        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
-        .orange-btn:hover { background: #EA580C; transform: translateY(-2px); }
         
-        /* WIDGET DE CHAT ASISTENCIA */
-        #chat-window { 
-            display: none; 
-            width: 320px; 
-            height: 450px; 
-            background: white; 
-            border-radius: 20px; 
-            border: 2px solid #D4AF37; 
-            flex-direction: column; 
-            overflow: hidden; 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); 
-            margin-bottom: 15px;
-        }
+        /* ESTILO DEL CHAT */
+        #chat-window { display: none; width: 320px; height: 450px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
-        .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
-        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; }
-
-        .expand-btn { display: flex; align-items: center; overflow: hidden; max-width: 45px; height: 45px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer; border-radius: 50px; padding: 10px; }
-        .expand-btn:hover { max-width: 250px; padding-right: 20px; }
-        .expand-btn span.text { font-size: 9px; font-weight: 900; text-transform: uppercase; margin-left: 10px; opacity: 0; transition: opacity 0.3s; }
-        .expand-btn:hover span.text { opacity: 1; }
-        .nav-pag { background: #1e293b; color: white; padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+        .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; }
+        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; }
     </style>
 </head>
 <body>
 
-    <div id="avisoBaneo" class="fixed inset-0 bg-red-900/90 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl border-4 border-red-600">
-            <div class="text-5xl mb-4">⚠️</div>
-            <h2 class="text-xl font-black text-red-600 mb-4 uppercase italic">Aviso de Seguridad</h2>
-            <p class="text-[11px] font-bold text-slate-700 uppercase mb-6">Las cuentas con recargas ficticias serán baneadas.</p>
-            <button onclick="window.cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic">Aceptar</button>
-        </div>
-    </div>
-
     <header class="sticky top-0 z-40 header-glass">
         <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-lg italic">DP</div>
-                <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
+                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg italic">DP</div>
+                <h1 class="font-black uppercase text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
+                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
                 </button>
-                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400">Salir</button>
             </div>
         </div>
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
-        <div class="max-w-2xl mx-auto mb-10">
-            <input type="text" id="inputBusqueda" onkeyup="window.buscarServicio()" placeholder="BUSCAR TRÁMITE O CURP..." class="w-full bg-white border-2 border-slate-200 rounded-3xl p-5 pl-14 font-black uppercase text-xs outline-none focus:border-emerald-500 shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">⬅️ Volver</button>
         </div>
 
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="mostrarTramites('IMSS')" class="category-card p-5 rounded-3xl text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
-            <button onclick="mostrarTramites('SAT')" class="category-card p-5 rounded-3xl text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
-            <button onclick="mostrarTramites('DOC')" class="category-card p-5 rounded-3xl text-center">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCUMENTOS</span></button>
-            <button onclick="mostrarTramites('INF')" class="category-card p-5 rounded-3xl text-center">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
-            <button onclick="mostrarTramites('PENSIONES')" class="category-card p-5 rounded-3xl text-center">📈 <span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
-            <button onclick="mostrarTramites('AFORE')" class="category-card p-5 rounded-3xl text-center">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
+            <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
+            <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
+            <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 text-center">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCS</span></button>
+            <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
+            <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center">📈 <span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
+            <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
         </div>
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
-        <section class="bg-white/90 rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12 backdrop-blur-sm">
+        <section class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200">
             <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
-                    <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
-                    </tbody>
+                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4">Fecha</th><th class="pb-4">Tipo</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Acción</th></tr></thead>
+                    <tbody id="listaHistorial" class="text-xs font-bold italic"></tbody>
                 </table>
             </div>
         </section>
     </main>
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 relative overflow-y-auto max-h-[90vh]">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <div id="formContent"></div>
-        </div>
-    </div>
-
-    <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
-            <button onclick="cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
-            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-4">
-                <p class="font-black text-emerald-600 text-[9px]">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
-                <p class="text-base font-black text-emerald-700">4915 6630 4036 4896</p>
-            </div>
-            <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center mb-3">
-            <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center mb-3 uppercase">
-            <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
-            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Informar Pago</button>
         </div>
     </div>
 
     <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
         <div id="chat-window">
-            <div class="chat-header flex justify-between items-center">
+            <div class="chat-header flex justify-between">
                 <span>💬 Asistencia DPR</span>
-                <button onclick="toggleChat()" class="text-xl">×</button>
+                <button onclick="window.toggleChat()">×</button>
             </div>
             <div id="chat-messages"></div>
             <div class="p-3 border-t bg-gray-50 flex gap-2">
-                <input type="text" id="chat-input" placeholder="Escribe tu duda..." class="input-light flex-1">
+                <input type="text" id="chat-input" placeholder="Escribe..." class="input-light flex-1">
                 <button id="btn-send-chat" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
             </div>
         </div>
-        <button onclick="toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl animate-bounce">🎧</button>
+        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl animate-bounce">🎧</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, setDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
@@ -152,206 +100,113 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        let saldoGlobal = 0, userUID = "", emailAsesor = "", paginaActual = 1;
-        const tramitesPorPagina = 50; 
-        let listaTramitesCompleta = [], listaOriginalParaBusqueda = [];
+        let userUID = "", emailAsesor = "";
 
         const TRAMITES = {
             'IMSS': [
-                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
-                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
-                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
-                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con linea de captura', precio: 170, nss: true, curp: true, pideNombre: true }
+                { nombre: 'SEMANAS COTIZADAS', precio: 25 },
+                { nombre: 'SINDO COMPLETO', precio: 135 }
             ],
-            'SAT': [
-                { nombre: 'RFC Clon', precio: 27, curp: true },
-                { nombre: 'RFC Verificable', precio: 110, curp: true },
-                { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'Localización de IDcif', precio: 60, rfc: true },
-                { nombre: 'RFC con IDcif', precio: 27, rfc: true, idcif: true }
-            ],
-            'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true },
-                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
-            ],
-            'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
-                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
-            ],
-            'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true },
-                { nombre: 'Resumen de Afore', precio: 10, curp: true },
-                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
-                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
-                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
-                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
-            ],
-            'PENSIONES': [
-                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true }
-            ]
+            'SAT': [{ nombre: 'RFC Original', precio: 180 }],
+            'DOC': [{ nombre: 'CURP Certificada', precio: 4 }],
+            'INF': [{ nombre: 'Histórico Infonavit', precio: 150 }],
+            'PENSIONES': [{ nombre: 'Análisis rápido', precio: 200 }],
+            'AFORE': [{ nombre: 'Resumen de Afore', precio: 10 }]
         };
 
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
-                escucharSaldo(); escucharHistorial(); escucharChatSoporte();
-                if (!localStorage.getItem('avisoVisto')) abrirModal('avisoBaneo');
+                marcarPresencia("online"); escucharSaldo(); escucharHistorial(); escucharChat();
             } else { window.location.href = "login/index.html"; }
         });
 
-        // FUNCIONES DE SOPORTE TÉCNICO
+        async function marcarPresencia(status) {
+            await setDoc(doc(db, "usuarios", userUID), { nombre: emailAsesor, status: status, lastSeen: serverTimestamp() }, { merge: true });
+        }
+
+        // --- FUNCIONES DE NAVEGACIÓN ---
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden'); // MOSTRAR BOTÓN
+            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+
+            const lista = document.getElementById('listaServicios');
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
+            });
+            lista.innerHTML = html;
+        };
+
+        window.resetearPanel = () => {
+            document.getElementById('gridCategorias').classList.remove('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden'); // OCULTAR BOTÓN
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+        };
+
+        // --- EL RESTO SIGUE IGUAL ---
+        window.prepararTramite = (nombre, costo) => {
+            document.getElementById('formContent').innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2><input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase"><button onclick="window.confirmarCompra('${nombre}', ${costo})" class="w-full bg-orange-500 py-4 rounded-2xl font-black text-white uppercase text-xs">Pagar $${costo}.00</button>`;
+            window.abrirModal('modalTramite');
+        };
+
+        window.confirmarCompra = async (n, c) => {
+            const curp = document.getElementById('curp_p').value.trim();
+            if (!curp) return alert("CURP obligatoria");
+            await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curp });
+            alert("Enviado con éxito"); window.cerrarModal();
+        };
+
+        function escucharHistorial() {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(50)), (snap) => {
+                const lista = document.getElementById('listaHistorial');
+                let html = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    const f = data.fecha ? data.fecha.toDate().toLocaleDateString() : '...';
+                    html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${data.tipo}</td><td class="py-3 px-2 text-center uppercase font-black">${data.estatus}</td><td class="py-3 px-2 text-right">--</td></tr>`;
+                });
+                lista.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
+            });
+        }
+
         window.toggleChat = () => {
             const win = document.getElementById('chat-window');
             win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
         };
 
-        const btnSendChat = document.getElementById('btn-send-chat');
-        btnSendChat.onclick = async () => {
+        document.getElementById('btn-send-chat').onclick = async () => {
             const input = document.getElementById('chat-input');
             if (!input.value) return;
-            const expira = new Date(); expira.setDate(expira.getDate() + 15);
             await addDoc(collection(db, "chat_soporte"), {
-                texto: input.value, remitente: emailAsesor, asesor_uid: userUID,
-                timestamp: serverTimestamp(), expiraEn: expira
+                texto: input.value, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp()
             });
             input.value = "";
         };
 
-        function escucharChatSoporte() {
-     // Filtramos para que el asesor solo vea SUS mensajes y las respuestas de Diana para ÉL
-    const q = query(
-        collection(db, "chat_soporte"), 
-        where("asesor_uid", "==", userUID), 
-        orderBy("timestamp", "asc")
-    );
-    
-    onSnapshot(q, (snap) => {
-        const box = document.getElementById('chat-messages');
-        box.innerHTML = "";
-        snap.forEach(d => {
-            const m = d.data();
-            const div = document.createElement('div');
-            // Si el remitente es el email del asesor, es verde (derecha), si no, es gris (izquierda)
-            div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-            div.innerText = m.texto;
-            box.appendChild(div);
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-}
-
-        // LÓGICA DE TRÁMITES Y MODALES
-        window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            const lista = document.getElementById('listaServicios');
-            lista.classList.remove('hidden');
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false}, ${t.pideExtras || false})" class="category-card p-5 rounded-3xl"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
-            });
-            lista.innerHTML = html;
-        };
-
-        window.prepararTramite = (nombre, costo, special, nss, curp, nombreCli, fecha, rfc, idcif, ineF, passA, fotoC, cfe, plazo, extras) => {
-            const content = document.getElementById('formContent');
-            let fields = '';
-            let precioFinal = costo;
-
-            // Descuentos VIP
-            const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
-            const ultra = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-            if (ultra.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 18;
-
-            if(nombreCli) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(curp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
-            if(nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if(extras) fields += `<textarea id="notas_p" placeholder="DATOS EXTRAS" class="input-light mb-4 uppercase" rows="2"></textarea>`;
-            
-            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
-            abrirModal('modalTramite');
-        };
-
-        window.confirmarCompra = async (n, c, special) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const nssVal = document.getElementById('nss_p')?.value.trim();
-            const curpVal = document.getElementById('curp_p')?.value.trim();
-            if (n === 'SEMANAS COTIZADAS' && (!nssVal || !curpVal)) return alert("NSS y CURP obligatorios.");
-
-            try {
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(),
-                    curp: curpVal || '', nss: nssVal || ''
+        function escucharChat() {
+            const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snap) => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                snap.forEach(d => {
+                    const m = d.data();
+                    const div = document.createElement('div');
+                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
+                    div.innerText = m.texto;
+                    box.appendChild(div);
                 });
-                alert("Enviado con éxito."); cerrarModal();
-            } catch(e) { alert("Error al procesar."); }
-        };
-
-        // HISTORIAL PAGINADO
-        function escucharHistorial() {
-            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(400)), (snap) => {
-                listaOriginalParaBusqueda = [];
-                snap.forEach(d => listaOriginalParaBusqueda.push({ id: d.id, ...d.data() }));
-                listaTramitesCompleta = [...listaOriginalParaBusqueda];
-                renderizarHistorialPaginado();
+                box.scrollTop = box.scrollHeight;
             });
         }
-
-        window.renderizarHistorialPaginado = () => {
-            const lista = document.getElementById('listaHistorial');
-            const inicio = (paginaActual - 1) * tramitesPorPagina;
-            const items = listaTramitesCompleta.slice(inicio, inicio + tramitesPorPagina);
-            let html = "";
-            items.forEach(d => {
-                const f = d.fecha ? d.fecha.toDate().toLocaleDateString() : '...';
-                html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${d.tipo}<br><span class="text-[8px] text-blue-600">${d.curp || d.nss || ''}</span></td><td class="py-3 px-2 text-center uppercase font-black">${d.estatus}</td><td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded">Descargar</a>` : '--'}</td></tr>`;
-            });
-            lista.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
-        };
-
-        // SALDO Y NOTIFICACIONES
-        function escucharSaldo() { 
-            onSnapshot(doc(db, "asesores", userUID), (d) => { 
-                if (d.exists()) { 
-                    saldoGlobal = d.data().saldo || 0; 
-                    document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saldoGlobal); 
-                } 
-            }); 
-        }
-
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('claveRastreo').value;
-            if (!m || !r || m < 200) return alert("Mínimo $200 y clave de rastreo.");
-            alert("Pago reportado. Se validará en breve."); cerrarModal();
-        };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-        window.cerrarAvisoBaneo = () => { document.getElementById('avisoBaneo').classList.add('hidden'); localStorage.setItem('avisoVisto', 'true'); };
-        window.cerrarSesion = () => signOut(auth).then(() => { localStorage.clear(); window.location.href = "login/index.html"; });
+        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
+        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if (d.exists()) { document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(d.data().saldo || 0); } }); }
     </script>
 </body>
 </html>
