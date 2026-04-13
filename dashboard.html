@@ -16,7 +16,6 @@
         .input-light:focus { border-color: #D4AF37; }
         .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         
-        /* CHAT WIDGET CON MENÚ DE AYUDA */
         #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
@@ -32,7 +31,7 @@
     <div id="avisoBaneo" class="fixed inset-0 bg-red-900/90 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl border-4 border-red-600">
             <h2 class="text-xl font-black text-red-600 mb-4 uppercase italic">Aviso de Seguridad</h2>
-            <p class="text-[11px] font-bold text-slate-700 uppercase mb-6">Cuentas con recargas ficticias serán baneadas.</p>
+            <p class="text-[11px] font-bold text-slate-700 uppercase mb-6">Cuentas con recargas ficticias serán baneadas permanentemente.</p>
             <button onclick="window.cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic">Aceptar</button>
         </div>
     </div>
@@ -44,10 +43,10 @@
                 <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                <button class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
                 </button>
-                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
             </div>
         </div>
     </header>
@@ -82,29 +81,9 @@
         </section>
     </main>
 
-    <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
-        <div id="chat-window">
-            <div class="chat-header flex justify-between">
-                <span>💬 Asistencia DPR</span>
-                <button onclick="window.toggleChat()">×</button>
-            </div>
-            <div id="chat-messages"></div>
-            <div class="help-menu">
-                <button onclick="window.enviarPreguntaRapida('🕒 Horarios')" class="btn-help">🕒 HORARIOS</button>
-                <button onclick="window.enviarPreguntaRapida('💰 Costos')" class="btn-help">💰 COSTOS</button>
-                <button onclick="window.enviarPreguntaRapida('💳 Cuentas')" class="btn-help">💳 CUENTAS</button>
-            </div>
-            <div class="p-3 border-t bg-gray-50 flex gap-2">
-                <input type="text" id="chat-input" placeholder="Escribe..." class="input-light flex-1">
-                <button id="btn-send-chat" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
-            </div>
-        </div>
-        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl animate-bounce">🎧</button>
-    </div>
-
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
             <div id="formContent"></div>
         </div>
     </div>
@@ -122,54 +101,26 @@
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        // RESTAURACIÓN TOTAL DE TRÁMITES Y VARIABLES
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
-                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
-                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con linea de captura', precio: 170, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 27, curp: true },
-                { nombre: 'RFC Verificable', precio: 110, curp: true },
-                { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'Localización de IDcif', precio: 60, rfc: true },
-                { nombre: 'RFC con IDcif', precio: 27, rfc: true, idcif: true }
+                { nombre: 'RFC Verificable', precio: 110, curp: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true },
-                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true }
             ],
             'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
-                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true }
             ],
             'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true },
-                { nombre: 'Resumen de Afore', precio: 10, curp: true },
-                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
-                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
-                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
-                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true }
             ],
             'PENSIONES': [
                 { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true }
@@ -180,221 +131,98 @@
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
-                marcarPresencia("online"); escucharSaldo(); escucharHistorial(); escucharChat();
+                escucharSaldo(); escucharHistorial();
             } else { window.location.href = "login/index.html"; }
         });
 
-        // RESTAURACIÓN DE MODALES DINÁMICOS (CON TODAS LAS VARIABLES)
-        // --- FUNCIONES DE CONTROL DE INTERFAZ (Faltantes) ---
+        // FUNCIONES DE INTERFAZ
+        window.cerrarModal = () => document.getElementById('modalTramite').classList.add('hidden');
+        window.cerrarAvisoBaneo = () => document.getElementById('avisoBaneo').classList.add('hidden');
+        window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
 
-window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); };
-window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); };
+        window.resetearPanel = () => {
+            document.getElementById('gridCategorias').classList.remove('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden');
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+        };
 
-window.resetearPanel = () => {
-    document.getElementById('gridCategorias').classList.remove('hidden');
-    document.getElementById('listaServicios').classList.add('hidden');
-    document.getElementById('btnVolver').classList.add('hidden');
-    document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
-};
-
-window.cerrarAvisoBaneo = () => { document.getElementById('avisoBaneo').classList.add('hidden'); };
-
-window.cerrarSesion = () => {
-    signOut(auth).then(() => { window.location.href = "login/index.html"; });
-};
-
-// --- FUNCIONES DE BASE DE DATOS (Faltantes) ---
-
-function escucharSaldo() {
-    onSnapshot(doc(db, "asesores", userUID), (doc) => {
-        if (doc.exists()) {
-            const saldo = doc.data().saldo || 0;
-            document.getElementById('txtSaldoHeader').innerText = `$${saldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (d) => {
+                if (d.exists()) {
+                    document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX')}`;
+                }
+            });
         }
-    });
-}
 
-async function marcarPresencia(estado) {
-    // Esta función es opcional, sirve para saber si el asesor está activo
-    await setDoc(doc(db, "presencia", userUID), {
-        email: emailAsesor,
-        status: estado,
-        ultima_vez: serverTimestamp()
-    }, { merge: true });
-}
         window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            document.getElementById('listaServicios').classList.remove('hidden');
+            const grid = document.getElementById('gridCategorias'), lista = document.getElementById('listaServicios');
+            grid.classList.add('hidden'); lista.classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
-            const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false}, ${t.pideExtras || false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
 
-        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo, pideExtras) => {
+        window.prepararTramite = (nombre, costo) => {
             const content = document.getElementById('formContent');
-            let fields = '';
-            let precioFinal = costo;
-
-            // Descuentos VIP
-            const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
-            const ultra = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-            if (ultra.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 18;
-
-            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
-            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if(pideExtras) fields += `<textarea id="notas_p" placeholder="DATO EXTRAS" class="input-light mb-4 uppercase" rows="2"></textarea>`;
-            if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE" class="input-light mb-4">`;
-            if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
-            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
-            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
-            if(pideFecha) fields += `<label class="text-[8px] ml-2 text-slate-400">Fecha Nac:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
-
-            if(pideIneFrente || pideFotoCli || special === 'RETIRO' || special === 'REGISTRO') {
-                fields += `<div class="text-left mb-4"><label class="text-[8px] text-slate-400 uppercase">Foto/INE:</label><input type="file" id="file_ine_f" class="w-full text-[10px]"></div>`;
-            }
-
-            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
-            window.abrirModal('modalTramite');
+            content.innerHTML = `
+                <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
+                <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
+                <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                <button onclick="window.confirmarCompra('${nombre}', ${costo})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${costo}.00</button>
+            `;
+            document.getElementById('modalTramite').classList.remove('hidden');
         };
 
-        const subirArchivo = async (id) => {
-            const el = document.getElementById(id);
-            if (el && el.files[0]) {
-                const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await res.json(); return d.secure_url;
-            } return null;
-        };
-
-        window.confirmarCompra = async (n, c, special) => {
-            const btn = document.querySelector("#modalTramite button:last-child");
-            btn.disabled = true; btn.innerText = "PROCESANDO...";
-            
+        window.confirmarCompra = async (n, c) => {
             try {
-                const infoExtra = {};
-                if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
-                if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
-                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
-                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
-                if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
-                if(document.getElementById('file_ine_f')) infoExtra.file_ine_f = await subirArchivo('file_ine_f');
-
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra 
+                    asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(),
+                    curp: document.getElementById('curp_p').value.toUpperCase(),
+                    nss: document.getElementById('nss_p').value
                 });
-                
-                // Envío a n8n
-                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
-
                 alert("Trámite enviado."); window.cerrarModal();
-            } catch(e) { alert("Error."); btn.disabled = false; }
+            } catch(e) { alert("Error."); }
         };
 
-        // LÓGICA DE BOT Y CHAT
-        window.enviarPreguntaRapida = (opcion) => {
-            let r = "";
-            if(opcion === 'QUIERO ASESORIA PERSONALIZADA PARA UNA PENSIÓN') r = "En DPR somos especialistas en temas financieros y de pensión, el costo de el análisis detallado es de $3,000, adjunta aqui el nss, curp, teléfono de contacto, y si tiene alguna duda en específico que quiera resolver, un asesor se comunicará en breve con usted";
-            if(opcion === '💰 Tengo un problema con mi cobro') r = "Adjunta los datos de la solicitud que tiene error, un asesor se comunicará en breve.";
-            if(opcion === 'Quiero asesoria para un PPR') r = " Con gusto!, el costo de la asesoría con proyección financiera es de $1000, los datos que necesitamos son: nss, curp, nombre completo, recursos en el afore al dia de hoy, capacidad de inversión mensual, percepción monrtaria mensual, dudas especificas a resolver en la asesoría, un asesor se comunicará en breve";
-            responderComoBot(opcion, r);
-        };
-
-        async function responderComoBot(preg, resp) {
-            const exp = new Date(); exp.setDate(exp.getDate() + 15);
-            await addDoc(collection(db, "chat_soporte"), { texto: preg, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
-            setTimeout(async () => {
-                await addDoc(collection(db, "chat_soporte"), { texto: resp, remitente: "Asistente DPR", asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
-            }, 1000);
-        }
-
-        window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
-        document.getElementById('btn-send-chat').onclick = async () => {
-            const input = document.getElementById('chat-input');
-            if(!input.value) return;
-            const exp = new Date(); exp.setDate(exp.getDate() + 15);
-            await addDoc(collection(db, "chat_soporte"), { texto: input.value, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
-            if (!localStorage.getItem('bot_saludado')) {
-                setTimeout(() => responderComoBot("Bot", "¡Hola! Un asistente se conectará pronto. ¿En qué ayudamos?"), 1000);
-                localStorage.setItem('bot_saludado', 'true');
-            }
-            input.value = "";
-        };
-
-        function escucharChat() {
-            const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc"));
+        function escucharHistorial() {
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(20));
             onSnapshot(q, (snap) => {
-                const box = document.getElementById('chat-messages'); box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    const div = document.createElement('div');
-                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-                    div.innerText = m.texto; box.appendChild(div);
+                const tbody = document.getElementById('listaHistorial');
+                let html = '';
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const f = d.fecha ? new Date(d.fecha.seconds * 1000).toLocaleDateString() : '...';
+                    let colorStatus = "text-amber-500";
+                    if(d.estatus === "Terminado") colorStatus = "text-emerald-500";
+                    if(d.estatus.includes("Error") || d.estatus.includes("REEMBOLSO")) colorStatus = "text-red-500";
+
+                    html += `
+                        <tr class="border-b border-slate-100">
+                            <td class="py-4 px-2 text-[10px] text-slate-400">${f}</td>
+                            <td class="py-4 px-4">
+                                <div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div>
+                                <div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div>
+                            </td>
+                            <td class="py-4 px-2 text-center"><span class="${colorStatus} text-[9px] uppercase font-black">${d.estatus}</span></td>
+                            <td class="py-4 px-2 text-right">
+                                ${d.estatus === "Terminado" && d.archivoFinal 
+                                    ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg inline-flex items-center gap-1 shadow-sm">
+                                         <span class="text-[9px] font-black uppercase">Descargar</span>
+                                       </a>`
+                                    : `<span class="opacity-20 grayscale">⌛</span>`
+                                }
+                            </td>
+                        </tr>`;
                 });
-                box.scrollTop = box.scrollHeight;
+                tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase">Sin solicitudes</td></tr>';
             });
         }
-// --- FUNCIÓN PARA ESCUCHAR EL HISTORIAL Y RENDERIZAR EL BOTÓN ---
-const escucharHistorial = () => {
-    const q = query(
-        collection(db, "solicitudes"), 
-        where("asesor_uid", "==", userUID),
-        orderBy("fecha", "desc"),
-        limit(20)
-    );
-
-    onSnapshot(q, (snapshot) => {
-        const tbody = document.getElementById('listaHistorial');
-        let html = '';
-
-        if (snapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sin solicitudes aún</td></tr>';
-            return;
-        }
-
-        snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const id = docSnap.id;
-    const fecha = data.fecha ? new Date(data.fecha.seconds * 1000).toLocaleDateString() : '...';
-    
-    // Lógica de colores para el estatus
-    let colorStatus = "text-amber-500";
-    if(data.estatus === "Terminado") colorStatus = "text-emerald-500";
-    // Corregimos para que también detecte tus mensajes de Error/Reembolso en rojo
-    if(data.estatus.includes("Error") || data.estatus.includes("REEMBOLSO")) colorStatus = "text-red-500";
-
-    html += `
-        <tr class="border-b border-slate-100">
-            <td class="py-4 px-2 text-[10px] text-slate-400">${fecha}</td>
-            <td class="py-4 px-4">
-                <div class="text-[10px] text-slate-800 uppercase font-black">${data.tipo}</div>
-                <div class="text-[9px] text-slate-400 font-normal uppercase">${data.curp || data.nss || 'S/N'}</div>
-            </td>
-            <td class="py-4 px-2 text-center">
-                <span class="${colorStatus} text-[9px] uppercase font-black">${data.estatus}</span>
-            </td>
-            <td class="py-4 px-2 text-right">
-                ${data.estatus === "Terminado" && data.archivoFinal // <--- CAMBIO AQUÍ
-                    ? `<a href="${data.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg inline-flex items-center gap-1 hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
-                         <span class="text-[9px] font-black uppercase">Descargar</span>
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                         </svg>
-                       </a>`
-                    : `<span class="opacity-20 grayscale cursor-not-allowed">⌛</span>`
-                }
-            </td>
-        </tr>
-    `;
-});
-        
-</script>
+    </script>
 </body>
 </html>
