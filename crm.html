@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPR Consultoría - Gestión Administrativa</title>
+    
+    <style>
+        /* DISEÑO ELITE: MÁRMOL, ORO Y VERDE CLARO */
+        :root {
+            --accent-gold: #D4AF37;
+            --accent-green: #8FCE00;
+            --text-dark: #1A4D1A;
+            --marble-url: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop');
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-image: var(--marble-url);
+            background-size: cover;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: var(--text-dark);
+            overflow: hidden;
+        }
+
+        /* ANIMACIÓN DE BRILLO */
+        body::before {
+            content: ""; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg); animation: shine 8s infinite; pointer-events: none;
+        }
+        @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
+
+        #login-container {
+            background: rgba(255, 255, 255, 0.95); padding: 40px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px;
+            border: 2px solid var(--accent-gold); backdrop-filter: blur(10px); z-index: 10;
+        }
+
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--accent-gold); outline: none; }
+        
+        button { width: 100%; padding: 12px; background: var(--accent-green); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #7fba00; transform: translateY(-1px); }
+
+        /* PANEL PRINCIPAL */
+        #crm-main {
+            display: none; width: 96%; height: 92vh; background: rgba(255, 255, 255, 0.98);
+            border-radius: 15px; border: 1px solid var(--accent-gold); flex-direction: column;
+            overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.2); z-index: 10;
+        }
+
+        .header { padding: 15px 25px; background: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-gold); }
+
+        .layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* BARRA LATERAL PROSPECTOS */
+        .sidebar { width: 300px; border-right: 1px solid #eee; padding: 15px; background: #fdfdfd; overflow-y: auto; }
+        .prospecto-item { 
+            padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: 0.2s; border-radius: 8px; margin-bottom: 5px;
+        }
+        .prospecto-item:hover { background: #fff9eb; border-left: 4px solid var(--accent-gold); }
+        .prospecto-item.active { background: #f0f7e6; border-left: 4px solid var(--accent-green); }
+
+        .chat-area { flex: 1; display: flex; flex-direction: column; padding: 20px; background: white; }
+        #messages { flex: 1; border: 1px solid #eee; border-radius: 12px; padding: 20px; overflow-y: auto; margin-bottom: 15px; background: #fafafa; }
+
+        #admin-box { background: #fffdf7; padding: 15px; border-top: 2px solid var(--accent-gold); display: none; }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-container">
+        <h2 style="color: var(--accent-gold); font-weight: 300;">DPR CONSULTORÍA</h2>
+        <p style="font-size: 0.8rem; margin-bottom: 20px;">Gestión de Mensajes de Asesoría</p>
+        <input type="password" id="pass-field" placeholder="Contraseña de acceso">
+        <button id="btn-login">ENTRAR</button>
+    </div>
+
+    <div id="crm-main">
+        <div class="header">
+            <strong id="current-chat-name" style="color: var(--accent-gold);">SELECCIONE UN ASESOR</strong>
+            <button id="btn-logout" style="width: auto; background: #e74c3c; padding: 5px 15px;">Cerrar Sesión</button>
+        </div>
+        
+        <div class="layout">
+            <div class="sidebar">
+                <h4 style="color: var(--accent-gold); margin-top: 0;">Prospectos Activos</h4>
+                <div id="contact-list">Cargando asesores...</div>
+            </div>
+            <div class="chat-area">
+                <div id="messages"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="msg-input" placeholder="Escribe la respuesta aquí..." style="margin-bottom: 0;">
+                    <button id="btn-send" style="width: 120px;">ENVIAR</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-box">
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-gold);">🔒 Caja Fuerte (Admin)</h4>
+            <div id="online-status">Monitoreando...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, addDoc, collection, serverTimestamp, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
+            authDomain: "pensionsegura-9c817.firebaseapp.com", 
+            projectId: "pensionsegura-9c817" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const PASS_GESTOR = "dpr2026"; 
+        const PASS_ADMIN = "diana_admin"; 
+        let asesorSeleccionadoId = null;
+        let unsubscribeChat = null;
+
+        // INICIO DE SESIÓN
+        document.getElementById('btn-login').onclick = () => {
+            const pass = document.getElementById('pass-field').value;
+            if (pass === PASS_ADMIN || pass === PASS_GESTOR) {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('crm-main').style.display = 'flex';
+                if (pass === PASS_ADMIN) document.getElementById('admin-box').style.display = 'block';
+                
+                marcarPresencia("online");
+                escucharListaAsesores();
+                escucharPresenciaEquipo();
+            } else {
+                alert("Contraseña incorrecta");
+            }
+        };
+
+        // 1. ESCUCHAR LISTA DE ASESORES (Lado Izquierdo)
+        function escucharListaAsesores() {
+            onSnapshot(collection(db, "usuarios"), (snapshot) => {
+                const listDiv = document.getElementById('contact-list');
+                listDiv.innerHTML = "";
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const div = document.createElement('div');
+                    div.className = `prospecto-item ${asesorSeleccionadoId === id ? 'active' : ''}`;
+                    div.innerHTML = `<strong>${data.nombre || 'Asesor'}</strong><br><small>${id}</small>`;
+                    
+                    div.onclick = () => {
+                        asesorSeleccionadoId = id;
+                        document.getElementById('current-chat-name').innerText = "CHATEANDO CON: " + (data.nombre).toUpperCase();
+                        escucharChatIndividual(id);
+                        escucharListaAsesores(); // Refrescar clase active
+                    };
+                    listDiv.appendChild(div);
+                });
+            });
+        }
+
+        // 2. ESCUCHAR CHAT SELECCIONADO
+        function escucharChatIndividual(userId) {
+            if (unsubscribeChat) unsubscribeChat(); // Limpiar escucha anterior
+            
+            const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userId), orderBy("timestamp", "asc"));
+            
+            unsubscribeChat = onSnapshot(q, (snapshot) => {
+                const msgDiv = document.getElementById('messages');
+                msgDiv.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const m = doc.data();
+                    const p = document.createElement('p');
+                    const esAsistente = m.remitente.includes("Asistente");
+                    p.style.textAlign = esAsistente ? "right" : "left";
+                    p.style.padding = "5px";
+                    p.innerHTML = `<span style="background:${esAsistente ? '#f0f7e6':'#eee'}; padding: 8px; border-radius: 10px; display: inline-block;">
+                        <strong>${m.remitente}:</strong><br>${m.texto}</span>`;
+                    msgDiv.appendChild(p);
+                });
+                msgDiv.scrollTop = msgDiv.scrollHeight;
+            });
+        }
+
+        // 3. ENVIAR RESPUESTA (IMPORTANTE: Vincula al asesor)
+        document.getElementById('btn-send').onclick = async () => {
+            const input = document.getElementById('msg-input');
+            if (!input.value || !asesorSeleccionadoId) return alert("Selecciona un asesor primero");
+
+            const expira = new Date();
+            expira.setDate(expira.getDate() + 15);
+
+            await addDoc(collection(db, "chat_soporte"), {
+                texto: input.value,
+                remitente: "Asistente DPR",
+                asesor_uid: asesorSeleccionadoId, // Vinculación clave
+                timestamp: serverTimestamp(),
+                expiraEn: expira
+            });
+            input.value = "";
+        };
+
+        // PRESENCIA Y OTROS
+        async function marcarPresencia(status) {
+            await setDoc(doc(db, "usuarios", "gestor_1"), { status: status, lastSeen: serverTimestamp() }, { merge: true });
+        }
+
+        function escucharPresenciaEquipo() {
+            onSnapshot(collection(db, "usuarios"), (snap) => {
+                const div = document.getElementById('online-status');
+                div.innerHTML = "";
+                snap.forEach(d => {
+                    const u = d.data();
+                    const col = u.status === "online" ? "#2ecc71" : "#e74c3c";
+                    div.innerHTML += `<p><span class="status-dot" style="background:${col}"></span> ${d.id}: ${u.status}</p>`;
+                });
+            });
+        }
+
+        document.getElementById('btn-logout').onclick = () => { marcarPresencia("offline"); location.reload(); };
+        window.addEventListener('beforeunload', () => marcarPresencia("offline"));
+    </script>
+</body>
+</html>
