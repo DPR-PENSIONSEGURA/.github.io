@@ -236,17 +236,51 @@
             } return null;
         };
 
-        window.confirmarCompra = async (n, c, special) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
-            const infoExtra = {};
-            if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
-            if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
-            if(document.getElementById('file_ine_f')) infoExtra.file_ine_f = await subirArchivo('file_ine_f');
+window.confirmarCompra = async (n, c, special) => {
+    if (saldoGlobal < c) return alert("Saldo insuficiente.");
+    
+    try {
+        const curp = document.getElementById('curp_p').value.toUpperCase();
+        const nss = document.getElementById('nss_p').value;
 
-            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-            await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra });
-            alert("Trámite enviado."); window.cerrarModal();
-        };
+        // 1. Guardamos en Firebase (Lo que ya hace tu código)
+        await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+        const docRef = await addDoc(collection(db, "solicitudes"), { 
+            asesor_uid: userUID, 
+            origen: "ASESOR", 
+            nombre_asesor: emailAsesor, 
+            tipo: n, 
+            costo: c, 
+            estatus: "En Proceso", 
+            fecha: serverTimestamp(), 
+            curp, 
+            nss
+        });
+
+        // 2. ENVÍO A n8n (ESTO ES LO QUE FALTA)
+        // Sustituye la URL de abajo por tu Webhook real de n8n
+        const url_n8n = "TU_URL_DE_WEBHOOK_AQUÍ"; 
+
+        fetch(url_n8n, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_solicitud: docRef.id,
+                asesor: emailAsesor,
+                servicio: n,
+                curp: curp,
+                nss: nss,
+                fecha: new Date().toLocaleString()
+            })
+        }).catch(err => console.log("Error enviando a n8n, pero guardado en Firebase"));
+
+        alert("Trámite enviado con éxito."); 
+        window.cerrarModal();
+
+    } catch(e) { 
+        alert("Error al procesar el trámite."); 
+    }
+};
 
         // NOTIFICAR PAGO (RECARGA)
         window.notificarPago = async () => {
