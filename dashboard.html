@@ -19,7 +19,7 @@
         /* ESTILOS DEL CHAT */
         #chat-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
         #chat-window { display: none; width: 340px; height: 450px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
-        .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; display: flex; justify-content: space-between; }
+        .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; display: flex; justify-content: space-between; width: 100%; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; background: #f8fafc; }
         .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
         .msg-support { background: white; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; border: 1px solid #e2e8f0; }
@@ -40,7 +40,7 @@
                 <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-3">
-                <button class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
                 </button>
                 <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
@@ -49,6 +49,11 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600">⬅️ Volver</button>
+        </div>
+
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
@@ -78,16 +83,38 @@
         </section>
     </main>
 
+    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <div id="formContent"></div>
+        </div>
+    </div>
+
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-4">
+                <p class="font-black text-emerald-600 text-[9px]">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
+                <p class="text-base font-black text-emerald-700">4915 6630 4036 4896</p>
+            </div>
+            <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center mb-3">
+            <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center mb-3 uppercase">
+            <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
+            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs">Informar Pago</button>
+        </div>
+    </div>
+
     <div id="chat-container">
         <div id="chat-window">
-            <div class="chat-header"><span>Soporte DPR</span><button onclick="toggleChat()">×</button></div>
+            <div class="chat-header"><span>Soporte DPR</span><button onclick="window.toggleChat()">×</button></div>
             <div id="chat-messages"><div class="msg-support">¡Hola! ¿Dudas con algún trámite?</div></div>
             <div class="help-menu">
-                <button class="btn-help" onclick="askChat('¿Cómo recargar?')">Recargas</button>
-                <button class="btn-help" onclick="askChat('¿Tiempos de entrega?')">Tiempos</button>
+                <button class="btn-help" onclick="window.askChat('¿Cómo recargar?')">Recargas</button>
+                <button class="btn-help" onclick="window.askChat('¿Tiempos de entrega?')">Tiempos</button>
             </div>
         </div>
-        <button onclick="toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">💬</button>
+        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">🎧</button>
     </div>
 
     <script type="module">
@@ -100,11 +127,67 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let userUID = "", emailAsesor = "";
+        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        let saldoGlobal = 0, userUID = "", emailAsesor = "";
         let todasLasSolicitudes = [];
         let paginaActual = 1;
         const consultasPorPagina = 30;
-        const maxPaginas = 50;
+
+        // TRAMITES COMPLETOS (NO RECORTAR)
+        const TRAMITES = {
+            'IMSS': [
+                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con linea de captura', precio: 170, nss: true, curp: true, pideNombre: true }
+            ],
+            'SAT': [
+                { nombre: 'RFC Clon', precio: 27, curp: true },
+                { nombre: 'RFC Verificable', precio: 110, curp: true },
+                { nombre: 'RFC Original', precio: 180, curp: true },
+                { nombre: 'Localización de IDcif', precio: 60, rfc: true },
+                { nombre: 'RFC con IDcif', precio: 27, rfc: true, idcif: true }
+            ],
+            'DOC': [
+                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+            ],
+            'INF': [
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+            ],
+            'AFORE': [
+                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true },
+                { nombre: 'Resumen de Afore', precio: 10, curp: true },
+                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
+                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
+                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
+            ],
+            'PENSIONES': [
+                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true }
+            ]
+        };
 
         onAuthStateChanged(auth, (user) => {
             if (user) { 
@@ -113,7 +196,63 @@
             } else { window.location.href = "login/index.html"; }
         });
 
-        // --- LÓGICA DE PAGINACIÓN ---
+        // --- FUNCIONES DE NAVEGACIÓN Y MENÚS ---
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+            
+            const lista = document.getElementById('listaServicios');
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special||''}', ${t.nss||false}, ${t.curp||false}, ${t.pideNombre||false}, ${t.pideFecha||false}, ${t.rfc||false}, ${t.idcif||false}, ${t.pideIneFrente||false}, ${t.pidePass||false}, ${t.pideFotoCli||false}, ${t.pideCFE||false}, ${t.eligePlazo||false}, ${t.pideExtras||false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+            });
+            lista.innerHTML = html;
+        };
+
+        window.resetearPanel = () => {
+            document.getElementById('gridCategorias').classList.remove('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden');
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+        };
+
+        window.prepararTramite = (nombre, costo, special, nss, curp, nombreCli, fecha, rfc, idcif, ineF, passA, fotoC, cfe, plazo, extras) => {
+            const content = document.getElementById('formContent');
+            let fields = '';
+            let precioFinal = costo;
+
+            // Descuentos VIP
+            const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+            if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
+            const ultra = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
+            if (ultra.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 18;
+
+            if(nombreCli) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if(curp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
+            if(nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if(extras) fields += `<textarea id="notas_p" placeholder="DATOS EXTRAS" class="input-light mb-4 uppercase" rows="2"></textarea>`;
+            
+            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
+            window.abrirModal('modalTramite');
+        };
+
+        window.confirmarCompra = async (n, c, special) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            const curp = document.getElementById('curp_p')?.value || "";
+            const nss = document.getElementById('nss_p')?.value || "";
+            
+            try {
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                await addDoc(collection(db, "solicitudes"), { 
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss 
+                });
+                alert("Enviado."); window.cerrarModal();
+            } catch(e) { alert("Error al procesar."); }
+        };
+
+        // --- LÓGICA DE TABLA Y PAGINACIÓN ---
         window.renderizarTablaPaginada = () => {
             const tbody = document.getElementById('listaHistorial');
             const inicio = (paginaActual - 1) * consultasPorPagina;
@@ -124,49 +263,30 @@
             fragmento.forEach(d => {
                 const f = d.fecha ? new Date(d.fecha.seconds * 1000).toLocaleDateString() : '...';
                 let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
-                
-                html += `
-                    <tr class="border-b border-slate-100">
-                        <td class="py-4 px-2 text-[10px] text-slate-400">${f}</td>
-                        <td class="py-4 px-4">
-                            <div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div>
-                            <div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div>
-                        </td>
-                        <td class="py-4 px-2 text-center"><span class="${color} text-[9px] uppercase font-black">${d.estatus}</span></td>
-                        <td class="py-4 px-2 text-right">
-                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">Descargar</a>` : `<span class="opacity-20">⌛</span>`}
-                        </td>
-                    </tr>`;
+                html += `<tr class="border-b"><td class="py-4 px-2 text-[10px]">${f}</td><td class="py-4 px-4"><div class="text-[10px] font-black uppercase">${d.tipo}</div><div class="text-[9px] text-slate-400">${d.curp || d.nss || ''}</div></td><td class="py-4 px-2 text-center uppercase font-black ${color}">${d.estatus}</td><td class="py-4 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">Descargar</a>` : '--'}</td></tr>`;
             });
-
-            tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin historial</td></tr>';
-            
-            // Actualizar interfaz de botones
+            tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin registros</td></tr>';
             document.getElementById('infoPagina').innerText = `Página ${paginaActual}`;
             document.getElementById('btnPrev').disabled = (paginaActual === 1);
-            document.getElementById('btnNext').disabled = (paginaActual >= maxPaginas || fin >= todasLasSolicitudes.length);
+            document.getElementById('btnNext').disabled = (fin >= todasLasSolicitudes.length);
         };
 
-        window.cambiarPagina = (direccion) => {
-            paginaActual += direccion;
-            window.renderizarTablaPaginada();
-            document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
-        };
+        window.cambiarPagina = (dir) => { paginaActual += dir; window.renderizarTablaPaginada(); };
 
         function escucharHistorial() {
-            // Cargamos hasta 1500 consultas (50 paginas * 30 consultas)
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(1500));
-            onSnapshot(q, (snap) => {
-                todasLasSolicitudes = [];
-                snap.forEach(docSnap => todasLasSolicitudes.push(docSnap.data()));
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(500)), (snap) => {
+                todasLasSolicitudes = []; snap.forEach(docSnap => todasLasSolicitudes.push(docSnap.data()));
                 window.renderizarTablaPaginada();
             });
         }
 
-        // --- FUNCIONES DE CHAT Y SALDO ---
+        // --- CHAT Y SALDO ---
         function escucharSaldo() {
             onSnapshot(doc(db, "asesores", userUID), (d) => {
-                if (d.exists()) document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX', {minimumFractionDigits:2})}`;
+                if (d.exists()) {
+                    saldoGlobal = d.data().saldo || 0;
+                    document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX', {minimumFractionDigits:2})}`;
+                }
             });
         }
 
@@ -178,12 +298,11 @@
         window.askChat = (q) => {
             const m = document.getElementById('chat-messages');
             m.innerHTML += `<div class="msg-user">${q}</div>`;
-            setTimeout(() => {
-                m.innerHTML += `<div class="msg-support">Consultando...</div>`;
-                m.scrollTop = m.scrollHeight;
-            }, 500);
+            m.scrollTop = m.scrollHeight;
         };
 
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
     </script>
 </body>
