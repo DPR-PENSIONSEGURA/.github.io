@@ -264,9 +264,9 @@
         // LÓGICA DE BOT Y CHAT
         window.enviarPreguntaRapida = (opcion) => {
             let r = "";
-            if(opcion === '🕒 Horarios') r = "Lunes a Viernes 9am - 8pm.";
-            if(opcion === '💰 Costos') r = "Consulta los precios en el panel principal.";
-            if(opcion === '💳 Cuentas') r = "Banorte 4896 a nombre de Diana Puente.";
+            if(opcion === 'QUIERO ASESORIA PERSONALIZADA PARA UNA PENSIÓN') r = "En DPR somos especialistas en temas financieros y de pensión, el costo de el análisis detallado es de $3,000, adjunta aqui el nss, curp, teléfono de contacto, y si tiene alguna duda en específico que quiera resolver, un asesor se comunicará en breve con usted";
+            if(opcion === '💰 Tengo un problema con mi cobro') r = "Adjunta los datos de la solicitud que tiene error, un asesor se comunicará en breve.";
+            if(opcion === 'Quiero asesoria para un PPR') r = " Con gusto!, el costo de la asesoría con proyección financiera es de $1000, los datos que necesitamos son: nss, curp, nombre completo, recursos en el afore al dia de hoy, capacidad de inversión mensual, percepción monrtaria mensual, dudas especificas a resolver en la asesoría, un asesor se comunicará en breve";
             responderComoBot(opcion, r);
         };
 
