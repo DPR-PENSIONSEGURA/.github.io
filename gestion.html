@@ -1,0 +1,70 @@
+// 1. Configuración de contraseñas
+const PASS_GESTOR = "dpr2026"; // Contraseña para el trabajador
+const PASS_ADMIN = "diana_admin"; // Tu contraseña maestra
+
+// 2. Inicializar base de datos (asegúrate que db esté definido en config.js)
+// const db = firebase.firestore(); 
+
+function intentarAcceso() {
+    const pass = document.getElementById('pass-field').value;
+    const adminBox = document.getElementById('admin-box');
+    const crmMain = document.getElementById('crm-main');
+    const loginCont = document.getElementById('login-container');
+
+    if (pass === PASS_ADMIN || pass === PASS_GESTOR) {
+        loginCont.style.display = 'none';
+        crmMain.style.display = 'block';
+
+        // SI ES ADMIN: Ver caja fuerte. SI ES GESTOR: Ocultarla.
+        adminBox.style.display = (pass === PASS_ADMIN) ? 'block' : 'none';
+
+        marcarEstado("online");
+        iniciarCRM(); // Aquí debe ir tu lógica de cargar mensajes
+        escucharPresencia();
+    } else {
+        alert("Contraseña incorrecta");
+    }
+}
+
+// MARCAR PRESENCIA
+function marcarEstado(status) {
+    // Importante: db debe venir de tu config.js
+    db.collection("usuarios").doc("gestor_1").set({
+        nombre: "Asistente de Atención",
+        status: status,
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+}
+
+// CAJA FUERTE: VER QUIÉN ESTÁ EN LÍNEA
+function escucharPresencia() {
+    db.collection("usuarios").onSnapshot((snapshot) => {
+        const statusDiv = document.getElementById('online-status');
+        statusDiv.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const user = doc.data();
+            const color = user.status === "online" ? "#2ecc71" : "#e74c3c";
+            statusDiv.innerHTML += `
+                <div style="margin-bottom: 5px;">
+                    <span style="color:${color}; font-size: 20px;">●</span> 
+                    <strong>${user.nombre}:</strong> ${user.status}
+                </div>`;
+        });
+    });
+}
+
+function cerrarSesion() {
+    marcarEstado("offline");
+    location.reload();
+}
+
+// Detectar si cierra la pestaña
+window.addEventListener('beforeunload', () => {
+    marcarEstado("offline");
+});
+
+// Función temporal para que no marque error al no encontrarla
+function iniciarCRM() {
+    console.log("CRM Iniciado y cargando chats...");
+    // Aquí conectarás la carga de mensajes de Firebase
+}
