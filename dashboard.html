@@ -273,7 +273,7 @@ window.confirmarCompra = async (n, c, special) => {
 
         // 2. ENVÍO A n8n (ESTO ES LO QUE FALTA)
         // Sustituye la URL de abajo por tu Webhook real de n8n
-        const url_n8n = "TU_URL_DE_WEBHOOK_AQUÍ"; 
+        const url_n8n = "https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta"; 
 
         fetch(url_n8n, {
             method: 'POST',
@@ -286,7 +286,7 @@ window.confirmarCompra = async (n, c, special) => {
                 nss: nss,
                 fecha: new Date().toLocaleString()
             })
-        }).catch(err => console.log("Error enviando a n8n, pero guardado en Firebase"));
+        }).catch(err => console.log("Error en la base de datos"));
 
         alert("Trámite enviado con éxito."); 
         window.cerrarModal();
