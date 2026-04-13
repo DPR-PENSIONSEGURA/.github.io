@@ -239,18 +239,27 @@
         };
 
         function escucharChatSoporte() {
-            const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc"));
-            onSnapshot(q, (snap) => {
-                const box = document.getElementById('chat-messages'); box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    const div = document.createElement('div');
-                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-                    div.innerText = m.texto; box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        }
+     // Filtramos para que el asesor solo vea SUS mensajes y las respuestas de Diana para ÉL
+    const q = query(
+        collection(db, "chat_soporte"), 
+        where("asesor_uid", "==", userUID), 
+        orderBy("timestamp", "asc")
+    );
+    
+    onSnapshot(q, (snap) => {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = "";
+        snap.forEach(d => {
+            const m = d.data();
+            const div = document.createElement('div');
+            // Si el remitente es el email del asesor, es verde (derecha), si no, es gris (izquierda)
+            div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
+            div.innerText = m.texto;
+            box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+}
 
         // LÓGICA DE TRÁMITES Y MODALES
         window.mostrarTramites = (cat) => {
