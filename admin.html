@@ -11,7 +11,7 @@
         .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
         .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
         select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
-        .seccion-contenido { transition: all 0.3s ease-in-out; overflow: hidden; max-height: 10000px; opacity: 1; }
+        .seccion-contenido { transition: all 0.3s ease-in-out; overflow: hidden; max-height: 20000px; opacity: 1; }
         .seccion-cerrada { max-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; }
         .btn-blue { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
         .btn-blue:hover { background: #1e40af; }
@@ -85,6 +85,23 @@
         </section>
     </div>
 
+    <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
+            <h2 class="text-2xl font-black mb-6 uppercase italic text-slate-800">Finanzas DPR</h2>
+            <div class="space-y-6">
+                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día (Terminados)</p>
+                    <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
+                </div>
+                <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
+                    <p class="text-[10px] font-black uppercase text-purple-600 mb-1">Total Asesores</p>
+                    <p id="txtAsesores" class="text-4xl font-black text-purple-800">0</p>
+                </div>
+            </div>
+            <button onclick="window.cerrarModales()" class="mt-8 text-slate-400 font-black text-[10px] uppercase italic tracking-widest">Cerrar</button>
+        </div>
+    </div>
+
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
@@ -138,14 +155,32 @@
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); c.classList.toggle('seccion-cerrada'); i.innerText = c.classList.contains('seccion-cerrada') ? "▶" : "▼"; };
         window.cerrarModales = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
 
-        // TIEMPO REAL
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(250)), (snap) => {
+        // --- CAJA FUERTE ---
+        window.abrirCajaFuerte = () => {
+            if(prompt("Clave Maestra:") === PASS_DIANA) {
+                document.getElementById('modalCajaFuerte').classList.remove('hidden');
+            } else { alert("Acceso Denegado"); }
+        };
+
+        // TIEMPO REAL VISITAS Y ASESORES
+        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
+        onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
+
+        // TIEMPO REAL SOLICITUDES (PAGINACIÓN INFINITA HASTA 1500 REGISTROS)
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1500)), (snap) => {
             todasLasSoliCargadas = [];
-            snap.forEach(d => todasLasSoliCargadas.push({ id: d.id, ...d.data() }));
+            let ganancia = 0; let hoy = new Date().toLocaleDateString();
+            snap.forEach(d => {
+                const data = d.id ? { id: d.id, ...d.data() } : d.data();
+                todasLasSoliCargadas.push(data);
+                if(data.fecha?.toDate().toLocaleDateString() === hoy && data.estatus === 'Terminado') ganancia += Number(data.costo || 0);
+            });
             cargarSolicitudes(currentPage);
             document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
+            document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
         });
 
+        // RECARGAS
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
@@ -157,7 +192,10 @@
 
         window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Confirmar acción?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
 
-        window.cargarSolicitudes = (pagina = 1) => { const inicio = (pagina - 1) * PAGE_SIZE; renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE)); };
+        window.cargarSolicitudes = (pagina = 1) => {
+            const inicio = (pagina - 1) * PAGE_SIZE;
+            renderizarTablaPersonalizada(todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE));
+        };
 
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
@@ -221,7 +259,6 @@
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
-        // --- MOTOR DE SUBIDA ---
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
         
         document.getElementById('btnGuardarFinal').onclick = async () => {
