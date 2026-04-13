@@ -380,7 +380,7 @@ const escucharHistorial = () => {
                         <span class="${colorStatus} text-[9px] uppercase font-black">${data.estatus}</span>
                     </td>
                     <td class="py-4 px-2 text-right">
-                        ${data.estatus === "Completado" && data.url_resultado 
+                        ${data.estatus === "Terminado" && data.url_resultado 
                             ? `<a href="${data.url_resultado}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg inline-flex items-center gap-1 hover:bg-emerald-600 hover:text-white transition-all">
                                  <span class="text-[9px] font-black uppercase">Descargar</span>
                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
