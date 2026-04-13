@@ -5,324 +5,252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DPR Consultoría - CRM Privado</title>
     
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
-
     <style>
-        /* 2. DISEÑO PROFESIONAL ELEGANTE (CSS) */
+        /* DISEÑO PROFESIONAL: MÁRMOL, DORADO Y VERDE */
         :root {
-            /* Paleta de colores solicitada */
-            --bg-base: #FFFFFF;
-            --panel-bg: rgba(255, 255, 255, 0.95); /* Blanco sólido con ligera transparencia para el mármol */
-            --text-dark: #1A4D1A; /* Verde oscuro para máxima legibilidad del texto */
-            --heading-color: #C5A059; /* Dorado para títulos */
-            --accent-green-light: #8FCE00; /* Verde claro vibrante para botones de acción */
-            --accent-green-hover: #7FBA00; /* Verde ligeramente más oscuro para hover */
-            --accent-gold-classic: #D4AF37; /* Dorado clásico para bordes y acentos */
-            --border-light: #E0E0E0; /* Gris muy claro para bordes internos */
-            --message-bg: #F8FBF8; /* Fondo muy suave para el área de mensajes */
+            --accent-gold: #D4AF37;
+            --accent-green: #8FCE00;
+            --text-dark: #1A4D1A;
+            --white-marble: #fdfdfd;
         }
 
         body {
-            /* Fondo de mármol integrando blanco, dorado y verde claro */
-            background-color: var(--bg-base);
-            /* Asegúrate de tener una imagen de mármol adecuada en tu carpeta de GitHub */
-            background-image: url('marble_dpr_theme.jpg'); 
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            
-            color: var(--text-dark);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f0f0;
+            /* Si tienes una imagen de mármol, asegúrate que se llame marble.jpg */
+            background-image: url('marble.jpg'); 
+            background-size: cover;
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-        }
-
-        /* Estilo para la Caja de Login */
-        #login-container {
-            background: var(--panel-bg);
-            padding: 50px 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1); /* Sombra suave */
-            text-align: center;
-            width: 380px;
-            border: 2px solid var(--accent-gold-classic); /* Borde dorado */
-            backdrop-filter: blur(5px); /* Efecto borroso suave sobre el mármol */
-        }
-
-        #login-container h2 {
-            color: var(--accent-gold-classic);
-            font-weight: 300;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        /* Campos de texto oscuros para legibilidad */
-        input[type="password"], input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-gold-classic);
-            background: rgba(255, 255, 255, 0.8);
             color: var(--text-dark);
-            box-sizing: border-box;
-            font-size: 16px;
         }
-        
-        input::placeholder { color: rgba(26, 77, 26, 0.6); }
 
-        /* Botones Verde Claro */
+        #login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+            border: 2px solid var(--accent-gold);
+            backdrop-filter: blur(10px);
+        }
+
+        h2 { color: var(--accent-gold); margin-bottom: 20px; font-weight: 300; letter-spacing: 1px; }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-gold);
+            box-sizing: border-box;
+            background: white;
+        }
+
         button {
             width: 100%;
-            padding: 15px;
-            background-color: var(--accent-green-light);
+            padding: 12px;
+            background-color: var(--accent-green);
             border: none;
             border-radius: 8px;
             color: white;
             font-weight: bold;
-            font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(143, 206, 0, 0.3);
+            transition: 0.3s;
         }
 
-        button:hover { 
-            background-color: var(--accent-green-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(143, 206, 0, 0.4);
-        }
+        button:hover { background-color: #7fba00; transform: translateY(-1px); }
 
-        /* Estilo del Panel CRM Principal */
+        /* PANEL PRINCIPAL */
         #crm-main {
-            display: none; /* Oculto inicialmente */
+            display: none;
             width: 96%;
             height: 92vh;
-            background: var(--panel-bg);
+            background: rgba(255, 255, 255, 0.98);
             border-radius: 12px;
+            border: 1px solid var(--accent-gold);
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid var(--accent-gold-classic);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         }
 
-        /* Encabezado elegante con Dorado */
         .header {
-            padding: 18px 25px;
-            background: rgba(26, 77, 26, 0.03); /* Fondo muy ligero verde */
+            padding: 15px 25px;
+            background: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--accent-gold-classic);
-        }
-        
-        .header strong {
-            color: var(--accent-gold-classic);
-            font-size: 20px;
-            font-weight: 400;
-            letter-spacing: 1px;
+            border-bottom: 2px solid var(--accent-gold);
         }
 
         .layout { display: flex; flex: 1; overflow: hidden; }
 
-        /* Barra lateral Prospectos */
-        .sidebar { 
-            width: 280px; 
-            border-right: 1px solid var(--border-light); 
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.5);
-        }
-        
-        .sidebar h3 { color: var(--accent-gold-classic); font-weight: 400; border-bottom: 1px solid var(--border-light); padding-bottom: 10px; }
+        .sidebar { width: 280px; border-right: 1px solid #eee; padding: 20px; background: #fafafa; }
 
-        /* Área de Chat */
-        .chat-area { flex: 1; display: flex; flex-direction: column; padding: 25px; background: #FAFDF8; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; padding: 20px; background: white; }
 
-        #messages { 
-            flex: 1; 
-            background: white; 
-            border-radius: 10px; 
-            margin-bottom: 20px; 
-            padding: 20px; 
-            overflow-y: auto; 
-            border: 1px solid var(--border-light);
-        }
+        #messages { flex: 1; border: 1px solid #eee; border-radius: 8px; padding: 15px; overflow-y: auto; margin-bottom: 15px; }
 
-        /* Área de input de mensajes */
-        .input-group { display: flex; gap: 15px; padding-top: 10px; border-top: 1px solid var(--border-light); }
-        .input-group input { margin-bottom: 0; flex: 1; border-color: var(--border-light); }
-        .input-group button { width: 120px; margin-bottom: 0; }
-
-        /* Caja Fuerte (Solo Admin) */
         #admin-box {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-top: 2px solid var(--accent-gold-classic);
-            display: none; /* Oculto por defecto */
+            background: #fff9eb;
+            padding: 15px;
+            border-top: 2px solid var(--accent-gold);
+            display: none;
         }
-        
-        #admin-box h4 { color: var(--accent-gold-classic); margin-top: 0; font-weight: 400; }
 
-        /* Punto de estado online/offline */
-        .status-dot { height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
     </style>
 </head>
 <body>
 
     <div id="login-container">
-        <h2>DPR Consultoría</h2>
-        <p style="color: var(--text-dark); margin-bottom: 30px; font-weight: 300;">Sistema Privado de Gestión</p>
+        <h2>DPR CONSULTORÍA</h2>
+        <p>Gestión de Asesorías</p>
         <input type="password" id="pass-field" placeholder="Contraseña de acceso">
-        <button onclick="intentarAcceso()">ENTRAR AL CRM</button>
+        <button id="btn-login">ENTRAR AL CRM</button>
     </div>
 
     <div id="crm-main">
         <div class="header">
-            <strong>DPR - Gestión de Clientes</strong>
-            <button onclick="cerrarSesion()" style="width: auto; padding: 7px 20px; background: #e74c3c; box-shadow: none; font-size: 14px;">Cerrar Sesión</button>
+            <strong style="color: var(--accent-gold);">PANEL DE CONTROL DPR</strong>
+            <button id="btn-logout" style="width: auto; background: #e74c3c; padding: 5px 15px;">Cerrar Sesión</button>
         </div>
         
         <div class="layout">
             <div class="sidebar">
-                <h3>Prospectos</h3>
-                <div id="contact-list" style="color: #666; font-style: italic;">Cargando lista...</div>
+                <h4 style="color: var(--accent-gold);">Prospectos Activos</h4>
+                <div id="contact-list">Cargando lista...</div>
             </div>
             <div class="chat-area">
-                <div id="messages">
-                    <p style="color: #888; text-align: center; margin-top: 50px;">Selecciona un prospecto para ver la conversación.</p>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="msg-input" placeholder="Escribe la respuesta de asesoría...">
-                    <button onclick="enviarMensaje()">ENVIAR</button>
+                <div id="messages"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="msg-input" placeholder="Escribe la asesoría aquí..." style="margin-bottom: 0;">
+                    <button id="btn-send" style="width: 120px;">ENVIAR</button>
                 </div>
             </div>
         </div>
 
         <div id="admin-box">
-            <h4><span style="color: var(--accent-gold-classic);">🔒</span> Caja Fuerte: Estado del Equipo</h4>
-            <div id="online-status" style="font-size: 15px;">Revisando conexión del personal...</div>
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-gold);">🔒 Caja Fuerte (Admin)</h4>
+            <div id="online-status">Monitoreando personal...</div>
         </div>
     </div>
 
-    <script>
-        // CONFIGURACIÓN DE ACCESO (Cámbialas por seguridad)
-        const PASS_GESTOR = "dpr2026"; // Contraseña para el asistente
-        const PASS_ADMIN = "diana_admin"; // Tu contraseña maestra
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, addDoc, collection, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // IMPORTANTE: Asegúrate de tener tu archivo 'config.js' en la misma carpeta para inicializar Firebase.
-        // Si no usas archivo separado, pega aquí: const firebaseConfig = { ... }; firebase.initializeApp(firebaseConfig);
-        // const db = firebase.firestore();
+        // TUS CREDENCIALES INTEGRADAS
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
+            authDomain: "pensionsegura-9c817.firebaseapp.com", 
+            projectId: "pensionsegura-9c817" 
+        };
 
-        function intentarAcceso() {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // CONFIGURACIÓN DE ACCESO
+        const PASS_GESTOR = "dpr2026"; 
+        const PASS_ADMIN = "diana_admin"; 
+
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const btnSend = document.getElementById('btn-send');
+
+        // FUNCIÓN DE ENTRADA
+        async function intentarAcceso() {
             const pass = document.getElementById('pass-field').value;
-            const crmMain = document.getElementById('crm-main');
-            const loginBox = document.getElementById('login-container');
-            const adminBox = document.getElementById('admin-box');
-
             if (pass === PASS_ADMIN || pass === PASS_GESTOR) {
-                // Ocultar login, mostrar CRM
-                loginBox.style.display = 'none';
-                crmMain.style.display = 'flex'; // Usamos flex para el layout correcto
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('crm-main').style.display = 'flex';
 
-                // Validación de Admin para la Caja Fuerte
                 if (pass === PASS_ADMIN) {
-                    adminBox.style.display = 'block';
-                    console.log("Acceso de Administrador confirmado.");
-                } else {
-                    console.log("Acceso de Gestor confirmado.");
+                    document.getElementById('admin-box').style.display = 'block';
                 }
 
-                // Iniciar las funciones de tiempo real
-                iniciarFunciones();
+                await marcarPresencia("online");
+                iniciarEscuchaPresencia();
+                iniciarEscuchaChats();
             } else {
-                alert("Contraseña incorrecta. Por favor, intente de nuevo.");
-                document.getElementById('pass-field').value = ""; // Limpiar campo
+                alert("Contraseña incorrecta");
             }
         }
 
-        // Función centralizada para iniciar la escucha de datos
-        function iniciarFunciones() {
+        // MARCAR ESTADO (Online/Offline)
+        async function marcarPresencia(status) {
             try {
-                // Solo ejecutar si Firebase está definido (db viene de config.js)
-                if (typeof db !== 'undefined') {
-                    marcarEstado("online");
-                    escucharPresencia();
-                    console.log("Conexión con Firebase establecida correctamente.");
-                    // Aquí añadirías la lógica para cargar los mensajes reales
-                } else {
-                    console.warn("Firebase no detectado. Revisa tu archivo config.js.");
-                    document.getElementById('online-status').innerText = "Firebase no configurado.";
-                    document.getElementById('contact-list').innerText = "Sin conexión a base de datos.";
-                }
-            } catch (e) {
-                console.error("Error crítico al iniciar funciones:", e);
-            }
-        }
-
-        // Control de Presencia (Online/Offline)
-        function marcarEstado(status) {
-            if (typeof db !== 'undefined') {
-                db.collection("usuarios").doc("gestor_1").set({
-                    nombre: "Asistente DPR",
+                const userRef = doc(db, "usuarios", "gestor_1");
+                await setDoc(userRef, {
+                    nombre: "Gestor DPR",
                     status: status,
-                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    lastSeen: serverTimestamp()
                 }, { merge: true });
-            }
+            } catch (e) { console.error("Error de presencia:", e); }
         }
 
-        // Caja Fuerte: Escuchar en tiempo real quién está en línea
-        function escucharPresencia() {
-            if (typeof db !== 'undefined') {
-                db.collection("usuarios").onSnapshot((snapshot) => {
-                    const statusDiv = document.getElementById('online-status');
-                    statusDiv.innerHTML = ""; // Limpiar antes de actualizar
-                    snapshot.forEach((doc) => {
-                        const user = doc.data();
-                        // Verde para online, Rojo para offline
-                        const color = user.status === "online" ? "#2ecc71" : "#e74c3c";
-                        statusDiv.innerHTML += `
-                            <p style="margin: 8px 0; display: flex; align-items: center;">
-                                <span class="status-dot" style="background:${color}"></span> 
-                                <strong>${user.nombre}</strong>: 
-                                <span style="color:${color}; margin-left: 5px; font-weight: bold;">${user.status}</span>
-                            </p>`;
-                    });
+        // VER QUIÉN ESTÁ EN LÍNEA (Caja Fuerte)
+        function iniciarEscuchaPresencia() {
+            onSnapshot(collection(db, "usuarios"), (snapshot) => {
+                const statusDiv = document.getElementById('online-status');
+                statusDiv.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const color = data.status === "online" ? "#2ecc71" : "#e74c3c";
+                    statusDiv.innerHTML += `<p><span class="status-dot" style="background:${color}"></span> ${data.nombre}: <strong>${data.status}</strong></p>`;
                 });
-            }
+            });
         }
 
-        // Lógica de Mensajes (Simulación con TTL de 15 días)
-        function enviarMensaje() {
-            const txt = document.getElementById('msg-input').value;
-            if(!txt) return;
-            
+        // CARGAR CHATS EN TIEMPO REAL
+        function iniciarEscuchaChats() {
+            const q = query(collection(db, "chat_soporte"), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const msgDiv = document.getElementById('messages');
+                msgDiv.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const m = doc.data();
+                    const p = document.createElement('p');
+                    p.innerHTML = `<strong>${m.remitente}:</strong> ${m.texto}`;
+                    msgDiv.appendChild(p);
+                });
+                msgDiv.scrollTop = msgDiv.scrollHeight;
+            });
+        }
+
+        // ENVIAR MENSAJE CON TTL DE 15 DÍAS
+        async function enviarMensaje() {
+            const input = document.getElementById('msg-input');
+            if (!input.value) return;
+
             const expira = new Date();
-            expira.setDate(expira.getDate() + 15); // Sumamos 15 días para la caducidad automático
+            expira.setDate(expira.getDate() + 15);
 
-            console.log("Mensaje de asesoría enviado (caducará en 15 días):", txt);
-            
-            // Aquí añadirías la lógica real para guardar en Firebase 'chat_soporte'
-            // db.collection("chat_soporte").add({ texto: txt, expiraEn: expira, ... });
-            
-            document.getElementById('msg-input').value = ""; // Limpiar input
+            await addDoc(collection(db, "chat_soporte"), {
+                texto: input.value,
+                remitente: "Asistente",
+                timestamp: serverTimestamp(),
+                expiraEn: expira // Este es el campo para la regla TTL de Firebase
+            });
+            input.value = "";
         }
 
-        function cerrarSesion() {
-            if (confirm("¿Estás segura de que quieres cerrar la sesión?")) {
-                marcarEstado("offline");
-                location.reload(); // Recargar página para volver al login
-            }
-        }
-
-        // Asegurar que si cierra la pestaña, aparezca como offline
-        window.addEventListener('beforeunload', (event) => {
-            marcarEstado("offline");
+        // EVENTOS
+        btnLogin.addEventListener('click', intentarAcceso);
+        btnSend.addEventListener('click', enviarMensaje);
+        btnLogout.addEventListener('click', () => {
+            marcarPresencia("offline");
+            location.reload();
         });
+
+        // Offline al cerrar pestaña
+        window.addEventListener('beforeunload', () => marcarPresencia("offline"));
+
     </script>
 </body>
 </html>
