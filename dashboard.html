@@ -10,21 +10,32 @@
         body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-attachment: fixed; color: #1E293B; scroll-behavior: smooth; }
         .header-glass { background: rgba(255, 255, 255, 0.9); border-bottom: 2px solid #D4AF37; backdrop-filter: blur(10px); }
         .green-gradient { background: linear-gradient(135deg, #8FCE00 0%, #10B981 100%); }
-        .category-card { background: white; border: 1px solid #D4AF37; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-radius: 1.5rem; }
+        .category-card { background: white; border: 1px solid #D4AF37; transition: all 0.3s ease; cursor: pointer; border-radius: 1.5rem; }
         .category-card:hover { border-color: #8FCE00; transform: translateY(-3px); }
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; font-size: 11px; }
         .input-light:focus { border-color: #D4AF37; }
         .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         
-        /* CHAT WIDGET */
-        #chat-window { display: none; width: 320px; height: 450px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        /* CHAT WIDGET CON MENÚ DE AYUDA */
+        #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
-        .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; }
-        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; }
+        .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
+        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; }
+        
+        .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: #f9f9f9; border-top: 1px solid #eee; }
+        .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; }
     </style>
 </head>
 <body>
+
+    <div id="avisoBaneo" class="fixed inset-0 bg-red-900/90 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl border-4 border-red-600">
+            <h2 class="text-xl font-black text-red-600 mb-4 uppercase italic">Aviso de Seguridad</h2>
+            <p class="text-[11px] font-bold text-slate-700 uppercase mb-6">Cuentas con recargas ficticias serán baneadas.</p>
+            <button onclick="window.cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic">Aceptar</button>
+        </div>
+    </div>
 
     <header class="sticky top-0 z-40 header-glass">
         <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
@@ -33,7 +44,7 @@
                 <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
+                <button onclick="abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
                 </button>
                 <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400">Salir</button>
@@ -43,7 +54,7 @@
 
     <main class="p-6 max-w-7xl mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Servicios DPR</h2>
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
             <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600">⬅️ Volver</button>
         </div>
 
@@ -58,23 +69,18 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
-        <section class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200">
-            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial</h2>
+        <section class="bg-white/90 rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
+            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4">Fecha</th><th class="pb-4">Tipo</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Acción</th></tr></thead>
-                    <tbody id="listaHistorial" class="text-xs font-bold italic"></tbody>
+                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
+                    <tbody id="listaHistorial" class="text-xs font-bold italic">
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
+                    </tbody>
                 </table>
             </div>
         </section>
     </main>
-
-    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
-            <div id="formContent"></div>
-        </div>
-    </div>
 
     <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
         <div id="chat-window">
@@ -83,12 +89,24 @@
                 <button onclick="window.toggleChat()">×</button>
             </div>
             <div id="chat-messages"></div>
+            <div class="help-menu">
+                <button onclick="window.enviarPreguntaRapida('🕒 Horarios')" class="btn-help">🕒 HORARIOS</button>
+                <button onclick="window.enviarPreguntaRapida('💰 Costos')" class="btn-help">💰 COSTOS</button>
+                <button onclick="window.enviarPreguntaRapida('💳 Cuentas')" class="btn-help">💳 CUENTAS</button>
+            </div>
             <div class="p-3 border-t bg-gray-50 flex gap-2">
                 <input type="text" id="chat-input" placeholder="Escribe..." class="input-light flex-1">
                 <button id="btn-send-chat" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
             </div>
         </div>
         <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl animate-bounce">🎧</button>
+    </div>
+
+    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <div id="formContent"></div>
+        </div>
     </div>
 
     <script type="module">
@@ -101,12 +119,15 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // DATA COMPLETA RESTAURADA (PROHIBIDO RECORTAR)
+        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        // RESTAURACIÓN TOTAL DE TRÁMITES Y VARIABLES
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true,  pideNombre: true , curp: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
@@ -142,7 +163,7 @@
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true },
                 { nombre: 'Resumen de Afore', precio: 10, curp: true },
                 { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
                 { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
@@ -156,7 +177,6 @@
         };
 
         let userUID = "", emailAsesor = "";
-
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
@@ -164,10 +184,7 @@
             } else { window.location.href = "login/index.html"; }
         });
 
-        async function marcarPresencia(status) {
-            await setDoc(doc(db, "usuarios", userUID), { nombre: emailAsesor, status: status, lastSeen: serverTimestamp() }, { merge: true });
-        }
-
+        // RESTAURACIÓN DE MODALES DINÁMICOS (CON TODAS LAS VARIABLES)
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
@@ -176,68 +193,101 @@
             const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special||''}', ${t.nss||false}, ${t.curp||false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special || ''}', ${t.nss || false}, ${t.curp || false}, ${t.pideNombre || false}, ${t.pideFecha || false}, ${t.rfc || false}, ${t.idcif || false}, ${t.pideIneFrente || false}, ${t.pidePass || false}, ${t.pideFotoCli || false}, ${t.pideCFE || false}, ${t.eligePlazo || false}, ${t.pideExtras || false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
 
-        window.resetearPanel = () => {
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
-        };
-
-        window.prepararTramite = (nombre, costo, special, nss, curp) => {
+        window.prepararTramite = (nombre, costo, special, pideNss, pideCurp, pideNombre, pideFecha, pideRfc, pideIdcif, pideIneFrente, pidePass, pideFotoCli, pideCFE, eligePlazo, pideExtras) => {
+            const content = document.getElementById('formContent');
+            let fields = '';
             let precioFinal = costo;
-            // Descuentos VIP Originales
+
+            // Descuentos VIP
             const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
             if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
             const ultra = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
             if (ultra.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 18;
 
-            let fields = '';
-            if(curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
-            if(nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if(pideNombre) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if(pideCurp || special === 'RETIRO' || special === 'REGISTRO' || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
+            if(pideNss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if(pideExtras) fields += `<textarea id="notas_p" placeholder="DATO EXTRAS" class="input-light mb-4 uppercase" rows="2"></textarea>`;
+            if(pidePass) fields += `<input type="text" id="pass_afore" placeholder="CONTRASEÑA AFORE" class="input-light mb-4">`;
+            if(pideCFE) fields += `<input type="number" id="num_servicio" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
+            if(pideRfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
+            if(pideIdcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
+            if(pideFecha) fields += `<label class="text-[8px] ml-2 text-slate-400">Fecha Nac:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
 
-            document.getElementById('formContent').innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full bg-orange-500 py-4 rounded-2xl font-black text-white uppercase text-xs">Pagar $${precioFinal}.00</button>`;
+            if(pideIneFrente || pideFotoCli || special === 'RETIRO' || special === 'REGISTRO') {
+                fields += `<div class="text-left mb-4"><label class="text-[8px] text-slate-400 uppercase">Foto/INE:</label><input type="file" id="file_ine_f" class="w-full text-[10px]"></div>`;
+            }
+
+            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
             window.abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c, special) => {
-            const curpVal = document.getElementById('curp_p')?.value.trim();
-            const nssVal = document.getElementById('nss_p')?.value.trim();
-            if ((n === 'SEMANAS COTIZADAS') && (!curpVal || !nssVal)) return alert("NSS y CURP son obligatorios.");
-            
-            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-            await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal || '', nss: nssVal || '' });
-            alert("Enviado con éxito"); window.cerrarModal();
+        const subirArchivo = async (id) => {
+            const el = document.getElementById(id);
+            if (el && el.files[0]) {
+                const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const d = await res.json(); return d.secure_url;
+            } return null;
         };
 
-        function escucharHistorial() {
-            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(50)), (snap) => {
-                const lista = document.getElementById('listaHistorial');
-                let html = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    const f = data.fecha ? data.fecha.toDate().toLocaleDateString() : '...';
-                    html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${data.tipo}</td><td class="py-3 px-2 text-center uppercase font-black">${data.estatus}</td><td class="py-3 px-2 text-right">--</td></tr>`;
+        window.confirmarCompra = async (n, c, special) => {
+            const btn = document.querySelector("#modalTramite button:last-child");
+            btn.disabled = true; btn.innerText = "PROCESANDO...";
+            
+            try {
+                const infoExtra = {};
+                if(document.getElementById('nombre_cliente')) infoExtra.cliente_nombre = document.getElementById('nombre_cliente').value.toUpperCase();
+                if(document.getElementById('curp_p')) infoExtra.curp = document.getElementById('curp_p').value.toUpperCase();
+                if(document.getElementById('nss_p')) infoExtra.nss = document.getElementById('nss_p').value;
+                if(document.getElementById('rfc_p')) infoExtra.rfc = document.getElementById('rfc_p').value.toUpperCase();
+                if(document.getElementById('fecha_p')) infoExtra.fecha_nacimiento = document.getElementById('fecha_p').value;
+                if(document.getElementById('file_ine_f')) infoExtra.file_ine_f = await subirArchivo('file_ine_f');
+
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                await addDoc(collection(db, "solicitudes"), { 
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), ...infoExtra 
                 });
-                lista.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
-            });
+                
+                // Envío a n8n
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", { method: "POST", mode: 'no-cors', body: JSON.stringify({ asesor: emailAsesor, tramite: n, ...infoExtra }) });
+
+                alert("Trámite enviado."); window.cerrarModal();
+            } catch(e) { alert("Error."); btn.disabled = false; }
+        };
+
+        // LÓGICA DE BOT Y CHAT
+        window.enviarPreguntaRapida = (opcion) => {
+            let r = "";
+            if(opcion === '🕒 Horarios') r = "Lunes a Viernes 9am - 8pm.";
+            if(opcion === '💰 Costos') r = "Consulta los precios en el panel principal.";
+            if(opcion === '💳 Cuentas') r = "Banorte 4896 a nombre de Diana Puente.";
+            responderComoBot(opcion, r);
+        };
+
+        async function responderComoBot(preg, resp) {
+            const exp = new Date(); exp.setDate(exp.getDate() + 15);
+            await addDoc(collection(db, "chat_soporte"), { texto: preg, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
+            setTimeout(async () => {
+                await addDoc(collection(db, "chat_soporte"), { texto: resp, remitente: "Asistente DPR", asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
+            }, 1000);
         }
 
-        window.toggleChat = () => {
-            const win = document.getElementById('chat-window');
-            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
-        };
-
+        window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
         document.getElementById('btn-send-chat').onclick = async () => {
             const input = document.getElementById('chat-input');
-            if (!input.value) return;
-            await addDoc(collection(db, "chat_soporte"), {
-                texto: input.value, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp()
-            });
+            if(!input.value) return;
+            const exp = new Date(); exp.setDate(exp.getDate() + 15);
+            await addDoc(collection(db, "chat_soporte"), { texto: input.value, remitente: emailAsesor, asesor_uid: userUID, timestamp: serverTimestamp(), expiraEn: exp });
+            if (!localStorage.getItem('bot_saludado')) {
+                setTimeout(() => responderComoBot("Bot", "¡Hola! Un asistente se conectará pronto. ¿En qué ayudamos?"), 1000);
+                localStorage.setItem('bot_saludado', 'true');
+            }
             input.value = "";
         };
 
@@ -255,10 +305,20 @@
             });
         }
 
+        function escucharHistorial() {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(50)), (snap) => {
+                const lista = document.getElementById('listaHistorial'); let html = "";
+                snap.forEach(d => { html += `<tr class="border-b"><td class="py-3 px-2">${d.data().fecha?.toDate().toLocaleDateString() || '...'}</td><td class="py-3 px-4">${d.data().tipo}<br><small class="text-blue-600">${d.data().curp || ''}</small></td><td class="py-3 px-2 text-center uppercase font-black">${d.data().estatus}</td><td class="py-3 px-2 text-right">--</td></tr>`; });
+                lista.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
+            });
+        }
+
+        window.resetearPanel = () => { document.getElementById('gridCategorias').classList.remove('hidden'); document.getElementById('listaServicios').classList.add('hidden'); document.getElementById('btnVolver').classList.add('hidden'); document.getElementById('tituloSeccion').innerText = "Panel de Servicios"; };
+        async function marcarPresencia(status) { await setDoc(doc(db, "usuarios", userUID), { nombre: emailAsesor, status: status, lastSeen: serverTimestamp() }, { merge: true }); }
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         window.cerrarSesion = () => signOut(auth).then(() => location.reload());
-        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if (d.exists()) { document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(d.data().saldo || 0); } }); }
+        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if(d.exists()) document.getElementById('txtSaldoHeader').innerText = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(d.data().saldo||0); }); }
     </script>
 </body>
 </html>
