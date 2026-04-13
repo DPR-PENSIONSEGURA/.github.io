@@ -185,6 +185,43 @@
         });
 
         // RESTAURACIÓN DE MODALES DINÁMICOS (CON TODAS LAS VARIABLES)
+        // --- FUNCIONES DE CONTROL DE INTERFAZ (Faltantes) ---
+
+window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); };
+window.cerrarModal = () => { document.getElementById('modalTramite').classList.add('hidden'); };
+
+window.resetearPanel = () => {
+    document.getElementById('gridCategorias').classList.remove('hidden');
+    document.getElementById('listaServicios').classList.add('hidden');
+    document.getElementById('btnVolver').classList.add('hidden');
+    document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+};
+
+window.cerrarAvisoBaneo = () => { document.getElementById('avisoBaneo').classList.add('hidden'); };
+
+window.cerrarSesion = () => {
+    signOut(auth).then(() => { window.location.href = "login/index.html"; });
+};
+
+// --- FUNCIONES DE BASE DE DATOS (Faltantes) ---
+
+function escucharSaldo() {
+    onSnapshot(doc(db, "asesores", userUID), (doc) => {
+        if (doc.exists()) {
+            const saldo = doc.data().saldo || 0;
+            document.getElementById('txtSaldoHeader').innerText = `$${saldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+        }
+    });
+}
+
+async function marcarPresencia(estado) {
+    // Esta función es opcional, sirve para saber si el asesor está activo
+    await setDoc(doc(db, "presencia", userUID), {
+        email: emailAsesor,
+        status: estado,
+        ultima_vez: serverTimestamp()
+    }, { merge: true });
+}
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
