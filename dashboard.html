@@ -16,13 +16,11 @@
         .input-light:focus { border-color: #D4AF37; }
         .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         
-        /* CHAT WIDGET */
         #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
         .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
         .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; }
-        
         .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: #f9f9f9; border-top: 1px solid #eee; }
         .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; }
         .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
@@ -97,7 +95,7 @@
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
             <div id="formContent"></div>
         </div>
     </div>
@@ -139,52 +137,51 @@
         let todasLasSolicitudes = [];
         const consultasPorPagina = 30;
 
-        // DATA TOTAL RESTAURADA
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
                 { nombre: 'RFC Verificable', precio: 110, curp: true },
-                 { nombre: 'RFC con IDCIF', precio: 20, curp: true },
+                { nombre: 'RFC con IDCIF', precio: 20, curp: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'Recibo CFE', precio: 10 },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                  { nombre: 'Acta de Defuncion', precio: 11, curp: true },
-                  { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                  { nombre: 'Acta de Divorcio', precio: 11, curp: true }
+                { nombre: 'Acta de Defuncion', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true }
             ],
             'INF': [
-                { nombre: 'Localización de Contraseña', precio: 120, nss: true, pideFecha: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo MiCuentaInfonavit', precio: 120, nss: true, pideFecha: true }
+                { nombre: 'Localización de Contraseña', precio: 120, nss: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true },
+                { nombre: 'Reseteo MiCuentaInfonavit', precio: 120, nss: true }
             ],
             'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true, pideFotoCli: true }
-                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true, pideNombre: true  },
-                 { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true, pideNombre: true  },
-        { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true, pideNombre: true  },
+                { nombre: 'Registro a Distancia', precio: 250 },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60 },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true },
+                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true },
+                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true },
+                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true },
+                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true },
+                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true },
+                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true },
+                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true },
+                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true }
             ],
             'PENSIONES': [
                 { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
@@ -195,11 +192,10 @@
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
-                marcarPresencia("online"); escucharSaldo(); escucharHistorial(); escucharChat();
+                escucharSaldo(); escucharHistorial(); escucharChat();
             } else { window.location.href = "login/index.html"; }
         });
 
-        // FUNCIONES GLOBALES (ABRIR / CERRAR MODALES)
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
 
@@ -207,11 +203,11 @@
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+            document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
             const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special||''}', ${t.nss||false}, ${t.curp||false}, ${t.pideNombre||false}, ${t.pideFecha||false}, ${t.rfc||false}, ${t.idcif||false}, ${t.pideIneFrente||false}, ${t.pidePass||false}, ${t.pideFotoCli||false}, ${t.pideCFE||false}, ${t.eligePlazo||false}, ${t.pideExtras||false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -223,97 +219,62 @@
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        window.prepararTramite = (nombre, costo, special, nss, curp, nombreCli, fecha, rfc, idcif, ineF, passA, fotoC, cfe, plazo, extras) => {
+        window.prepararTramite = (nombre, costo) => {
             const content = document.getElementById('formContent');
-            let fields = '';
             let precioFinal = costo;
 
-            // Descuentos VIP
-            const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2024@gmail.com", "symconsultoria4.2024@gmail.com ", "symconsultoria3.2024@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com"];
-            if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
+            const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+            const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
 
-            if(nombreCli) fields += `<input type="text" id="nombre_cliente" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(curp || special === 'MOD10') fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
-            if(nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if(ineF || special === 'RETIRO') fields += `<div class="mb-4 text-left"><label class="text-[8px] text-slate-400">DOCUMENTO/INE:</label><input type="file" id="file_ine_f" class="w-full text-[10px]"></div>`;
+            if (nombre === 'SEMANAS COTIZADAS') {
+                if (correosUltraVip.includes(emailAsesor)) precioFinal = 18;
+                else if (correosVip.includes(emailAsesor)) precioFinal = 19;
+            }
 
-            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>`;
+            content.innerHTML = `
+                <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
+                <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
+                <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                <button onclick="window.confirmarCompra('${nombre}', ${precioFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>
+            `;
             window.abrirModal('modalTramite');
         };
 
-        const subirArchivo = async (id) => {
-            const el = document.getElementById(id);
-            if (el && el.files[0]) {
-                const fd = new FormData(); fd.append('file', el.files[0]); fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const d = await res.json(); return d.secure_url;
-            } return null;
+        window.confirmarCompra = async (n, c) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            try {
+                const curp = document.getElementById('curp_p').value.toUpperCase();
+                const nss = document.getElementById('nss_p').value;
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                const docRef = await addDoc(collection(db, "solicitudes"), { 
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
+                });
+
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, servicio: n, curp, nss })
+                });
+
+                alert("Enviado."); window.cerrarModal();
+            } catch(e) { alert("Error."); }
         };
 
-window.confirmarCompra = async (n, c, special) => {
-    if (saldoGlobal < c) return alert("Saldo insuficiente.");
-    
-    try {
-        const curp = document.getElementById('curp_p').value.toUpperCase();
-        const nss = document.getElementById('nss_p').value;
-
-        // 1. Guardamos en Firebase (Lo que ya hace tu código)
-        await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-        const docRef = await addDoc(collection(db, "solicitudes"), { 
-            asesor_uid: userUID, 
-            origen: "ASESOR", 
-            nombre_asesor: emailAsesor, 
-            tipo: n, 
-            costo: c, 
-            estatus: "En Proceso", 
-            fecha: serverTimestamp(), 
-            curp, 
-            nss
-        });
-
-        // 2. ENVÍO A n8n (ESTO ES LO QUE FALTA)
-        // Sustituye la URL de abajo por tu Webhook real de n8n
-        const url_n8n = "https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta"; 
-
-        fetch(url_n8n, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id_solicitud: docRef.id,
-                asesor: emailAsesor,
-                servicio: n,
-                curp: curp,
-                nss: nss,
-                fecha: new Date().toLocaleString()
-            })
-        }).catch(err => console.log("Error en la base de datos"));
-
-        alert("Trámite enviado con éxito."); 
-        window.cerrarModal();
-
-    } catch(e) { 
-        alert("Error al procesar el trámite."); 
-    }
-};
-
-        // NOTIFICAR PAGO (RECARGA)
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const r = document.getElementById('claveRastreo').value;
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !f || m < 200) return alert("Completa todos los campos (Mínimo $200).");
-
+            if (!m || !r || !f || m < 200) return alert("Completa los datos.");
             const btn = document.getElementById('btnNotificar'); btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado con éxito."); window.cerrarModal();
-            } catch(e) { alert("Error al subir."); } finally { btn.disabled = false; }
+                alert("Pago reportado."); window.cerrarModal();
+            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
         };
 
-        // HISTORIAL Y CHAT
         function escucharHistorial() {
             onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(500)), (snap) => {
                 todasLasSolicitudes = []; snap.forEach(d => todasLasSolicitudes.push(d.data()));
@@ -334,10 +295,8 @@ window.confirmarCompra = async (n, c, special) => {
             document.getElementById('infoPagina').innerText = `Página ${paginaActual}`;
         }
 
-        window.cambiarPagina = (dir) => { paginaActual += dir; renderizarTabla(); };
+        window.cambiarPagina = (dir) => { paginaActual += dir; if(paginaActual<1) paginaActual=1; renderizarTabla(); };
         window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
-        
-        async function marcarPresencia(status) { await setDoc(doc(db, "usuarios", userUID), { nombre: emailAsesor, status: status, lastSeen: serverTimestamp() }, { merge: true }); }
         function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if(d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`; } }); }
         window.cerrarSesion = () => signOut(auth).then(() => location.reload());
 
