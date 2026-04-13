@@ -16,25 +16,19 @@
         .input-light:focus { border-color: #D4AF37; }
         .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         
-        #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
-        .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
-        #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
+        /* ESTILOS DEL CHAT */
+        #chat-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
+        #chat-window { display: none; width: 340px; height: 450px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; display: flex; justify-content: space-between; }
+        #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; background: #f8fafc; }
         .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
-        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; }
-        
-        .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: #f9f9f9; border-top: 1px solid #eee; }
-        .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; }
+        .msg-support { background: white; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; border: 1px solid #e2e8f0; }
+        .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: white; border-top: 1px solid #eee; }
+        .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 6px 12px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; transition: all 0.2s; }
+        .btn-help:hover { background: #D4AF37; color: white; }
     </style>
 </head>
 <body>
-
-    <div id="avisoBaneo" class="fixed inset-0 bg-red-900/90 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl border-4 border-red-600">
-            <h2 class="text-xl font-black text-red-600 mb-4 uppercase italic">Aviso de Seguridad</h2>
-            <p class="text-[11px] font-bold text-slate-700 uppercase mb-6">Cuentas con recargas ficticias serán baneadas permanentemente.</p>
-            <button onclick="window.cerrarAvisoBaneo()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase italic">Aceptar</button>
-        </div>
-    </div>
 
     <header class="sticky top-0 z-40 header-glass">
         <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
@@ -53,8 +47,8 @@
 
     <main class="p-6 max-w-7xl mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
-            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600">⬅️ Volver</button>
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Servicios Disponibles</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full">⬅️ Volver</button>
         </div>
 
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
@@ -69,17 +63,36 @@
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
         <section class="bg-white/90 rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
-            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
+            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Mis Solicitudes Recientes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
+                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Resultado</th></tr></thead>
                     <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase tracking-widest">Sincronizando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
+
+    <div id="chat-container">
+        <div id="chat-window">
+            <div class="chat-header">
+                <span>Asistente DPR Virtual</span>
+                <button onclick="toggleChat()">×</button>
+            </div>
+            <div id="chat-messages">
+                <div class="msg-support">¡Hola! Soy tu asistente de DPR Consultoría. ¿En qué puedo ayudarte hoy?</div>
+            </div>
+            <div class="help-menu">
+                <button class="btn-help" onclick="askChat('¿Cómo recargar saldo?')">Recargas</button>
+                <button class="btn-help" onclick="askChat('¿Tiempo de entrega?')">Tiempos</button>
+                <button class="btn-help" onclick="askChat('¿Error en mi trámite?')">Errores</button>
+                <button class="btn-help" onclick="askChat('Hablar con Diana')">Soporte Humano</button>
+            </div>
+        </div>
+        <button onclick="toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">💬</button>
+    </div>
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
@@ -90,7 +103,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, setDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
@@ -98,36 +111,8 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        const TRAMITES = {
-            'IMSS': [
-                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
-                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true }
-            ],
-            'SAT': [
-                { nombre: 'RFC Clon', precio: 27, curp: true },
-                { nombre: 'RFC Verificable', precio: 110, curp: true }
-            ],
-            'DOC': [
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true }
-            ],
-            'INF': [
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true }
-            ],
-            'AFORE': [
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true }
-            ],
-            'PENSIONES': [
-                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true }
-            ]
-        };
-
         let userUID = "", emailAsesor = "";
+
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
@@ -136,21 +121,41 @@
         });
 
         // FUNCIONES DE INTERFAZ
+        window.toggleChat = () => {
+            const win = document.getElementById('chat-window');
+            win.style.display = (win.style.display === 'none' || win.style.display === '') ? 'flex' : 'none';
+        };
+
+        window.askChat = (question) => {
+            const msgCont = document.getElementById('chat-messages');
+            msgCont.innerHTML += `<div class="msg-user">${question}</div>`;
+            
+            let response = "Procesando tu duda...";
+            if(question.includes("recargar")) response = "Para recargar, haz clic en tu saldo arriba. Recuerda usar solo bancos nacionales y subir tu comprobante con clave de rastreo.";
+            if(question.includes("Tiempo")) response = "La mayoría de los trámites IMSS/SAT quedan listos en menos de 2 horas en horario laboral.";
+            if(question.includes("Error")) response = "Si tu trámite dice ERROR, el saldo se te regresó automáticamente. Revisa los datos y vuelve a enviarlo.";
+            if(question.includes("Diana")) response = "Puedes contactar a Diana Puente directamente al WhatsApp de soporte para casos urgentes.";
+
+            setTimeout(() => {
+                msgCont.innerHTML += `<div class="msg-support">${response}</div>`;
+                msgCont.scrollTop = msgCont.scrollHeight;
+            }, 600);
+        };
+
         window.cerrarModal = () => document.getElementById('modalTramite').classList.add('hidden');
-        window.cerrarAvisoBaneo = () => document.getElementById('avisoBaneo').classList.add('hidden');
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
 
         window.resetearPanel = () => {
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
             document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+            document.getElementById('tituloSeccion').innerText = "Servicios Disponibles";
         };
 
         function escucharSaldo() {
             onSnapshot(doc(db, "asesores", userUID), (d) => {
                 if (d.exists()) {
-                    document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX')}`;
+                    document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX', {minimumFractionDigits:2})}`;
                 }
             });
         }
@@ -159,17 +164,26 @@
             const grid = document.getElementById('gridCategorias'), lista = document.getElementById('listaServicios');
             grid.classList.add('hidden'); lista.classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+            document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
+            
+            const TR = {
+                'IMSS': [{n:'SEMANAS COTIZADAS', p:25}, {n:'SINDO COMPLETO', p:135}],
+                'SAT': [{n:'RFC CLON', p:27}, {n:'ID CIF', p:60}],
+                'DOC': [{n:'ACTA NACIMIENTO', p:11}, {n:'CURP CERTIFICADA', p:4}],
+                'INF': [{n:'PRECALIFICACIÓN', p:100}],
+                'AFORE': [{n:'RETIRO DESEMPLEO', p:60}],
+                'PENSIONES': [{n:'ANÁLISIS RÁPIDO', p:200}]
+            };
+
             let html = '';
-            TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+            (TR[cat] || []).forEach(t => {
+                html += `<div onclick="window.prepararTramite('${t.n}', ${t.p})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.n}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.p}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
 
         window.prepararTramite = (nombre, costo) => {
-            const content = document.getElementById('formContent');
-            content.innerHTML = `
+            document.getElementById('formContent').innerHTML = `
                 <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
                 <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
                 <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
@@ -180,43 +194,34 @@
 
         window.confirmarCompra = async (n, c) => {
             try {
+                const curp = document.getElementById('curp_p').value.toUpperCase();
+                const nss = document.getElementById('nss_p').value;
+                if(!curp && !nss) return alert("Ingresa datos.");
+                
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(),
-                    curp: document.getElementById('curp_p').value.toUpperCase(),
-                    nss: document.getElementById('nss_p').value
+                    asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
                 });
-                alert("Trámite enviado."); window.cerrarModal();
+                alert("Enviado."); window.cerrarModal();
             } catch(e) { alert("Error."); }
         };
 
         function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(20));
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(15));
             onSnapshot(q, (snap) => {
                 const tbody = document.getElementById('listaHistorial');
                 let html = '';
                 snap.forEach(docSnap => {
                     const d = docSnap.data();
                     const f = d.fecha ? new Date(d.fecha.seconds * 1000).toLocaleDateString() : '...';
-                    let colorStatus = "text-amber-500";
-                    if(d.estatus === "Terminado") colorStatus = "text-emerald-500";
-                    if(d.estatus.includes("Error") || d.estatus.includes("REEMBOLSO")) colorStatus = "text-red-500";
-
+                    let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
                     html += `
                         <tr class="border-b border-slate-100">
                             <td class="py-4 px-2 text-[10px] text-slate-400">${f}</td>
-                            <td class="py-4 px-4">
-                                <div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div>
-                                <div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div>
-                            </td>
-                            <td class="py-4 px-2 text-center"><span class="${colorStatus} text-[9px] uppercase font-black">${d.estatus}</span></td>
+                            <td class="py-4 px-4"><div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div><div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div></td>
+                            <td class="py-4 px-2 text-center"><span class="${color} text-[9px] uppercase font-black">${d.estatus}</span></td>
                             <td class="py-4 px-2 text-right">
-                                ${d.estatus === "Terminado" && d.archivoFinal 
-                                    ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg inline-flex items-center gap-1 shadow-sm">
-                                         <span class="text-[9px] font-black uppercase">Descargar</span>
-                                       </a>`
-                                    : `<span class="opacity-20 grayscale">⌛</span>`
-                                }
+                                ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg text-[9px] font-black uppercase">Descargar</a>` : `<span class="opacity-20">⌛</span>`}
                             </td>
                         </tr>`;
                 });
