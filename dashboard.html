@@ -25,7 +25,10 @@
         .msg-support { background: white; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; border: 1px solid #e2e8f0; }
         .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: white; border-top: 1px solid #eee; }
         .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 6px 12px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; transition: all 0.2s; }
-        .btn-help:hover { background: #D4AF37; color: white; }
+        
+        /* ESTILOS PAGINACIÓN */
+        .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; transition: opacity 0.3s; }
+        .nav-pag:disabled { opacity: 0.3; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -46,11 +49,6 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Servicios Disponibles</h2>
-            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full">⬅️ Volver</button>
-        </div>
-
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
@@ -63,42 +61,33 @@
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
         <section class="bg-white/90 rounded-[2.5rem] border border-slate-200 p-6 shadow-xl mt-12">
-            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Mis Solicitudes Recientes</h2>
+            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Resultado</th></tr></thead>
+                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
                     <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase tracking-widest">Sincronizando...</td></tr>
+                        <tr><td colspan="4" class="py-20 text-center opacity-30 font-black uppercase">Sincronizando historial...</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div id="controlesPagina" class="mt-6 flex justify-center items-center gap-4 border-t pt-4">
+                <button id="btnPrev" onclick="window.cambiarPagina(-1)" class="nav-pag">Anterior</button>
+                <span id="infoPagina" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Página 1</span>
+                <button id="btnNext" onclick="window.cambiarPagina(1)" class="nav-pag">Siguiente</button>
             </div>
         </section>
     </main>
 
     <div id="chat-container">
         <div id="chat-window">
-            <div class="chat-header">
-                <span>Asistente DPR Virtual</span>
-                <button onclick="toggleChat()">×</button>
-            </div>
-            <div id="chat-messages">
-                <div class="msg-support">¡Hola! Soy tu asistente de DPR Consultoría. ¿En qué puedo ayudarte hoy?</div>
-            </div>
+            <div class="chat-header"><span>Soporte DPR</span><button onclick="toggleChat()">×</button></div>
+            <div id="chat-messages"><div class="msg-support">¡Hola! ¿Dudas con algún trámite?</div></div>
             <div class="help-menu">
-                <button class="btn-help" onclick="askChat('¿Cómo recargar saldo?')">Recargas</button>
-                <button class="btn-help" onclick="askChat('¿Tiempo de entrega?')">Tiempos</button>
-                <button class="btn-help" onclick="askChat('¿Error en mi trámite?')">Errores</button>
-                <button class="btn-help" onclick="askChat('Hablar con Diana')">Soporte Humano</button>
+                <button class="btn-help" onclick="askChat('¿Cómo recargar?')">Recargas</button>
+                <button class="btn-help" onclick="askChat('¿Tiempos de entrega?')">Tiempos</button>
             </div>
         </div>
         <button onclick="toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-2xl">💬</button>
-    </div>
-
-    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
-            <div id="formContent"></div>
-        </div>
     </div>
 
     <script type="module">
@@ -112,6 +101,10 @@
         const auth = getAuth(app);
 
         let userUID = "", emailAsesor = "";
+        let todasLasSolicitudes = [];
+        let paginaActual = 1;
+        const consultasPorPagina = 30;
+        const maxPaginas = 50;
 
         onAuthStateChanged(auth, (user) => {
             if (user) { 
@@ -120,114 +113,78 @@
             } else { window.location.href = "login/index.html"; }
         });
 
-        // FUNCIONES DE INTERFAZ
+        // --- LÓGICA DE PAGINACIÓN ---
+        window.renderizarTablaPaginada = () => {
+            const tbody = document.getElementById('listaHistorial');
+            const inicio = (paginaActual - 1) * consultasPorPagina;
+            const fin = inicio + consultasPorPagina;
+            const fragmento = todasLasSolicitudes.slice(inicio, fin);
+
+            let html = '';
+            fragmento.forEach(d => {
+                const f = d.fecha ? new Date(d.fecha.seconds * 1000).toLocaleDateString() : '...';
+                let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
+                
+                html += `
+                    <tr class="border-b border-slate-100">
+                        <td class="py-4 px-2 text-[10px] text-slate-400">${f}</td>
+                        <td class="py-4 px-4">
+                            <div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div>
+                            <div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div>
+                        </td>
+                        <td class="py-4 px-2 text-center"><span class="${color} text-[9px] uppercase font-black">${d.estatus}</span></td>
+                        <td class="py-4 px-2 text-right">
+                            ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase">Descargar</a>` : `<span class="opacity-20">⌛</span>`}
+                        </td>
+                    </tr>`;
+            });
+
+            tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center opacity-30">Sin historial</td></tr>';
+            
+            // Actualizar interfaz de botones
+            document.getElementById('infoPagina').innerText = `Página ${paginaActual}`;
+            document.getElementById('btnPrev').disabled = (paginaActual === 1);
+            document.getElementById('btnNext').disabled = (paginaActual >= maxPaginas || fin >= todasLasSolicitudes.length);
+        };
+
+        window.cambiarPagina = (direccion) => {
+            paginaActual += direccion;
+            window.renderizarTablaPaginada();
+            document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        function escucharHistorial() {
+            // Cargamos hasta 1500 consultas (50 paginas * 30 consultas)
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(1500));
+            onSnapshot(q, (snap) => {
+                todasLasSolicitudes = [];
+                snap.forEach(docSnap => todasLasSolicitudes.push(docSnap.data()));
+                window.renderizarTablaPaginada();
+            });
+        }
+
+        // --- FUNCIONES DE CHAT Y SALDO ---
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (d) => {
+                if (d.exists()) document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX', {minimumFractionDigits:2})}`;
+            });
+        }
+
         window.toggleChat = () => {
             const win = document.getElementById('chat-window');
             win.style.display = (win.style.display === 'none' || win.style.display === '') ? 'flex' : 'none';
         };
 
-        window.askChat = (question) => {
-            const msgCont = document.getElementById('chat-messages');
-            msgCont.innerHTML += `<div class="msg-user">${question}</div>`;
-            
-            let response = "Procesando tu duda...";
-            if(question.includes("recargar")) response = "Para recargar, haz clic en tu saldo arriba. Recuerda usar solo bancos nacionales y subir tu comprobante con clave de rastreo.";
-            if(question.includes("Tiempo")) response = "La mayoría de los trámites IMSS/SAT quedan listos en menos de 2 horas en horario laboral.";
-            if(question.includes("Error")) response = "Si tu trámite dice ERROR, el saldo se te regresó automáticamente. Revisa los datos y vuelve a enviarlo.";
-            if(question.includes("Diana")) response = "Puedes contactar a Diana Puente directamente al WhatsApp de soporte para casos urgentes.";
-
+        window.askChat = (q) => {
+            const m = document.getElementById('chat-messages');
+            m.innerHTML += `<div class="msg-user">${q}</div>`;
             setTimeout(() => {
-                msgCont.innerHTML += `<div class="msg-support">${response}</div>`;
-                msgCont.scrollTop = msgCont.scrollHeight;
-            }, 600);
+                m.innerHTML += `<div class="msg-support">Consultando...</div>`;
+                m.scrollTop = m.scrollHeight;
+            }, 500);
         };
 
-        window.cerrarModal = () => document.getElementById('modalTramite').classList.add('hidden');
         window.cerrarSesion = () => signOut(auth).then(() => window.location.href = "login/index.html");
-
-        window.resetearPanel = () => {
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Servicios Disponibles";
-        };
-
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (d) => {
-                if (d.exists()) {
-                    document.getElementById('txtSaldoHeader').innerText = `$${(d.data().saldo || 0).toLocaleString('es-MX', {minimumFractionDigits:2})}`;
-                }
-            });
-        }
-
-        window.mostrarTramites = (cat) => {
-            const grid = document.getElementById('gridCategorias'), lista = document.getElementById('listaServicios');
-            grid.classList.add('hidden'); lista.classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
-            
-            const TR = {
-                'IMSS': [{n:'SEMANAS COTIZADAS', p:25}, {n:'SINDO COMPLETO', p:135}],
-                'SAT': [{n:'RFC CLON', p:27}, {n:'ID CIF', p:60}],
-                'DOC': [{n:'ACTA NACIMIENTO', p:11}, {n:'CURP CERTIFICADA', p:4}],
-                'INF': [{n:'PRECALIFICACIÓN', p:100}],
-                'AFORE': [{n:'RETIRO DESEMPLEO', p:60}],
-                'PENSIONES': [{n:'ANÁLISIS RÁPIDO', p:200}]
-            };
-
-            let html = '';
-            (TR[cat] || []).forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.n}', ${t.p})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.n}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.p}.00</p></div>`;
-            });
-            lista.innerHTML = html;
-        };
-
-        window.prepararTramite = (nombre, costo) => {
-            document.getElementById('formContent').innerHTML = `
-                <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
-                <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
-                <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
-                <button onclick="window.confirmarCompra('${nombre}', ${costo})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${costo}.00</button>
-            `;
-            document.getElementById('modalTramite').classList.remove('hidden');
-        };
-
-        window.confirmarCompra = async (n, c) => {
-            try {
-                const curp = document.getElementById('curp_p').value.toUpperCase();
-                const nss = document.getElementById('nss_p').value;
-                if(!curp && !nss) return alert("Ingresa datos.");
-                
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
-                });
-                alert("Enviado."); window.cerrarModal();
-            } catch(e) { alert("Error."); }
-        };
-
-        function escucharHistorial() {
-            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(15));
-            onSnapshot(q, (snap) => {
-                const tbody = document.getElementById('listaHistorial');
-                let html = '';
-                snap.forEach(docSnap => {
-                    const d = docSnap.data();
-                    const f = d.fecha ? new Date(d.fecha.seconds * 1000).toLocaleDateString() : '...';
-                    let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
-                    html += `
-                        <tr class="border-b border-slate-100">
-                            <td class="py-4 px-2 text-[10px] text-slate-400">${f}</td>
-                            <td class="py-4 px-4"><div class="text-[10px] text-slate-800 uppercase font-black">${d.tipo}</div><div class="text-[9px] text-slate-400 uppercase">${d.curp || d.nss || 'S/N'}</div></td>
-                            <td class="py-4 px-2 text-center"><span class="${color} text-[9px] uppercase font-black">${d.estatus}</span></td>
-                            <td class="py-4 px-2 text-right">
-                                ${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-100 text-emerald-600 p-2 rounded-lg text-[9px] font-black uppercase">Descargar</a>` : `<span class="opacity-20">⌛</span>`}
-                            </td>
-                        </tr>`;
-                });
-                tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center opacity-30 uppercase">Sin solicitudes</td></tr>';
-            });
-        }
     </script>
 </body>
 </html>
