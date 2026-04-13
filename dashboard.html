@@ -7,15 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-attachment: fixed; color: #1E293B; }
+        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-attachment: fixed; color: #1E293B; scroll-behavior: smooth; }
         .header-glass { background: rgba(255, 255, 255, 0.9); border-bottom: 2px solid #D4AF37; backdrop-filter: blur(10px); }
         .green-gradient { background: linear-gradient(135deg, #8FCE00 0%, #10B981 100%); }
-        .category-card { background: white; border: 1px solid #D4AF37; cursor: pointer; transition: 0.3s; border-radius: 1.5rem; }
+        .category-card { background: white; border: 1px solid #D4AF37; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-radius: 1.5rem; }
         .category-card:hover { border-color: #8FCE00; transform: translateY(-3px); }
-        .input-light { border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-size: 11px; font-weight: 600; }
+        .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; font-size: 11px; }
         .input-light:focus { border-color: #D4AF37; }
+        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
         
-        /* ESTILO DEL CHAT */
+        /* CHAT WIDGET */
         #chat-window { display: none; width: 320px; height: 450px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
@@ -28,11 +29,11 @@
     <header class="sticky top-0 z-40 header-glass">
         <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg italic">DP</div>
-                <h1 class="font-black uppercase text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
+                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-lg italic">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2 shadow-sm">
                     <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
                 </button>
                 <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400">Salir</button>
@@ -42,8 +43,8 @@
 
     <main class="p-6 max-w-7xl mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
-            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600 transition">⬅️ Volver</button>
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Servicios DPR</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-orange-600">⬅️ Volver</button>
         </div>
 
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
@@ -58,7 +59,7 @@
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
         <section class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200">
-            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
+            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4">Fecha</th><th class="pb-4">Tipo</th><th class="pb-4 text-center">Estatus</th><th class="pb-4 text-right">Acción</th></tr></thead>
@@ -69,7 +70,7 @@
     </main>
 
     <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 relative overflow-y-auto max-h-[90vh]">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <div id="formContent"></div>
         </div>
@@ -100,19 +101,61 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let userUID = "", emailAsesor = "";
-
+        // DATA COMPLETA RESTAURADA (PROHIBIDO RECORTAR)
         const TRAMITES = {
             'IMSS': [
-                { nombre: 'SEMANAS COTIZADAS', precio: 25 },
-                { nombre: 'SINDO COMPLETO', precio: 135 }
+                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideExtras: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, special: 'MOD10', nss: true, rfc: true, pideIneFrente: true, pideNombre: true },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con linea de captura', precio: 170, nss: true, curp: true, pideNombre: true }
             ],
-            'SAT': [{ nombre: 'RFC Original', precio: 180 }],
-            'DOC': [{ nombre: 'CURP Certificada', precio: 4 }],
-            'INF': [{ nombre: 'Histórico Infonavit', precio: 150 }],
-            'PENSIONES': [{ nombre: 'Análisis rápido', precio: 200 }],
-            'AFORE': [{ nombre: 'Resumen de Afore', precio: 10 }]
+            'SAT': [
+                { nombre: 'RFC Clon', precio: 27, curp: true },
+                { nombre: 'RFC Verificable', precio: 110, curp: true },
+                { nombre: 'RFC Original', precio: 180, curp: true },
+                { nombre: 'Localización de IDcif', precio: 60, rfc: true },
+                { nombre: 'RFC con IDcif', precio: 27, rfc: true, idcif: true }
+            ],
+            'DOC': [
+                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+            ],
+            'INF': [
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+            ],
+            'AFORE': [
+                { nombre: 'Registro a Distancia', precio: 250, special: 'REGISTRO', pidePass: true },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, special: 'RETIRO', pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePass: true },
+                { nombre: 'Resumen de Afore', precio: 10, curp: true },
+                { nombre: 'ECTA: Sura', precio: 750, nss: true, curp: true },
+                { nombre: 'ECTA: Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'ECTA: Banorte', precio: 600, nss: true, curp: true },
+                { nombre: 'ECTA: Azteca', precio: 350, nss: true, curp: true },
+                { nombre: 'ECTA: Coppel', precio: 350, nss: true, curp: true }
+            ],
+            'PENSIONES': [
+                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true }
+            ]
         };
+
+        let userUID = "", emailAsesor = "";
 
         onAuthStateChanged(auth, (user) => {
             if (user) { 
@@ -125,17 +168,15 @@
             await setDoc(doc(db, "usuarios", userUID), { nombre: emailAsesor, status: status, lastSeen: serverTimestamp() }, { merge: true });
         }
 
-        // --- FUNCIONES DE NAVEGACIÓN ---
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden'); // MOSTRAR BOTÓN
+            document.getElementById('btnVolver').classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
-
             const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, '${t.special||''}', ${t.nss||false}, ${t.curp||false})" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -143,20 +184,33 @@
         window.resetearPanel = () => {
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden'); // OCULTAR BOTÓN
+            document.getElementById('btnVolver').classList.add('hidden');
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        // --- EL RESTO SIGUE IGUAL ---
-        window.prepararTramite = (nombre, costo) => {
-            document.getElementById('formContent').innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2><input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase"><button onclick="window.confirmarCompra('${nombre}', ${costo})" class="w-full bg-orange-500 py-4 rounded-2xl font-black text-white uppercase text-xs">Pagar $${costo}.00</button>`;
+        window.prepararTramite = (nombre, costo, special, nss, curp) => {
+            let precioFinal = costo;
+            // Descuentos VIP Originales
+            const vip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com","draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+            if (vip.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 19;
+            const ultra = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
+            if (ultra.includes(emailAsesor) && nombre === 'SEMANAS COTIZADAS') precioFinal = 18;
+
+            let fields = '';
+            if(curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
+            if(nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+
+            document.getElementById('formContent').innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>${fields}<button onclick="window.confirmarCompra('${nombre}', ${precioFinal}, '${special}')" class="w-full bg-orange-500 py-4 rounded-2xl font-black text-white uppercase text-xs">Pagar $${precioFinal}.00</button>`;
             window.abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c) => {
-            const curp = document.getElementById('curp_p').value.trim();
-            if (!curp) return alert("CURP obligatoria");
-            await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curp });
+        window.confirmarCompra = async (n, c, special) => {
+            const curpVal = document.getElementById('curp_p')?.value.trim();
+            const nssVal = document.getElementById('nss_p')?.value.trim();
+            if ((n === 'SEMANAS COTIZADAS') && (!curpVal || !nssVal)) return alert("NSS y CURP son obligatorios.");
+            
+            await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+            await addDoc(collection(db, "solicitudes"), { asesor_uid: userUID, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal || '', nss: nssVal || '' });
             alert("Enviado con éxito"); window.cerrarModal();
         };
 
@@ -190,14 +244,12 @@
         function escucharChat() {
             const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc"));
             onSnapshot(q, (snap) => {
-                const box = document.getElementById('chat-messages');
-                box.innerHTML = "";
+                const box = document.getElementById('chat-messages'); box.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.data();
                     const div = document.createElement('div');
                     div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-                    div.innerText = m.texto;
-                    box.appendChild(div);
+                    div.innerText = m.texto; box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
