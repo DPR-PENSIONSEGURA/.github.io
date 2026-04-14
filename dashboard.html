@@ -35,9 +35,9 @@
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
-                    <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs">$0.00</span>
+                    <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs tracking-widest">$0.00</span>
                 </button>
-                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400">Salir</button>
+                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
             </div>
         </div>
     </header>
@@ -49,12 +49,12 @@
         </div>
 
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
-            <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
-            <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 text-center">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCS</span></button>
-            <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
-            <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center">📈 <span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
-            <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
+            <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center transition hover:scale-105">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
+            <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center transition hover:scale-105">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
+            <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 text-center transition hover:scale-105">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCS</span></button>
+            <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center transition hover:scale-105">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
+            <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center transition hover:scale-105">📈 <span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
+            <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center transition hover:scale-105">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
         </div>
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
@@ -81,14 +81,20 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-2xl mb-4 text-center">
-                <p class="font-black text-emerald-600 text-[9px] uppercase">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
-                <p class="text-base font-black text-emerald-700 tracking-widest">4915 6630 4036 4896</p>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
+                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
+                <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
+                <p class="text-[9px] font-bold text-emerald-600/60 uppercase">Transferencia o Depósito</p>
             </div>
-            <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center mb-3">
-            <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center mb-3 uppercase">
-            <input type="file" id="fileRecarga" class="block w-full text-[9px] mb-4">
-            <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs">Informar Pago</button>
+            <div class="space-y-3">
+                <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
+                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
+                <div class="text-left px-2">
+                    <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Subir Comprobante:</label>
+                    <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                </div>
+                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
+            </div>
         </div>
     </div>
 
@@ -155,21 +161,21 @@
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, nss: false, curp: false },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, nss: false },
-                { nombre: 'CURP Certificada', precio: 4, curp: true, nss: false },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true, nss: false },
-                { nombre: 'Acta de Matrimonio', precio: 11, curp: true, nss: false },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true, nss: false },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true, nss: false },
+                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
                 { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
             ],
             'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true },
-                { nombre: 'Precalificación Linea II', precio: 100, nss: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true }
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 90 },
@@ -177,11 +183,7 @@
                 { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true },
                 { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true },
                 { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true },
-                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true },
-                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true },
                 { nombre: 'Estado de cuenta SURA', precio: 800, nss: true },
-                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true },
-                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true },
                 { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true }
             ],
             'PENSIONES': [
@@ -208,8 +210,7 @@
             const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                // Pasamos los parámetros de nss y curp a la función de preparación
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, ${t.nss || false}, ${t.curp || false})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, ${t.nss||false}, ${t.curp||false})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -225,7 +226,6 @@
             const content = document.getElementById('formContent');
             let precioFinal = costo;
 
-            // VIP
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
             const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
             if (nombre === 'SEMANAS COTIZADAS') {
@@ -233,14 +233,9 @@
                 else if (correosVip.includes(emailAsesor)) precioFinal = 19;
             }
 
-            // --- REPARACIÓN: Solo mostramos los inputs necesarios ---
             let camposHtml = '';
-            if (pideCurp) {
-                camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
-            }
-            if (pideNss) {
-                camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            }
+            if (pideCurp) camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
+            if (pideNss) camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
 
             content.innerHTML = `
                 <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
@@ -253,11 +248,12 @@
         window.confirmarCompra = async (n, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             try {
-                // Capturamos solo si el elemento existe
                 const curpInput = document.getElementById('curp_p');
                 const nssInput = document.getElementById('nss_p');
-                const curp = curpInput ? curpInput.value.toUpperCase() : "N/A";
-                const nss = nssInput ? nssInput.value : "N/A";
+                const curp = curpInput ? curpInput.value.toUpperCase().trim() : "N/A";
+                const nss = nssInput ? nssInput.value.trim() : "N/A";
+
+                if (n === 'SEMANAS COTIZADAS' && (curp === "" || nss === "")) return alert("NSS y CURP obligatorios.");
 
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
