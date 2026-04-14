@@ -44,11 +44,6 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
-            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full">⬅️ Volver</button>
-        </div>
-
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
@@ -110,14 +105,13 @@
             <div class="help-menu">
                 <button onclick="window.enviarPreguntaRapida('🕒 Horarios')" class="btn-help">🕒 HORARIOS</button>
                 <button onclick="window.enviarPreguntaRapida('💰 Costos')" class="btn-help">💰 COSTOS</button>
-                <button onclick="window.enviarPreguntaRapida('💳 Cuentas')" class="btn-help">💳 CUENTAS</button>
             </div>
             <div class="p-3 border-t bg-gray-50 flex gap-2">
                 <input type="text" id="chat-input" placeholder="Escribe..." class="input-light flex-1">
                 <button id="btn-send-chat" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
             </div>
         </div>
-        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl animate-bounce">🎧</button>
+        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl">🎧</button>
     </div>
 
     <script type="module">
@@ -202,7 +196,7 @@
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
+            const btnV = document.getElementById('btnVolver'); if(btnV) btnV.classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
             const lista = document.getElementById('listaServicios');
             let html = '';
@@ -215,7 +209,7 @@
         window.resetearPanel = () => {
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
+            const btnV = document.getElementById('btnVolver'); if(btnV) btnV.classList.add('hidden');
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
@@ -240,21 +234,31 @@
             window.abrirModal('modalTramite');
         };
 
+        // --- CONEXIÓN n8n REPARADA CON VARIABLE "tramite" ---
         window.confirmarCompra = async (n, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             try {
                 const curp = document.getElementById('curp_p').value.toUpperCase();
                 const nss = document.getElementById('nss_p').value;
+                
+                // 1. Firebase
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
                     asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
                 });
 
-                fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
+                // 2. Enviar a n8n
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, servicio: n, curp, nss })
-                });
+                    body: JSON.stringify({ 
+                        id_solicitud: docRef.id, 
+                        asesor: emailAsesor, 
+                        tramite: n, // <--- REPARADO: Se cambió de "servicio" a "tramite"
+                        curp, 
+                        nss 
+                    })
+                }).catch(err => console.log("n8n offline"));
 
                 alert("Enviado."); window.cerrarModal();
             } catch(e) { alert("Error."); }
