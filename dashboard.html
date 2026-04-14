@@ -44,6 +44,11 @@
     </header>
 
     <main class="p-6 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full">⬅️ Volver</button>
+        </div>
+
         <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
             <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
             <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
@@ -165,7 +170,7 @@
                 { nombre: 'Reseteo MiCuentaInfonavit', precio: 120, nss: true }
             ],
             'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 250 },
+                { nombre: 'Registro a Distancia', precio: 90 },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60 },
                 { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true },
                 { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true },
@@ -196,7 +201,7 @@
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
-            const btnV = document.getElementById('btnVolver'); if(btnV) btnV.classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
             const lista = document.getElementById('listaServicios');
             let html = '';
@@ -209,7 +214,7 @@
         window.resetearPanel = () => {
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
-            const btnV = document.getElementById('btnVolver'); if(btnV) btnV.classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden');
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
@@ -234,34 +239,37 @@
             window.abrirModal('modalTramite');
         };
 
-        // --- CONEXIÓN n8n REPARADA CON VARIABLE "tramite" ---
+        // --- CONEXIÓN n8n REPARADA Y ACTIVA ---
         window.confirmarCompra = async (n, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             try {
                 const curp = document.getElementById('curp_p').value.toUpperCase();
                 const nss = document.getElementById('nss_p').value;
                 
-                // 1. Firebase
+                // 1. Guardar en Firebase
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
                     asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
                 });
 
-                // 2. Enviar a n8n
-                fetch("https://342356.appsneubox.com/webhook/Nueva_acta", {
+                // 2. Enviar a n8n (Hostinger) con variable "tramite"
+                const url_n8n = "https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta";
+                fetch(url_n8n, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         id_solicitud: docRef.id, 
                         asesor: emailAsesor, 
-                        tramite: n, // <--- REPARADO: Se cambió de "servicio" a "tramite"
-                        curp, 
-                        nss 
+                        tramite: n, 
+                        curp: curp, 
+                        nss: nss,
+                        fecha: new Date().toLocaleString()
                     })
                 }).catch(err => console.log("n8n offline"));
 
-                alert("Enviado."); window.cerrarModal();
-            } catch(e) { alert("Error."); }
+                alert("Trámite enviado con éxito."); 
+                window.cerrarModal();
+            } catch(e) { alert("Error al procesar."); }
         };
 
         window.notificarPago = async () => {
@@ -276,7 +284,7 @@
                 const d = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
                 alert("Pago reportado."); window.cerrarModal();
-            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
+            } catch(e) { alert("Error al subir."); } finally { btn.disabled = false; }
         };
 
         function escucharHistorial() {
@@ -293,7 +301,8 @@
             let html = "";
             fragmento.forEach(d => {
                 const f = d.fecha ? d.fecha.toDate().toLocaleDateString() : '...';
-                html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${d.tipo}<br><small class="text-blue-600">${d.curp || ''}</small></td><td class="py-3 px-2 text-center uppercase font-black">${d.estatus}</td><td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}</td></tr>`;
+                let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
+                html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${d.tipo}<br><small class="text-blue-600">${d.curp || ''}</small></td><td class="py-3 px-2 text-center uppercase font-black"><span class="${color}">${d.estatus}</span></td><td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}</td></tr>`;
             });
             tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
             document.getElementById('infoPagina').innerText = `Página ${paginaActual}`;
