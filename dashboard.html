@@ -15,7 +15,6 @@
         .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; font-size: 11px; }
         .input-light:focus { border-color: #D4AF37; }
         .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
-        
         #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
         .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
@@ -156,21 +155,21 @@
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Recibo CFE', precio: 10, nss: false, curp: false },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, nss: false },
+                { nombre: 'CURP Certificada', precio: 4, curp: true, nss: false },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true, nss: false },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true, nss: false },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true, nss: false },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true, nss: false },
                 { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
             ],
             'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
-                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true }
             ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 90 },
@@ -209,7 +208,8 @@
             const lista = document.getElementById('listaServicios');
             let html = '';
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                // Pasamos los parámetros de nss y curp a la función de preparación
+                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, ${t.nss || false}, ${t.curp || false})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -221,55 +221,57 @@
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        window.prepararTramite = (nombre, costo) => {
+        window.prepararTramite = (nombre, costo, pideNss, pideCurp) => {
             const content = document.getElementById('formContent');
             let precioFinal = costo;
 
+            // VIP
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
             const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-
             if (nombre === 'SEMANAS COTIZADAS') {
                 if (correosUltraVip.includes(emailAsesor)) precioFinal = 18;
                 else if (correosVip.includes(emailAsesor)) precioFinal = 19;
             }
 
+            // --- REPARACIÓN: Solo mostramos los inputs necesarios ---
+            let camposHtml = '';
+            if (pideCurp) {
+                camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
+            }
+            if (pideNss) {
+                camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            }
+
             content.innerHTML = `
                 <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
-                <input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">
-                <input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">
+                ${camposHtml}
                 <button onclick="window.confirmarCompra('${nombre}', ${precioFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>
             `;
             window.abrirModal('modalTramite');
         };
 
-        // --- CONEXIÓN n8n CON VARIABLE "tramite" ---
         window.confirmarCompra = async (n, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             try {
-                const curpVal = document.getElementById('curp_p').value.toUpperCase();
-                const nssVal = document.getElementById('nss_p').value;
-                
+                // Capturamos solo si el elemento existe
+                const curpInput = document.getElementById('curp_p');
+                const nssInput = document.getElementById('nss_p');
+                const curp = curpInput ? curpInput.value.toUpperCase() : "N/A";
+                const nss = nssInput ? nssInput.value : "N/A";
+
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal, nss: nssVal
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
                 });
 
-                // Webhook n8n
                 fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        id_solicitud: docRef.id, 
-                        asesor: emailAsesor, 
-                        tramite: n, // Variable alineada con n8n
-                        curp: curpVal, 
-                        nss: nssVal,
-                        fecha: new Date().toLocaleString()
-                    })
+                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, tramite: n, curp, nss, fecha: new Date().toLocaleString() })
                 }).catch(err => console.log("n8n offline"));
 
                 alert("Enviado."); window.cerrarModal();
-            } catch(e) { alert("Error al procesar."); }
+            } catch(e) { alert("Error."); }
         };
 
         window.notificarPago = async () => {
