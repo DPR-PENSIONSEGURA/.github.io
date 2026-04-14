@@ -151,23 +151,26 @@
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
                 { nombre: 'RFC Verificable', precio: 110, curp: true },
-                { nombre: 'RFC con IDCIF', precio: 20, curp: true },
+                { nombre: 'RFC con IDCIF', precio: 20, curp: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10 },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true },
+                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                { nombre: 'Acta de Defuncion', precio: 11, curp: true },
                 { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true }
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
             ],
             'INF': [
-                { nombre: 'Localización de Contraseña', precio: 120, nss: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true },
-                { nombre: 'Reseteo MiCuentaInfonavit', precio: 120, nss: true }
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true, eligePlazo: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
                 { nombre: 'Registro a Distancia', precio: 90 },
@@ -239,36 +242,33 @@
             window.abrirModal('modalTramite');
         };
 
-        // --- CONEXIÓN n8n REPARADA Y ACTIVA ---
+        // --- CONEXIÓN n8n CON VARIABLE "tramite" ---
         window.confirmarCompra = async (n, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
             try {
-                const curp = document.getElementById('curp_p').value.toUpperCase();
-                const nss = document.getElementById('nss_p').value;
+                const curpVal = document.getElementById('curp_p').value.toUpperCase();
+                const nssVal = document.getElementById('nss_p').value;
                 
-                // 1. Guardar en Firebase
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal, nss: nssVal
                 });
 
-                // 2. Enviar a n8n (Hostinger) con variable "tramite"
-                const url_n8n = "https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta";
-                fetch(url_n8n, {
+                // Webhook n8n
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         id_solicitud: docRef.id, 
                         asesor: emailAsesor, 
-                        servicio: n, 
-                        curp: curp, 
-                        nss: nss,
+                        tramite: n, // Variable alineada con n8n
+                        curp: curpVal, 
+                        nss: nssVal,
                         fecha: new Date().toLocaleString()
                     })
                 }).catch(err => console.log("n8n offline"));
 
-                alert("Trámite enviado con éxito."); 
-                window.cerrarModal();
+                alert("Enviado."); window.cerrarModal();
             } catch(e) { alert("Error al procesar."); }
         };
 
@@ -284,11 +284,11 @@
                 const d = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
                 alert("Pago reportado."); window.cerrarModal();
-            } catch(e) { alert("Error al subir."); } finally { btn.disabled = false; }
+            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
         };
 
         function escucharHistorial() {
-            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(500)), (snap) => {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(1500)), (snap) => {
                 todasLasSolicitudes = []; snap.forEach(d => todasLasSolicitudes.push(d.data()));
                 renderizarTabla();
             });
