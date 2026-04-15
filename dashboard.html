@@ -141,6 +141,7 @@
         let todasLasSolicitudes = [];
         const consultasPorPagina = 30;
 
+        // CATÁLOGO DE TRÁMITES ACTUALIZADO CON TUS REGLAS ESTRICTAS
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
@@ -156,12 +157,12 @@
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
                 { nombre: 'RFC Verificable', precio: 110, curp: true },
-                { nombre: 'RFC con IDCIF', precio: 20, curp: true, idcif: true },
+                { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideCFE: true },
+                { nombre: 'Recibo CFE', precio: 10, pideNumServicio: true },
                 { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
                 { nombre: 'CURP Certificada', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
@@ -178,17 +179,21 @@
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 90 },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60 },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true },
-                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true },
-                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true },
-                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true },
-                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true }
+                { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
+                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true },
+                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
+                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
             ],
             'PENSIONES': [
                 { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
-                { nombre: 'Análisis Detallado de pensión', precio: 3000, curp: true, nss: true }
+                { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
             ]
         };
 
@@ -209,8 +214,11 @@
             document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
             const lista = document.getElementById('listaServicios');
             let html = '';
+            
+            // Pasamos el objeto del trámite completo como texto para que no haya errores
             TRAMITES[cat].forEach(t => {
-                html += `<div onclick="window.prepararTramite('${t.nombre}', ${t.precio}, ${t.nss||false}, ${t.curp||false})" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -222,67 +230,215 @@
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        window.prepararTramite = (nombre, costo, pideNss, pideCurp) => {
+        // LÓGICA DINÁMICA DE FORMULARIOS BASADA EN TUS REGLAS
+        window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
-            let precioFinal = costo;
+            let precioFinal = t.precio;
+            const nombre = t.nombre;
 
             const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
             const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
+
             if (nombre === 'SEMANAS COTIZADAS') {
                 if (correosUltraVip.includes(emailAsesor)) precioFinal = 18;
                 else if (correosVip.includes(emailAsesor)) precioFinal = 19;
             }
 
             let camposHtml = '';
-            if (pideCurp) camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
-            if (pideNss) camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            
+            // Text Inputs
+            if (t.pideNombre) camposHtml += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if (t.curp) camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
+            if (t.nss) camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if (t.rfc) camposHtml += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
+            if (t.idcif) camposHtml += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
+            if (t.pideNumServicio) camposHtml += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO (CFE)" class="input-light mb-4">`;
+            if (t.pideFecha) camposHtml += `<label class="text-[8px] font-black ml-2 uppercase text-slate-400">Fecha Nacimiento:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+            
+            if (t.pideTel) camposHtml += `<input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
+            if (t.pideTelContacto) camposHtml += `<input type="tel" id="tel_contacto_p" placeholder="TELÉFONO DE CONTACTO (ASESOR)" class="input-light mb-4">`;
+            if (t.pideCorreo) camposHtml += `<input type="email" id="correo_p" placeholder="CORREO ELECTRÓNICO" class="input-light mb-4">`;
+            if (t.pidePass) camposHtml += `<input type="text" id="pass_p" placeholder="CONTRASEÑA ACTUAL" class="input-light mb-4">`;
+            if (t.pidePassNueva) camposHtml += `<input type="text" id="pass_nueva_p" placeholder="NUEVA CONTRASEÑA" class="input-light mb-4">`;
+            if (t.pideNota) camposHtml += `<textarea id="nota_p" placeholder="NOTA EXTRA (OPCIONAL)" class="input-light mb-4 uppercase text-[10px]" rows="2"></textarea>`;
+            
+            // File Inputs
+            if (t.pideIneFrente || t.pideIneReverso || t.pideFotoCli || t.pideEdoCta) {
+                camposHtml += `<div class="text-left space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border">`;
+                if (t.pideIneFrente) camposHtml += `<div><label class="text-[8px] font-black text-slate-400 uppercase">INE FRENTE:</label><input type="file" id="file_ine_f" class="w-full text-[10px]"></div>`;
+                if (t.pideIneReverso) camposHtml += `<div><label class="text-[8px] font-black text-slate-400 uppercase">INE REVERSO:</label><input type="file" id="file_ine_r" class="w-full text-[10px]"></div>`;
+                if (t.pideFotoCli) camposHtml += `<div><label class="text-[8px] font-black text-slate-400 uppercase">FOTO DEL CLIENTE:</label><input type="file" id="file_foto_cli" class="w-full text-[10px]"></div>`;
+                if (t.pideEdoCta) camposHtml += `<div><label class="text-[8px] font-black text-slate-400 uppercase">ESTADO DE CUENTA:</label><input type="file" id="file_edo_cta" class="w-full text-[10px]"></div>`;
+                camposHtml += `</div>`;
+            }
+
+            // Cuestionario de Análisis Detallado
+            if (t.pideCuestionarioPension) {
+                camposHtml += `
+                    <div class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 max-h-80 overflow-y-auto shadow-inner">
+                        <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Preliminar</h3>
+                        
+                        <h4 class="text-[9px] font-bold text-slate-600 mb-2">1. Datos Personales</h4>
+                        <input type="text" id="q_nombre" placeholder="Nombre Completo" class="input-light mb-2 uppercase">
+                        <div class="flex gap-2 mb-2">
+                            <input type="date" id="q_fecha_nac" class="input-light flex-1">
+                            <input type="text" id="q_lugar_nac" placeholder="Lugar de Nac." class="input-light flex-1 uppercase">
+                        </div>
+                        <select id="q_estado_civil" class="input-light mb-2 text-slate-500 font-bold">
+                            <option value="">Estado Civil...</option><option value="Soltero">Soltero(a)</option><option value="Casado">Casado(a)</option><option value="Divorciado">Divorciado(a)</option><option value="Concubinato">Concubinato</option>
+                        </select>
+                        <input type="text" id="q_nss" placeholder="NSS" class="input-light mb-2">
+                        <input type="text" id="q_curp" placeholder="CURP" class="input-light mb-2 uppercase">
+                        <input type="text" id="q_rfc" placeholder="RFC" class="input-light mb-2 uppercase">
+                        <textarea id="q_direccion" placeholder="Dirección Completa" class="input-light mb-2 uppercase text-[10px]" rows="2"></textarea>
+                        <div class="flex gap-2 mb-2">
+                            <input type="tel" id="q_tel" placeholder="Teléfono Fijo" class="input-light flex-1">
+                            <input type="tel" id="q_celular" placeholder="Celular" class="input-light flex-1">
+                        </div>
+                        <input type="email" id="q_correo" placeholder="Correo electrónico" class="input-light mb-6">
+                        
+                        <h4 class="text-[9px] font-bold text-slate-600 mb-2 border-t pt-2">2. Expectativas</h4>
+                        <input type="text" id="q_pension_actual" placeholder="¿Sabe con cuánto se va a pensionar? (Monto/No sabe)" class="input-light mb-2 uppercase">
+                        <select id="q_edad_retiro" class="input-light mb-2 text-slate-500 font-bold">
+                            <option value="">Edad esperada de pensión...</option><option value="60">60 años</option><option value="61">61 años</option><option value="62">62 años</option><option value="63">63 años</option><option value="64">64 años</option><option value="65">65 años</option>
+                        </select>
+                        <input type="text" id="q_pension_deseada" placeholder="¿Con cuánto dinero le gustaría pensionarse?" class="input-light mb-6 uppercase">
+                        
+                        <h4 class="text-[9px] font-bold text-slate-600 mb-2 border-t pt-2">3. Situación Actual</h4>
+                        <div class="flex gap-4 mb-3 px-2">
+                            <label class="flex items-center gap-1 text-[9px] font-bold text-slate-700"><input type="checkbox" id="q_homonimia"> Homonimia</label>
+                            <label class="flex items-center gap-1 text-[9px] font-bold text-slate-700"><input type="checkbox" id="q_duplicidad"> Doble NSS</label>
+                            <label class="flex items-center gap-1 text-[9px] font-bold text-slate-700"><input type="checkbox" id="q_comparte_nss"> Comparte NSS</label>
+                        </div>
+                        <input type="text" id="q_recibe_pension" placeholder="¿Recibe pensión actualmente? (Cuál o NO)" class="input-light mb-6 uppercase">
+
+                        <h4 class="text-[9px] font-bold text-slate-600 mb-2 border-t pt-2">4. Historial IMSS / ISSSTE</h4>
+                        <input type="text" id="q_instituciones" placeholder="Cotizó en: IMSS / ISSSTE / AMBOS" class="input-light mb-2 uppercase">
+                        <input type="number" id="q_semanas_imss" placeholder="Semanas cotizadas IMSS" class="input-light mb-2">
+                        <input type="number" id="q_salario_5anos" placeholder="Salario promedio últimos 5 años" class="input-light mb-2">
+                        <input type="number" id="q_anos_issste" placeholder="Años de servicio ISSSTE" class="input-light mb-6">
+                        
+                        <h4 class="text-[9px] font-bold text-slate-600 mb-2 border-t pt-2">5. Beneficiarios</h4>
+                        <textarea id="q_beneficiarios" placeholder="Indique: Cónyuge, Hijos (Edades/Discapacidad), Padres, etc." class="input-light mb-2 uppercase text-[10px]" rows="3"></textarea>
+                    </div>
+                `;
+            }
+
+            // Botón de pago con inyección de datos para enviar a la función
+            const btnConfig = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 
             content.innerHTML = `
                 <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${nombre}</h2>
                 ${camposHtml}
-                <button onclick="window.confirmarCompra('${nombre}', ${precioFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${precioFinal}.00</button>
+                <button onclick="window.confirmarCompra(JSON.parse('${btnConfig}'), ${precioFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs shadow-lg hover:scale-[1.02] transition-transform">Pagar $${precioFinal}.00</button>
             `;
             window.abrirModal('modalTramite');
         };
 
-        window.confirmarCompra = async (n, c) => {
+        window.confirmarCompra = async (t, c) => {
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            
             try {
-                const curpInput = document.getElementById('curp_p');
-                const nssInput = document.getElementById('nss_p');
-                const curp = curpInput ? curpInput.value.toUpperCase().trim() : "N/A";
-                const nss = nssInput ? nssInput.value.trim() : "N/A";
+                const n = t.nombre;
+                
+                // Función auxiliar para leer los valores de manera segura
+                const val = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : "N/A"; };
+                const check = (id) => { const el = document.getElementById(id); return el ? (el.checked ? "SI" : "NO") : "N/A"; };
+                
+                const curpVal = t.curp ? val('curp_p').toUpperCase() : "N/A";
+                const nssVal = t.nss ? val('nss_p') : "N/A";
 
-                if (n === 'SEMANAS COTIZADAS' && (curp === "" || nss === "")) return alert("NSS y CURP obligatorios.");
+                // Validaciones Cruciales
+                if (n === 'SEMANAS COTIZADAS' && (curpVal === "" || nssVal === "")) return alert("Para Semanas Cotizadas el NSS y la CURP son obligatorios.");
+                if (t.pideCuestionarioPension && val('q_nombre') === "") return alert("El Cuestionario requiere al menos el Nombre Completo.");
 
+                // Recopilamos la información extendida para que n8n no pierda detalle
+                let extendedData = {
+                    rfc: t.rfc ? val('rfc_p').toUpperCase() : "N/A",
+                    idcif: t.idcif ? val('idcif_p').toUpperCase() : "N/A",
+                    nombre_cliente: t.pideNombre ? val('nombre_p').toUpperCase() : "N/A",
+                    num_servicio: t.pideNumServicio ? val('num_servicio_p') : "N/A",
+                    fecha_nac: t.pideFecha ? val('fecha_p') : "N/A",
+                    telefono: t.pideTel ? val('tel_p') : "N/A",
+                    telefono_contacto: t.pideTelContacto ? val('tel_contacto_p') : "N/A",
+                    correo: t.pideCorreo ? val('correo_p') : "N/A",
+                    pass: t.pidePass ? val('pass_p') : "N/A",
+                    pass_nueva: t.pidePassNueva ? val('pass_nueva_p') : "N/A",
+                    nota: t.pideNota ? val('nota_p').toUpperCase() : "N/A"
+                };
+
+                let cuestionarioData = "N/A";
+                if(t.pideCuestionarioPension) {
+                    cuestionarioData = {
+                        nombre: val('q_nombre').toUpperCase(),
+                        fecha_nac: val('q_fecha_nac'),
+                        lugar_nac: val('q_lugar_nac').toUpperCase(),
+                        estado_civil: val('q_estado_civil').toUpperCase(),
+                        nss: val('q_nss'),
+                        curp: val('q_curp').toUpperCase(),
+                        rfc: val('q_rfc').toUpperCase(),
+                        direccion: val('q_direccion').toUpperCase(),
+                        tel: val('q_tel'),
+                        celular: val('q_celular'),
+                        correo: val('q_correo'),
+                        pension_actual: val('q_pension_actual').toUpperCase(),
+                        edad_retiro: val('q_edad_retiro'),
+                        pension_deseada: val('q_pension_deseada').toUpperCase(),
+                        homonimia: check('q_homonimia'),
+                        duplicidad: check('q_duplicidad'),
+                        comparte_nss: check('q_comparte_nss'),
+                        recibe_pension: val('q_recibe_pension').toUpperCase(),
+                        instituciones: val('q_instituciones').toUpperCase(),
+                        semanas_imss: val('q_semanas_imss'),
+                        salario_5anos: val('q_salario_5anos'),
+                        anos_issste: val('q_anos_issste'),
+                        beneficiarios: val('q_beneficiarios').toUpperCase()
+                    };
+                }
+
+                // 1. Guardar en Firebase descontando saldo
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp, nss
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: n, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal, nss: nssVal,
+                    detalles_extra: extendedData,
+                    cuestionario: cuestionarioData
                 });
 
+                // 2. Envío Robusto a n8n (Hostinger)
                 fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, tramite: n, curp, nss, fecha: new Date().toLocaleString() })
-                }).catch(err => console.log("n8n offline"));
+                    body: JSON.stringify({ 
+                        id_solicitud: docRef.id, 
+                        asesor: emailAsesor, 
+                        tramite: n,    // Variable 1 (La de tus flujos)
+                        servicio: n,   // Variable 2 (Respaldo)
+                        curp: curpVal, 
+                        nss: nssVal, 
+                        fecha: new Date().toLocaleString(),
+                        ...extendedData, // Inyecta todos los campos extras (rfc, idcif, pass, etc.)
+                        cuestionario: cuestionarioData // Inyecta el cuestionario si aplica
+                    })
+                }).catch(err => console.log("n8n offline. Se respaldó en FB."));
 
-                alert("Enviado."); window.cerrarModal();
-            } catch(e) { alert("Error."); }
+                alert("Trámite enviado con éxito."); window.cerrarModal();
+
+            } catch(e) { alert("Error al procesar el trámite."); console.error(e); }
         };
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const r = document.getElementById('claveRastreo').value;
             const f = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !f || m < 200) return alert("Completa los datos.");
+            if (!m || !r || !f || m < 200) return alert("Por favor completa los datos de recarga (Mínimo $200).");
             const btn = document.getElementById('btnNotificar'); btn.disabled = true;
             try {
                 const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
                 const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
                 const d = await res.json();
                 await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-                alert("Pago reportado."); window.cerrarModal();
-            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
+                alert("Pago reportado exitosamente."); window.cerrarModal();
+            } catch(e) { alert("Error de conexión al subir el comprobante."); } finally { btn.disabled = false; }
         };
 
         function escucharHistorial() {
