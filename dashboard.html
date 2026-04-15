@@ -81,6 +81,7 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
+            <label class="text-[9px] font-red text-slate-600 uppercase mb-1 block">LAS CAPTURASDEBEN INCLUIR FECHA, HORA Y CLAVE DE RASTREO O SE RECHAZARÁN SIN DEVOLUCIONES</label>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
                 <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
                 <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
@@ -90,6 +91,7 @@
                 <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
                 <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
                 <div class="text-left px-2">
+                    <label class="text-[9px] font-blue text-slate-600 uppercase mb-1 block"> AL INFORMAR TU RECARGA ACEPTAS NUESTROS TERMINOS Y CONDICIONES </label>
                     <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Subir Comprobante:</label>
                     <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
                 </div>
@@ -148,18 +150,19 @@
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                //{ nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con Linea de captura', precio: 600, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
                 { nombre: 'RFC Verificable', precio: 100, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'INSCRIPCIÓN RFC', precio: 1800, curp: true },
+                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
@@ -355,17 +358,17 @@
 
                 // Recopilamos la información extendida para que n8n no pierda detalle
                 let extendedData = {
-                    rfc: t.rfc ? val('rfc_p').toUpperCase() : "N/A",
-                    idcif: t.idcif ? val('idcif_p').toUpperCase() : "N/A",
-                    nombre_cliente: t.pideNombre ? val('nombre_p').toUpperCase() : "N/A",
-                    num_servicio: t.pideNumServicio ? val('num_servicio_p') : "N/A",
-                    fecha_nac: t.pideFecha ? val('fecha_p') : "N/A",
-                    telefono: t.pideTel ? val('tel_p') : "N/A",
-                    telefono_contacto: t.pideTelContacto ? val('tel_contacto_p') : "N/A",
-                    correo: t.pideCorreo ? val('correo_p') : "N/A",
-                    pass: t.pidePass ? val('pass_p') : "N/A",
-                    pass_nueva: t.pidePassNueva ? val('pass_nueva_p') : "N/A",
-                    nota: t.pideNota ? val('nota_p').toUpperCase() : "N/A"
+                    rfc: t.rfc ? val('rfc_p').toUpperCase() : " ",
+                    idcif: t.idcif ? val('idcif_p').toUpperCase() : " ",
+                    nombre_cliente: t.pideNombre ? val('nombre_p').toUpperCase() : " ",
+                    num_servicio: t.pideNumServicio ? val('num_servicio_p') : " ",
+                    fecha_nac: t.pideFecha ? val('fecha_p') : " ",
+                    telefono: t.pideTel ? val('tel_p') : " ",
+                    telefono_contacto: t.pideTelContacto ? val('tel_contacto_p') : " ",
+                    correo: t.pideCorreo ? val('correo_p') : " ",
+                    pass: t.pidePass ? val('pass_p') : " ",
+                    pass_nueva: t.pidePassNueva ? val('pass_nueva_p') : " ",
+                    nota: t.pideNota ? val('nota_p').toUpperCase() : " "
                 };
 
                 let cuestionarioData = "N/A";
