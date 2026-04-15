@@ -103,13 +103,20 @@
     </div>
 
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+        <div class="bg-white w-full max-w-3xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
             <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
-            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"></div>
+            
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+            
+            <div id="contenedorCuestionario" class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
+                <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Respuestas del Cuestionario</h3>
+                <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px]"></div>
+            </div>
+
             <div class="border-t pt-6">
                 <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Documentos Adjuntos</h3>
-                <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+                <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
             </div>
         </div>
     </div>
@@ -125,21 +132,25 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         const PASS_DIANA = "Sashimi$";
-        const vPass = prompt("Contraseña Admin:");
-        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
+        const entrada = prompt("Contraseña Admin:");
+        if(entrada === PASS_DIANA || entrada === "DPR2026") { 
+            document.body.style.display="block"; 
+        } else { 
+            window.location.href="https://pensionsegura.org"; 
+        }
 
         let currentPage = 1; const PAGE_SIZE = 30; let idTramiteActual = ""; let todasLasSoliCargadas = [];
 
         const LISTA_ERRORES_DPR = {
             "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
-            "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea en el siguiente link: https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/",
+            "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea.",
             "ERR_FOTOS": "Error: FOTOS ILEGIBLES",
             "ERR_INEXISTENTE": "Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO",
             "ERR_PASS": "Error: CONTRASEÑA INCORRECTA",
@@ -155,23 +166,20 @@
         window.toggleSeccion = (id, ico) => { const c = document.getElementById(id), i = document.getElementById(ico); c.classList.toggle('seccion-cerrada'); i.innerText = c.classList.contains('seccion-cerrada') ? "▶" : "▼"; };
         window.cerrarModales = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
 
-        // --- CAJA FUERTE ---
         window.abrirCajaFuerte = () => {
             if(prompt("Clave Maestra:") === PASS_DIANA) {
                 document.getElementById('modalCajaFuerte').classList.remove('hidden');
             } else { alert("Acceso Denegado"); }
         };
 
-        // TIEMPO REAL VISITAS Y ASESORES
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
         onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
 
-        // TIEMPO REAL SOLICITUDES (PAGINACIÓN INFINITA HASTA 1500 REGISTROS)
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1500)), (snap) => {
             todasLasSoliCargadas = [];
             let ganancia = 0; let hoy = new Date().toLocaleDateString();
             snap.forEach(d => {
-                const data = d.id ? { id: d.id, ...d.data() } : d.data();
+                const data = { id: d.id, ...d.data() };
                 todasLasSoliCargadas.push(data);
                 if(data.fecha?.toDate().toLocaleDateString() === hoy && data.estatus === 'Terminado') ganancia += Number(data.costo || 0);
             });
@@ -180,8 +188,7 @@
             document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
         });
 
-        // RECARGAS
-        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
+        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(15)), (snap) => {
             const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
             snap.forEach(d => {
                 const r = d.data(), id = d.id;
@@ -202,9 +209,8 @@
             docsArray.forEach(s => {
                 const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
-                if(s.curp) info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
-                if(s.nss) info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                if(s.pass_afore) info += `<div class="text-[9px] font-black text-red-500">PASS: <span style="text-transform: none !important;" class="pass-text">${s.pass_afore}</span></div>`;
+                if(s.curp && s.curp !== "N/A") info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+                if(s.nss && s.nss !== "N/A") info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
 
                 tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
                     <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span></td>
@@ -214,13 +220,7 @@
                         <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
                             <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp está mal') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
-                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
-                            <option value="ERR_FOTOS" ${s.estatus.includes('FOTOS ILEGIBLES') ? 'selected' : ''}>❌ ERR: FOTOS</option>
-                            <option value="ERR_INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ ERR: NO EXISTE</option>
-                            <option value="ERR_PASS" ${s.estatus.includes('CONTRASEÑA INCORRECTA') ? 'selected' : ''}>❌ ERR: CONTRASEÑA</option>
-                            <option value="ERR_LIMITE" ${s.estatus.includes('alguien más las consultó') ? 'selected' : ''}>❌ ERR: LIMITE</option>
-                            <option value="ERR_IMSS" ${s.estatus.includes('ERROR EN IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
+                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
@@ -245,17 +245,78 @@
         };
 
         window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Cliente", v:data.cliente_nombre}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}, {l:"PASS", v:data.pass_afore, isPass: true}, {l:"Sueldo", v:data.sueldo_mensual}, {l:"IDCIF", v:data.idcif}, {l:"RFC", v:data.rfc}];
+            const cont = document.getElementById('contenedorDetalles'); 
+            cont.innerHTML = "";
+            
+            // MAPEO DE DATOS REGULARES
+            const campos = [
+                {l:"Asesor", v:data.nombre_asesor}, 
+                {l:"Trámite", v:data.tipo}, 
+                {l:"CURP", v:data.curp}, 
+                {l:"NSS", v:data.nss},
+            ];
+
+            // SI TIENE DATOS EXTRA (NUEVA LÓGICA)
+            if(data.detalles_extra) {
+                const ext = data.detalles_extra;
+                if(ext.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:ext.nombre_cliente});
+                if(ext.rfc !== "N/A") campos.push({l:"RFC", v:ext.rfc});
+                if(ext.idcif !== "N/A") campos.push({l:"IDCIF", v:ext.idcif});
+                if(ext.num_servicio !== "N/A") campos.push({l:"No. Servicio CFE", v:ext.num_servicio});
+                if(ext.fecha_nac !== "N/A") campos.push({l:"Fecha Nac.", v:ext.fecha_nac});
+                if(ext.telefono !== "N/A") campos.push({l:"Teléfono Cli.", v:ext.telefono});
+                if(ext.telefono_contacto !== "N/A") campos.push({l:"Tel. Asesor", v:ext.telefono_contacto});
+                if(ext.correo !== "N/A") campos.push({l:"Correo", v:ext.correo, isPass: true});
+                if(ext.pass !== "N/A") campos.push({l:"Contraseña", v:ext.pass, isPass: true});
+                if(ext.pass_nueva !== "N/A") campos.push({l:"Nueva Pass", v:ext.pass_nueva, isPass: true});
+                if(ext.nota !== "N/A") campos.push({l:"Nota", v:ext.nota});
+            }
+
             campos.forEach(c => { 
-                if(c.v) {
+                if(c.v && c.v !== "N/A") {
                     const style = c.isPass ? 'text-transform: none !important;' : 'text-transform: uppercase;';
                     cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800" style="${style}">${c.v}</p></div>`;
                 }
             });
+
+            // LÓGICA PARA RENDERIZAR CUESTIONARIO DE PENSIÓN
+            const boxCuestionario = document.getElementById('contenedorCuestionario');
+            const gridCuestionario = document.getElementById('gridCuestionario');
+            
+            if (data.cuestionario && data.cuestionario !== "N/A") {
+                boxCuestionario.classList.remove('hidden');
+                gridCuestionario.innerHTML = "";
+                const quest = data.cuestionario;
+                const itemsQ = [
+                    {l:"Nombre", v:quest.nombre}, {l:"Fecha Nac", v:quest.fecha_nac}, {l:"Lugar Nac", v:quest.lugar_nac}, 
+                    {l:"Estado Civil", v:quest.estado_civil}, {l:"NSS", v:quest.nss}, {l:"CURP", v:quest.curp},
+                    {l:"RFC", v:quest.rfc}, {l:"Dirección", v:quest.direccion}, {l:"Tel Fijo", v:quest.tel}, 
+                    {l:"Celular", v:quest.celular}, {l:"Correo", v:quest.correo}, {l:"¿Pensión Actual?", v:quest.pension_actual},
+                    {l:"Edad de Retiro", v:quest.edad_retiro}, {l:"Pensión Deseada", v:quest.pension_deseada},
+                    {l:"Homonimia", v:quest.homonimia}, {l:"Doble NSS", v:quest.duplicidad}, {l:"Comparte NSS", v:quest.comparte_nss},
+                    {l:"¿Recibe Pensión?", v:quest.recibe_pension}, {l:"Instituciones", v:quest.instituciones}, 
+                    {l:"Semanas IMSS", v:quest.semanas_imss}, {l:"Salario (5 Años)", v:quest.salario_5anos}, 
+                    {l:"Años ISSSTE", v:quest.anos_issste}, {l:"Beneficiarios", v:quest.beneficiarios}
+                ];
+                
+                itemsQ.forEach(q => {
+                    gridCuestionario.innerHTML += `<div class="mb-2"><span class="text-blue-500 font-black">${q.l}:</span> <span class="font-bold text-slate-700">${q.v || 'N/A'}</span></div>`;
+                });
+            } else {
+                boxCuestionario.classList.add('hidden');
+            }
+
+            // FOTOS (Las detectará automáticamente si existen)
             const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
-            const fotos = [{l:"INE F", u:data.file_ine_f}, {l:"INE R", u:data.file_ine_r}, {l:"FOTO", u:data.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta}];
+            let fotosExtras = [];
+            // Si subieron fotos, estarán guardadas en detalles_extra u origin_files (depende cómo lo manejes, asumo que usas links directos o Firebase Storage)
+            // Por defecto, si existen en el objeto padre (data.file_ine_f), las muestra:
+            const fotos = [{l:"INE FRENTE", u:data.file_ine_f}, {l:"INE REVERSO", u:data.file_ine_r}, {l:"FOTO CLIENTE", u:data.file_selfie}, {l:"COMP. DOMICILIO", u:data.file_comp_domicilio}, {l:"ESTADO CTA.", u:data.file_edocta}];
+            
             fotos.forEach(f => { if(f.u) contFotos.innerHTML += `<button onclick="window.open('${f.u}')" class="btn-descarga">📥 ${f.l}</button>`; });
+            
+            if(contFotos.innerHTML === "") contFotos.innerHTML = `<p class="text-[9px] text-slate-400 italic col-span-2">Sin documentos adjuntos</p>`;
+
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
