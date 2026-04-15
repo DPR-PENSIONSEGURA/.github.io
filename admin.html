@@ -212,18 +212,45 @@
             });
         }
 
-        window.cambiarEstatus = async (id, val) => {
-            const docRef = doc(db, "solicitudes", id);
-            try {
-                const snap = await getDoc(docRef), s = snap.data();
-                let est = LISTA_ERRORES_DPR[val] || val;
-                if (val.startsWith("ERR_") && !s.reembolsado) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    await updateDoc(docRef, { estatus: est, reembolsado: true });
-                    alert("✅ Reembolso aplicado.");
-                } else { await updateDoc(docRef, { estatus: est }); }
-            } catch (e) { alert("Error."); }
-        };
+      window.cambiarEstatus = async (id, val) => {
+    const docRef = doc(db, "solicitudes", id);
+    try {
+        const snap = await getDoc(docRef);
+        const s = snap.data();
+        
+        // Obtenemos el mensaje de error largo o el valor directo
+        let est = LISTA_ERRORES_DPR[val] || val;
+
+        // Si es un error ("ERR_")
+        if (val.startsWith("ERR_")) {
+            // 1. Verificamos si ya se reembolsó para no dar dinero doble
+            if (!s.reembolsado) {
+                await updateDoc(doc(db, "asesores", s.asesor_uid), { 
+                    saldo: increment(Number(s.costo)) 
+                });
+                
+                // 2. Actualizamos el trámite con un candado (finalizado: true)
+                // Al poner finalizado: true, n8n ya no debería intentar moverlo
+                await updateDoc(docRef, { 
+                    estatus: est, 
+                    reembolsado: true,
+                    finalizado: true, // Bloqueo para n8n
+                    bloqueado: true   // Doble seguridad
+                });
+                alert("✅ Reembolso aplicado y estatus bloqueado.");
+            } else {
+                // Si ya estaba reembolsado, solo aseguramos el estatus
+                await updateDoc(docRef, { estatus: est });
+            }
+        } else {
+            // Si es "Terminado" o "En Proceso" manual
+            await updateDoc(docRef, { estatus: est });
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error al actualizar estatus.");
+    }
+};
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
