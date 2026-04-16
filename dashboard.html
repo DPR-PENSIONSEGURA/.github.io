@@ -110,6 +110,10 @@
             <div class="help-menu flex gap-2 p-2 overflow-x-auto bg-gray-50 border-t border-slate-100">
                 <button onclick="window.enviarPreguntaRapida('inicio')" class="btn-help">¿Necesitas ayuda?</button>
             </div>
+            <div class="p-3 border-t bg-gray-50 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." class="input-light flex-1">
+                <button id="btn-send-chat" onclick="window.enviarMensajeManual()" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
+            </div>
         </div>
         <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl">🎧</button>
     </div>
@@ -174,7 +178,7 @@
                 { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
             ],
             'PENSIONES': [
@@ -202,10 +206,10 @@
             },
             "📋 Estado de Trámites": {
                 texto: "Selecciona el tipo de consulta:",
-                opciones: ["Tiempos de entrega", "Error en NSS/CURP", "INCONSISTENCIAS", "DOCUMENTO NO ENCONTRADO O NO EXISTE" ]
+                opciones: ["Tiempos de entrega", "Error en NSS/CURP", "INCONSISTENCIAS", "DOCUMENTO NO ENCONTRADO O NO EXISTE"]
             },
             "Tiempos de entrega": {
-                texto: "Semanas: 10 min. RFC CLON: 3 MIN. RFC VERIFICABLE: 1 HORA. RFC ORIGINAL: 3-4 HORAS. Altas mensual o con aportaciones: 2-3 días, ALta con linea de captura: 20 min.",
+                texto: "Semanas: 10 min. RFC CLON: 3 MIN. RFC VERIFICABLE: 1 HORA. RFC ORIGINAL: 3-4 HORAS. Altas mensual o con aportaciones: 2-3 días, Alta con linea de captura: 20 min.",
                 opciones: ["Volver al inicio"]
             },
             "Error en NSS/CURP": {
@@ -215,35 +219,44 @@
             "INCONSISTENCIAS": {
                 texto: "Los datos no coinciden con RENAPO. El cliente debe acudir a su subdelegación ò realizar su aclaraciòn en el siguiente enlace - https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ - . El trámite de corrección tarda unos 45 días.",
                 opciones: ["Volver al inicio"]
-            }
+            },
             "DOCUMENTO NO ENCONTRADO O NO EXISTE": {
-                texto: "No se encontrò el documento que solicitas, revisa tus datos ingresados" opciones: ["Volver al inicio"]
-            }
-        "Reportar una falla": {
-                texto: "Agradedcemos tus comentarios, por favor escribe el servicio y los datos que solicitaste, en breve un asesor se comunicarà contigo" opciones: ["Volver al inicio"]
-            }
-        
-        "🛡️ Soporte Técnico": {
-                texto: "ESCRIBE A CONTINUACIÒN LA ACLARACIÒN QUE NECESITA, UN ASESOR SE COMUNICARÀ EN BREVE" opciones: ["Volver al inicio"]
-            }
-        "📃 Términos y Condiciones": {
-                texto: "DPR Consultoría actúa únicamente como un gestor y facilitador administrativo para la obtención de documentos y trámites ante instituciones públicas (IMSS, INFONAVIT, SAT, AFORE). El usuario reconoce que DPR Consultoría no es una institución oficial, sino una consultoría privada. Es responsabilidad absoluta del Asesor/Usuario proporcionar datos correctos (CURP, NSS, RFC, Nombres). Si un trámite es rechazado debido a datos incorrectos proporcionados por el usuario, no habrá lugar a reembolso. En caso de detectar discrepancias en documentos oficiales (homonimias, duplicidad de NSS), el usuario deberá seguir las instrucciones indicadas para acudir a las subdelegaciones correspondientes. DPR Consultoría se compromete a utilizar la información y fotografías (INE, Selfies, Comprobantes) exclusivamente para el trámite solicitado. Los datos son tratados con estricta confidencialidad y no son compartidos con terceros con fines comerciales. Al realizar cualquier recarga de saldo o envío de trámite a través de nuestro portal, el asesor/usuario manifiesta haber leído, comprendido y aceptado la totalidad de estas condiciones." 
-                    opciones: ["Volver al inicio"]
-            }
-           "Politica de pagos y Recarga": {
+                texto: "No se encontrò el documento que solicitas, revisa tus datos ingresados",
+                opciones: ["Volver al inicio"]
+            },
+            "Reportar una falla": {
+                texto: "Agradedcemos tus comentarios, por favor escribe el servicio y los datos que solicitaste, en breve un asesor se comunicarà contigo",
+                opciones: ["Volver al inicio"]
+            },
+            "🛡️ Soporte Técnico": {
+                texto: "ESCRIBE A CONTINUACIÒN LA ACLARACIÒN QUE NECESITA, UN ASESOR SE COMUNICARÀ EN BREVE",
+                opciones: ["Volver al inicio"]
+            },
+            "📃 Términos y Condiciones": {
+                texto: "DPR Consultoría actúa únicamente como un gestor y facilitador administrativo para la obtención de documentos y trámites ante instituciones públicas (IMSS, INFONAVIT, SAT, AFORE). El usuario reconoce que DPR Consultoría no es una institución oficial, sino una consultoría privada. Es responsabilidad absoluta del Asesor/Usuario proporcionar datos correctos (CURP, NSS, RFC, Nombres). Si un trámite es rechazado debido a datos incorrectos proporcionados por el usuario, no habrá lugar a reembolso. En caso de detectar discrepancias en documentos oficiales (homonimias, duplicidad de NSS), el usuario deberá seguir las instrucciones indicadas para acudir a las subdelegaciones correspondientes. DPR Consultoría se compromete a utilizar la información y fotografías (INE, Selfies, Comprobantes) exclusivamente para el trámite solicitado. Los datos son tratados con estricta confidencialidad y no son compartidos con terceros con fines comerciales. Al realizar cualquier recarga de saldo o envío de trámite a través de nuestro portal, el asesor/usuario manifiesta haber leído, comprendido y aceptado la totalidad de estas condiciones.",
+                opciones: ["Volver al inicio"]
+            },
+            "Politica de pagos y Recarga": {
                 texto: "La recarga mínima al panel es de $200.00 MXN. Para que un saldo sea aprobado, el comprobante de transferencia debe ser legible y mostrar: Fecha, Hora y Clave de Rastreo (SPEI). Comprobantes incompletos o sin rastreo serán rechazados. El saldo recargado no tiene fecha de caducidad mientras el asesor mantenga su cuenta activa.",
                 opciones: ["Volver al inicio"]
-            }
-        "POLÌTICA DE REEMBOLSOS": {
-                texto: "DPR Consultoría aplicará un reembolso automático al saldo del panel únicamente cuando: El sistema institucional (IMSS/SAT) presente caídas prolongadas que impidan la entrega.El documento solicitado no exista en la base de datos oficial. Nota: Una vez que un trámite ha sido marcado como "Terminado" y el archivo ha sido subido, no hay devoluciones de saldo." opciones: ["Volver al inicio"]
+            },
+            "POLÌTICA DE REEMBOLSOS": {
+                texto: "DPR Consultoría aplicará un reembolso automático al saldo del panel únicamente cuando: El sistema institucional (IMSS/SAT) presente caídas prolongadas que impidan la entrega. El documento solicitado no exista en la base de datos oficial. Nota: Una vez que un trámite ha sido marcado como 'Terminado' y el archivo ha sido subido, no hay devoluciones de saldo.",
+                opciones: ["Volver al inicio"]
             }
         };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                userUID = user.uid; emailAsesor = user.email; 
+                escucharSaldo(); escucharHistorial(); escucharChat();
+            } else { window.location.href = "login/index.html"; }
+        });
 
         window.enviarMensajeManual = async () => {
             const input = document.getElementById('chat-input');
             const texto = input.value.trim();
             if (!texto) return;
-
             try {
                 await addDoc(collection(db, "chat_soporte"), {
                     asesor_uid: userUID,
@@ -251,14 +264,9 @@
                     texto: texto,
                     timestamp: serverTimestamp()
                 });
-                input.value = ""; // Limpiar campo
+                input.value = "";
             } catch (e) { console.error("Error al enviar mensaje:", e); }
         };
-        
-        onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); } 
-            else { window.location.href = "login/index.html"; }
-        });
 
         window.enviarPreguntaRapida = (pregunta) => {
             const box = document.getElementById('chat-messages');
@@ -288,6 +296,20 @@
             }, 500);
         };
 
+        function escucharChat() {
+            const q = query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snap) => {
+                const box = document.getElementById('chat-messages'); box.innerHTML = "";
+                snap.forEach(d => {
+                    const m = d.data();
+                    const div = document.createElement('div');
+                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
+                    div.innerText = m.texto; box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
 
@@ -300,7 +322,7 @@
             let html = '';
             TRAMITES[cat].forEach(t => {
                 const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -309,6 +331,7 @@
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
             document.getElementById('btnVolver').classList.add('hidden');
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
         window.prepararTramite = (t) => {
@@ -321,7 +344,7 @@
             if (t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
             
             if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
+            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
             if (t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
             if (t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
             if (t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
