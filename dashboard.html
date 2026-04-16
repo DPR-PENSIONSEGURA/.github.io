@@ -242,4 +242,80 @@
             if (t.pideTel) camposHtml += `<input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
             if (t.pideTelContacto) camposHtml += `<input type="tel" id="tel_contacto_p" placeholder="TELÉFONO CONTACTO ASESOR" class="input-light mb-4">`;
             if (t.pideCorreo) camposHtml += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
-            if (t.pidePass) camposHtml += `<input type="text" id="pass_p" placeholder="CONTRASEÑA ACTUAL" class="input-light mb-4">
+            if (t.pidePass) camposHtml += `<input type="text" id="pass_p" placeholder="CONTRASEÑA ACTUAL" class="input-light mb-4">`;
+            if (t.pidePassNueva) camposHtml += `<input type="text" id="pass_nueva_p" placeholder="NUEVA CONTRASEÑA" class="input-light mb-4">`;
+            if (t.pideNota) camposHtml += `<textarea id="nota_p" placeholder="NOTA EXTRA" class="input-light mb-4 uppercase text-[10px]"></textarea>`;
+
+            content.innerHTML = `
+                <h2 class="text-lg font-black text-emerald-600 mb-4 uppercase italic">${nombre}</h2>
+                ${mensajeExtra}
+                ${camposHtml}
+                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${precioFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs shadow-lg">Pagar $${precioFinal}.00</button>
+            `;
+            window.abrirModal('modalTramite');
+        };
+
+        window.confirmarCompra = async (t, c) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            try {
+                const val = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "N/A";
+                const curpVal = t.curp ? val('curp_p').toUpperCase() : "N/A";
+                const nssVal = t.nss ? val('nss_p') : "N/A";
+
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                const docRef = await addDoc(collection(db, "solicitudes"), { 
+                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: t.nombre, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal, nss: nssVal
+                });
+
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, tramite: t.nombre, servicio: t.nombre, curp: curpVal, nss: nssVal, fecha: new Date().toLocaleString() })
+                }).catch(err => console.log("n8n offline"));
+
+                alert("Enviado con éxito."); window.cerrarModal();
+            } catch(e) { alert("Error."); }
+        };
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('claveRastreo').value;
+            const f = document.getElementById('fileRecarga').files[0];
+            if (!m || !r || !f || m < 200) return alert("Completa los datos.");
+            const btn = document.getElementById('btnNotificar'); btn.disabled = true;
+            try {
+                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                const d = await res.json();
+                await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+                alert("Pago reportado."); window.cerrarModal();
+            } catch(e) { alert("Error."); } finally { btn.disabled = false; }
+        };
+
+        function escucharHistorial() {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(1500)), (snap) => {
+                todasLasSolicitudes = []; snap.forEach(d => todasLasSolicitudes.push(d.data()));
+                renderizarTabla();
+            });
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('listaHistorial');
+            const inicio = (paginaActual - 1) * consultasPorPagina;
+            const fragmento = todasLasSolicitudes.slice(inicio, inicio + consultasPorPagina);
+            let html = "";
+            fragmento.forEach(d => {
+                const f = d.fecha ? d.fecha.toDate().toLocaleDateString() : '...';
+                let color = d.estatus === "Terminado" ? "text-emerald-500" : (d.estatus.includes("Error") ? "text-red-500" : "text-amber-500");
+                html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${d.tipo}<br><small class="text-blue-600">${d.curp || ''}</small></td><td class="py-3 px-2 text-center uppercase font-black"><span class="${color}">${d.estatus}</span></td><td class="py-3 px-2 text-right">${d.archivoFinal ? `<a href="${d.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}</td></tr>`;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="4" class="py-10 text-center">Sin registros</td></tr>';
+            document.getElementById('infoPagina').innerText = `Página ${paginaActual}`;
+        }
+
+        window.cambiarPagina = (dir) => { paginaActual += dir; if(paginaActual<1) paginaActual=1; renderizarTabla(); };
+        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if(d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`; } }); }
+        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
+    </script>
+</body>
+</html>
