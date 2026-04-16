@@ -1,236 +1,180 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
-        .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
-        .msg-alerta { border-left: 4px solid #ef4444; background: #fef2f2; }
-        .vista-admin { display: none; } /* Oculto por defecto */
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  padding: 20px;
+}
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+button {
+  padding: 10px;
+  background: #00C896;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+input {
+  padding: 8px;
+  margin: 5px;
+}
+</style>
+
 </head>
-<body class="p-4 md:p-8">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
-                <div>
-                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">CRM <span class="text-blue-600">DPR</span></h1>
-                    <p id="txtRol" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verificando Credenciales...</p>
-                </div>
-            </div>
+<body style="display:none;">
 
-            <div id="statsDiana" class="vista-admin grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-emerald-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Ventas Hoy</p>
-                    <p id="gananciaHoy" class="text-xl font-black text-emerald-600">$0.00</p>
-                </div>
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Conectados</p>
-                    <p id="txtOnline" class="text-xl font-black text-orange-600">0</p>
-                </div>
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-red-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Rechazos Hoy</p>
-                    <p id="txtRechazos" class="text-xl font-black text-red-600">0</p>
-                </div>
-                <button onclick="window.generarCorteMensual()" class="bg-slate-800 text-white p-4 rounded-3xl shadow-lg hover:bg-slate-700 transition">
-                    <p class="text-[10px] font-black uppercase">Corte PDF</p>
-                </button>
-            </div>
-        </header>
+<h1>👑 Panel Administrador</h1>
 
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <section class="lg:col-span-1">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-blue-600 pl-4">Mensajes Entrantes</h2>
-                <div id="listaChat" class="bg-white rounded-[2rem] shadow-xl border overflow-y-auto h-[600px] p-4 space-y-4">
-                    </div>
-            </section>
+<!-- 👥 ASESORES -->
+<div class="card">
+  <h2>Asesores Conectados</h2>
+  <div id="asesoresActivos"></div>
+</div>
 
-            <section class="lg:col-span-2 vista-admin">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-emerald-600 pl-4">Gestión de Asesores</h2>
-                <div class="bg-white rounded-[2rem] p-6 shadow-xl border mb-8">
-                    <div class="flex gap-2">
-                        <input type="text" id="nuevoAsesorUser" placeholder="Nombre Asesor" class="bg-slate-100 p-3 rounded-xl flex-1 outline-none text-xs font-bold">
-                        <input type="text" id="nuevoAsesorPass" placeholder="Contraseña Nueva" class="bg-slate-100 p-3 rounded-xl flex-1 outline-none text-xs font-bold">
-                        <button onclick="window.agregarAsesor()" class="bg-emerald-500 text-white px-6 rounded-xl font-black text-xs uppercase">Añadir</button>
-                    </div>
-                    <div id="listaAsesores" class="mt-4 space-y-2"></div>
-                </div>
+<!-- 📦 PRODUCTOS -->
+<div class="card">
+  <h2>Productos</h2>
 
-                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-blue-600 pl-4">Solicitudes Recientes</h2>
-                <div class="bg-white rounded-[2rem] shadow-xl border overflow-hidden">
-                    <table class="w-full text-[10px]">
-                        <thead class="bg-slate-900 text-white uppercase italic">
-                            <tr><th class="p-3">Trámite</th><th class="p-3">Info</th><th class="p-3">Estatus</th></tr>
-                        </thead>
-                        <tbody id="tablaAdmin"></tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-    </div>
+  <input id="prodNombre" placeholder="Nombre producto">
+  <input id="prodPrecio" placeholder="Precio">
+  <input id="prodCosto" placeholder="Costo">
 
-    <div id="modalChat" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl">
-            <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic">Responder a: </h2>
-            <div id="chatHistory" class="bg-slate-50 h-64 overflow-y-auto p-4 rounded-2xl mb-4 space-y-2 flex flex-col"></div>
-            <div class="flex gap-2">
-                <input type="text" id="inputRespuesta" placeholder="Escribe respuesta..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
-                <button id="btnEnviarRespuesta" class="bg-blue-600 text-white px-6 rounded-xl font-black">ENVIAR</button>
-            </div>
-            <button onclick="window.cerrarModales()" class="mt-4 text-[9px] font-black uppercase text-slate-400">Cerrar</button>
-        </div>
-    </div>
+  <button onclick="agregarProducto()">Guardar</button>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, addDoc, serverTimestamp, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <div id="listaProductos"></div>
+</div>
 
-        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<!-- 📄 PDF -->
+<div class="card">
+  <h2>Corte</h2>
+  <button onclick="generarPDF()">Descargar PDF</button>
+</div>
 
-        const PASS_DIANA = "Adiana.";
-        let miRol = "asesor";
-        let idChatActivo = "";
+<!-- 🔥 FIREBASE + LÓGICA -->
+<script type="module">
 
-        // --- SISTEMA DE LOGIN MULTI-NIVEL ---
-        async function checkLogin() {
-            const pass = prompt("Contraseña de Acceso:");
-            const asesoresSnap = await getDocs(collection(db, "accesos_crm"));
-            let asesores = {};
-            asesoresSnap.forEach(d => asesores[d.data().password] = d.data().nombre);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-            if(pass === PASS_DIANA) {
-                miRol = "diana";
-                document.querySelectorAll('.vista-admin').forEach(el => el.style.display = 'block');
-                document.getElementById('txtRol').innerText = "ADMINISTRADORA MAESTRA";
-                document.body.style.display = "block";
-                escucharEstadisticas();
-                escucharAsesores();
-            } else if (asesores[pass]) {
-                miRol = "asesor";
-                document.getElementById('txtRol').innerText = "SOPORTE: " + asesores[pass].toUpperCase();
-                document.body.style.display = "block";
-            } else {
-                window.location.href = "https://pensionsegura.org";
-            }
-        }
-        checkLogin();
+// 🔥 CONFIGURA AQUÍ
+const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-        // --- CHAT EN TIEMPO REAL ---
-        onSnapshot(query(collection(db, "chat_soporte"), orderBy("timestamp", "desc")), (snap) => {
-            const cont = document.getElementById('listaChat');
-            cont.innerHTML = "";
-            let uniqueChats = {};
+// 🔐 PROTECCIÓN ADMIN
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    alert("No logueado");
+    window.location.href = "index.html";
+    return;
+  }
 
-            snap.forEach(d => {
-                const m = d.data();
-                if(!uniqueChats[m.asesor_uid]) {
-                    uniqueChats[m.asesor_uid] = { ...m, id: d.id };
-                    const alertClass = m.respondido ? "" : "msg-alerta";
-                    const statusDot = m.respondido ? "🟢" : "🔴";
-                    
-                    cont.innerHTML += `
-                        <div onclick="window.abrirChat('${m.asesor_uid}', '${m.remitente}')" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[9px] font-black uppercase text-blue-600">${m.remitente}</span>
-                                <span>${statusDot}</span>
-                            </div>
-                            <p class="text-[10px] font-bold text-slate-600 truncate">${m.texto}</p>
-                        </div>
-                    `;
-                }
-            });
-        });
+  const ref = doc(db, "USUARIOSDPR", user.uid);
+  const snap = await getDoc(ref);
 
-        window.abrirChat = (uid, email) => {
-            idChatActivo = uid;
-            document.getElementById('chatTitle').innerText = "Responder a: " + email;
-            document.getElementById('modalChat').classList.remove('hidden');
-            
-            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", uid), orderBy("timestamp", "asc")), (snap) => {
-                const box = document.getElementById('chatHistory');
-                box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    const align = m.remitente === email ? "self-start bg-white" : "self-end bg-blue-600 text-white";
-                    box.innerHTML += `<div class="p-2 rounded-xl text-[10px] font-bold shadow-sm max-w-[80%] ${align}">${m.texto}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+  if (!snap.exists() || snap.data().rol !== "admin") {
+    alert("No eres admin");
+    window.location.href = "crm.html";
+    return;
+  }
 
-            document.getElementById('btnEnviarRespuesta').onclick = async () => {
-                const txt = document.getElementById('inputRespuesta').value;
-                if(!txt) return;
-                await addDoc(collection(db, "chat_soporte"), {
-                    asesor_uid: uid,
-                    remitente: "Soporte DPR",
-                    texto: txt,
-                    timestamp: serverTimestamp(),
-                    respondido: true
-                });
-                // Marcar mensajes anteriores como respondidos
-                const qMsg = await getDocs(query(collection(db, "chat_soporte"), where("asesor_uid", "==", uid)));
-                qMsg.forEach(async (docChat) => {
-                    await updateDoc(doc(db, "chat_soporte", docChat.id), { respondido: true });
-                });
-                document.getElementById('inputRespuesta').value = "";
-            };
-        };
+  document.body.style.display = "block";
 
-        // --- ESTADÍSTICAS REALES (SOLO DIANA) ---
-        function escucharEstadisticas() {
-            const hoy = new Date().toLocaleDateString();
-            onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(500)), (snap) => {
-                let ganancia = 0, rechazos = 0;
-                const tabla = document.getElementById('tablaAdmin');
-                tabla.innerHTML = "";
+  cargarAsesores();
+  cargarProductos();
+});
 
-                snap.forEach(d => {
-                    const s = d.data();
-                    const fechaS = s.fecha?.toDate().toLocaleDateString();
-                    if(fechaS === hoy) {
-                        if(s.estatus === "Terminado") ganancia += Number(s.costo || 0);
-                        if(s.estatus.includes("Error")) rechazos += 1;
-                    }
-                    tabla.innerHTML += `<tr class="border-b"><td class="p-2 font-black">${s.tipo}</td><td class="p-2">${s.curp}</td><td class="p-2 uppercase font-bold">${s.estatus}</td></tr>`;
-                });
-                document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
-                document.getElementById('txtRechazos').innerText = rechazos;
-            });
-            // Conteo de usuarios "Online" simplificado por visitas
-            onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
-                if(d.exists()) document.getElementById('txtOnline').innerText = d.data().contador;
-            });
-        }
+// 👥 ASESORES
+async function cargarAsesores() {
+  const cont = document.getElementById("asesoresActivos");
+  const snap = await getDocs(collection(db, "activos"));
 
-        // --- GESTIÓN DE ASESORES ---
-        window.agregarAsesor = async () => {
-            const n = document.getElementById('nuevoAsesorUser').value;
-            const p = document.getElementById('nuevoAsesorPass').value;
-            if(!n || !p) return alert("Llena ambos campos");
-            await addDoc(collection(db, "accesos_crm"), { nombre: n, password: p });
-            alert("Asesor Agregado");
-        };
+  let html = "";
+  snap.forEach(doc => {
+    const d = doc.data();
+    html += `<div class="card">${d.email}</div>`;
+  });
 
-        function escucharAsesores() {
-            onSnapshot(collection(db, "accesos_crm"), (snap) => {
-                const div = document.getElementById('listaAsesores');
-                div.innerHTML = "";
-                snap.forEach(d => {
-                    div.innerHTML += `<div class="flex justify-between bg-slate-50 p-2 rounded-lg text-[10px] font-black"><span>${d.data().nombre}</span> <span class="text-blue-600">${d.data().password}</span></div>`;
-                });
-            });
-        }
+  cont.innerHTML = html;
+}
 
-        window.cerrarModales = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-    </script>
+// 📦 PRODUCTOS
+window.agregarProducto = async function() {
+  const nombre = document.getElementById("prodNombre").value;
+  const precio = parseFloat(document.getElementById("prodPrecio").value);
+  const costo = parseFloat(document.getElementById("prodCosto").value);
+
+  await addDoc(collection(db, "productos"), {
+    nombre,
+    precio,
+    costo,
+    utilidad: precio - costo
+  });
+
+  alert("Producto guardado");
+  cargarProductos();
+};
+
+async function cargarProductos() {
+  const cont = document.getElementById("listaProductos");
+  const snap = await getDocs(collection(db, "productos"));
+
+  let html = "";
+  snap.forEach(doc => {
+    const p = doc.data();
+    html += `
+      <div class="card">
+        <b>${p.nombre}</b><br>
+        Precio: $${p.precio}<br>
+        Costo: $${p.costo}<br>
+        Utilidad: $${p.utilidad}
+      </div>
+    `;
+  });
+
+  cont.innerHTML = html;
+}
+
+// 📄 PDF
+window.generarPDF = async function() {
+  const script = document.createElement("script");
+  script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  script.onload = async () => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    const snap = await getDocs(collection(db, "productos"));
+
+    let y = 10;
+    pdf.text("Corte General", 10, y);
+    y += 10;
+
+    snap.forEach(doc => {
+      const p = doc.data();
+      pdf.text(`${p.nombre} - $${p.utilidad}`, 10, y);
+      y += 10;
+    });
+
+    pdf.save("corte.pdf");
+  };
+  document.body.appendChild(script);
+};
+
+</script>
+
 </body>
 </html>
