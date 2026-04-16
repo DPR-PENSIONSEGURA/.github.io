@@ -241,22 +241,55 @@
         };
 
         window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
-            if(data.detalles_extra) {
-                const e = data.detalles_extra;
-                if(e.nombre_cliente && e.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:e.nombre_cliente});
-                if(e.rfc && e.rfc !== "N/A") campos.push({l:"RFC", v:e.rfc});
-                if(e.telefono && e.telefono !== "N/A") campos.push({l:"Teléfono Cli.", v:e.telefono});
-                if(e.correo && e.correo !== "N/A") campos.push({l:"Correo", v:e.correo, isPass:true});
-                if(e.pass && e.pass !== "N/A") campos.push({l:"Pass Actual", v:e.pass, isPass:true});
-                if(e.pass_nueva && e.pass_nueva !== "N/A") campos.push({l:"Pass Nueva", v:e.pass_nueva, isPass:true});
-            }
-            campos.forEach(c => { 
-                if(c.v && c.v !== "N/A") {
-                    cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`;
-                }
-            });
+    const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
+    const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
+    
+    if(data.detalles_extra) {
+        const e = data.detalles_extra;
+        if(e.nombre_cliente && e.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:e.nombre_cliente});
+        if(e.rfc && e.rfc !== "N/A") campos.push({l:"RFC", v:e.rfc});
+        if(e.telefono && e.telefono !== "N/A") campos.push({l:"Teléfono Cli.", v:e.telefono});
+        if(e.correo && e.correo !== "N/A") campos.push({l:"Correo", v:e.correo, isPass:true});
+        if(e.pass && e.pass !== "N/A") campos.push({l:"Pass Actual", v:e.pass, isPass:true});
+        if(e.pass_nueva && e.pass_nueva !== "N/A") campos.push({l:"Pass Nueva", v:e.pass_nueva, isPass:true});
+        if(e.num_servicio && e.num_servicio !== "N/A") campos.push({l:"Núm. Servicio CFE", v:e.num_servicio});
+        if(e.idcif && e.idcif !== "N/A") campos.push({l:"IDCIF (SAT)", v:e.idcif});
+    }
+
+    campos.forEach(c => { 
+        if(c.v && c.v !== "N/A") {
+            cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`;
+        }
+    });
+
+    // --- CUESTIONARIO ---
+    const boxQ = document.getElementById('contenedorCuestionario');
+    const gridQ = document.getElementById('gridCuestionario');
+    if(data.cuestionario && data.cuestionario !== "N/A") {
+        boxQ.classList.remove('hidden'); gridQ.innerHTML = "";
+        Object.entries(data.cuestionario).forEach(([key, val]) => { 
+            if(val && val !== "N/A") gridQ.innerHTML += `<div class="border-b py-1"><span class="text-blue-500 font-black text-[7px] uppercase block">${key}</span><span class="font-bold text-slate-700">${val}</span></div>`; 
+        });
+    } else { boxQ.classList.add('hidden'); }
+
+    // --- ARCHIVOS SUBIDOS (INE, SELFIE, EDO CTA) ---
+    const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
+    const f = data.detalles_extra || {};
+    const fotos = [
+        {l:"INE F", u:data.file_ine_f || f.file_ine_f},
+        {l:"INE R", u:data.file_ine_r || f.file_ine_r},
+        {l:"FOTO/SELFIE", u:data.file_selfie || f.file_selfie},
+        {l:"DOMICILIO", u:data.file_comp_domicilio || f.file_comp_domicilio},
+        {l:"EDO CTA", u:data.file_edocta || f.file_edocta}
+    ];
+    fotos.forEach(foto => { 
+        if(foto.u && foto.u !== "N/A" && foto.u !== "") {
+            contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`;
+        }
+    });
+
+    document.getElementById('modalDetalles').classList.remove('hidden');
+};
 
             const boxQ = document.getElementById('contenedorCuestionario');
             const gridQ = document.getElementById('gridCuestionario');
