@@ -3,332 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Control Maestro Seguro</title>
+    <title>DPR Consultoría | Panel Ejecutivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
-        .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
-        .msg-alerta { border-left: 4px solid #ef4444; background: #fef2f2; animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 0% { background: #fef2f2; } 50% { background: #fee2e2; } 100% { background: #fef2f2; } }
-        .solo-diana { display: none !important; }
-        .btn-blue { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; border: none; cursor: pointer; }
-        .btn-descarga { background: #9333ea; color: white; padding: 10px; border-radius: 12px; font-size: 9px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease; border: none; cursor: pointer; }
-        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; border: none; cursor: pointer; }
+        body { font-family: 'Inter', sans-serif; background-image: url('https://images.unsplash.com/photo-1533134486753-c833f074868f?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-attachment: fixed; color: #1E293B; scroll-behavior: smooth; }
+        .header-glass { background: rgba(255, 255, 255, 0.9); border-bottom: 2px solid #D4AF37; backdrop-filter: blur(10px); }
+        .green-gradient { background: linear-gradient(135deg, #8FCE00 0%, #10B981 100%); }
+        .category-card { background: white; border: 1px solid #D4AF37; transition: all 0.3s ease; cursor: pointer; border-radius: 1.5rem; }
+        .category-card:hover { border-color: #8FCE00; transform: translateY(-3px); }
+        .input-light { background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px; border-radius: 15px; width: 100%; outline: none; font-weight: 600; font-size: 11px; }
+        .input-light:focus { border-color: #D4AF37; }
+        .orange-btn { background: #F97316; color: white; transition: all 0.3s ease; cursor: pointer; }
+        #chat-window { display: none; width: 340px; height: 500px; background: white; border-radius: 20px; border: 2px solid #D4AF37; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px rgba(0,0,0,0.2); margin-bottom: 15px; }
+        .chat-header { background: #D4AF37; color: white; padding: 15px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
+        #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
+        .msg-user { background: #8FCE00; color: white; align-self: flex-end; padding: 8px 12px; border-radius: 15px 15px 0 15px; max-width: 85%; font-weight: 700; }
+        .msg-support { background: #f1f1f1; color: #333; align-self: flex-start; padding: 8px 12px; border-radius: 15px 15px 15px 0; max-width: 85%; font-weight: 700; }
+        .help-menu { padding: 10px; display: flex; gap: 5px; overflow-x: auto; background: #f9f9f9; border-top: 1px solid #eee; }
+        .btn-help { background: white; border: 1px solid #D4AF37; color: #D4AF37; padding: 5px 10px; border-radius: 20px; font-size: 9px; font-weight: 900; white-space: nowrap; }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
-                <div>
-                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">CRM <span class="text-blue-600">Admin</span></h1>
-                    <p id="txtRol" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Verificando...</p>
-                </div>
+    <header class="sticky top-0 z-40 header-glass">
+        <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-lg italic">DP</div>
+                <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
             </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
-                <div id="cardVentas" class="solo-diana card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-emerald-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Ventas Hoy</p>
-                    <p id="gananciaHoy" class="text-xl font-black text-emerald-600">$0.00</p>
-                </div>
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Online</p>
-                    <p id="txtVisitas" class="text-xl font-black text-orange-600">0</p>
-                </div>
-                <div id="cardRechazos" class="solo-diana card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-red-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Rechazos</p>
-                    <p id="txtRechazos" class="text-xl font-black text-red-600">0</p>
-                </div>
-                <button id="btnCorte" onclick="window.generarCorteMensual()" class="solo-diana bg-slate-800 text-white p-4 rounded-3xl shadow-lg hover:bg-slate-700 transition">
-                    <p class="text-[10px] font-black uppercase">Corte PDF</p>
+            <div class="flex items-center gap-3">
+                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+                    <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs tracking-widest">$0.00</span>
                 </button>
+                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <section class="lg:col-span-1">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-blue-600 pl-4">Mensajería Soporte</h2>
-                <div id="listaChat" class="bg-white rounded-[2rem] shadow-xl border overflow-y-auto h-[600px] p-4 space-y-4"></div>
-            </section>
+    <main class="p-6 max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="tituloSeccion" class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic">Panel de Servicios</h2>
+            <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[9px] font-black uppercase bg-slate-800 text-white px-4 py-2 rounded-full">⬅️ Volver</button>
+        </div>
 
-            <section class="lg:col-span-3">
-                <div id="seccionAsesores" class="solo-diana bg-white rounded-[2rem] p-6 shadow-xl border mb-8">
-                    <h2 class="text-[10px] font-black uppercase text-slate-700 mb-4 italic">Gestión de Apoyo</h2>
-                    <div class="flex gap-2">
-                        <input type="text" id="nuevoAsesorUser" placeholder="Nombre" class="bg-slate-100 p-3 rounded-xl flex-1 outline-none text-xs font-bold uppercase border">
-                        <input type="text" id="nuevoAsesorPass" placeholder="Clave" class="bg-slate-100 p-3 rounded-xl flex-1 outline-none text-xs font-bold border">
-                        <button onclick="window.agregarAsesor()" class="bg-emerald-500 text-white px-6 rounded-xl font-black text-xs uppercase">Añadir</button>
-                    </div>
-                    <div id="listaAsesores" class="mt-4 space-y-2"></div>
-                </div>
+        <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+            <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center transition hover:scale-105">🏥 <span class="text-[9px] block font-black uppercase mt-2">IMSS</span></button>
+            <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center transition hover:scale-105">⚖️ <span class="text-[9px] block font-black uppercase mt-2">SAT</span></button>
+            <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 text-center transition hover:scale-105">📄 <span class="text-[9px] block font-black uppercase mt-2">DOCS</span></button>
+            <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center transition hover:scale-105">🏠 <span class="text-[9px] block font-black uppercase mt-2">INFONAVIT</span></button>
+            <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center transition hover:scale-105">📈 <span class="text-[9px] block font-black uppercase mt-2">PENSIONES</span></button>
+            <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center transition hover:scale-105">💰 <span class="text-[9px] block font-black uppercase mt-2">AFORE</span></button>
+        </div>
 
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <div class="flex items-center gap-2">
-                        <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
-                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="bg-white border rounded p-1 font-black text-[10px]"></select>
-                        <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
-                    </div>
-                    <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR NSS, CURP O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-full shadow-lg outline-none focus:border-blue-600">
-                </div>
+        <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
-                <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                            <tr><th class="p-4">Trámite / Fecha</th><th class="p-4">Información</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
-                        </thead>
-                        <tbody id="tablaSolicitudes" class="text-[10px] font-bold italic"></tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-3xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
-            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
-            <div id="contenedorCuestionario" class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
-                <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Pensión</h3>
-                <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
+        <section class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200 mt-12">
+            <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
+                    <tbody id="listaHistorial" class="text-xs font-bold italic">
+                        <tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sincronizando historial...</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="border-t pt-6">
-                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest text-center">Documentos Adjuntos</h3>
-                <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            <div class="mt-6 flex justify-center items-center gap-4 border-t pt-4">
+                <button onclick="window.cambiarPagina(-1)" class="nav-pag">Anterior</button>
+                <span id="infoPagina" class="text-[10px] font-black text-slate-400 uppercase">Página 1</span>
+                <button onclick="window.cambiarPagina(1)" class="nav-pag">Siguiente</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
+            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
+            <p class="text-[9px] font-bold text-red-600 uppercase mb-4 leading-tight">LAS CAPTURAS DEBEN INCLUIR FECHA, HORA Y CLAVE DE RASTREO O SE RECHAZARÁN SIN DEVOLUCIONES</p>
+            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
+                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
+                <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
+                <p class="text-[9px] font-bold text-emerald-600/60 uppercase">Transferencia o Depósito</p>
+            </div>
+            <div class="space-y-3">
+                <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
+                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
+                <div class="text-left px-2">
+                    <p class="text-[8px] font-bold text-blue-600 uppercase mb-2">AL INFORMAR TU RECARGA ACEPTAS NUESTROS TÉRMINOS Y CONDICIONES</p>
+                    <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Subir Comprobante:</label>
+                    <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                </div>
+                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
             </div>
         </div>
     </div>
 
-    <div id="modalChat" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[120] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl border-2 border-blue-500">
-            <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic"></h2>
-            <div id="chatHistory" class="bg-slate-50 h-72 overflow-y-auto p-4 rounded-2xl mb-4 space-y-2 flex flex-col"></div>
-            <div class="flex gap-2">
-                <input type="text" id="inputRespuesta" placeholder="Escribe..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold border">
-                <button id="btnEnviarRespuesta" class="bg-blue-600 text-white px-6 rounded-xl font-black uppercase text-[10px]">Enviar</button>
-            </div>
-            <button onclick="window.cerrarModales()" class="mt-4 text-[9px] font-black uppercase text-slate-300 w-full text-center">Cerrar</button>
-        </div>
-    </div>
-
-    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-[150] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <h2 class="text-xl font-black mb-4 uppercase italic text-blue-600">Subir Resultado</h2>
-            <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-4 rounded-2xl bg-slate-50">
-            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg">Enviar a Cliente</button>
-            <button onclick="window.cerrarModales()" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
+    <div id="modalTramite" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 border relative overflow-y-auto max-h-[90vh]">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
+            <div id="formContent"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, limit, serverTimestamp, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        const PASS_DIANA = "Adiana.";
-        const LISTA_ERRORES_DPR = {
-            "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
-            "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea...",
-            "ERR_FOTOS": "Error: FOTOS ILEGIBLES",
-            "ERR_INEXISTENTE": "Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO",
-            "ERR_PASS": "Error: CONTRASEÑA INCORRECTA",
-            "ERR_LIMITE": "Error: alguien más las consultó intenta más tarde",
-            "ERR_IMSS": "Error: ERROR EN IMSS"
+        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        let saldoGlobal = 0, userUID = "", emailAsesor = "", paginaActual = 1;
+        let todasLasSolicitudes = [];
+        const consultasPorPagina = 30;
+
+        const TRAMITES = {
+            'IMSS': [
+                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con Linea de captura', precio: 600, nss: true, curp: true, pideNombre: true }
+            ],
+            'SAT': [
+                { nombre: 'RFC Clon', precio: 25, curp: true },
+                { nombre: 'RFC Verificable', precio: 100, curp: true },
+                { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
+                { nombre: 'RFC Original', precio: 180, curp: true },
+                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true },
+                { nombre: 'Localización de IDcif', precio: 60, rfc: true }
+            ],
+            'DOC': [
+                { nombre: 'Recibo CFE', precio: 10, pideNumServicio: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+            ],
+            'INF': [
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+            ],
+            'AFORE': [
+                { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
+                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
+            ],
+            'PENSIONES': [
+                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
+                { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
+            ]
         };
 
-        let miRol = "asesor", currentPage = 1; const PAGE_SIZE = 30; let idTramiteActual = ""; let todasLasSoliCargadas = [];
-
-        // SISTEMA DE LOGIN
-        async function checkLogin() {
-            const pass = prompt("DPR Master Access:");
-            const asesoresSnap = await getDocs(collection(db, "accesos_crm"));
-            let asesores = {};
-            asesoresSnap.forEach(d => asesores[d.data().password] = d.data().nombre);
-
-            if(pass === PASS_DIANA) {
-                miRol = "diana";
-                document.getElementById('txtRol').innerText = "ADMINISTRADORA MAESTRA";
-                document.querySelectorAll('.solo-diana').forEach(el => el.style.display = 'block');
-                document.body.style.display = "block";
-                escucharGestion();
-            } else if (asesores[pass]) {
-                miRol = "asesor";
-                document.getElementById('txtRol').innerText = "SOPORTE: " + asesores[pass].toUpperCase();
-                document.body.style.display = "block";
-            } else {
-                alert("Acceso denegado."); window.location.href = "https://pensionsegura.org";
-            }
-        }
-        checkLogin();
-
-        // ESTADÍSTICAS Y TRÁMITES
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1000)), (snap) => {
-            todasLasSoliCargadas = [];
-            let ganancia = 0, rechazos = 0, hoy = new Date().toLocaleDateString();
-            snap.forEach(d => {
-                const data = { id: d.id, ...d.data() };
-                todasLasSoliCargadas.push(data);
-                const fechaS = data.fecha?.toDate().toLocaleDateString();
-                if(fechaS === hoy) {
-                    if(data.estatus === "Terminado") ganancia += Number(data.costo || 0);
-                    if(data.estatus.includes("Error") || data.estatus.includes("ERR_")) rechazos += 1;
-                }
-            });
-            cargarSolicitudes(currentPage);
-            document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
-            document.getElementById('txtRechazos').innerText = rechazos;
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                userUID = user.uid; emailAsesor = user.email; 
+                escucharSaldo(); escucharHistorial();
+            } else { window.location.href = "login/index.html"; }
         });
 
-        window.cargarSolicitudes = (pagina = 1) => {
-            const inicio = (pagina - 1) * PAGE_SIZE;
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            const segment = todasLasSoliCargadas.slice(inicio, inicio + PAGE_SIZE);
-            
-            segment.forEach(s => {
-                const fStr = s.fecha?.toDate().toLocaleString('es-MX', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) || '...';
-                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4"><div>${s.tipo}</div><div class="text-[7px] text-slate-400">${fStr}</div></td>
-                    <td class="p-4"><div class="uppercase">${s.nombre_asesor || 'S/N'}</div><div class="text-[8px] text-blue-600">${s.curp || ''}</div></td>
-                    <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 text-[8px] uppercase bg-white">
-                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
-                            <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
-                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
-                            <option value="ERR_LIMITE" ${s.estatus.includes('límite') ? 'selected' : ''}>❌ ERR: LÍMITE</option>
-                            <option value="ERR_IMSS" ${s.estatus.includes('IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
-                        </select>
-                    </td>
-                    <td class="p-4 text-right space-x-1">
-                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg text-[10px]">👁️</button>
-                        <button onclick="window.abrirSubida('${s.id}')" class="btn-blue">SUBIR</button>
-                    </td>
-                </tr>`;
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
+            const lista = document.getElementById('listaServicios');
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
             });
+            lista.innerHTML = html;
         };
 
-        window.cambiarEstatus = async (id, val) => {
-            const docRef = doc(db, "solicitudes", id);
-            try {
-                const snap = await getDoc(docRef), s = snap.data();
-                let est = LISTA_ERRORES_DPR[val] || val;
-                if (val.startsWith("ERR_") && !s.reembolsado) {
-                    await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
-                    await updateDoc(docRef, { estatus: est, reembolsado: true, finalizado: true, bloqueado: true });
-                    alert("✅ Reembolsado y Bloqueado.");
-                } else {
-                    await updateDoc(docRef, { estatus: est });
-                }
-            } catch (e) { alert("Error"); }
+        window.resetearPanel = () => {
+            document.getElementById('gridCategorias').classList.remove('hidden');
+            document.getElementById('listaServicios').classList.add('hidden');
+            document.getElementById('btnVolver').classList.add('hidden');
+            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
-        window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const fields = [{l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
-            if(data.detalles_extra) {
-                const e = data.detalles_extra;
-                if(e.nombre_cliente) fields.push({l:"Cliente", v:e.nombre_cliente});
-                if(e.telefono) fields.push({l:"Teléfono", v:e.telefono});
-                if(e.pass) fields.push({l:"Pass", v:e.pass, isPass:true});
+        window.prepararTramite = (t) => {
+            const content = document.getElementById('formContent');
+            let precioFinal = t.precio;
+            const nombre = t.nombre;
+
+            const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+            const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
+
+            if (nombre === 'SEMANAS COTIZADAS' || nombre === 'Tarjeta NSS') {
+                if (correosUltraVip.includes(emailAsesor)) precioFinal = 18;
+                else if (correosVip.includes(emailAsesor)) precioFinal = 19;
             }
-            fields.forEach(c => { if(c.v && c.v !== "N/A") cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[10px] font-bold text-slate-800 uppercase ${c.isPass?'normal-case':''}">${c.v}</p></div>`; });
-            
-            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
-            const f = data.detalles_extra || {};
-            const fotos = [{l:"INE F", u:data.file_ine_f || f.file_ine_f}, {l:"INE R", u:data.file_ine_r || f.file_ine_r}, {l:"FOTO", u:data.file_selfie || f.file_selfie}, {l:"EDO CTA", u:data.file_edocta || f.file_edocta}];
-            fotos.forEach(foto => { if(foto.u && foto.u !== "N/A" && foto.u !== "") contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`; });
-            
-            document.getElementById('modalDetalles').classList.remove('hidden');
-        };
 
-        // CHAT Y SOPORTE
-        onSnapshot(query(collection(db, "chat_soporte"), orderBy("timestamp", "desc")), (snap) => {
-            const cont = document.getElementById('listaChat'); cont.innerHTML = "";
-            let chatGroups = {};
-            snap.forEach(d => {
-                const m = d.data();
-                if(!chatGroups[m.asesor_uid]) {
-                    chatGroups[m.asesor_uid] = true;
-                    const alertClass = (m.respondido === false) ? "msg-alerta" : "bg-white";
-                    cont.innerHTML += `<div onclick="window.abrirChat('${m.asesor_uid}', '${m.remitente}')" class="p-4 rounded-2xl border cursor-pointer ${alertClass}"><span class="text-[9px] font-black uppercase text-blue-600">${m.remitente}</span><p class="text-[10px] font-bold text-slate-500 truncate">${m.texto}</p></div>`;
-                }
-            });
-        });
+            let camposHtml = '';
+            let mensajeExtra = "";
 
-        window.abrirChat = (uid, email) => {
-            document.getElementById('chatTitle').innerText = "Responder a: " + email;
-            document.getElementById('modalChat').classList.remove('hidden');
-            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", uid), orderBy("timestamp", "asc")), (snap) => {
-                const box = document.getElementById('chatHistory'); box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data(), align = (m.remitente === email) ? "self-start bg-white text-slate-800" : "self-end bg-blue-600 text-white";
-                    box.innerHTML += `<div class="p-3 rounded-2xl text-[10px] font-bold shadow-sm max-w-[85%] ${align}">${m.texto}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-            document.getElementById('btnEnviarRespuesta').onclick = async () => {
-                const input = document.getElementById('inputRespuesta'); if(!input.value) return;
-                await addDoc(collection(db, "chat_soporte"), { asesor_uid: uid, remitente: "Soporte DPR", texto: input.value, timestamp: serverTimestamp(), respondido: true });
-                const qMsg = await getDocs(query(collection(db, "chat_soporte"), where("asesor_uid", "==", uid)));
-                qMsg.forEach(async (docChat) => { await updateDoc(doc(db, "chat_soporte", docChat.id), { respondido: true }); });
-                input.value = "";
-            };
-        };
-
-        // GESTIÓN ASESORES
-        function escucharGestion() {
-            onSnapshot(collection(db, "accesos_crm"), (snap) => {
-                const div = document.getElementById('listaAsesores'); div.innerHTML = "";
-                snap.forEach(d => { div.innerHTML += `<div class="flex justify-between bg-slate-50 p-2 rounded-lg text-[9px] font-bold border"><span>👤 ${d.data().nombre}</span> <span class="text-blue-600">🔑 ${d.data().password}</span></div>`; });
-            });
-        }
-        window.agregarAsesor = async () => {
-            const n = document.getElementById('nuevoAsesorUser').value, p = document.getElementById('nuevoAsesorPass').value;
-            if(!n || !p) return alert("Faltan datos");
-            await addDoc(collection(db, "accesos_crm"), { nombre: n, password: p });
-            document.getElementById('nuevoAsesorUser').value = ""; document.getElementById('nuevoAsesorPass').value = "";
-        };
-
-        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
-
-        window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
-        document.getElementById('btnGuardarFinal').onclick = async () => {
-            const f = document.getElementById('inputArchivo').files[0];
-            if(!f) return alert("Selecciona archivo");
-            const btn = document.getElementById('btnGuardarFinal'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
-            const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
-            const data = await res.json();
-            if(data.secure_url) {
-                await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado", finalizado: true });
-                window.cerrarModales(); alert("✅ Terminado");
+            // LOGICA DE MENSAJE EXTRA
+            if (nombre === 'INSCRIPCIÓN RFC') {
+                mensajeExtra = `<p class="text-[9px] font-bold text-red-600 mb-2 uppercase">El tiempo de entrega es de 15 a 20 días hábiles.</p>
+                                <p class="text-[9px] font-bold text-blue-600 mb-2 uppercase">Trámite exclusivo para mayores de edad.</p>`;
+            } else if (nombre === 'Alta para Desempleo con aportaciones') {
+                mensajeExtra = `<p class="text-[9px] font-bold text-red-600 mb-2 uppercase">El tiempo de entrega es de 2 a 3 días hábiles.</p>
+                                <p class="text-[9px] font-bold text-blue-600 mb-2 uppercase">ALTA SIN RETROACTIVO.</p>`;
             }
-            btn.innerText = "Enviar a Cliente"; btn.disabled = false;
-        };
 
-        window.cerrarModales = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-        
-        window.buscarGlobal = () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            if (bus.length < 1) return cargarSolicitudes(currentPage);
-            const filtrados = todasLasSoliCargadas.filter(s => (s.curp && s.curp.includes(bus)) || (s.nss && s.nss.includes(bus)) || (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus)));
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            filtrados.forEach(s => { /* Renderizar igual que en cargarSolicitudes */ });
-            // Nota: Para no alargar más el código, la búsqueda renderiza los filtrados aquí.
-        };
-
-        // Paginación UI
-        const selector = document.getElementById('selectorPagina');
-        for(let i=1; i<=30; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
-        window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
-        window.cambiarPaginaPag = (dir) => { let p = currentPage + dir; if(p > 0 && p <= 30) { currentPage = p; selector.value = p; cargarSolicitudes(p); } };
-    </script>
-</body>
-</html>
+            if (t.pideNombre) camposHtml += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if (t.curp) camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
+            if (t.nss) camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if (t.rfc) camposHtml += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
+            if (t.idcif) camposHtml += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
+            if (t.pideNumServicio) camposHtml += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO (CFE)" class="input-light mb-4">`;
+            if (t.pideFecha) camposHtml += `<label class="text-[8px] font-black ml-2 uppercase text-slate-400">Fecha Nacimiento:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
+            if (t.pideTel) camposHtml += `<input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
+            if (t.pideTelContacto) camposHtml += `<input type="tel" id="tel_contacto_p" placeholder="TELÉFONO CONTACTO ASESOR" class="input-light mb-4">`;
+            if (t.pideCorreo) camposHtml += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
+            if (t.pidePass) camposHtml += `<input type="text" id="pass_p" placeholder="CONTRASEÑA ACTUAL" class="input-light mb-4">
