@@ -100,9 +100,23 @@
         </div>
     </div>
 
+    <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
+        <div id="chat-window">
+            <div class="chat-header flex justify-between items-center">
+                <span>💬 Asistencia DPR</span>
+                <button onclick="window.toggleChat()" class="text-xl">×</button>
+            </div>
+            <div id="chat-messages"></div>
+            <div class="help-menu flex gap-2 p-2 overflow-x-auto bg-gray-50 border-t border-slate-100">
+                <button onclick="window.enviarPreguntaRapida('inicio')" class="btn-help">¿Necesitas ayuda?</button>
+            </div>
+        </div>
+        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl">🎧</button>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, setDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
@@ -115,17 +129,16 @@
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
-         const TRAMITES = {
+        const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-                //{ nombre: 'SINDO COMPLETO', precio: 135, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, curp: true, pideNombre: true, pideOcupacion: true, pideSueldo: true, pideCorreo: true, pideIneFrente: true, pideIneReverso: true, pideComprobante: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true, extraMsg: 'TIEMPO ENTREGA 2-3 DÍAS. SIN RETROACTIVO.' },
                 { nombre: 'Alta para Desempleo con Linea de captura', precio: 600, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
@@ -133,7 +146,7 @@
                 { nombre: 'RFC Verificable', precio: 100, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true },
+                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true, extraMsg: 'ENTREGA 15-20 DÍAS HÁBILES. SOLO MAYORES EDAD.' },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
@@ -160,10 +173,7 @@
                 { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true },
-                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
-                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
                 { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
             ],
             'PENSIONES': [
@@ -172,10 +182,73 @@
             ]
         };
 
+        const FLUJO_AYUDA = {
+            "inicio": {
+                texto: "Hola, ¿en qué puedo ayudarte hoy?",
+                opciones: ["💰 Pagos y Saldo", "📋 Estado de Trámites", "🛡️ Soporte Técnico", "📃 Términos y Condiciones"]
+            },
+            "💰 Pagos y Saldo": {
+                texto: "¿Qué necesitas saber sobre tus pagos?",
+                opciones: ["¿Cómo recargar?", "¿Cuánto tarda en reflejarse?", "Reportar una falla"]
+            },
+            "¿Cómo recargar?": {
+                texto: "Transfiere a la cuenta Banorte indicada en el botón de saldo. Agrega el monto y tu Clave de Rastreo (SPEI) para que se valide.",
+                opciones: ["Volver al inicio"]
+            },
+            "¿Cuánto tarda en reflejarse?": {
+                texto: "Tenemos un tiempo de respuesta de 10 minutos promedio para validar recargas.",
+                opciones: ["Volver al inicio"]
+            },
+            "📋 Estado de Trámites": {
+                texto: "Selecciona el tipo de consulta:",
+                opciones: ["Tiempos de entrega", "Error en NSS/CURP", "INCONSISTENCIAS"]
+            },
+            "Tiempos de entrega": {
+                texto: "Semanas: 10 min. RFC CLON: 3 MIN. RFC VERIFICABLE: 1 HORA. RFC ORIGINAL: 3-4 HORAS. Altas: 2-3 días.",
+                opciones: ["Volver al inicio"]
+            },
+            "Error en NSS/CURP": {
+                texto: "Significa que los datos están mal escritos. Favor de verificar y volver a enviar.",
+                opciones: ["Volver al inicio"]
+            },
+            "INCONSISTENCIAS": {
+                texto: "Los datos no coinciden con RENAPO. El cliente debe acudir a su subdelegación. El trámite de corrección tarda unos 45 días.",
+                opciones: ["Volver al inicio"]
+            }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); } 
             else { window.location.href = "login/index.html"; }
         });
+
+        window.enviarPreguntaRapida = (pregunta) => {
+            const box = document.getElementById('chat-messages');
+            const menu = document.querySelector('.help-menu');
+            const divUser = document.createElement('div');
+            divUser.className = "msg-user";
+            divUser.innerText = pregunta;
+            box.appendChild(divUser);
+
+            const pasoSiguiente = FLUJO_AYUDA[pregunta] || FLUJO_AYUDA["inicio"];
+
+            setTimeout(() => {
+                const divBot = document.createElement('div');
+                divBot.className = "msg-support";
+                divBot.innerText = pasoSiguiente.texto;
+                box.appendChild(divBot);
+                box.scrollTop = box.scrollHeight;
+
+                menu.innerHTML = "";
+                pasoSiguiente.opciones.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "btn-help";
+                    btn.innerText = opt.toUpperCase();
+                    btn.onclick = () => window.enviarPreguntaRapida(opt);
+                    menu.appendChild(btn);
+                });
+            }, 500);
+        };
 
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
@@ -189,7 +262,7 @@
             let html = '';
             TRAMITES[cat].forEach(t => {
                 const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
             });
             lista.innerHTML = html;
         };
@@ -226,25 +299,12 @@
             
             if (t.pideCuestionarioPension) {
                 fields += `
-                    <div class="bg-blue-50/50 p-4 rounded-2xl mb-4 border border-blue-100 max-h-80 overflow-y-auto">
+                    <div class="bg-blue-50/50 p-4 rounded-2xl mb-4 border border-blue-100 max-h-80 overflow-y-auto text-[10px]">
                         <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Preliminar (Pág 1-3)</h3>
                         <input type="text" id="q_nombre" placeholder="Nombre Completo" class="input-light mb-2 uppercase">
                         <input type="date" id="q_fecha_nac" class="input-light mb-2">
-                        <input type="text" id="q_lugar_nac" placeholder="Lugar Nacimiento" class="input-light mb-2 uppercase">
-                        <input type="text" id="q_edo_civil" placeholder="Estado Civil" class="input-light mb-2 uppercase">
                         <input type="text" id="q_nss" placeholder="NSS" class="input-light mb-2">
                         <input type="text" id="q_curp" placeholder="CURP" class="input-light mb-2 uppercase">
-                        <input type="text" id="q_rfc" placeholder="RFC" class="input-light mb-2 uppercase">
-                        <textarea id="q_direccion" placeholder="Dirección Completa" class="input-light mb-2 uppercase"></textarea>
-                        <input type="tel" id="q_tel" placeholder="Teléfono" class="input-light mb-2">
-                        <input type="email" id="q_correo" placeholder="Correo Electrónico" class="input-light mb-2">
-                        <h4 class="text-[10px] font-black text-blue-700 mt-4 uppercase">Expectativas</h4>
-                        <input type="text" id="q_pension_actual" placeholder="¿Sabe cuánto recibirá?" class="input-light mb-2 uppercase">
-                        <input type="text" id="q_edad_retiro" placeholder="Edad esperada de retiro" class="input-light mb-2 uppercase">
-                        <input type="text" id="q_monto_deseado" placeholder="Monto deseado de pensión" class="input-light mb-2 uppercase">
-                        <h4 class="text-[10px] font-black text-blue-700 mt-4 uppercase">Historial e Inconsistencias</h4>
-                        <input type="text" id="q_homonimia" placeholder="¿Homonimia / Doble NSS?" class="input-light mb-2 uppercase">
-                        <input type="text" id="q_cotizo" placeholder="¿IMSS / ISSSTE / Ambos?" class="input-light mb-2 uppercase">
                         <input type="number" id="q_semanas" placeholder="Semanas Cotizadas" class="input-light mb-2">
                         <textarea id="q_beneficiarios" placeholder="Beneficiarios (Esposa, Hijos, etc)" class="input-light mb-2 uppercase"></textarea>
                     </div>`;
@@ -272,19 +332,12 @@
                 const curpVal = val('curp_p').toUpperCase();
                 const nssVal = val('nss_p');
 
-                // Recopilación de detalles extra para el ojo del Admin
                 const extra = {
-                    nombre_cliente: val('nombre_p'),
-                    rfc: val('rfc_p'),
-                    idcif: val('idcif_p'),
-                    pass: val('pass_p'),
-                    pass_nueva: val('pass_nueva_p'),
-                    telefono: val('tel_p'),
-                    num_servicio: val('num_servicio_p'),
-                    nota: val('nota_p')
+                    nombre_cliente: val('nombre_p'), rfc: val('rfc_p'), idcif: val('idcif_p'),
+                    pass: val('pass_p'), pass_nueva: val('pass_nueva_p'), telefono: val('tel_p'),
+                    num_servicio: val('num_servicio_p'), nota: val('nota_p')
                 };
 
-                // Recopilación de cuestionario
                 let quest = "N/A";
                 if(t.pideCuestionarioPension) {
                     quest = {
@@ -333,6 +386,8 @@
             tbody.innerHTML = html;
         });}
         window.cerrarSesion = () => signOut(auth).then(() => location.reload());
+        function toggleChat() { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; }
+        window.toggleChat = toggleChat;
     </script>
 </body>
 </html>
