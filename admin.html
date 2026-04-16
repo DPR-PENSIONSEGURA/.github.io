@@ -223,11 +223,13 @@
 
         // Si es un error ("ERR_")
         if (val.startsWith("ERR_")) {
-            // 1. Verificamos si ya se reembolsó para no dar dinero doble
-            if (!s.reembolsado) {
-                await updateDoc(doc(db, "asesores", s.asesor_uid), { 
-                    saldo: increment(Number(s.costo)) 
-                });
+    await updateDoc(docRef, { 
+        estatus: est, 
+        reembolsado: true,
+        finalizado: true // <--- CERRAMOS EL CANDADO
+    });
+    alert("✅ Reembolso aplicado y trámite CERRADO.");
+}
                 
                 // 2. Actualizamos el trámite con un candado (finalizado: true)
                 // Al poner finalizado: true, n8n ya no debería intentar moverlo
