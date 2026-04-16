@@ -69,11 +69,6 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-6 flex justify-center items-center gap-4 border-t pt-4">
-                <button onclick="window.cambiarPagina(-1)" class="nav-pag">Anterior</button>
-                <span id="infoPagina" class="text-[10px] font-black text-slate-400 uppercase">Página 1</span>
-                <button onclick="window.cambiarPagina(1)" class="nav-pag">Siguiente</button>
-            </div>
         </section>
     </main>
 
@@ -81,18 +76,14 @@
         <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <p class="text-[9px] font-bold text-red-600 uppercase mb-4 leading-tight">LAS CAPTURAS DEBEN INCLUIR FECHA, HORA Y CLAVE DE RASTREO O SE RECHAZARÁN SIN DEVOLUCIONES</p>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
                 <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
                 <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
-                <p class="text-[9px] font-bold text-emerald-600/60 uppercase">Transferencia o Depósito</p>
             </div>
             <div class="space-y-3">
                 <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
                 <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
                 <div class="text-left px-2">
-                    <p class="text-[8px] font-bold text-blue-600 uppercase mb-2">AL INFORMAR TU RECARGA ACEPTAS NUESTROS TÉRMINOS Y CONDICIONES</p>
-                    <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Subir Comprobante:</label>
                     <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
                 </div>
                 <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
@@ -105,6 +96,24 @@
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
             <div id="formContent"></div>
         </div>
+    </div>
+
+    <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
+        <div id="chat-window">
+            <div class="chat-header flex justify-between items-center">
+                <span>💬 Asistencia DPR</span>
+                <button onclick="window.toggleChat()" class="text-xl">×</button>
+            </div>
+            <div id="chat-messages"></div>
+            <div class="help-menu flex gap-2 p-2 overflow-x-auto bg-gray-50 border-t border-slate-100">
+                <button onclick="window.enviarPreguntaRapida('inicio')" class="btn-help">¿Necesitas ayuda?</button>
+            </div>
+            <div class="p-3 border-t bg-gray-50 flex gap-2">
+                <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." class="input-light flex-1">
+                <button id="btn-send-chat" onclick="window.enviarMensajeManual()" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
+            </div>
+        </div>
+        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl">🎧</button>
     </div>
 
     <script type="module">
@@ -120,20 +129,19 @@
         const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-        let saldoGlobal = 0, userUID = "", emailAsesor = "", paginaActual = 1;
-        let todasLasSolicitudes = [];
-        const consultasPorPagina = 30;
+        let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SEMANAS COTIZADAS DETALLADAS', precio: 37, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, curp: true, pideNombre: true, pideOcupacion: true, pideSueldo: true, pideCorreo: true, pideIneFrente: true, pideIneReverso: true, pideComprobante: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true, extraMsg: 'TIEMPO ENTREGA 2-3 DÍAS. SIN RETROACTIVO.' },
                 { nombre: 'Alta para Desempleo con Linea de captura', precio: 600, nss: true, curp: true, pideNombre: true }
             ],
             'SAT': [
@@ -141,7 +149,7 @@
                 { nombre: 'RFC Verificable', precio: 100, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true },
+                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true, extraMsg: 'ENTREGA 15-20 DÍAS HÁBILES. SOLO MAYORES EDAD.' },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
             ],
             'DOC': [
@@ -176,70 +184,146 @@
             ]
         };
 
+        const FLUJO_AYUDA = {
+            "inicio": { texto: "Hola, ¿en qué puedo ayudarte?", opciones: ["💰 Pagos y Saldo", "📋 Estado de Trámites", "🛡️ Soporte Técnico", "📃 Términos"] },
+            "💰 Pagos y Saldo": { texto: "¿Qué necesitas?", opciones: ["¿Cómo recargar?", "¿Cuánto tarda?"] },
+            "¿Cómo recargar?": { texto: "Transfiere a Banorte y sube tu SPEI en el botón de saldo.", opciones: ["Volver al inicio"] },
+            "¿Cuánto tarda?": { texto: "Validamos en menos de 10 minutos.", opciones: ["Volver al inicio"] },
+            "📋 Estado de Trámites": { texto: "Selecciona consulta:", opciones: ["Tiempos de entrega", "Error en NSS/CURP"] },
+            "Tiempos de entrega": { texto: "Semanas: 10 min. RFC: 1h-3h. Altas: 2-3 días.", opciones: ["Volver al inicio"] },
+            "Error en NSS/CURP": { texto: "Datos mal escritos. Revisa y reenvía.", opciones: ["Volver al inicio"] }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) { 
                 userUID = user.uid; emailAsesor = user.email; 
-                escucharSaldo(); escucharHistorial();
+                escucharSaldo(); escucharHistorial(); escucharChat();
             } else { window.location.href = "login/index.html"; }
         });
 
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-
-        window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Trámites: " + cat;
-            const lista = document.getElementById('listaServicios');
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center transition hover:scale-105 shadow-sm"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+        window.enviarMensajeManual = async () => {
+            const input = document.getElementById('chat-input');
+            if (!input.value.trim()) return;
+            await addDoc(collection(db, "chat_soporte"), {
+                asesor_uid: userUID, remitente: emailAsesor, texto: input.value.trim(), timestamp: serverTimestamp(), respondido: false
             });
-            lista.innerHTML = html;
+            input.value = "";
         };
 
-        window.resetearPanel = () => {
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+        function escucharChat() {
+            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc")), (snap) => {
+                const box = document.getElementById('chat-messages'); box.innerHTML = "";
+                snap.forEach(d => {
+                    const m = d.data();
+                    const div = document.createElement('div');
+                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
+                    div.innerText = m.texto; box.appendChild(div);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        window.enviarPreguntaRapida = (pregunta) => {
+            const paso = FLUJO_AYUDA[pregunta] || FLUJO_AYUDA["inicio"];
+            const box = document.getElementById('chat-messages');
+            const menu = document.querySelector('.help-menu');
+            const dU = document.createElement('div'); dU.className="msg-user"; dU.innerText=pregunta; box.appendChild(dU);
+            setTimeout(() => {
+                const dB = document.createElement('div'); dB.className="msg-support"; dB.innerText=paso.texto; box.appendChild(dB);
+                box.scrollTop = box.scrollHeight;
+                menu.innerHTML = "";
+                paso.opciones.forEach(o => {
+                    const b = document.createElement('button'); b.className="btn-help"; b.innerText=o.toUpperCase();
+                    b.onclick=()=>window.enviarPreguntaRapida(o); menu.appendChild(b);
+                });
+            }, 500);
         };
 
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
-            let precioFinal = t.precio;
-            const nombre = t.nombre;
+            let pFinal = t.precio;
+            const vips = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
+            if ((t.nombre==='SEMANAS COTIZADAS'||t.nombre==='Tarjeta NSS') && vips.includes(emailAsesor)) pFinal=19;
 
-            const correosVip = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            const correosUltraVip = ["fgarcia.g195@gmail.com", "consultoriadpr@gmail.com"];
-
-            if (nombre === 'SEMANAS COTIZADAS' || nombre === 'Tarjeta NSS') {
-                if (correosUltraVip.includes(emailAsesor)) precioFinal = 18;
-                else if (correosVip.includes(emailAsesor)) precioFinal = 19;
+            let fields = '';
+            if(t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
+            if(t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if(t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
+            if(t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if(t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
+            if(t.pidePass) fields += `<input type="text" id="pass_p" placeholder="CONTRASEÑA" class="input-light mb-4">`;
+            if(t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4 uppercase"></textarea>`;
+            
+            if (t.pideIneFrente || t.pideFotoCli) {
+                fields += `<div class="bg-slate-50 p-4 rounded-2xl border mb-4 space-y-2">`;
+                if(t.pideIneFrente) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">INE FRENTE</label><input type="file" id="file_ine_f" class="w-full text-[10px]">`;
+                if(t.pideFotoCli) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">FOTO CLIENTE</label><input type="file" id="file_selfie" class="w-full text-[10px]">`;
+                fields += `</div>`;
             }
 
-            let camposHtml = '';
-            let mensajeExtra = "";
+            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${t.nombre}</h2>${fields}
+                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${pFinal}.00</button>`;
+            window.abrirModal('modalTramite');
+        };
 
-            // LOGICA DE MENSAJE EXTRA
-            if (nombre === 'INSCRIPCIÓN RFC') {
-                mensajeExtra = `<p class="text-[9px] font-bold text-red-600 mb-2 uppercase">El tiempo de entrega es de 15 a 20 días hábiles.</p>
-                                <p class="text-[9px] font-bold text-blue-600 mb-2 uppercase">Trámite exclusivo para mayores de edad.</p>`;
-            } else if (nombre === 'Alta para Desempleo con aportaciones') {
-                mensajeExtra = `<p class="text-[9px] font-bold text-red-600 mb-2 uppercase">El tiempo de entrega es de 2 a 3 días hábiles.</p>
-                                <p class="text-[9px] font-bold text-blue-600 mb-2 uppercase">ALTA SIN RETROACTIVO.</p>`;
-            }
+        window.confirmarCompra = async (t, c) => {
+            if (saldoGlobal < c) return alert("Saldo insuficiente.");
+            try {
+                const val = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "N/A";
+                const curpVal = val('curp_p').toUpperCase(), nssVal = val('nss_p');
 
-            if (t.pideNombre) camposHtml += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if (t.curp) camposHtml += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase tracking-widest">`;
-            if (t.nss) camposHtml += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if (t.rfc) camposHtml += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
-            if (t.idcif) camposHtml += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
-            if (t.pideNumServicio) camposHtml += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO (CFE)" class="input-light mb-4">`;
-            if (t.pideFecha) camposHtml += `<label class="text-[8px] font-black ml-2 uppercase text-slate-400">Fecha Nacimiento:</label><input type="date" id="fecha_p" class="input-light mb-4">`;
-            if (t.pideTel) camposHtml += `<input type="tel" id="tel_p" placeholder="TELÉFONO DEL CLIENTE" class="input-light mb-4">`;
-            if (t.pideTelContacto) camposHtml += `<input type="tel" id="tel_contacto_p" placeholder="TELÉFONO CONTACTO ASESOR" class="input-light mb-4">`;
-            if (t.pideCorreo) camposHtml += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
-            if (t.pidePass) camposHtml += `<input type="text" id="pass_p" placeholder="CONTRASEÑA ACTUAL" class="input-light mb-4">
+                const extra = { nombre_cliente: val('nombre_p'), rfc: val('rfc_p'), pass: val('pass_p'), nota: val('nota_p') };
+
+                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                const docRef = await addDoc(collection(db, "solicitudes"), { 
+                    asesor_uid: userUID, nombre_asesor: emailAsesor, tipo: t.nombre, costo: c, estatus: "En Proceso", finalizado: false, fecha: serverTimestamp(), curp: curpVal, nss: nssVal, detalles_extra: extra
+                });
+
+                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, tramite: t.nombre, servicio: t.nombre, curp: curpVal, nss: nssVal, extra: extra })
+                }).catch(e => console.log("n8n offline"));
+
+                alert("Enviado."); window.cerrarModal();
+            } catch(e) { alert("Error."); }
+        };
+
+        window.notificarPago = async () => {
+            const m = parseFloat(document.getElementById('depMonto').value), r = document.getElementById('claveRastreo').value, f = document.getElementById('fileRecarga').files[0];
+            if (!m || !r || !f || m < 200) return alert("Completa datos.");
+            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+            const d = await res.json();
+            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
+            alert("Pago reportado."); window.cerrarModal();
+        };
+
+        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if(d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`; } }); }
+        function escucharHistorial() { onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(500)), (snap) => {
+            const tbody = document.getElementById('listaHistorial'); let html = "";
+            snap.forEach(d => {
+                const s = d.data(), f = s.fecha ? s.fecha.toDate().toLocaleDateString() : '...';
+                html += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${s.tipo}<br><small>${s.curp}</small></td><td class="py-3 px-2 text-center font-black">${s.estatus}</td><td class="py-3 px-2 text-right">${s.archivoFinal ? `<a href="${s.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}</td></tr>`;
+            });
+            tbody.innerHTML = html;
+        });}
+        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
+        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
+        window.mostrarTramites = (cat) => {
+            document.getElementById('gridCategorias').classList.add('hidden');
+            document.getElementById('listaServicios').classList.remove('hidden');
+            document.getElementById('btnVolver').classList.remove('hidden');
+            const lista = document.getElementById('listaServicios');
+            let html = '';
+            TRAMITES[cat].forEach(t => {
+                const conf = JSON.stringify(t).replace(/'/g, "&apos;");
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center transition hover:scale-105"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px] mt-1">$${t.precio}.00</p></div>`;
+            });
+            lista.innerHTML = html;
+        };
+        window.resetearPanel = () => { document.getElementById('gridCategorias').classList.remove('hidden'); document.getElementById('listaServicios').classList.add('hidden'); document.getElementById('btnVolver').classList.add('hidden'); };
+    </script>
+</body>
+</html>
