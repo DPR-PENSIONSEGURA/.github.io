@@ -14,7 +14,7 @@
         .solo-diana { display: none !important; }
         .btn-blue { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; border: none; cursor: pointer; }
         .btn-descarga { background: #9333ea; color: white; padding: 10px; border-radius: 12px; font-size: 9px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; border: none; cursor: pointer; }
-        .badge-pago { animation: bounce 1s infinite; background: #ef4444; }
+        .badge-pago { animation: bounce 1s infinite; background: #ef4444; color: white; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -25,13 +25,13 @@
                 <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
                 <div>
                     <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">MASTER <span class="text-blue-600">DPR</span></h1>
-                    <p id="txtRol" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verificando...</p>
+                    <p id="txtRol" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Autenticando...</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
                 <div id="cardVentas" class="solo-diana card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-emerald-500 text-center">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Venta Total Hoy</p>
+                    <p class="text-[8px] font-black text-slate-400 uppercase">Venta Hoy</p>
                     <p id="gananciaHoy" class="text-xl font-black text-emerald-600">$0.00</p>
                 </div>
                 <div id="cardAsesores" class="solo-diana card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-purple-500 text-center">
@@ -43,8 +43,8 @@
                     <p id="txtPendientes" class="text-xl font-black">0</p>
                 </div>
                 <button onclick="window.abrirModal('modalSaldos')" class="card-stat bg-orange-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-orange-700 text-center relative">
-                    <span id="badgePagos" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full text-[10px] flex items-center justify-center font-black badge-pago">!</span>
-                    <p class="text-[8px] font-black uppercase">Recargas</p>
+                    <span id="badgePagos" class="hidden absolute -top-2 -right-2 w-6 h-6 rounded-full text-[10px] flex items-center justify-center font-black badge-pago">0</span>
+                    <p class="text-[8px] font-black uppercase italic">Recargas</p>
                     <p class="text-xl font-black">💰</p>
                 </button>
             </div>
@@ -52,16 +52,15 @@
 
         <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <section class="lg:col-span-1">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-blue-600 pl-4">Soporte</h2>
+                <h2 class="text-sm font-black uppercase italic text-slate-700 mb-4 border-l-4 border-blue-600 pl-4">Chats</h2>
                 <div id="listaChat" class="bg-white rounded-[2rem] shadow-xl border overflow-y-auto h-[600px] p-4 space-y-4"></div>
             </section>
 
             <section class="lg:col-span-3">
                 <div id="seccionAsesores" class="solo-diana bg-white rounded-[2rem] p-6 shadow-xl border mb-8">
-                    <h2 class="text-[10px] font-black uppercase text-slate-700 mb-4 italic">Gestión de Accesos</h2>
                     <div class="flex gap-2">
-                        <input type="text" id="nuevoAsesorUser" placeholder="Nombre" class="bg-slate-100 p-3 rounded-xl flex-1 text-xs font-bold uppercase outline-none border">
-                        <input type="text" id="nuevoAsesorPass" placeholder="Clave" class="bg-slate-100 p-3 rounded-xl flex-1 text-xs font-bold outline-none border">
+                        <input type="text" id="nuevoAsesorUser" placeholder="Nombre" class="bg-slate-100 p-3 rounded-xl flex-1 text-xs font-bold uppercase outline-none">
+                        <input type="text" id="nuevoAsesorPass" placeholder="Clave" class="bg-slate-100 p-3 rounded-xl flex-1 text-xs font-bold outline-none">
                         <button onclick="window.agregarAsesor()" class="bg-emerald-500 text-white px-6 rounded-xl font-black text-xs uppercase">Crear</button>
                     </div>
                     <div id="listaAsesores" class="mt-4 space-y-2 max-h-32 overflow-y-auto"></div>
@@ -69,13 +68,13 @@
 
                 <div class="flex gap-4 mb-6">
                     <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR TRÁMITE, NSS O CURP..." class="p-4 rounded-2xl border text-[10px] font-black uppercase flex-1 shadow-lg outline-none focus:border-blue-600">
-                    <button onclick="window.filtrarSoloPendientes()" class="bg-blue-800 text-white px-6 rounded-2xl font-black text-[9px] uppercase shadow-lg">Solo Pendientes</button>
+                    <button onclick="window.filtrarSoloPendientes()" class="bg-blue-800 text-white px-4 rounded-2xl font-black text-[9px] uppercase">Solo Pendientes</button>
                 </div>
 
                 <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
                     <table class="w-full text-left text-[10px]">
                         <thead class="bg-slate-900 text-white uppercase italic">
-                            <tr><th class="p-4">Trámite</th><th class="p-4">Info</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                            <tr><th class="p-4">Trámite</th><th class="p-4">Asesor/Curp</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
                         </thead>
                         <tbody id="tablaSolicitudes" class="font-bold italic"></tbody>
                     </table>
@@ -87,24 +86,16 @@
     <div id="modalSaldos" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[130] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-[3rem] p-8 shadow-2xl relative">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">&times;</button>
-            <h2 class="text-xl font-black text-emerald-600 uppercase mb-6 italic">Validar Recargas</h2>
-            <div class="overflow-y-auto max-h-[60vh]">
-                <table class="w-full text-left text-xs">
-                    <tbody id="tablaRecargas"></tbody>
-                </table>
-            </div>
+            <h2 class="text-xl font-black text-emerald-600 uppercase mb-4 italic">Recargas Pendientes</h2>
+            <div class="overflow-y-auto max-h-[60vh]"><table class="w-full text-left text-xs"><tbody id="tablaRecargas"></tbody></table></div>
         </div>
     </div>
 
     <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-3xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
             <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
-            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente</h2>
-            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
-            <div id="contenedorCuestionario" class="bg-blue-50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
-                <h3 class="text-xs font-black text-blue-800 uppercase mb-2">Cuestionario</h3>
-                <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
-            </div>
+            <h2 class="text-xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente</h2>
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
             <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
         </div>
     </div>
@@ -118,107 +109,99 @@
         const db = getFirestore(app);
 
         const PASS_DIANA = "Adiana.";
-        let miRol = "asesor", todasLasSoliCargadas = [];
+        let miRol = "asesor", todasSolicitudes = [];
 
-        async function checkLogin() {
-            const pass = prompt("DPR Access:");
-            const asesoresSnap = await getDocs(collection(db, "accesos_crm"));
+        async function login() {
+            const p = prompt("Contraseña:");
+            const snap = await getDocs(collection(db, "accesos_crm"));
             let asesores = {};
-            asesoresSnap.forEach(d => asesores[d.data().password] = d.data().nombre);
+            snap.forEach(d => asesores[d.data().password] = d.data().nombre);
 
-            if(pass === PASS_DIANA) {
+            if(p === PASS_DIANA) {
                 miRol = "diana";
                 document.getElementById('txtRol').innerText = "DIANA | DUEÑA";
                 document.querySelectorAll('.solo-diana').forEach(el => el.style.display = 'block');
                 document.body.style.display = "block";
-                escucharGestion();
                 escucharRecargas();
-            } else if (asesores[pass]) {
+                escucharAsesores();
+            } else if (asesores[p]) {
                 miRol = "asesor";
-                document.getElementById('txtRol').innerText = "APOYO: " + asesores[pass].toUpperCase();
+                document.getElementById('txtRol').innerText = "APOYO: " + asesores[p].toUpperCase();
                 document.body.style.display = "block";
-            } else { window.location.href = "https://pensionsegura.org"; }
+            } else { window.location.reload(); }
         }
-        checkLogin();
+        login();
 
-        // RECARGAS EN MODAL
+        // RECARGAS
         function escucharRecargas() {
             onSnapshot(query(collection(db, "notificaciones_pago"), where("estatus", "==", "pendiente")), (snap) => {
                 const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-                const badge = document.getElementById('badgePagos');
-                if(snap.size > 0) { badge.innerText = snap.size; badge.classList.remove('hidden'); }
-                else { badge.classList.add('hidden'); }
+                document.getElementById('badgePagos').innerText = snap.size;
+                document.getElementById('badgePagos').style.display = snap.size > 0 ? 'flex' : 'none';
                 snap.forEach(d => {
                     const r = d.data();
-                    t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b></td><td class="p-4"><b>$${r.monto}</b></td><td class="p-4"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline">VER PAGO</button></td><td class="p-4 text-right"><button onclick="window.validarRecarga('${d.id}', '${r.uid}', ${r.monto})" class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-black">APROBAR</button></td></tr>`;
+                    t.innerHTML += `<tr class="border-b"><td class="p-4">${r.asesorEmail}</td><td class="p-4">$${r.monto}</td><td class="p-4"><button onclick="window.open('${r.comprobante}')" class="text-blue-600">VER</button></td><td class="p-4"><button onclick="window.aprobar('${d.id}','${r.uid}',${r.monto})" class="bg-emerald-500 text-white p-2 rounded-lg">OK</button></td></tr>`;
                 });
             });
         }
-        window.validarRecarga = async (id, uid, m) => { if(confirm("¿Aprobar?")){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(m)) }); await updateDoc(doc(db, "notificaciones_pago", id), { estatus: "aprobado" }); } };
+        window.aprobar = async (id, uid, m) => { await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(m)) }); await updateDoc(doc(db, "notificaciones_pago", id), { estatus: "aprobado" }); };
 
-        // TRÁMITES Y ESTADÍSTICAS
-        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1000)), (snap) => {
-            todasLasSoliCargadas = [];
-            let ganancia = 0, hoy = new Date().toLocaleDateString();
+        // TRÁMITES
+        onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(200)), (snap) => {
+            todasSolicitudes = [];
+            let venta = 0, hoy = new Date().toLocaleDateString();
             snap.forEach(d => {
-                const data = { id: d.id, ...d.data() };
-                todasLasSoliCargadas.push(data);
-                if(data.fecha?.toDate().toLocaleDateString() === hoy && data.estatus === "Terminado") ganancia += Number(data.costo || 0);
+                const s = { id: d.id, ...d.data() };
+                todasSolicitudes.push(s);
+                if(s.fecha?.toDate().toLocaleDateString() === hoy && s.estatus === "Terminado") venta += Number(s.costo || 0);
             });
-            document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
-            document.getElementById('txtPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
-            renderSolicitudes(todasLasSoliCargadas);
+            document.getElementById('gananciaHoy').innerText = `$${venta.toFixed(2)}`;
+            document.getElementById('txtPendientes').innerText = todasSolicitudes.filter(x => x.estatus === "En Proceso").length;
+            renderTabla(todasSolicitudes);
         });
 
-        function renderSolicitudes(array) {
-            const tabla = document.getElementById('tablaSolicitudes'); tabla.innerHTML = "";
-            array.forEach(s => {
-                const fStr = s.fecha?.toDate().toLocaleDateString() || '...';
-                tabla.innerHTML += `<tr class="border-b hover:bg-white"><td class="p-4"><div>${s.tipo}</div><div class="text-[7px] text-slate-400">${fStr}</div></td><td class="p-4 uppercase">${s.nombre_asesor || 'S/N'}<br><small class="text-blue-600">${s.curp || ''}</small></td><td class="p-4 text-center"><select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 text-[8px] uppercase bg-white"><option value="En Proceso" ${s.estatus==='En Proceso'?'selected':''}>⏳ PROCESO</option><option value="Terminado" ${s.estatus==='Terminado'?'selected':''}>✅ TERMINADO</option><option value="ERR_LIMIT">❌ ERR: LÍMITE</option></select></td><td class="p-4 text-right"><button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg">👁️</button></td></tr>`;
+        function renderTabla(arr) {
+            const t = document.getElementById('tablaSolicitudes'); t.innerHTML = "";
+            arr.forEach(s => {
+                t.innerHTML += `<tr class="border-b hover:bg-white"><td class="p-4">${s.tipo}</td><td class="p-4">${s.nombre_asesor}<br><small>${s.curp || ''}</small></td><td class="p-4 text-center">${s.estatus}</td><td class="p-4 text-right"><button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg">👁️</button></td></tr>`;
             });
         }
 
-        window.verDetalles = (data) => {
+        window.verDetalles = (s) => {
             const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const flds = [{l:"Asesor", v:data.nombre_asesor}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
-            if(data.detalles_extra) {
-                const e = data.detalles_extra;
-                if(e.nombre_cliente) flds.push({l:"Cliente", v:e.nombre_cliente});
-                if(e.pass) flds.push({l:"Pass", v:e.pass});
-                if(e.num_servicio) flds.push({l:"CFE", v:e.num_servicio});
+            const campos = [{l:"ASESOR", v:s.nombre_asesor}, {l:"CURP", v:s.curp}, {l:"NSS", v:s.nss}];
+            if(s.detalles_extra) {
+                if(s.detalles_extra.nombre_cliente) campos.push({l:"CLIENTE", v:s.detalles_extra.nombre_cliente});
+                if(s.detalles_extra.pass) campos.push({l:"PASS", v:s.detalles_extra.pass});
             }
-            flds.forEach(c => { if(c.v && c.v!=="N/A") cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[10px] font-bold text-slate-800 uppercase">${c.v}</p></div>`; });
+            campos.forEach(c => { if(c.v && c.v!=="N/A") cont.innerHTML += `<div class="bg-slate-50 p-2 border rounded"><b>${c.l}:</b> ${c.v}</div>`; });
             
-            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
-            const f = data.detalles_extra || {};
-            const fotos = [{l:"INE F", u:data.file_ine_f || f.file_ine_f}, {l:"INE R", u:data.file_ine_r || f.file_ine_r}, {l:"FOTO", u:data.file_selfie || f.file_selfie}, {l:"EDO CTA", u:data.file_edocta || f.file_edocta}];
-            fotos.forEach(foto => { if(foto.u && foto.u!=="N/A") contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`; });
+            const contF = document.getElementById('contenedorFotos'); contF.innerHTML = "";
+            const f = s.detalles_extra || {};
+            const fotos = [{l:"INE F", u:s.file_ine_f || f.file_ine_f}, {l:"INE R", u:s.file_ine_r || f.file_ine_r}, {l:"FOTO", u:s.file_selfie || f.file_selfie}];
+            fotos.forEach(x => { if(x.u && x.u!=="N/A") contF.innerHTML += `<button onclick="window.open('${x.u}')" class="btn-descarga">📥 ${x.l}</button>`; });
             window.abrirModal('modalDetalles');
         };
 
-        window.filtrarSoloPendientes = () => renderSolicitudes(todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso'));
-        window.buscarGlobal = () => { const b = document.getElementById('buscador').value.toUpperCase(); renderSolicitudes(todasLasSoliCargadas.filter(s => (s.curp && s.curp.includes(b)) || (s.nss && s.nss.includes(b)))); };
+        window.buscarGlobal = () => { const b = document.getElementById('buscador').value.toUpperCase(); renderTabla(todasSolicitudes.filter(s => (s.curp && s.curp.includes(b)) || (s.nss && s.nss.includes(b)) || (s.nombre_asesor.toUpperCase().includes(b)))); };
+        window.filtrarSoloPendientes = () => renderTabla(todasSolicitudes.filter(s => s.estatus === "En Proceso"));
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
         window.cerrarModales = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-        
-        function escucharGestion() { onSnapshot(collection(db, "accesos_crm"), (snap) => {
+
+        function escucharAsesores() { onSnapshot(collection(db, "accesos_crm"), (snap) => {
             document.getElementById('numAsesores').innerText = snap.size;
             const div = document.getElementById('listaAsesores'); div.innerHTML = "";
-            snap.forEach(d => { div.innerHTML += `<div class="flex justify-between bg-slate-50 p-2 rounded-lg text-[9px] font-bold border"><span>👤 ${d.data().nombre}</span> <span class="text-blue-600">${d.data().password}</span></div>`; });
+            snap.forEach(d => { div.innerHTML += `<div class="bg-slate-50 p-1 border rounded text-[9px]">👤 ${d.data().nombre} - 🔑 ${d.data().password}</div>`; });
         });}
         window.agregarAsesor = async () => { const n = document.getElementById('nuevoAsesorUser').value, p = document.getElementById('nuevoAsesorPass').value; if(n && p) await addDoc(collection(db, "accesos_crm"), { nombre: n, password: p }); };
 
         // CHAT
         onSnapshot(query(collection(db, "chat_soporte"), orderBy("timestamp", "desc")), (snap) => {
             const cont = document.getElementById('listaChat'); cont.innerHTML = "";
-            let chatGroups = {};
+            let groups = {};
             snap.forEach(d => {
                 const m = d.data();
-                if(!chatGroups[m.asesor_uid]) {
-                    chatGroups[m.asesor_uid] = true;
-                    const alertClass = (m.respondido === false) ? "msg-alerta" : "bg-white";
-                    cont.innerHTML += `<div onclick="alert('Abriendo Chat...')" class="p-4 rounded-2xl border cursor-pointer ${alertClass}"><span class="text-[9px] font-black text-blue-600">${m.remitente}</span><p class="text-[10px] font-bold text-slate-500 truncate">${m.texto}</p></div>`;
-                }
+                if(!groups[m.asesor_uid]) { groups[m.asesor_uid] = true; cont.innerHTML += `<div onclick="alert('Abrir chat real')" class="p-3 border rounded cursor-pointer ${m.respondido?'bg-white':'bg-red-50 border-red-200'}"><span class="text-blue-600 text-[9px] font-bold">${m.remitente}</span><p class="truncate text-[10px]">${m.texto}</p></div>`; }
             });
         });
     </script>
