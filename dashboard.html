@@ -406,20 +406,49 @@
                     };
                 }
 
+              // 1. Descontar saldo
                 await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+
+                // 2. Crear la solicitud con el candado ABIERTO para n8n
                 const docRef = await addDoc(collection(db, "solicitudes"), { 
-                    asesor_uid: userUID, origen: "ASESOR", nombre_asesor: emailAsesor, tipo: t.nombre, costo: c, estatus: "En Proceso", fecha: serverTimestamp(), curp: curpVal, nss: nssVal,
-                    detalles_extra: extra, cuestionario: quest
+                    asesor_uid: userUID, 
+                    origen: "ASESOR", 
+                    nombre_asesor: emailAsesor, 
+                    tipo: t.nombre, 
+                    costo: c, 
+                    estatus: "En Proceso", 
+                    finalizado: false, // <--- Aquí n8n sabe que SI puede trabajar
+                    fecha: serverTimestamp(), 
+                    curp: curpVal, 
+                    nss: nssVal,
+                    detalles_extra: extra, 
+                    cuestionario: quest
                 });
 
+                // 3. Enviar a n8n
                 fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_solicitud: docRef.id, asesor: emailAsesor, tramite: t.nombre, servicio: t.nombre, curp: curpVal, nss: nssVal, extra: extra, cuestionario: quest, fecha: new Date().toLocaleString() })
+                    body: JSON.stringify({ 
+                        id_solicitud: docRef.id, 
+                        asesor: emailAsesor, 
+                        tramite: t.nombre, 
+                        servicio: t.nombre, 
+                        curp: curpVal, 
+                        nss: nssVal, 
+                        extra: extra, 
+                        cuestionario: quest, 
+                        fecha: new Date().toLocaleString() 
+                    })
                 }).catch(err => console.log("n8n offline"));
 
-                alert("Enviado."); window.cerrarModal();
-            } catch(e) { alert("Error."); }
+                alert("Enviado con éxito."); 
+                window.cerrarModal();
+
+            } catch(e) { 
+                alert("Error al procesar el pago."); 
+                console.error(e);
+            }
         };
 
         window.notificarPago = async () => {
