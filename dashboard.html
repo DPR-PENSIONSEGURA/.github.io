@@ -132,6 +132,7 @@
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SEMANAS COTIZADAS DETALLADAS', precio: 37, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
                 { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
@@ -185,14 +186,14 @@
         const FLUJO_AYUDA = {
             "inicio": {
                 texto: "Hola, ¿en qué puedo ayudarte hoy?",
-                opciones: ["💰 Pagos y Saldo", "📋 Estado de Trámites", "🛡️ Soporte Técnico", "📃 Términos y Condiciones"]
+                opciones: ["💰 Pagos y Saldo", "📋 Estado de Trámites", "🛡️ Soporte Técnico", "POLÌTICA DE REEMBOLSOS", "📃 Términos y Condiciones"]
             },
             "💰 Pagos y Saldo": {
                 texto: "¿Qué necesitas saber sobre tus pagos?",
-                opciones: ["¿Cómo recargar?", "¿Cuánto tarda en reflejarse?", "Reportar una falla"]
+                opciones: ["¿Cómo recargar?", "¿Cuánto tarda en reflejarse?", "Reportar una falla", "Politica de pagos y Recarga"]
             },
             "¿Cómo recargar?": {
-                texto: "Transfiere a la cuenta Banorte indicada en el botón de saldo. Agrega el monto y tu Clave de Rastreo (SPEI) para que se valide.",
+                texto: "En la esquina superior derecha da clic en tu saldo, transfiere a la cuenta Banorte indicada en el botón de saldo. Agrega el monto y tu Clave de Rastreo (SPEI) para que se valide.",
                 opciones: ["Volver al inicio"]
             },
             "¿Cuánto tarda en reflejarse?": {
@@ -201,10 +202,10 @@
             },
             "📋 Estado de Trámites": {
                 texto: "Selecciona el tipo de consulta:",
-                opciones: ["Tiempos de entrega", "Error en NSS/CURP", "INCONSISTENCIAS"]
+                opciones: ["Tiempos de entrega", "Error en NSS/CURP", "INCONSISTENCIAS", "DOCUMENTO NO ENCONTRADO O NO EXISTE" ]
             },
             "Tiempos de entrega": {
-                texto: "Semanas: 10 min. RFC CLON: 3 MIN. RFC VERIFICABLE: 1 HORA. RFC ORIGINAL: 3-4 HORAS. Altas: 2-3 días.",
+                texto: "Semanas: 10 min. RFC CLON: 3 MIN. RFC VERIFICABLE: 1 HORA. RFC ORIGINAL: 3-4 HORAS. Altas mensual o con aportaciones: 2-3 días, ALta con linea de captura: 20 min.",
                 opciones: ["Volver al inicio"]
             },
             "Error en NSS/CURP": {
@@ -212,11 +213,48 @@
                 opciones: ["Volver al inicio"]
             },
             "INCONSISTENCIAS": {
-                texto: "Los datos no coinciden con RENAPO. El cliente debe acudir a su subdelegación. El trámite de corrección tarda unos 45 días.",
+                texto: "Los datos no coinciden con RENAPO. El cliente debe acudir a su subdelegación ò realizar su aclaraciòn en el siguiente enlace - https://serviciosdigitales.imss.gob.mx/correcciondatosasegurado-web-ciudadano/wizard/correccionDatosAsegurado/ - . El trámite de corrección tarda unos 45 días.",
                 opciones: ["Volver al inicio"]
+            }
+            "DOCUMENTO NO ENCONTRADO O NO EXISTE": {
+                texto: "No se encontrò el documento que solicitas, revisa tus datos ingresados" opciones: ["Volver al inicio"]
+            }
+        "Reportar una falla": {
+                texto: "Agradedcemos tus comentarios, por favor escribe el servicio y los datos que solicitaste, en breve un asesor se comunicarà contigo" opciones: ["Volver al inicio"]
+            }
+        
+        "🛡️ Soporte Técnico": {
+                texto: "ESCRIBE A CONTINUACIÒN LA ACLARACIÒN QUE NECESITA, UN ASESOR SE COMUNICARÀ EN BREVE" opciones: ["Volver al inicio"]
+            }
+        "📃 Términos y Condiciones": {
+                texto: "DPR Consultoría actúa únicamente como un gestor y facilitador administrativo para la obtención de documentos y trámites ante instituciones públicas (IMSS, INFONAVIT, SAT, AFORE). El usuario reconoce que DPR Consultoría no es una institución oficial, sino una consultoría privada. Es responsabilidad absoluta del Asesor/Usuario proporcionar datos correctos (CURP, NSS, RFC, Nombres). Si un trámite es rechazado debido a datos incorrectos proporcionados por el usuario, no habrá lugar a reembolso. En caso de detectar discrepancias en documentos oficiales (homonimias, duplicidad de NSS), el usuario deberá seguir las instrucciones indicadas para acudir a las subdelegaciones correspondientes. DPR Consultoría se compromete a utilizar la información y fotografías (INE, Selfies, Comprobantes) exclusivamente para el trámite solicitado. Los datos son tratados con estricta confidencialidad y no son compartidos con terceros con fines comerciales. Al realizar cualquier recarga de saldo o envío de trámite a través de nuestro portal, el asesor/usuario manifiesta haber leído, comprendido y aceptado la totalidad de estas condiciones." 
+                    opciones: ["Volver al inicio"]
+            }
+           "Politica de pagos y Recarga": {
+                texto: "La recarga mínima al panel es de $200.00 MXN. Para que un saldo sea aprobado, el comprobante de transferencia debe ser legible y mostrar: Fecha, Hora y Clave de Rastreo (SPEI). Comprobantes incompletos o sin rastreo serán rechazados. El saldo recargado no tiene fecha de caducidad mientras el asesor mantenga su cuenta activa.",
+                opciones: ["Volver al inicio"]
+            }
+        "POLÌTICA DE REEMBOLSOS": {
+                texto: "DPR Consultoría aplicará un reembolso automático al saldo del panel únicamente cuando: El sistema institucional (IMSS/SAT) presente caídas prolongadas que impidan la entrega.El documento solicitado no exista en la base de datos oficial. Nota: Una vez que un trámite ha sido marcado como "Terminado" y el archivo ha sido subido, no hay devoluciones de saldo." opciones: ["Volver al inicio"]
             }
         };
 
+        window.enviarMensajeManual = async () => {
+            const input = document.getElementById('chat-input');
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            try {
+                await addDoc(collection(db, "chat_soporte"), {
+                    asesor_uid: userUID,
+                    remitente: emailAsesor,
+                    texto: texto,
+                    timestamp: serverTimestamp()
+                });
+                input.value = ""; // Limpiar campo
+            } catch (e) { console.error("Error al enviar mensaje:", e); }
+        };
+        
         onAuthStateChanged(auth, (user) => {
             if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); } 
             else { window.location.href = "login/index.html"; }
