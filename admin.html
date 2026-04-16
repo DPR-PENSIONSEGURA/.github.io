@@ -159,7 +159,7 @@
         window.cerrarModales = () => { document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden')); };
 
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => { if(d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador; });
-        onSnapshot(collection(db, "asesores"), (snap) => { document.getElementById('txtAsesores').innerText = snap.size; });
+        onSnapshot(collection(db, "asesores"), (snap) => { if(document.getElementById('txtAsesores')) document.getElementById('txtAsesores').innerText = snap.size; });
 
         onSnapshot(query(collection(db, "solicitudes"), orderBy("fecha", "desc"), limit(1500)), (snap) => {
             todasLasSoliCargadas = [];
@@ -171,7 +171,7 @@
             });
             cargarSolicitudes(currentPage);
             document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
-            document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
+            if(document.getElementById('gananciaHoy')) document.getElementById('gananciaHoy').innerText = `$${ganancia.toFixed(2)}`;
         });
 
         window.cargarSolicitudes = (pagina = 1) => {
@@ -212,131 +212,73 @@
             });
         }
 
-      window.cambiarEstatus = async (id, val) => {
-    const docRef = doc(db, "solicitudes", id);
-    try {
-        const snap = await getDoc(docRef);
-        const s = snap.data();
-        
-        // Obtenemos el mensaje de error largo o el valor directo
-        let est = LISTA_ERRORES_DPR[val] || val;
+        window.cambiarEstatus = async (id, val) => {
+            const docRef = doc(db, "solicitudes", id);
+            try {
+                const snap = await getDoc(docRef);
+                const s = snap.data();
+                let est = LISTA_ERRORES_DPR[val] || val;
 
-        // Si es un error ("ERR_")
-        if (val.startsWith("ERR_")) {
-    await updateDoc(docRef, { 
-        estatus: est, 
-        reembolsado: true,
-        finalizado: true // <--- CERRAMOS EL CANDADO
-    });
-    alert("✅ Reembolso aplicado y trámite CERRADO.");
-}
-                
-                // 2. Actualizamos el trámite con un candado (finalizado: true)
-                // Al poner finalizado: true, n8n ya no debería intentar moverlo
-                await updateDoc(docRef, { 
-                    estatus: est, 
-                    reembolsado: true,
-                    finalizado: true, // Bloqueo para n8n
-                    bloqueado: true   // Doble seguridad
-                });
-                alert("✅ Reembolso aplicado y estatus bloqueado.");
-            } else {
-                // Si ya estaba reembolsado, solo aseguramos el estatus
-                await updateDoc(docRef, { estatus: est });
+                if (val.startsWith("ERR_")) {
+                    if (!s.reembolsado) {
+                        await updateDoc(doc(db, "asesores", s.asesor_uid), { 
+                            saldo: increment(Number(s.costo)) 
+                        });
+                        await updateDoc(docRef, { 
+                            estatus: est, 
+                            reembolsado: true,
+                            finalizado: true, // CANDADO PARA n8n
+                            bloqueado: true   // DOBLE SEGURIDAD
+                        });
+                        alert("✅ Reembolso aplicado y trámite bloqueado.");
+                    } else {
+                        await updateDoc(docRef, { estatus: est, finalizado: true });
+                    }
+                } else {
+                    await updateDoc(docRef, { estatus: est });
+                }
+            } catch (e) { console.error(e); alert("Error al actualizar."); }
+        };
+
+        window.verDetalles = (data) => {
+            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
+            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
+            if(data.detalles_extra) {
+                const e = data.detalles_extra;
+                if(e.nombre_cliente && e.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:e.nombre_cliente});
+                if(e.rfc && e.rfc !== "N/A") campos.push({l:"RFC", v:e.rfc});
+                if(e.telefono && e.telefono !== "N/A") campos.push({l:"Teléfono Cli.", v:e.telefono});
+                if(e.correo && e.correo !== "N/A") campos.push({l:"Correo", v:e.correo, isPass:true});
+                if(e.pass && e.pass !== "N/A") campos.push({l:"Pass Actual", v:e.pass, isPass:true});
+                if(e.pass_nueva && e.pass_nueva !== "N/A") campos.push({l:"Pass Nueva", v:e.pass_nueva, isPass:true});
             }
-        } else {
-            // Si es "Terminado" o "En Proceso" manual
-            await updateDoc(docRef, { estatus: est });
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error al actualizar estatus.");
-    }
-};
+            campos.forEach(c => { 
+                if(c.v && c.v !== "N/A") {
+                    cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase">${c.v}</p></div>`;
+                }
+            });
 
-window.verDetalles = (data) => {
-    const cont = document.getElementById('contenedorDetalles'); 
-    cont.innerHTML = "";
-    
-    // 1. Datos base del trámite
-    const campos = [
-        {l:"Asesor", v:data.nombre_asesor}, 
-        {l:"Trámite", v:data.tipo}, 
-        {l:"CURP", v:data.curp}, 
-        {l:"NSS", v:data.nss}
-    ];
-    
-    // 2. Extraer información de 'detalles_extra' (Número de servicio, IDCIF, etc.)
-    if(data.detalles_extra) {
-        const e = data.detalles_extra;
-        if(e.nombre_cliente && e.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:e.nombre_cliente});
-        if(e.rfc && e.rfc !== "N/A") campos.push({l:"RFC", v:e.rfc});
-        if(e.telefono && e.telefono !== "N/A") campos.push({l:"Teléfono Cliente", v:e.telefono});
-        if(e.correo && e.correo !== "N/A") campos.push({l:"Correo", v:e.correo, isPass:true});
-        if(e.pass && e.pass !== "N/A") campos.push({l:"Contraseña Actual", v:e.pass, isPass:true});
-        if(e.pass_nueva && e.pass_nueva !== "N/A") campos.push({l:"Contraseña Nueva", v:e.pass_nueva, isPass:true});
-        
-        // VARIABLES ESPECÍFICAS QUE ME COMENTAS:
-        if(e.num_servicio && e.num_servicio !== "N/A") campos.push({l:"Núm. Servicio CFE", v:e.num_servicio});
-        if(e.idcif && e.idcif !== "N/A") campos.push({l:"IDCIF (SAT)", v:e.idcif});
-        if(e.nota && e.nota !== "N/A") campos.push({l:"Nota Asesor", v:e.nota});
-    }
+            const boxQ = document.getElementById('contenedorCuestionario');
+            const gridQ = document.getElementById('gridCuestionario');
+            if(data.cuestionario && data.cuestionario !== "N/A") {
+                boxQ.classList.remove('hidden'); gridQ.innerHTML = "";
+                Object.entries(data.cuestionario).forEach(([key, val]) => { if(val && val !== "N/A") gridQ.innerHTML += `<div class="border-b py-1"><span class="text-blue-500 font-black text-[7px] uppercase block">${key}</span><span class="font-bold text-slate-700">${val}</span></div>`; });
+            } else { boxQ.classList.add('hidden'); }
 
-    campos.forEach(c => { 
-        if(c.v && c.v !== "N/A") {
-            cont.innerHTML += `
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    <p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p>
-                    <p class="text-[11px] font-bold text-slate-800" style="${c.isPass ? 'text-transform:none;' : 'text-transform:uppercase;'}">${c.v}</p>
-                </div>`;
-        }
-    });
-
-    // 3. Renderizar Cuestionario (Si existe)
-    const boxQ = document.getElementById('contenedorCuestionario');
-    const gridQ = document.getElementById('gridCuestionario');
-    if(data.cuestionario && data.cuestionario !== "N/A") {
-        boxQ.classList.remove('hidden'); 
-        gridQ.innerHTML = "";
-        Object.entries(data.cuestionario).forEach(([key, val]) => {
-            if(val && val !== "N/A") {
-                gridQ.innerHTML += `
-                    <div class="border-b border-blue-100 py-1">
-                        <span class="text-blue-500 font-black uppercase text-[7px] block">${key.replace(/_/g, " ")}</span>
-                        <span class="font-bold text-slate-700">${val}</span>
-                    </div>`;
-            }
-        });
-    } else { boxQ.classList.add('hidden'); }
-
-    // 4. CORRECCIÓN DE FOTOS: Buscar en la raíz Y en detalles_extra
-    const contFotos = document.getElementById('contenedorFotos'); 
-    contFotos.innerHTML = "";
-    
-    const f = data.detalles_extra || {};
-    const fotos = [
-        {l:"INE Frente", u: data.file_ine_f || f.file_ine_f},
-        {l:"INE Reverso", u: data.file_ine_r || f.file_ine_r},
-        {l:"Selfie/Foto", u: data.file_selfie || f.file_selfie},
-        {l:"Domicilio", u: data.file_comp_domicilio || f.file_comp_domicilio},
-        {l:"Edo. Cuenta", u: data.file_edocta || f.file_edocta}
-    ];
-
-    fotos.forEach(foto => { 
-        if(foto.u && foto.u !== "N/A") {
-            contFotos.innerHTML += `
-                <button onclick="window.open('${foto.u}')" class="btn-descarga">
-                    📥 ${foto.l}
-                </button>`;
-        }
-    });
-
-    document.getElementById('modalDetalles').classList.remove('hidden');
-};
+            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
+            const f = data.detalles_extra || {};
+            const fotos = [
+                {l:"INE F", u:data.file_ine_f || f.file_ine_f},
+                {l:"INE R", u:data.file_ine_r || f.file_ine_r},
+                {l:"FOTO", u:data.file_selfie || f.file_selfie},
+                {l:"EDO CTA", u:data.file_edocta || f.file_edocta}
+            ];
+            fotos.forEach(foto => { if(foto.u && foto.u !== "N/A") contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`; });
+            document.getElementById('modalDetalles').classList.remove('hidden');
+        };
 
         window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
         
-        // --- FUNCIÓN DE SUBIDA REPARADA ---
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const f = document.getElementById('inputArchivo').files[0];
             if(!f) return alert("Selecciona archivo");
@@ -346,10 +288,10 @@ window.verDetalles = (data) => {
                 const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
                 const data = await res.json();
                 if(data.secure_url) {
-                    await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado" });
-                    window.cerrarModales(); alert("✅ Trámite terminado con éxito.");
-                } else { alert("Error al obtener link de subida."); }
-            } catch (e) { alert("Error de subida."); console.error(e); } finally { btn.innerText = "Enviar a Cliente"; btn.disabled = false; }
+                    await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado", finalizado: true });
+                    window.cerrarModales(); alert("✅ Trámite terminado.");
+                }
+            } catch (e) { alert("Error."); } finally { btn.innerText = "Enviar a Cliente"; btn.disabled = false; }
         };
 
         onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
@@ -361,7 +303,7 @@ window.verDetalles = (data) => {
             });
         });
 
-        window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Confirmar acción?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
+        window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Confirmar?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
         window.abrirCajaFuerte = () => { if(prompt("Clave Maestra:") === PASS_DIANA) { document.getElementById('modalCajaFuerte').classList.remove('hidden'); } else { alert("Denegado"); } };
         window.buscarGlobal = () => { const bus = document.getElementById('buscador').value.toUpperCase(); if (bus.length < 1) return cargarSolicitudes(currentPage); const filtrados = todasLasSoliCargadas.filter(s => (s.curp && s.curp.includes(bus)) || (s.nss && s.nss.includes(bus)) || (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))); renderizarTablaPersonalizada(filtrados); };
     </script>
