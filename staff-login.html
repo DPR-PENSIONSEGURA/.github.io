@@ -18,7 +18,7 @@
     <div class="space-y-4">
       <div>
         <label class="block text-[11px] font-black uppercase text-slate-500 mb-2">Usuario</label>
-        <input id="staffUser" type="text" placeholder="admin / asesor1 / asesor2"
+        <input id="staffUser" type="text" placeholder="admin o usuario del asesor"
           class="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:border-blue-600 font-bold">
       </div>
 
@@ -37,41 +37,85 @@
     </div>
   </div>
 
-  <script>
-    const STAFF_USERS = [
-      { username: "admin", password: "Admin2026*", role: "admin", name: "Administrador DPR" },
-      { username: "asesor1", password: "Asesor12026*", role: "asesor", name: "Asesor 1" },
-      { username: "asesor2", password: "Asesor22026*", role: "asesor", name: "Asesor 2" }
-    ];
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const userInput = document.getElementById("staffUser");
-    const passInput = document.getElementById("staffPass");
-    const btnLogin = document.getElementById("btnLogin");
-    const errorBox = document.getElementById("staffError");
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+      authDomain: "pensionsegura-9c817.firebaseapp.com",
+      projectId: "pensionsegura-9c817"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const ADMIN_USER = {
+      username: "admin",
+      password: "Admin2026*",
+      role: "admin",
+      name: "Administrador DPR"
+    };
+
+    const userInput = document.getElementById('staffUser');
+    const passInput = document.getElementById('staffPass');
+    const btnLogin = document.getElementById('btnLogin');
+    const errorBox = document.getElementById('staffError');
 
     function mostrarError(msg) {
       errorBox.textContent = msg;
-      errorBox.classList.remove("hidden");
+      errorBox.classList.remove('hidden');
     }
 
-    function loginInterno() {
+    async function loginInterno() {
       const username = userInput.value.trim();
-      const password = passInput.value;
-      const user = STAFF_USERS.find(u => u.username === username && u.password === password);
-      if (!user) {
-        mostrarError("Usuario o contraseña incorrectos.");
+      const password = passInput.value.trim();
+      errorBox.classList.add('hidden');
+
+      if (!username || !password) {
+        mostrarError('Escribe usuario y contraseña.');
         return;
       }
-      localStorage.setItem("staffSession", JSON.stringify({ username: user.username, role: user.role, name: user.name, loginAt: new Date().toISOString() }));
-      if (user.role === "admin") {
-        window.location.href = "admin.html";
-      } else {
-        window.location.href = "dashboard.html";
+
+      if (username === ADMIN_USER.username && password === ADMIN_USER.password) {
+        localStorage.setItem('staffSession', JSON.stringify({
+          username: ADMIN_USER.username,
+          role: ADMIN_USER.role,
+          name: ADMIN_USER.name,
+          loginAt: new Date().toISOString()
+        }));
+        window.location.href = 'admin.html';
+        return;
       }
+
+      const snap = await getDocs(collection(db, 'accesos_crm'));
+      let asesorEncontrado = null;
+      snap.forEach(d => {
+        const a = d.data();
+        if (a.username === username && a.password === password) {
+          asesorEncontrado = a;
+        }
+      });
+
+      if (!asesorEncontrado) {
+        mostrarError('Usuario o contraseña incorrectos.');
+        return;
+      }
+
+      localStorage.setItem('staffSession', JSON.stringify({
+        username: asesorEncontrado.username,
+        role: 'asesor',
+        name: asesorEncontrado.nombre || asesorEncontrado.username,
+        loginAt: new Date().toISOString()
+      }));
+
+      window.location.href = 'admin.html';
     }
 
-    btnLogin.addEventListener("click", loginInterno);
-    passInput.addEventListener("keydown", (e) => { if (e.key === "Enter") loginInterno(); });
+    btnLogin.addEventListener('click', loginInterno);
+    passInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loginInterno();
+    });
   </script>
 </body>
 </html>
