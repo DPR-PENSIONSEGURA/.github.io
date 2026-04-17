@@ -41,6 +41,9 @@
                 <button onclick="window.abrirCajaFuerte()" class="card-stat bg-slate-800 text-white p-4 rounded-3xl shadow-lg border-b-4 border-slate-900 text-center flex-1">
                     <p class="text-xl font-black">🔒</p>
                 </button>
+                <button onclick="window.logoutStaff()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1">
+                    <p class="text-xs font-black uppercase">Salir</p>
+                </button>
             </div>
         </header>
 
@@ -136,18 +139,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const PASS_DIANA = "Sashimi$";
-        const vPass = prompt("Contraseña Admin:");
-        if(vPass === PASS_DIANA || vPass === "DPR2026") { document.body.style.display="block"; } else { window.location.href="https://pensionsegura.org"; }
+        const staffSession = JSON.parse(localStorage.getItem("staffSession"));
+        if (!staffSession) {
+            window.location.href = "staff-login.html";
+        } else if (staffSession.role !== "admin") {
+            window.location.href = "dashboard.html";
+        } else {
+            document.body.style.display = "block";
+        }
+
+        window.logoutStaff = function() {
+            localStorage.removeItem("staffSession");
+            window.location.href = "staff-login.html";
+        };
+
+        const CLAVE_CAJA_FUERTE = "DPR2026";
 
         const LISTA_ERRORES_DPR = {
-            "ERR_NSS_CURP": "Error: el curp está mal / mal escrito etc",
-            "ERR_INCONSISTENCIAS": "Error: Para inconsistencias puedes acudir a tu subdelegación del IMSS más cercana o hacer el trámite en línea...",
-            "ERR_FOTOS": "Error: FOTOS ILEGIBLES",
-            "ERR_INEXISTENTE": "Error: DOCUMENTO INEXISTENTE O NO ENCONTRADO",
-            "ERR_PASS": "Error: CONTRASEÑA INCORRECTA",
-            "ERR_LIMITE": "Error: alguien más las consultó intenta más tarde",
-            "ERR_IMSS": "Error: ERROR EN IMSS"
+            "ERR_NSS_CURP": "Error: el CURP o el NSS están incorrectos, están mal escritos o no coinciden con los datos registrados.",
+            "ERR_INCONSISTENCIAS": "Error: existen inconsistencias en la información. El cliente debe acudir a su subdelegación del IMSS más cercana o realizar la aclaración correspondiente en línea.",
+            "ERR_FOTOS": "Error: las fotos o documentos enviados son ilegibles, están incompletos o no se distinguen correctamente.",
+            "ERR_INEXISTENTE": "Error: el documento, registro o información solicitada no existe o no fue encontrada en el sistema.",
+            "ERR_PASS": "Error: la contraseña proporcionada es incorrecta.",
+            "ERR_LIMITE": "Error: límite de consultas. Alguien ya realizó esta consulta anteriormente o el sistema detecta que el trámite ya fue intentado antes, por lo que es necesario esperar e intentar nuevamente más tarde.",
+            "ERR_IMSS": "Error: el sistema del IMSS presentó una falla al momento de procesar la consulta. Se recomienda intentar nuevamente más tarde."
         };
 
         let currentPage = 1; const PAGE_SIZE = 30; let idTramiteActual = ""; let todasLasSoliCargadas = [];
@@ -194,15 +209,15 @@
                     <td class="p-4">${info}</td>
                     <td class="p-4 text-center">
                         <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
-                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ PROCESO</option>
+                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ EN PROCESO</option>
                             <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="ERR_NSS_CURP" ${s.estatus.includes('curp') ? 'selected' : ''}>❌ ERR: NSS/CURP</option>
-                            <option value="ERR_INCONSISTENCIAS" ${s.estatus.includes('inconsistencias') ? 'selected' : ''}>❌ ERR: INCONSISTENCIAS</option>
-                            <option value="ERR_FOTOS" ${s.estatus.includes('FOTOS') ? 'selected' : ''}>❌ ERR: FOTOS</option>
-                            <option value="ERR_INEXISTENTE" ${s.estatus.includes('INEXISTENTE') ? 'selected' : ''}>❌ ERR: NO EXISTE</option>
-                            <option value="ERR_PASS" ${s.estatus.includes('CONTRASEÑA') ? 'selected' : ''}>❌ ERR: PASS</option>
-                            <option value="ERR_LIMITE" ${s.estatus.includes('límite') ? 'selected' : ''}>❌ ERR: LÍMITE</option>
-                            <option value="ERR_IMSS" ${s.estatus.includes('IMSS') ? 'selected' : ''}>❌ ERR: IMSS</option>
+                            <option value="ERR_NSS_CURP" ${(s.estatus || '').toUpperCase().includes('CURP') || (s.estatus || '').toUpperCase().includes('NSS') ? 'selected' : ''}>❌ CURP / NSS INCORRECTO</option>
+                            <option value="ERR_INCONSISTENCIAS" ${(s.estatus || '').toLowerCase().includes('inconsistencias') ? 'selected' : ''}>❌ INCONSISTENCIAS EN DATOS</option>
+                            <option value="ERR_FOTOS" ${(s.estatus || '').toLowerCase().includes('fotos') || (s.estatus || '').toLowerCase().includes('ilegibles') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                            <option value="ERR_INEXISTENTE" ${(s.estatus || '').toLowerCase().includes('no existe') || (s.estatus || '').toLowerCase().includes('no fue encontrada') ? 'selected' : ''}>❌ DOCUMENTO NO ENCONTRADO</option>
+                            <option value="ERR_PASS" ${(s.estatus || '').toLowerCase().includes('contraseña') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                            <option value="ERR_LIMITE" ${(s.estatus || '').toLowerCase().includes('límite de consultas') || (s.estatus || '').toLowerCase().includes('ya realizó esta consulta') ? 'selected' : ''}>❌ LÍMITE DE CONSULTAS</option>
+                            <option value="ERR_IMSS" ${(s.estatus || '').toUpperCase().includes('IMSS') ? 'selected' : ''}>❌ FALLA DEL SISTEMA IMSS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
