@@ -1,13 +1,415 @@
-nge="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
-                            <option value="En Proceso" ${s.estatus === 'En Proceso' ? 'selected' : ''}>⏳ EN PROCESO</option>
-                            <option value="Terminado" ${s.estatus === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="ERR_NSS_CURP" ${(s.estatus || '').toUpperCase().includes('CURP') || (s.estatus || '').toUpperCase().includes('NSS') ? 'selected' : ''}>❌ CURP / NSS INCORRECTO</option>
-                            <option value="ERR_INCONSISTENCIAS" ${(s.estatus || '').toLowerCase().includes('inconsistencias') ? 'selected' : ''}>❌ INCONSISTENCIAS EN DATOS</option>
-                            <option value="ERR_FOTOS" ${(s.estatus || '').toLowerCase().includes('fotos') || (s.estatus || '').toLowerCase().includes('ilegibles') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                            <option value="ERR_INEXISTENTE" ${(s.estatus || '').toLowerCase().includes('no existe') || (s.estatus || '').toLowerCase().includes('no fue encontrada') ? 'selected' : ''}>❌ DOCUMENTO NO ENCONTRADO</option>
-                            <option value="ERR_PASS" ${(s.estatus || '').toLowerCase().includes('contraseña') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-                            <option value="ERR_LIMITE" ${(s.estatus || '').toLowerCase().includes('límite de consultas') || (s.estatus || '').toLowerCase().includes('ya realizó esta consulta') ? 'selected' : ''}>❌ LÍMITE DE CONSULTAS</option>
-                            <option value="ERR_IMSS" ${(s.estatus || '').toUpperCase().includes('IMSS') ? 'selected' : ''}>❌ FALLA DEL SISTEMA IMSS</option>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPR Admin | Panel Interno</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; display: none; }
+        .card-stat { transition: all 0.3s ease; border-bottom: 4px solid rgba(0,0,0,0.1); }
+        .nav-pag { background: #1e293b; color: white; padding: 6px 14px; border-radius: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+        select.nav-select { background: #fff; border: 2px solid #1e293b; color: #1e293b; padding: 5px 10px; border-radius: 10px; font-size: 10px; font-weight: 900; outline: none; cursor: pointer; }
+        .seccion-contenido { transition: all 0.3s ease-in-out; overflow: hidden; max-height: 20000px; opacity: 1; }
+        .seccion-cerrada { max-height: 0 !important; opacity: 0; padding: 0 !important; margin: 0 !important; }
+        .btn-blue { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
+        .btn-blue:hover { background: #1e40af; }
+        .btn-descarga { background: #9333ea; color: white; padding: 10px; border-radius: 12px; font-size: 9px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: none; cursor: pointer; }
+        .btn-descarga:hover { background: #7e22ce; transform: scale(1.05); }
+        .msg-alerta { border-left: 4px solid #ef4444; background: #fef2f2; }
+        .solo-admin { display: none; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
+                <div>
+                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Interno</span></h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesión: <span id="txtSesion">Cargando...</span></p>
+                </div>
+            </div>
+            <div class="flex gap-4 w-full lg:w-auto flex-wrap">
+                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1 min-w-[110px] solo-admin">
+                    <p class="text-[8px] font-black text-slate-400 uppercase">Usuarios conectados</p>
+                    <p id="txtVisitas" class="text-xl font-black">0</p>
+                </div>
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px]">
+                    <p class="text-[8px] font-black uppercase">Pendientes</p>
+                    <p id="contadorPendientes" class="text-xl font-black">0</p>
+                </div>
+                <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center flex-1 min-w-[110px] solo-admin">
+                    <p class="text-[8px] font-black uppercase">Ventas del día</p>
+                    <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
+                </div>
+                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px]">
+                    <p class="text-[10px] font-black uppercase">Pendientes de hoy</p>
+                </button>
+                <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px]">
+                    <p class="text-[10px] font-black uppercase text-slate-700">Ver todo</p>
+                </button>
+                <button onclick="window.logoutStaff()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px]">
+                    <p class="text-[10px] font-black uppercase">Salir</p>
+                </button>
+            </div>
+        </header>
+
+        <section class="mb-8 solo-admin">
+            <div onclick="window.toggleSeccion('contenidoSaldo', 'icoSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+                <div id="icoSaldo" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+            </div>
+            <div id="contenidoSaldo" class="seccion-contenido mt-4">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
+                    <table class="w-full text-left text-[10px]"><tbody id="tablaRecargas"></tbody></table>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 solo-admin">
+            <div onclick="window.toggleSeccion('contenidoAdmin', 'icoAdmin')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-purple-600 pl-4">Control Administrativo</h2>
+                <div id="icoAdmin" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+            </div>
+            <div id="contenidoAdmin" class="seccion-contenido">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-1">
+                        <h3 class="text-xs font-black uppercase text-slate-500 mb-4">Agregar empleado / asesor</h3>
+                        <div class="space-y-3">
+                            <input id="nuevoAsesorUser" type="text" placeholder="Usuario" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <input id="nuevoAsesorNombre" type="text" placeholder="Nombre visible" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <input id="nuevoAsesorPass" type="text" placeholder="Contraseña" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <button onclick="window.agregarAsesor()" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar empleado</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-black uppercase text-slate-500">Empleados / asesores</h3>
+                            <span class="text-[10px] font-black uppercase text-blue-600">Total: <span id="totalAsesoresAdmin">0</span></span>
+                        </div>
+                        <div id="listaAsesores" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <div onclick="window.toggleSeccion('contenidoChat', 'icoChat')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-fuchsia-600 pl-4">Mensajes del chat interno</h2>
+                <div id="icoChat" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+            </div>
+            <div id="contenidoChat" class="seccion-contenido">
+                <div class="bg-white rounded-[2.5rem] shadow-xl border p-5">
+                    <div id="listaChat" class="space-y-3 max-h-[380px] overflow-y-auto"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Historial de solicitudes</h2>
+                <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+            </div>
+
+            <div id="contenidoSolicitudes" class="seccion-contenido">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="flex items-center gap-2">
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
+                        <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <span id="estadoFiltro" class="text-[10px] font-black uppercase text-amber-600"></span>
+                        <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP, NSS O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Información</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
+                            </thead>
+                            <tbody id="tablaSolicitudes" class="text-xs font-medium italic"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
+            <h2 class="text-2xl font-black mb-6 uppercase italic text-slate-800">Finanzas DPR</h2>
+            <div class="space-y-6">
+                <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día</p>
+                    <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
+                </div>
+                <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
+                    <p class="text-[10px] font-black uppercase text-purple-600 mb-1">Total empleados</p>
+                    <p id="txtAsesores" class="text-4xl font-black text-purple-800">0</p>
+                </div>
+            </div>
+            <button onclick="window.cerrarModales()" class="mt-8 text-slate-400 font-black text-[10px] uppercase italic tracking-widest">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="modalDetalles" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md hidden z-[110] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-3xl rounded-[3rem] p-10 shadow-2xl relative overflow-y-auto max-h-[90vh]">
+            <button onclick="window.cerrarModales()" class="absolute top-6 right-8 text-slate-400 text-3xl font-black">&times;</button>
+            <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
+            <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+            <div id="contenedorCuestionario" class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
+                <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Pensión</h3>
+                <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
+            </div>
+            <div class="border-t pt-6">
+                <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Documentos Adjuntos</h3>
+                <div id="contenedorFotos" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalSubir" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-[150] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl">
+            <h2 class="text-xl font-black mb-4 uppercase italic text-blue-600">Subir Resultado</h2>
+            <input type="file" id="inputArchivo" class="block w-full text-xs mb-6 border p-4 rounded-2xl bg-slate-50">
+            <button id="btnGuardarFinal" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition">Enviar a Cliente</button>
+            <button onclick="window.cerrarModales()" class="mt-4 text-slate-400 font-black text-[10px] uppercase">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalChat" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[160] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl">
+            <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic">Responder a:</h2>
+            <div id="chatHistory" class="bg-slate-50 h-64 overflow-y-auto p-4 rounded-2xl mb-4 space-y-2 flex flex-col"></div>
+            <div class="flex gap-2">
+                <input type="text" id="inputRespuesta" placeholder="Escribe respuesta..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                <button id="btnEnviarRespuesta" class="bg-blue-600 text-white px-6 rounded-xl font-black">ENVIAR</button>
+            </div>
+            <button onclick="window.cerrarModales()" class="mt-4 text-[9px] font-black uppercase text-slate-400">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const staffSession = JSON.parse(localStorage.getItem('staffSession'));
+        if (!staffSession) {
+            window.location.href = 'staff-login.html';
+        } else {
+            document.body.style.display = 'block';
+            document.getElementById('txtSesion').textContent = `${staffSession.name || staffSession.username} · ${staffSession.role}`;
+            if (staffSession.role === 'admin') {
+                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'block');
+            }
+        }
+
+        window.logoutStaff = function () {
+            localStorage.removeItem('staffSession');
+            window.location.href = 'staff-login.html';
+        };
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const CLAVE_CAJA_FUERTE = "DPR2026";
+        const miSesion = JSON.parse(localStorage.getItem('staffSession')) || { role: 'asesor' };
+
+        const LISTA_ERRORES_DPR = {
+            "ERR_NSS_CURP": "Error: el CURP o el NSS están incorrectos, están mal escritos o no coinciden con los datos registrados.",
+            "ERR_INCONSISTENCIAS": "Error: existen inconsistencias en la información. El cliente debe acudir a su subdelegación del IMSS más cercana o realizar la aclaración correspondiente en línea.",
+            "ERR_FOTOS": "Error: las fotos o documentos enviados son ilegibles, están incompletos o no se distinguen correctamente.",
+            "ERR_INEXISTENTE": "Error: el documento, registro o información solicitada no existe o no fue encontrada en el sistema.",
+            "ERR_PASS": "Error: la contraseña proporcionada es incorrecta.",
+            "ERR_LIMITE": "Error: límite de consultas. Alguien ya realizó esta consulta anteriormente o el sistema detecta que el trámite ya fue intentado antes, por lo que es necesario esperar e intentar nuevamente más tarde.",
+            "ERR_IMSS": "Error: el sistema del IMSS presentó una falla al momento de procesar la consulta. Se recomienda intentar nuevamente más tarde."
+        };
+
+        let currentPage = 1;
+        const PAGE_SIZE = 30;
+        let idTramiteActual = "";
+        let todasLasSoliCargadas = [];
+        let filtroPendientesHoyActivo = false;
+        let idChatActivo = "";
+        let unsubscribeChatHistory = null;
+
+        const selector = document.getElementById('selectorPagina');
+        for (let i = 1; i <= 50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+
+        window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
+        window.cambiarPaginaPag = (dir) => {
+            let p = currentPage + dir;
+            if (p > 0 && p <= 50) {
+                currentPage = p;
+                selector.value = p;
+                cargarSolicitudes(p);
+            }
+        };
+        window.toggleSeccion = (id, ico) => {
+            const c = document.getElementById(id), i = document.getElementById(ico);
+            c.classList.toggle('seccion-cerrada');
+            i.innerText = c.classList.contains('seccion-cerrada') ? '▶' : '▼';
+        };
+        window.cerrarModales = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+
+        function esMismoDia(fechaA, fechaB) {
+            return fechaA.getFullYear() === fechaB.getFullYear() && fechaA.getMonth() === fechaB.getMonth() && fechaA.getDate() === fechaB.getDate();
+        }
+
+        function actualizarFiltroLabel(texto = '') {
+            document.getElementById('estadoFiltro').textContent = texto;
+        }
+
+        function obtenerSolicitudesFiltradas() {
+            if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
+            const hoy = new Date();
+            return todasLasSoliCargadas.filter(s => {
+                const fecha = s.fecha?.toDate?.();
+                return fecha && esMismoDia(fecha, hoy) && s.estatus === 'En Proceso';
+            });
+        }
+
+        window.filtrarPendientesHoy = () => {
+            filtroPendientesHoyActivo = true;
+            currentPage = 1;
+            selector.value = 1;
+            actualizarFiltroLabel('Mostrando solo pendientes del día');
+            cargarSolicitudes(1);
+        };
+
+        window.mostrarTodas = () => {
+            filtroPendientesHoyActivo = false;
+            currentPage = 1;
+            selector.value = 1;
+            actualizarFiltroLabel('');
+            cargarSolicitudes(1);
+        };
+
+        onSnapshot(doc(db, 'visitas_diarias', new Date().toISOString().split('T')[0]), (d) => {
+            if (d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador || 0;
+        });
+
+        onSnapshot(collection(db, 'accesos_crm'), (snap) => {
+            const total = snap.size + 1;
+            const totalEl = document.getElementById('txtAsesores');
+            const totalAdmin = document.getElementById('totalAsesoresAdmin');
+            if (totalEl) totalEl.innerText = total;
+            if (totalAdmin) totalAdmin.innerText = total;
+
+            if (miSesion.role !== 'admin') return;
+            const div = document.getElementById('listaAsesores');
+            div.innerHTML = `
+                <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border">
+                    <div>
+                        <p class="text-[11px] font-black uppercase text-slate-800">Administrador</p>
+                        <p class="text-[10px] font-bold text-slate-500">Usuario: admin</p>
+                    </div>
+                    <span class="text-[10px] font-black text-emerald-600 uppercase">Fijo</span>
+                </div>`;
+            snap.forEach(d => {
+                const a = d.data();
+                div.innerHTML += `
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border gap-3">
+                        <div>
+                            <p class="text-[11px] font-black uppercase text-slate-800">${a.nombre || a.username || 'Asesor'}</p>
+                            <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} · Clave: ${a.password || ''}</p>
+                        </div>
+                        <button onclick="window.eliminarAsesor('${d.id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Quitar</button>
+                    </div>`;
+            });
+        });
+
+        window.agregarAsesor = async () => {
+            if (miSesion.role !== 'admin') return;
+            const username = document.getElementById('nuevoAsesorUser').value.trim();
+            const nombre = document.getElementById('nuevoAsesorNombre').value.trim();
+            const password = document.getElementById('nuevoAsesorPass').value.trim();
+            if (!username || !nombre || !password) return alert('Llena usuario, nombre y contraseña');
+
+            const existente = await getDocs(query(collection(db, 'accesos_crm'), where('username', '==', username)));
+            if (!existente.empty) return alert('Ese usuario ya existe');
+
+            await addDoc(collection(db, 'accesos_crm'), {
+                username,
+                nombre,
+                password,
+                role: 'asesor',
+                creado: serverTimestamp()
+            });
+            document.getElementById('nuevoAsesorUser').value = '';
+            document.getElementById('nuevoAsesorNombre').value = '';
+            document.getElementById('nuevoAsesorPass').value = '';
+            alert('Empleado agregado');
+        };
+
+        window.eliminarAsesor = async (id) => {
+            if (miSesion.role !== 'admin') return;
+            if (!confirm('¿Quitar este empleado?')) return;
+            await deleteDoc(doc(db, 'accesos_crm', id));
+        };
+
+        onSnapshot(query(collection(db, 'solicitudes'), orderBy('fecha', 'desc'), limit(1500)), (snap) => {
+            todasLasSoliCargadas = [];
+            let ganancia = 0;
+            const hoy = new Date();
+            snap.forEach(d => {
+                const data = { id: d.id, ...d.data() };
+                todasLasSoliCargadas.push(data);
+                const fecha = data.fecha?.toDate?.();
+                if (fecha && esMismoDia(fecha, hoy) && data.estatus === 'Terminado') ganancia += Number(data.costo || 0);
+            });
+            document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
+            const gananciaText = `$${ganancia.toFixed(2)}`;
+            if (document.getElementById('gananciaHoy')) document.getElementById('gananciaHoy').innerText = gananciaText;
+            if (document.getElementById('gananciaHoyHeader')) document.getElementById('gananciaHoyHeader').innerText = gananciaText;
+            cargarSolicitudes(currentPage);
+        });
+
+        window.cargarSolicitudes = (pagina = 1) => {
+            const fuente = obtenerSolicitudesFiltradas();
+            const inicio = (pagina - 1) * PAGE_SIZE;
+            renderizarTablaPersonalizada(fuente.slice(inicio, inicio + PAGE_SIZE));
+        };
+
+        function renderizarTablaPersonalizada(docsArray) {
+            const tabla = document.getElementById('tablaSolicitudes');
+            tabla.innerHTML = '';
+            docsArray.forEach(s => {
+                const fStr = s.fecha?.toDate?.().toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) || '...';
+                let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
+                if (s.curp && s.curp !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+                if (s.nss && s.nss !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+                const estatusActual = String(s.estatus || '');
+
+                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
+                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span></td>
+                    <td class="p-4"><div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div></td>
+                    <td class="p-4">${info}</td>
+                    <td class="p-4 text-center">
+                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
+                            <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}>⏳ EN PROCESO</option>
+                            <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                            <option value="ERR_NSS_CURP" ${estatusActual.includes('CURP') || estatusActual.includes('NSS') ? 'selected' : ''}>❌ CURP / NSS INCORRECTO</option>
+                            <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}>❌ INCONSISTENCIAS EN DATOS</option>
+                            <option value="ERR_FOTOS" ${estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                            <option value="ERR_INEXISTENTE" ${estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada') ? 'selected' : ''}>❌ DOCUMENTO NO ENCONTRADO</option>
+                            <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                            <option value="ERR_LIMITE" ${estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta') ? 'selected' : ''}>❌ LÍMITE DE CONSULTAS</option>
+                            <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}>❌ FALLA DEL SISTEMA IMSS</option>
                         </select>
                     </td>
                     <td class="p-4 text-right space-x-1">
@@ -19,89 +421,212 @@ nge="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 fon
         }
 
         window.cambiarEstatus = async (id, val) => {
-            const docRef = doc(db, "solicitudes", id);
+            const docRef = doc(db, 'solicitudes', id);
             try {
                 const snap = await getDoc(docRef);
                 const s = snap.data();
                 let est = LISTA_ERRORES_DPR[val] || val;
 
-                if (val.startsWith("ERR_")) {
-                    if (!s.reembolsado) {
-                        await updateDoc(doc(db, "asesores", s.asesor_uid), { saldo: increment(Number(s.costo)) });
+                if (val.startsWith('ERR_')) {
+                    if (!s.reembolsado && miSesion.role === 'admin' && s.asesor_uid) {
+                        await updateDoc(doc(db, 'asesores', s.asesor_uid), { saldo: increment(Number(s.costo || 0)) });
                         await updateDoc(docRef, { estatus: est, reembolsado: true, finalizado: true, bloqueado: true });
-                        alert("✅ Reembolso aplicado y trámite bloqueado.");
+                        alert('✅ Reembolso aplicado y trámite bloqueado.');
                     } else {
                         await updateDoc(docRef, { estatus: est, finalizado: true });
                     }
                 } else {
                     await updateDoc(docRef, { estatus: est });
                 }
-            } catch (e) { console.error(e); alert("Error."); }
+            } catch (e) {
+                console.error(e);
+                alert('Error al cambiar estatus.');
+            }
         };
 
         window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = "";
-            const campos = [{l:"Asesor", v:data.nombre_asesor}, {l:"Trámite", v:data.tipo}, {l:"CURP", v:data.curp}, {l:"NSS", v:data.nss}];
-            if(data.detalles_extra) {
+            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = '';
+            const campos = [
+                { l: 'Asesor', v: data.nombre_asesor },
+                { l: 'Trámite', v: data.tipo },
+                { l: 'CURP', v: data.curp },
+                { l: 'NSS', v: data.nss }
+            ];
+            if (data.detalles_extra) {
                 const e = data.detalles_extra;
-                if(e.nombre_cliente && e.nombre_cliente !== "N/A") campos.push({l:"Cliente", v:e.nombre_cliente});
-                if(e.rfc && e.rfc !== "N/A") campos.push({l:"RFC", v:e.rfc});
-                if(e.telefono && e.telefono !== "N/A") campos.push({l:"Teléfono Cli.", v:e.telefono});
-                if(e.correo && e.correo !== "N/A") campos.push({l:"Correo", v:e.correo, isPass:true});
-                if(e.pass && e.pass !== "N/A") campos.push({l:"Pass Actual", v:e.pass, isPass:true});
-                if(e.pass_nueva && e.pass_nueva !== "N/A") campos.push({l:"Pass Nueva", v:e.pass_nueva, isPass:true});
-                if(e.num_servicio && e.num_servicio !== "N/A") campos.push({l:"Núm. Servicio CFE", v:e.num_servicio});
-                if(e.idcif && e.idcif !== "N/A") campos.push({l:"IDCIF (SAT)", v:e.idcif});
+                if (e.nombre_cliente && e.nombre_cliente !== 'N/A') campos.push({ l: 'Cliente', v: e.nombre_cliente });
+                if (e.rfc && e.rfc !== 'N/A') campos.push({ l: 'RFC', v: e.rfc });
+                if (e.telefono && e.telefono !== 'N/A') campos.push({ l: 'Teléfono Cli.', v: e.telefono });
+                if (e.correo && e.correo !== 'N/A') campos.push({ l: 'Correo', v: e.correo, isPass: true });
+                if (e.pass && e.pass !== 'N/A') campos.push({ l: 'Pass Actual', v: e.pass, isPass: true });
+                if (e.pass_nueva && e.pass_nueva !== 'N/A') campos.push({ l: 'Pass Nueva', v: e.pass_nueva, isPass: true });
+                if (e.num_servicio && e.num_servicio !== 'N/A') campos.push({ l: 'Núm. Servicio CFE', v: e.num_servicio });
+                if (e.idcif && e.idcif !== 'N/A') campos.push({ l: 'IDCIF (SAT)', v: e.idcif });
             }
-            campos.forEach(c => { 
-                if(c.v && c.v !== "N/A") {
+            campos.forEach(c => {
+                if (c.v && c.v !== 'N/A') {
                     cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase" style="${c.isPass ? 'text-transform:none;' : ''}">${c.v}</p></div>`;
                 }
             });
 
             const boxQ = document.getElementById('contenedorCuestionario');
             const gridQ = document.getElementById('gridCuestionario');
-            if(data.cuestionario && data.cuestionario !== "N/A") {
-                boxQ.classList.remove('hidden'); gridQ.innerHTML = "";
-                Object.entries(data.cuestionario).forEach(([key, val]) => { if(val && val !== "N/A") gridQ.innerHTML += `<div class="border-b py-1"><span class="text-blue-500 font-black text-[7px] uppercase block">${key.replace(/_/g, " ")}</span><span class="font-bold text-slate-700">${val}</span></div>`; });
-            } else { boxQ.classList.add('hidden'); }
+            if (data.cuestionario && data.cuestionario !== 'N/A') {
+                boxQ.classList.remove('hidden');
+                gridQ.innerHTML = '';
+                Object.entries(data.cuestionario).forEach(([key, val]) => {
+                    if (val && val !== 'N/A') {
+                        gridQ.innerHTML += `<div class="border-b py-1"><span class="text-blue-500 font-black text-[7px] uppercase block">${key.replace(/_/g, ' ')}</span><span class="font-bold text-slate-700">${val}</span></div>`;
+                    }
+                });
+            } else {
+                boxQ.classList.add('hidden');
+            }
 
-            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = "";
+            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = '';
             const f = data.detalles_extra || {};
-            const fotos = [{l:"INE F", u:data.file_ine_f || f.file_ine_f}, {l:"INE R", u:data.file_ine_r || f.file_ine_r}, {l:"FOTO", u:data.file_selfie || f.file_selfie}, {l:"DOMICILIO", u:data.file_comp_domicilio || f.file_comp_domicilio}, {l:"EDO CTA", u:data.file_edocta || f.file_edocta}];
-            fotos.forEach(foto => { if(foto.u && foto.u !== "N/A" && foto.u !== "") contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`; });
+            const fotos = [
+                { l: 'INE F', u: data.file_ine_f || f.file_ine_f },
+                { l: 'INE R', u: data.file_ine_r || f.file_ine_r },
+                { l: 'FOTO', u: data.file_selfie || f.file_selfie },
+                { l: 'DOMICILIO', u: data.file_comp_domicilio || f.file_comp_domicilio },
+                { l: 'EDO CTA', u: data.file_edocta || f.file_edocta }
+            ];
+            fotos.forEach(foto => {
+                if (foto.u && foto.u !== 'N/A' && foto.u !== '') contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`;
+            });
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
-        window.abrirSubida = (id) => { idTramiteActual = id; document.getElementById('modalSubir').classList.remove('hidden'); };
-        
-        document.getElementById('btnGuardarFinal').onclick = async () => {
-            const f = document.getElementById('inputArchivo').files[0];
-            if(!f) return alert("Selecciona archivo");
-            const btn = document.getElementById('btnGuardarFinal'); btn.innerText = "SUBIENDO..."; btn.disabled = true;
-            try {
-                const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', "dpr_uploads");
-                const res = await fetch(`https://api.cloudinary.com/v1_1/de5abnhul/auto/upload`, { method: 'POST', body: fd });
-                const data = await res.json();
-                if(data.secure_url) {
-                    await updateDoc(doc(db, "solicitudes", idTramiteActual), { archivoFinal: data.secure_url, estatus: "Terminado", finalizado: true });
-                    window.cerrarModales(); alert("✅ Trámite terminado.");
-                }
-            } catch (e) { alert("Error."); } finally { btn.innerText = "Enviar a Cliente"; btn.disabled = false; }
+        window.abrirSubida = (id) => {
+            idTramiteActual = id;
+            document.getElementById('modalSubir').classList.remove('hidden');
         };
 
-        onSnapshot(query(collection(db, "notificaciones_pago"), orderBy("fecha", "desc"), limit(10)), (snap) => {
-            const t = document.getElementById('tablaRecargas'); t.innerHTML = "";
-            snap.forEach(d => {
-                const r = d.data(), id = d.id;
-                let btns = (r.estatus === 'pendiente') ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>` : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
-                t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-right">${btns}</td></tr>`;
+        document.getElementById('btnGuardarFinal').onclick = async () => {
+            const f = document.getElementById('inputArchivo').files[0];
+            if (!f) return alert('Selecciona archivo');
+            const btn = document.getElementById('btnGuardarFinal');
+            btn.innerText = 'SUBIENDO...';
+            btn.disabled = true;
+            try {
+                const fd = new FormData();
+                fd.append('file', f);
+                fd.append('upload_preset', 'dpr_uploads');
+                const res = await fetch('https://api.cloudinary.com/v1_1/de5abnhul/auto/upload', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.secure_url) {
+                    await updateDoc(doc(db, 'solicitudes', idTramiteActual), { archivoFinal: data.secure_url, estatus: 'Terminado', finalizado: true });
+                    window.cerrarModales();
+                    alert('✅ Trámite terminado.');
+                }
+            } catch (e) {
+                alert('Error al subir archivo.');
+            } finally {
+                btn.innerText = 'Enviar a Cliente';
+                btn.disabled = false;
+            }
+        };
+
+        if (miSesion.role === 'admin') {
+            onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
+                const t = document.getElementById('tablaRecargas');
+                t.innerHTML = '';
+                snap.forEach(d => {
+                    const r = d.data(), id = d.id;
+                    let btns = (r.estatus === 'pendiente')
+                        ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
+                        : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
+                    t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-right">${btns}</td></tr>`;
+                });
             });
+        }
+
+        window.validarRecarga = async (docId, uid, monto, est) => {
+            if (miSesion.role !== 'admin') return;
+            if (confirm('¿Confirmar aprobación de saldo?')) {
+                await updateDoc(doc(db, 'asesores', uid), { saldo: increment(Number(monto)) });
+                await updateDoc(doc(db, 'notificaciones_pago', docId), { estatus: est });
+            }
+        };
+
+        window.abrirCajaFuerte = () => {
+            if (miSesion.role !== 'admin') return;
+            const ingreso = prompt('Clave Maestra:');
+            if (ingreso === CLAVE_CAJA_FUERTE) {
+                document.getElementById('modalCajaFuerte').classList.remove('hidden');
+            } else {
+                alert('Denegado');
+            }
+        };
+
+        window.buscarGlobal = () => {
+            const bus = document.getElementById('buscador').value.toUpperCase();
+            if (bus.length < 1) return cargarSolicitudes(currentPage);
+            const base = obtenerSolicitudesFiltradas();
+            const filtrados = base.filter(s =>
+                (s.curp && s.curp.includes(bus)) ||
+                (s.nss && s.nss.includes(bus)) ||
+                (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))
+            );
+            renderizarTablaPersonalizada(filtrados);
+        };
+
+        onSnapshot(query(collection(db, 'chat_soporte'), orderBy('timestamp', 'desc'), limit(200)), (snap) => {
+            const cont = document.getElementById('listaChat');
+            cont.innerHTML = '';
+            let uniqueChats = {};
+            snap.forEach(d => {
+                const m = d.data();
+                if (!m.asesor_uid || uniqueChats[m.asesor_uid]) return;
+                uniqueChats[m.asesor_uid] = true;
+                const alertClass = m.respondido ? '' : 'msg-alerta';
+                const statusDot = m.respondido ? '🟢' : '🔴';
+                cont.innerHTML += `
+                    <div onclick="window.abrirChat('${m.asesor_uid}', '${(m.remitente || '').replace(/'/g, "\\'")}')" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] font-black uppercase text-blue-600">${m.remitente || 'Usuario'}</span>
+                            <span>${statusDot}</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-600 truncate">${m.texto || ''}</p>
+                    </div>`;
+            });
+            if (!cont.innerHTML) cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin mensajes todavía</p>';
         });
 
-        window.validarRecarga = async (docId, uid, monto, est) => { if(confirm(`¿Confirmar?`)){ await updateDoc(doc(db, "asesores", uid), { saldo: increment(Number(monto)) }); await updateDoc(doc(db, "notificaciones_pago", docId), { estatus: est }); } };
-        window.abrirCajaFuerte = () => { if(prompt("Clave Maestra:") === PASS_DIANA) { document.getElementById('modalCajaFuerte').classList.remove('hidden'); } else { alert("Denegado"); } };
-        window.buscarGlobal = () => { const bus = document.getElementById('buscador').value.toUpperCase(); if (bus.length < 1) return cargarSolicitudes(currentPage); const filtrados = todasLasSoliCargadas.filter(s => (s.curp && s.curp.includes(bus)) || (s.nss && s.nss.includes(bus)) || (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))); renderizarTablaPersonalizada(filtrados); };
+        window.abrirChat = (uid, email) => {
+            idChatActivo = uid;
+            document.getElementById('chatTitle').innerText = 'Responder a: ' + email;
+            document.getElementById('modalChat').classList.remove('hidden');
+            if (unsubscribeChatHistory) unsubscribeChatHistory();
+            unsubscribeChatHistory = onSnapshot(query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid), orderBy('timestamp', 'asc')), (snap) => {
+                const box = document.getElementById('chatHistory');
+                box.innerHTML = '';
+                snap.forEach(d => {
+                    const m = d.data();
+                    const align = m.remitente === email ? 'self-start bg-white' : 'self-end bg-blue-600 text-white';
+                    box.innerHTML += `<div class="p-2 rounded-xl text-[10px] font-bold shadow-sm max-w-[80%] ${align}">${m.texto}</div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+
+            document.getElementById('btnEnviarRespuesta').onclick = async () => {
+                const txt = document.getElementById('inputRespuesta').value.trim();
+                if (!txt) return;
+                await addDoc(collection(db, 'chat_soporte'), {
+                    asesor_uid: uid,
+                    remitente: 'Soporte DPR',
+                    texto: txt,
+                    timestamp: serverTimestamp(),
+                    respondido: true
+                });
+                const qMsg = await getDocs(query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid)));
+                qMsg.forEach(async (docChat) => {
+                    await updateDoc(doc(db, 'chat_soporte', docChat.id), { respondido: true });
+                });
+                document.getElementById('inputRespuesta').value = '';
+            };
+        };
     </script>
 </body>
 </html>
