@@ -3,762 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Consultoría | Panel Ejecutivo</title>
+    <title>DPR | Mis Finanzas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-1: #07111f;
-            --bg-2: #0b1728;
-            --panel: rgba(255,255,255,.78);
-            --panel-strong: rgba(255,255,255,.9);
-            --stroke: rgba(255,255,255,.28);
-            --ink: #0f172a;
-            --muted: #64748b;
-            --green: #12b981;
-            --green-dark: #047857;
-            --gold: #d4af37;
-            --orange: #f97316;
-        }
-        * { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
-            color: var(--ink);
+            color: #0f172a;
             background:
                 radial-gradient(circle at 15% 20%, rgba(18,185,129,.16), transparent 22%),
-                radial-gradient(circle at 85% 10%, rgba(212,175,55,.15), transparent 20%),
-                radial-gradient(circle at 80% 80%, rgba(59,130,246,.16), transparent 25%),
+                radial-gradient(circle at 85% 10%, rgba(212,175,55,.14), transparent 20%),
+                radial-gradient(circle at 80% 80%, rgba(59,130,246,.12), transparent 24%),
                 linear-gradient(180deg, #edf4f7 0%, #e8f4ef 45%, #eef2ff 100%);
             min-height: 100vh;
         }
-        .glass-bar {
-            background: rgba(7,17,31,.78);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            box-shadow: 0 18px 40px rgba(15,23,42,.16);
-        }
-        .brand-chip {
-            background: linear-gradient(135deg, #1dd1a1, #047857 70%);
-            box-shadow: 0 18px 30px rgba(18,185,129,.28);
-        }
-        .hero-card, .panel-card, .category-card, .metric-card {
-            background: var(--panel);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,.55);
-            box-shadow: 0 18px 45px rgba(15,23,42,.10);
-        }
-        .hero-card {
-            background:
-                radial-gradient(circle at top right, rgba(212,175,55,.16), transparent 24%),
-                radial-gradient(circle at bottom left, rgba(18,185,129,.10), transparent 24%),
-                linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.82));
-        }
-        .metric-card {
-            border-radius: 1.6rem;
-            padding: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .metric-card::after {
-            content: "";
-            position: absolute;
-            inset: auto -30% -30% auto;
-            width: 110px;
-            height: 110px;
-            border-radius: 999px;
-            background: radial-gradient(circle, rgba(18,185,129,.10), transparent 70%);
-        }
-        .category-card {
-            border-radius: 1.9rem;
-            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .category-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 35%);
-            pointer-events: none;
-        }
-        .category-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(18,185,129,.5);
-            box-shadow: 0 24px 48px rgba(16,185,129,.16);
-        }
-        .category-icon {
-            width: 3.25rem;
-            height: 3.25rem;
-            border-radius: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.45rem;
-            margin: 0 auto .75rem;
-            background: linear-gradient(135deg, rgba(18,185,129,.14), rgba(212,175,55,.18));
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
-        }
-        .input-light {
-            background: rgba(255,255,255,.96);
-            border: 1.5px solid #d8e2ee;
-            padding: 14px 15px;
-            border-radius: 15px;
-            width: 100%;
-            outline: none;
-            font-weight: 700;
-            font-size: 12px;
-            transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
-        }
-        .input-light:focus {
-            border-color: rgba(18,185,129,.9);
-            box-shadow: 0 0 0 5px rgba(18,185,129,.10);
-            transform: translateY(-1px);
-        }
-        .primary-btn {
-            background: linear-gradient(135deg, #fb923c, #ea580c 65%);
-            color: #fff;
-            transition: transform .16s ease, box-shadow .16s ease;
-            box-shadow: 0 16px 28px rgba(249,115,22,.24);
-        }
-        .primary-btn:hover { transform: translateY(-1px); }
-        .secondary-btn {
+        .glass-card {
             background: rgba(255,255,255,.86);
-            border: 1px solid rgba(15,23,42,.09);
-            color: #0f172a;
-        }
-        .secondary-dark {
-            background: rgba(15,23,42,.88);
-            border: 1px solid rgba(255,255,255,.08);
-            color: #fff;
-        }
-
-        .quick-top-card {
-            background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.86));
+            border: 1px solid rgba(255,255,255,.58);
+            box-shadow: 0 22px 45px rgba(15,23,42,.10);
             backdrop-filter: blur(18px);
-            border: 1px solid rgba(255,255,255,.62);
-            box-shadow: 0 18px 45px rgba(15,23,42,.10);
-            border-radius: 2rem;
         }
-        .shortcut-tile {
-            background: rgba(255,255,255,.84);
-            border: 1px solid rgba(15,23,42,.07);
-            border-radius: 1.35rem;
-            padding: 1rem;
-            box-shadow: 0 10px 25px rgba(15,23,42,.06);
-        }
-        .wa-btn {
-            background: linear-gradient(135deg, #22c55e, #16a34a 70%);
-            color: white;
-            box-shadow: 0 16px 28px rgba(34,197,94,.20);
-        }
-
-        .section-label { letter-spacing: .28em; }
-        .table-shell {
+        .summary-card {
+            background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.82));
             border: 1px solid rgba(15,23,42,.06);
-            border-radius: 1.9rem;
-            overflow: hidden;
-            background: rgba(255,255,255,.84);
-        }
-        .history-head {
-            background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(248,250,252,.85));
-            border-bottom: 1px solid rgba(15,23,42,.07);
-        }
-        .history-row { transition: background .16s ease; }
-        .history-row:hover { background: #f8fafc; }
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 120px;
-            padding: .45rem .7rem;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-            background: #f1f5f9;
-        }
-        .action-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: .45rem .7rem;
-            border-radius: .85rem;
-            font-size: 10px;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-        #chat-window {
-            display: none;
-            width: min(390px, calc(100vw - 24px));
-            height: 590px;
-            background: rgba(255,255,255,.98);
-            border-radius: 2rem;
-            border: 1px solid rgba(255,255,255,.65);
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(15,23,42,.22);
-            margin-bottom: 14px;
-        }
-        .chat-header {
-            background: linear-gradient(135deg, #07111f, #10203a);
-            color: white;
-            padding: 16px 18px;
-            font-weight: 900;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-        #chat-messages {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: linear-gradient(180deg, #ffffff, #f8fafc);
-        }
-        .msg-user, .msg-support {
-            padding: 10px 13px;
-            max-width: 85%;
-            font-weight: 700;
-            line-height: 1.35;
-            box-shadow: 0 8px 16px rgba(15,23,42,.06);
-        }
-        .msg-user {
-            background: linear-gradient(135deg, #12b981, #047857);
-            color: white;
-            align-self: flex-end;
-            border-radius: 18px 18px 4px 18px;
-        }
-        .msg-support {
-            background: white;
-            color: #334155;
-            align-self: flex-start;
-            border-radius: 18px 18px 18px 4px;
-            border: 1px solid rgba(15,23,42,.08);
-        }
-        .help-menu {
-            padding: 10px;
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            background: #f8fafc;
-            border-top: 1px solid rgba(15,23,42,.06);
-        }
-        .btn-help {
-            background: white;
-            border: 1px solid rgba(15,23,42,.08);
-            color: #334155;
-            padding: 7px 11px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-        .floating-chat-btn {
-            background: linear-gradient(135deg, #12b981, #047857);
-            box-shadow: 0 20px 35px rgba(16,185,129,.35);
-        }
-        .form-section {
-            background: #f8fafc;
-            border: 1px solid rgba(15,23,42,.07);
-            border-radius: 1.25rem;
+            border-radius: 1.65rem;
             padding: 1rem;
-            margin-bottom: 1rem;
+            box-shadow: 0 12px 28px rgba(15,23,42,.06);
         }
-        .modal-shell {
-            background: rgba(255,255,255,.99);
-            box-shadow: 0 30px 60px rgba(15,23,42,.22);
-            border: 1px solid rgba(255,255,255,.72);
+        .movement-card {
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(15,23,42,.07);
+            transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+            box-shadow: 0 10px 24px rgba(15,23,42,.05);
         }
-        .file-input {
-            width: 100%;
-            border: 1.5px dashed rgba(18,185,129,.35);
-            background: rgba(16,185,129,.04);
-            padding: 12px;
-            border-radius: 14px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #475569;
+        .movement-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,.92);
+            border-color: rgba(16,185,129,.20);
+            box-shadow: 0 16px 30px rgba(15,23,42,.08);
         }
-        .lux-badge {
-            display:inline-flex;
-            align-items:center;
-            gap:.45rem;
-            padding:.55rem .8rem;
-            border-radius:999px;
-            background: rgba(255,255,255,.74);
-            border:1px solid rgba(15,23,42,.06);
-            font-size:10px;
-            font-weight:900;
-            text-transform:uppercase;
-            color:#334155;
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: .35rem .65rem;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
         }
-        .quick-strip {
-            display:grid;
-            grid-template-columns: repeat(3,minmax(0,1fr));
-            gap:1rem;
-        }
-        @media (max-width: 767px) {
-            .mobile-stack { grid-template-columns: 1fr; }
-            .quick-strip { grid-template-columns: 1fr; }
+        .hero-fin {
+            background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.84));
+            border: 1px solid rgba(255,255,255,.62);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: 0 22px 45px rgba(15,23,42,.10);
         }
     </style>
 </head>
-<body>
-    <header class="sticky top-0 z-40 glass-bar">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-            <div class="flex items-center gap-3">
-                <div class="brand-chip w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white text-lg italic">DP</div>
-                <div>
-                    <h1 class="font-black uppercase tracking-tight text-lg text-white">DPR <span class="text-emerald-300 italic">Consultoría</span></h1>
-                    <p class="text-[10px] font-black uppercase text-slate-400 tracking-[0.28em]">Panel premium asesor</p>
-                </div>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <header class="hero-fin flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-8">
+            <div>
+                <a href="dashboard.html" class="text-[10px] font-black uppercase text-slate-500 hover:text-slate-900 transition">← Volver al panel</a>
+                <p class="text-[10px] font-black uppercase tracking-[0.28em] text-slate-400 mt-3">Finanzas</p>
+                <h1 class="text-3xl md:text-4xl font-black uppercase italic text-slate-900 tracking-tight mt-1">Mis <span class="text-emerald-600">finanzas</span></h1>
+                <p class="text-sm text-slate-600 mt-3 max-w-2xl">Un diseño más limpio, claro y parecido al dashboard para que revises rápido tus cargos, reembolsos y trámites terminados.</p>
             </div>
-            <div class="flex items-center gap-2 md:gap-3 flex-wrap justify-end">
-                <a href="finanzas.html" class="secondary-dark px-4 py-2 rounded-full text-[10px] font-black uppercase">Ver finanzas</a>
-                <button onclick="window.abrirModal('modalSaldo')" class="bg-white/95 px-4 py-2 rounded-full border border-emerald-200 flex items-center gap-2 shadow-sm">
-                    <span class="text-[10px] font-black uppercase text-slate-400">Saldo</span>
-                    <span id="txtSaldoHeader" class="font-black text-emerald-700 text-xs tracking-widest">$0.00</span>
-                </button>
-                <button onclick="window.cerrarSesion()" class="text-[10px] font-black uppercase text-slate-300 hover:text-red-300">Salir</button>
+            <div class="glass-card rounded-[1.75rem] p-5 min-w-[260px]">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Saldo actual</p>
+                <p id="txtSaldo" class="text-3xl font-black text-slate-900 mt-2">...</p>
+                <p class="text-[11px] text-slate-500 mt-2">Actualizado automáticamente con tus movimientos.</p>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="px-4 py-6 md:px-6 md:py-8 max-w-7xl mx-auto">
-        
-        <section class="quick-top-card p-5 md:p-6 mb-8">
-            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
-                <div class="min-w-0">
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <span id="tituloSeccion" class="lux-badge">Panel de servicios</span>
-                        <span class="lux-badge">Más claro</span>
-                        <span class="lux-badge">Más rápido</span>
-                    </div>
-                    <h2 class="text-xl md:text-3xl font-black tracking-tight text-slate-900">Todo lo importante, más claro y más rápido</h2>
-                    <p class="text-sm text-slate-600 mt-2 max-w-3xl">Mantuvimos tus variables y automatizaciones. Solo mejoramos la experiencia para que tus asesores trabajen con menos distracciones y más rapidez.</p>
-                    <div class="flex flex-wrap gap-3 mt-5">
-                        <button id="btnVolver" onclick="window.resetearPanel()" class="hidden secondary-btn px-4 py-3 rounded-full text-[10px] font-black uppercase">⬅️ Volver</button>
-                        <button onclick="document.getElementById('listaHistorial').scrollIntoView({behavior:'smooth'})" class="secondary-btn px-4 py-3 rounded-full text-[10px] font-black uppercase">Ir al historial</button>
-                        <button onclick="window.abrirModal('modalSaldo')" class="primary-btn px-4 py-3 rounded-full text-[10px] font-black uppercase">Recargar saldo</button>
-                        <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" rel="noopener noreferrer" class="wa-btn px-4 py-3 rounded-full text-[10px] font-black uppercase inline-flex items-center">Canal de WhatsApp</a>
-                    </div>
-                </div>
-                <div class="grid sm:grid-cols-3 gap-3 w-full xl:max-w-3xl">
-                    <div class="shortcut-tile">
-                        <p class="text-[10px] font-black uppercase text-slate-400">Saldo disponible</p>
-                        <p id="txtSaldoHero" class="text-2xl md:text-3xl font-black text-slate-900 mt-2">$0.00</p>
-                        <p class="text-[11px] text-slate-500 mt-2">Listo para nuevos trámites.</p>
-                    </div>
-                    <div class="shortcut-tile">
-                        <p class="text-[10px] font-black uppercase text-slate-400">Finanzas y recargas</p>
-                        <a href="finanzas.html" class="inline-flex mt-3 text-sm font-black text-slate-900">Abrir estado de cuenta →</a>
-                        <p class="text-[11px] text-slate-500 mt-2">Revisa cargos, reembolsos y movimientos.</p>
-                    </div>
-                    <div class="shortcut-tile">
-                        <p class="text-[10px] font-black uppercase text-slate-400">Chat interno</p>
-                        <button onclick="window.toggleChat()" class="inline-flex mt-3 text-sm font-black text-slate-900">Abrir soporte →</button>
-                        <p class="text-[11px] text-slate-500 mt-2">Usa el chat para no saturar tu WhatsApp privado.</p>
-                    </div>
-                </div>
+        <section class="grid md:grid-cols-3 gap-4 mb-8">
+            <div class="summary-card">
+                <p class="text-[10px] font-black uppercase text-slate-400">Cómo leerlo</p>
+                <p class="text-sm text-slate-700 mt-2">Los cargos por trámite aparecen en rojo y los reembolsos o devoluciones en verde.</p>
+            </div>
+            <div class="summary-card">
+                <p class="text-[10px] font-black uppercase text-slate-400">Movimientos</p>
+                <p class="text-sm text-slate-700 mt-2">Los más recientes se muestran primero para revisar tu actividad sin buscar tanto.</p>
+            </div>
+            <div class="summary-card">
+                <p class="text-[10px] font-black uppercase text-slate-400">Consejo</p>
+                <p class="text-sm text-slate-700 mt-2">Si un trámite tuvo error, revisa el motivo porque puede reflejarse como reembolso.</p>
             </div>
         </section>
 
-        <section class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <p class="section-label text-[10px] font-black uppercase text-slate-400">Categorías</p>
-                    <h3 class="text-xl md:text-2xl font-black text-slate-900">Servicios disponibles</h3>
-                </div>
-            </div>
-            <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
-                <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center"><div class="category-icon">🏥</div><span class="text-[11px] block font-black uppercase text-slate-900">IMSS</span><span class="text-[10px] text-slate-500 mt-1 block">Semanas, altas y NSS</span></button>
-                <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center"><div class="category-icon">⚖️</div><span class="text-[11px] block font-black uppercase text-slate-900">SAT</span><span class="text-[10px] text-slate-500 mt-1 block">RFC e IDCIF</span></button>
-                <button onclick="window.mostrarTramites('DOC')" class="category-card p-5 text-center"><div class="category-icon">📄</div><span class="text-[11px] block font-black uppercase text-slate-900">DOCS</span><span class="text-[10px] text-slate-500 mt-1 block">Actas y recibos</span></button>
-                <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center"><div class="category-icon">🏠</div><span class="text-[11px] block font-black uppercase text-slate-900">INFONAVIT</span><span class="text-[10px] text-slate-500 mt-1 block">Cuenta y accesos</span></button>
-                <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center"><div class="category-icon">📈</div><span class="text-[11px] block font-black uppercase text-slate-900">PENSIONES</span><span class="text-[10px] text-slate-500 mt-1 block">Análisis y apoyo</span></button>
-                <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center"><div class="category-icon">💰</div><span class="text-[11px] block font-black uppercase text-slate-900">AFORE</span><span class="text-[10px] text-slate-500 mt-1 block">Registros y retiros</span></button>
-            </div>
-
-            <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-12 hidden"></div>
-        </section>
-
-        <section class="panel-card rounded-[2rem] p-5 md:p-6 mt-8">
+        <section class="glass-card rounded-[2rem] p-5 md:p-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
                 <div>
-                    <p class="section-label text-[10px] font-black uppercase text-slate-400">Seguimiento</p>
-                    <h2 class="text-xl md:text-2xl font-black text-slate-900">Historial de solicitudes</h2>
+                    <p class="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">Historial</p>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-900">Movimientos recientes</h2>
                 </div>
-                <a href="finanzas.html" class="secondary-btn px-4 py-3 rounded-full text-[10px] font-black uppercase inline-flex items-center justify-center">Abrir finanzas</a>
+                <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase">
+                    <span class="badge bg-red-50 text-red-600 border border-red-200">Cargos</span>
+                    <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200">Reembolsos</span>
+                    <span class="badge bg-blue-50 text-blue-700 border border-blue-200">Terminados</span>
+                </div>
             </div>
-            <div class="table-shell overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left min-w-[720px]">
-                        <thead class="history-head">
-                            <tr class="text-[10px] font-black uppercase text-slate-500">
-                                <th class="py-4 px-4">Fecha</th>
-                                <th class="py-4 px-4">Información</th>
-                                <th class="py-4 px-4 text-center">Estatus</th>
-                                <th class="py-4 px-4 text-right">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaHistorial" class="text-xs font-bold">
-                            <tr><td colspan="4" class="py-12 text-center text-slate-300 font-black uppercase">Sincronizando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+
+            <div id="contenedorMovimientos" class="space-y-3">
+                <p class="text-center py-20 opacity-20 font-black uppercase italic">Cargando transacciones...</p>
             </div>
         </section>
-    </main>
-
-    <div id="modalSaldo" class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="modal-shell w-full max-w-lg rounded-[2rem] p-6 md:p-8 relative text-center">
-            <button onclick="window.cerrarModal()" class="absolute top-5 right-6 text-slate-400 text-2xl">×</button>
-            <p class="section-label text-[10px] font-black uppercase text-slate-400 mb-2">Recargas</p>
-            <h2 class="text-2xl font-black text-slate-900 uppercase italic mb-4">Reportar pago</h2>
-            <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-[1.5rem] mb-6 text-center">
-                <p class="font-black text-emerald-700 text-[10px] uppercase mb-1">Banorte | Diana Puente Rodríguez</p>
-                <p class="text-xl md:text-2xl font-black text-emerald-800 tracking-wider mb-1">4915 6630 4036 4896</p>
-                <p class="text-[11px] text-emerald-700">Sube tu comprobante y la clave de rastreo.</p>
-            </div>
-            <div class="space-y-3 text-left">
-                <input type="number" id="depMonto" placeholder="MONTO MÍNIMO $200" class="input-light text-center">
-                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
-                <input type="file" id="fileRecarga" class="file-input">
-                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full primary-btn py-4 rounded-2xl font-black uppercase text-xs mt-3">Informar pago</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalTramite" class="fixed inset-0 bg-slate-900/55 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="modal-shell w-full max-w-2xl rounded-[2rem] p-6 md:p-8 relative overflow-y-auto max-h-[90vh]">
-            <button onclick="window.cerrarModal()" class="absolute top-5 right-6 text-slate-400 text-2xl font-black">×</button>
-            <div id="formContent"></div>
-        </div>
-    </div>
-
-    <div id="chat-widget" class="fixed bottom-5 right-5 z-[100]">
-        <div id="chat-window">
-            <div class="chat-header flex justify-between items-center"><span>💬 Asistencia DPR</span><button onclick="window.toggleChat()" class="text-xl">×</button></div>
-            <div id="chat-messages"></div>
-            <div class="help-menu">
-                <button onclick="window.enviarPreguntaRapida('inicio')" class="btn-help">¿Necesitas ayuda?</button>
-            </div>
-            <div class="p-3 border-t bg-white flex gap-2">
-                <input type="text" id="chat-input" placeholder="Escribe tu mensaje" class="input-light flex-1">
-                <button onclick="window.enviarMensajeManual()" class="bg-emerald-500 text-white px-4 rounded-xl font-black">➤</button>
-            </div>
-        </div>
-        <button onclick="window.toggleChat()" class="floating-chat-btn w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl">🎧</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, collection, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
-        const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-        let saldoGlobal = 0, userUID = "", emailAsesor = "";
-
-        const TRAMITES = {
-            'IMSS': [
-                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
-                { nombre: 'SEMANAS COTIZADAS DETALLADAS', precio: 37, nss: true, curp: true },
-                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
-                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideOcupacion: true, pideSueldo: true, pideCorreo: true, pideIneFrente: true, pideIneReverso: true, pideComprobante: true },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true, extraMsg: 'TIEMPO 2-3 DÍAS.' }
-            ],
-            'SAT': [
-                { nombre: 'RFC Clon', precio: 25, curp: true },
-                { nombre: 'RFC Verificable', precio: 100, curp: true },
-                { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
-                { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'INSCRIPCIÓN RFC', precio: 1000, curp: true, pideIneFrente: true }
-            ],
-            'DOC': [
-                { nombre: 'Recibo CFE', precio: 10, pideNumServicio: true },
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true }
-            ],
-            'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true }
-            ],
-            'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideCorreo: true },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
-                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
-            ],
-            'PENSIONES': [
-                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
-                { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
-            ]
-        };
-
-        const FLUJO_AYUDA = {
-            "inicio": { texto: "Hola, ¿en qué puedo ayudarte?", opciones: ["💰 Pagos", "📋 Trámites"] },
-            "💰 Pagos": { texto: "Transfiere a Banorte y sube captura en el botón de saldo.", opciones: ["¿Cuánto tarda?", "Volver al inicio"] },
-            "¿Cuánto tarda?": { texto: "Máximo 10 minutos.", opciones: ["Volver al inicio"] },
-            "📋 Trámites": { texto: "Semanas: 10min. RFC: 1h-3h. Altas: 2-3 días.", opciones: ["Volver al inicio"] }
-        };
-
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); escucharChat(); }
-            else { window.location.href = "login/index.html"; }
+            if (user) {
+                cargarSaldo(user.uid);
+                cargarMovimientos(user.uid);
+            } else {
+                window.location.href = "login/index.html";
+            }
         });
 
-        window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
-
-        window.mostrarTramites = (cat) => {
-            document.getElementById('gridCategorias').classList.add('hidden');
-            document.getElementById('listaServicios').classList.remove('hidden');
-            document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
-            const lista = document.getElementById('listaServicios');
-            let html = '';
-            TRAMITES[cat].forEach(t => {
-                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-left"><div class="flex items-start justify-between gap-3"><div><p class="font-black text-[11px] uppercase text-slate-900">${t.nombre}</p><p class="text-slate-500 text-[10px] mt-2">Captura los datos y envía el trámite en minutos.</p></div><div class="text-emerald-700 font-black text-xs whitespace-nowrap">$${t.precio}.00</div></div></div>`;
-            });
-            lista.innerHTML = html;
-        };
-
-        window.resetearPanel = () => {
-            document.getElementById('gridCategorias').classList.remove('hidden');
-            document.getElementById('listaServicios').classList.add('hidden');
-            document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
-        };
-
-        window.prepararTramite = (t) => {
-            const content = document.getElementById('formContent');
-            let pFinal = t.precio;
-            const vips = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if ((t.nombre==='SEMANAS COTIZADAS'||t.nombre==='Tarjeta NSS') && vips.includes(emailAsesor)) pFinal=19;
-
-            let fields = '';
-            if(t.extraMsg) fields += `<div class="form-section bg-red-50 border-red-100"><p class="text-[10px] font-bold text-red-600 uppercase">${t.extraMsg}</p></div>`;
-            if(t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
-            if(t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if(t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
-            if(t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
-            if(t.pidePass) fields += `<input type="text" id="pass_p" placeholder="CONTRASEÑA" class="input-light mb-4">`;
-            if(t.pidePassNueva) fields += `<input type="text" id="pass_nueva_p" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4">`;
-            if(t.pideTel) fields += `<input type="text" id="telefono_p" placeholder="TELÉFONO" class="input-light mb-4">`;
-            if(t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
-            if(t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
-
-            if(t.pideCuestionarioPension) {
-                fields += `<div class="form-section text-[10px] font-bold uppercase"><p class="mb-3 text-slate-700">Análisis detallado activo</p>
-                    <input type="number" id="q_semanas" placeholder="Semanas cotizadas" class="input-light mb-3">
-                    <textarea id="q_beneficiarios" placeholder="Beneficiarios" class="input-light min-h-[110px]"></textarea></div>`;
-            }
-
-            if (t.pideIneFrente || t.pideIneReverso || t.pideFotoCli || t.pideEdoCta || t.pideComprobante) {
-                fields += `<div class="form-section space-y-3">`;
-                if(t.pideIneFrente) fields += `<label class="text-[10px] font-black text-slate-500 block uppercase">INE frente</label><input type="file" id="file_ine_f" accept="image/*,.pdf" class="file-input">`;
-                if(t.pideIneReverso) fields += `<label class="text-[10px] font-black text-slate-500 block uppercase">INE reverso</label><input type="file" id="file_ine_r" accept="image/*,.pdf" class="file-input">`;
-                if(t.pideFotoCli) fields += `<label class="text-[10px] font-black text-slate-500 block uppercase">Foto cliente</label><input type="file" id="file_selfie" accept="image/*" class="file-input">`;
-                if(t.pideComprobante) fields += `<label class="text-[10px] font-black text-slate-500 block uppercase">Comprobante de domicilio</label><input type="file" id="file_comp_domicilio" accept="image/*,.pdf" class="file-input">`;
-                if(t.pideEdoCta) fields += `<label class="text-[10px] font-black text-slate-500 block uppercase">Estado de cuenta</label><input type="file" id="file_edocta" accept="image/*,.pdf" class="file-input">`;
-                fields += `</div>`;
-            }
-
-            content.innerHTML = `
-                <div class="mb-6">
-                    <p class="section-label text-[10px] font-black uppercase text-slate-400 mb-2">Nuevo trámite</p>
-                    <h2 class="text-2xl font-black text-emerald-700 uppercase italic">${t.nombre}</h2>
-                    <p class="text-sm text-slate-500 mt-2">Completa solo los datos necesarios. Los nombres de variables y envíos permanecen intactos.</p>
-                </div>
-                <div class="grid md:grid-cols-2 gap-4 mb-4">${fields}</div>
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5 flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-[10px] font-black uppercase text-slate-400">Total del trámite</p>
-                        <p class="text-2xl font-black text-slate-900">$${pFinal}.00</p>
-                    </div>
-                    <div class="text-right text-[10px] text-slate-500 font-bold">Se descontará del saldo disponible</div>
-                </div>
-                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full primary-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar y enviar</button>`;
-            window.abrirModal('modalTramite');
-        };
-
-        window.confirmarCompra = async (t, c) => {
-            if (saldoGlobal < c) return alert("Saldo insuficiente.");
-
-            const subirArchivoCloudinary = async (inputId) => {
-                const archivo = document.getElementById(inputId)?.files?.[0];
-                if (!archivo) return "N/A";
-                const fd = new FormData();
-                fd.append('file', archivo);
-                fd.append('upload_preset', UPLOAD_PRESET);
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                const data = await res.json();
-                return data.secure_url || "N/A";
-            };
-
-            try {
-                const val = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "N/A";
-                const extra = {
-                    nombre_cliente: val('nombre_p'),
-                    rfc: val('rfc_p'),
-                    idcif: val('idcif_p'),
-                    pass: val('pass_p'),
-                    pass_nueva: val('pass_nueva_p'),
-                    telefono: val('telefono_p'),
-                    correo: val('correo_p'),
-                    num_servicio: val('num_servicio_p')
-                };
-                let quest = "N/A";
-                if (t.pideCuestionarioPension) {
-                    quest = { semanas: val('q_semanas'), beneficiarios: val('q_beneficiarios') };
-                }
-
-                let file_ine_f = "N/A";
-                let file_ine_r = "N/A";
-                let file_selfie = "N/A";
-                let file_comp_domicilio = "N/A";
-                let file_edocta = "N/A";
-
-                if (t.pideIneFrente) file_ine_f = await subirArchivoCloudinary('file_ine_f');
-                if (t.pideIneReverso) file_ine_r = await subirArchivoCloudinary('file_ine_r');
-                if (t.pideFotoCli) file_selfie = await subirArchivoCloudinary('file_selfie');
-                if (t.pideComprobante) file_comp_domicilio = await subirArchivoCloudinary('file_comp_domicilio');
-                if (t.pideEdoCta) file_edocta = await subirArchivoCloudinary('file_edocta');
-
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
-                const payload = {
-                    asesor_uid: userUID,
-                    nombre_asesor: emailAsesor,
-                    tipo: t.nombre,
-                    costo: c,
-                    estatus: "En Proceso",
-                    finalizado: false,
-                    fecha: serverTimestamp(),
-                    curp: val('curp_p').toUpperCase(),
-                    nss: val('nss_p'),
-                    detalles_extra: extra,
-                    cuestionario: quest,
-                    file_ine_f,
-                    file_ine_r,
-                    file_selfie,
-                    file_comp_domicilio,
-                    file_edocta
-                };
-
-                const docRef = await addDoc(collection(db, "solicitudes"), payload);
-
-                fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id_solicitud: docRef.id,
-                        asesor: emailAsesor,
-                        tramite: t.nombre,
-                        curp: val('curp_p'),
-                        nss: val('nss_p'),
-                        extra,
-                        quest,
-                        file_ine_f,
-                        file_ine_r,
-                        file_selfie,
-                        file_comp_domicilio,
-                        file_edocta
-                    })
-                }).catch(e => console.log("n8n log"));
-
-                alert("Enviado con archivos.");
-                window.cerrarModal();
-            } catch(e) {
-                console.error(e);
-                alert("Error al enviar el trámite.");
-            }
-        };
-
-        window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value), r = document.getElementById('claveRastreo').value, f = document.getElementById('fileRecarga').files[0];
-            if (!m || !r || !f) return alert("Completa datos.");
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-            const d = await res.json();
-            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-            alert("Reportado."); window.cerrarModal();
-        };
-
-        window.enviarMensajeManual = async () => {
-            const input = document.getElementById('chat-input');
-            if (!input.value.trim()) return;
-            await addDoc(collection(db, "chat_soporte"), { asesor_uid: userUID, remitente: emailAsesor, texto: input.value.trim(), timestamp: serverTimestamp(), respondido: false });
-            input.value = "";
-        };
-
-        window.enviarPreguntaRapida = (pregunta) => {
-            const paso = FLUJO_AYUDA[pregunta] || FLUJO_AYUDA["inicio"];
-            const box = document.getElementById('chat-messages');
-            const menu = document.querySelector('.help-menu');
-            const dU = document.createElement('div'); dU.className="msg-user"; dU.innerText=pregunta; box.appendChild(dU);
-            setTimeout(() => {
-                const dB = document.createElement('div'); dB.className="msg-support"; dB.innerText=paso.texto; box.appendChild(dB);
-                box.scrollTop = box.scrollHeight;
-                menu.innerHTML = "";
-                paso.opciones.forEach(o => {
-                    const b = document.createElement('button'); b.className="btn-help"; b.innerText=o.toUpperCase();
-                    b.onclick=()=>window.enviarPreguntaRapida(o); menu.appendChild(b);
-                });
-            }, 500);
-        };
-
-        function escucharSaldo() {
-            onSnapshot(doc(db, "asesores", userUID), (d) => {
+        function cargarSaldo(uid) {
+            onSnapshot(doc(db, "asesores", uid), (d) => {
                 if(d.exists()) {
-                    saldoGlobal = d.data().saldo || 0;
-                    const txt = `$${saldoGlobal.toLocaleString('es-MX')}`;
-                    document.getElementById('txtSaldoHeader').innerText = txt;
-                    const hero = document.getElementById('txtSaldoHero');
-                    if (hero) hero.innerText = txt;
+                    document.getElementById('txtSaldo').innerText = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(d.data().saldo || 0);
                 }
             });
         }
-        function escucharHistorial() {
-            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(200)), (snap) => {
-                const tbody = document.getElementById('listaHistorial'); tbody.innerHTML = "";
-                if (snap.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="py-12 text-center text-slate-300 font-black uppercase">Aún no hay movimientos registrados</td></tr>`;
+
+        async function cargarMovimientos(uid) {
+            const contenedor = document.getElementById('contenedorMovimientos');
+            const q = query(collection(db, "solicitudes"), where("asesor_uid", "==", uid), orderBy("fecha", "desc"), limit(40));
+
+            onSnapshot(q, (snap) => {
+                contenedor.innerHTML = "";
+                if(snap.empty) {
+                    contenedor.innerHTML = '<p class="text-center py-20 opacity-20 font-bold uppercase">No hay movimientos registrados</p>';
                     return;
                 }
-                snap.forEach(d => {
-                    const s = d.data(), f = s.fecha ? s.fecha.toDate().toLocaleDateString('es-MX') : '...';
-                    tbody.innerHTML += `<tr class="history-row border-b border-slate-100 last:border-b-0"><td class="py-4 px-4 text-slate-500 font-black">${f}</td><td class="py-4 px-4"><div class="font-black text-slate-900 uppercase">${s.tipo}</div><div class="text-[10px] text-slate-500 font-bold mt-1">${s.curp || 'SIN CURP'}</div></td><td class="py-4 px-4 text-center"><span class="status-pill">${s.estatus}</span></td><td class="py-4 px-4 text-right">${s.archivoFinal ? `<a href="${s.archivoFinal}" target="_blank" class="action-link bg-emerald-600 text-white">BAJAR</a>` : '<span class="text-slate-300 font-black text-[10px] uppercase">--</span>'}</td></tr>`;
+
+                snap.forEach(docSnap => {
+                    const m = docSnap.data();
+                    const fecha = m.fecha?.toDate().toLocaleString('es-MX', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) || 'Reciente';
+
+                    let icono = "📉";
+                    let titulo = m.tipo;
+                    let montoClass = "text-red-600";
+                    let prefijo = "-";
+                    let detalle = `CURP: ${m.curp}`;
+                    let badge = '<span class="badge bg-slate-100 text-slate-600 border border-slate-200">En proceso</span>';
+
+                    if(typeof m.estatus === 'string' && (m.estatus.includes("ERROR") || m.estatus.toLowerCase().includes("error"))) {
+                        icono = "↩️";
+                        titulo = `REEMBOLSO: ${m.tipo}`;
+                        montoClass = "text-emerald-700";
+                        prefijo = "+";
+                        detalle = `Motivo: ${m.estatus}`;
+                        badge = '<span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200">Reembolso</span>';
+                    } else if (m.estatus === "Terminado") {
+                        icono = "✅";
+                        badge = '<span class="badge bg-blue-50 text-blue-700 border border-blue-200">Terminado</span>';
+                    }
+
+                    contenedor.innerHTML += `
+                        <div class="movement-card p-5 rounded-[1.5rem] flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                            <div class="flex items-start gap-4 min-w-0">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xl shrink-0">${icono}</div>
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap gap-2 items-center mb-1">
+                                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-tight">${fecha}</p>
+                                        ${badge}
+                                    </div>
+                                    <h3 class="font-black text-slate-900 uppercase text-sm tracking-tight leading-snug">${titulo}</h3>
+                                    <p class="text-[11px] font-bold text-slate-500 mt-1 break-words">${detalle}</p>
+                                </div>
+                            </div>
+                            <div class="text-left md:text-right shrink-0">
+                                <p class="text-xl font-black ${montoClass}">${prefijo}${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(m.costo || 0)}</p>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">${m.origen || 'Sistema'}</p>
+                            </div>
+                        </div>
+                    `;
                 });
             });
         }
-        function escucharChat() { onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc")), (snap) => {
-            const box = document.getElementById('chat-messages'); box.innerHTML = "";
-            snap.forEach(d => {
-                const m = d.data(), div = document.createElement('div');
-                div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-                div.innerText = m.texto; box.appendChild(div);
-            });
-            box.scrollTop = box.scrollHeight;
-        });}
-        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
 </html>
