@@ -61,7 +61,14 @@
             <h2 class="text-lg font-black text-slate-800 uppercase italic mb-6">Historial de Solicitudes</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="text-[9px] font-black uppercase text-slate-400 border-b italic"><th class="pb-4 px-2">Fecha</th><th class="pb-4 px-4">Información</th><th class="pb-4 px-2 text-center">Estatus</th><th class="pb-4 px-2 text-right">Acción</th></tr></thead>
+                    <thead>
+                        <tr class="text-[9px] font-black uppercase text-slate-400 border-b italic">
+                            <th class="pb-4 px-2">Fecha</th>
+                            <th class="pb-4 px-4">Información</th>
+                            <th class="pb-4 px-2 text-center">Estatus</th>
+                            <th class="pb-4 px-2 text-right">Acción</th>
+                        </tr>
+                    </thead>
                     <tbody id="listaHistorial" class="text-xs font-bold italic">
                         <tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
                     </tbody>
@@ -96,7 +103,10 @@
 
     <div id="chat-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
         <div id="chat-window">
-            <div class="chat-header flex justify-between items-center"><span>💬 Asistencia DPR</span><button onclick="window.toggleChat()" class="text-xl">×</button></div>
+            <div class="chat-header flex justify-between items-center">
+                <span>💬 Asistencia DPR</span>
+                <button onclick="window.toggleChat()" class="text-xl">×</button>
+            </div>
             <div id="chat-messages"></div>
             <div class="help-menu flex gap-2 p-2 overflow-x-auto bg-gray-50 border-t border-slate-100">
                 <button onclick="window.enviarPreguntaRapida('inicio')" class="btn-help">¿Necesitas ayuda?</button>
@@ -114,71 +124,76 @@
         import { getFirestore, doc, onSnapshot, updateDoc, addDoc, collection, query, where, serverTimestamp, increment, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", authDomain: "pensionsegura-9c817.firebaseapp.com", projectId: "pensionsegura-9c817" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+            authDomain: "pensionsegura-9c817.firebaseapp.com",
+            projectId: "pensionsegura-9c817"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CLOUD_NAME = "de5abnhul"; const UPLOAD_PRESET = "dpr_uploads";
+        const CLOUD_NAME = "de5abnhul";
+        const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
 
- const TRAMITES = {
-    'IMSS': [
-        { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
-        { nombre: 'SEMANAS COTIZADAS DETALLADAS', precio: 35, nss: true, curp: true },
-        { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-        { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
-        { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-        { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
-        { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
-        { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
-        { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-        { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
-    ],
-    'SAT': [
-        { nombre: 'RFC Clon', precio: 25, curp: true },
-        { nombre: 'RFC Verificable', precio: 110, curp: true },
-        { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
-        { nombre: 'RFC Original', precio: 180, curp: true },
-        { nombre: 'Localización de IDcif', precio: 60, rfc: true }
-    ],
-    'DOC': [
-        { nombre: 'Recibo CFE', precio: 10, pideNumServicio: true },
-        { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-        { nombre: 'CURP Certificada', precio: 4, curp: true },
-        { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-        { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-        { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-        { nombre: 'Acta de Defunción', precio: 11, curp: true },
-        { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
-    ],
-    'INF': [
-        { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-        { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-        { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
-        { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-        { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
-    ],
-    'AFORE': [
-        { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
-        { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
-        { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
-        { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
-        { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
-        { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
-        { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true },
-        { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
-        { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true },
-        { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true },
-        { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
-    ],
-    'PENSIONES': [
-        { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
-        { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
-    ]
-};
+        const TRAMITES = {
+            'IMSS': [
+                { nombre: 'SEMANAS COTIZADAS', precio: 25, nss: true, curp: true },
+                { nombre: 'SEMANAS COTIZADAS DETALLADAS', precio: 35, nss: true, curp: true },
+                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
+                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+                { nombre: 'SINDO COMPLETO', precio: 135, nss: true },
+                { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
+                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
+            ],
+            'SAT': [
+                { nombre: 'RFC Clon', precio: 25, curp: true },
+                { nombre: 'RFC Verificable', precio: 110, curp: true },
+                { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
+                { nombre: 'RFC Original', precio: 180, curp: true },
+                { nombre: 'Localización de IDcif', precio: 60, rfc: true }
+            ],
+            'DOC': [
+                { nombre: 'Recibo CFE', precio: 10, pideNumServicio: true },
+                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+                { nombre: 'Acta de Defunción', precio: 11, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+            ],
+            'INF': [
+                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+            ],
+            'AFORE': [
+                { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+                { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
+                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
+                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true },
+                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
+                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true },
+                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
+            ],
+            'PENSIONES': [
+                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
+                { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
+            ]
         };
 
         const FLUJO_AYUDA = {
@@ -189,13 +204,27 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { userUID = user.uid; emailAsesor = user.email; escucharSaldo(); escucharHistorial(); escucharChat(); } 
-            else { window.location.href = "login/index.html"; }
+            if (user) {
+                userUID = user.uid;
+                emailAsesor = user.email;
+                escucharSaldo();
+                escucharHistorial();
+                escucharChat();
+            } else {
+                window.location.href = "login/index.html";
+            }
         });
 
-        window.toggleChat = () => { const w = document.getElementById('chat-window'); w.style.display = (w.style.display==='flex')?'none':'flex'; };
+        window.toggleChat = () => {
+            const w = document.getElementById('chat-window');
+            w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
+        };
+
         window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
-        window.cerrarModal = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+
+        window.cerrarModal = () => {
+            document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        };
 
         window.mostrarTramites = (cat) => {
             document.getElementById('gridCategorias').classList.add('hidden');
@@ -204,10 +233,15 @@
             document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
             const lista = document.getElementById('listaServicios');
             let html = '';
+
             TRAMITES[cat].forEach(t => {
                 const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center"><p class="font-black text-[9px] uppercase">${t.nombre}</p><p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p></div>`;
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="category-card p-5 text-center">
+                    <p class="font-black text-[9px] uppercase">${t.nombre}</p>
+                    <p class="text-emerald-600 font-black text-[8px]">$${t.precio}.00</p>
+                </div>`;
             });
+
             lista.innerHTML = html;
         };
 
@@ -221,36 +255,66 @@
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
             let pFinal = t.precio;
-            const vips = ["prestamoefectivo.tramites@gmail.com", "kingmc019@gmail.com", "symconsultoria2.2024@gmail.com", "symconsultoria3.2024@gmail.com", "symconsultoria2024@gmail.com", "ompesa86@gmail.com", "symconsultoria4.2024@gmail.com", "cris19330@outlook.com", "draperrapmorelia@gmail.com", "gestoriayserviciosgonzalez@gmail.com", "inburpriego@gmail.com"];
-            if ((t.nombre==='SEMANAS COTIZADAS'||t.nombre==='Tarjeta NSS') && vips.includes(emailAsesor)) pFinal=19;
+
+            const vips = [
+                "prestamoefectivo.tramites@gmail.com",
+                "kingmc019@gmail.com",
+                "symconsultoria2.2024@gmail.com",
+                "symconsultoria3.2024@gmail.com",
+                "symconsultoria2024@gmail.com",
+                "ompesa86@gmail.com",
+                "symconsultoria4.2024@gmail.com",
+                "cris19330@outlook.com",
+                "draperrapmorelia@gmail.com",
+                "gestoriayserviciosgonzalez@gmail.com",
+                "inburpriego@gmail.com"
+            ];
+
+            if ((t.nombre === 'SEMANAS COTIZADAS' || t.nombre === 'Tarjeta NSS') && vips.includes(emailAsesor)) pFinal = 19;
 
             let fields = '';
-            if(t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
-            if(t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if(t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
-            if(t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if(t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
-            if(t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
-            if(t.pidePass) fields += `<input type="text" id="pass_p" placeholder="CONTRASEÑA" class="input-light mb-4">`;
-            if(t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
-            
-            if(t.pideCuestionarioPension) {
-                fields += `<div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] font-bold uppercase"><p class="mb-2">Análisis Detallado Activo</p>
+
+            if (t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
+            if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
+            if (t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
+            if (t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
+            if (t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
+            if (t.pidePass) fields += `<input type="text" id="pass_p" placeholder="CONTRASEÑA" class="input-light mb-4">`;
+            if (t.pidePassNueva) fields += `<input type="text" id="pass_nueva_p" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4">`;
+            if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
+            if (t.pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+            if (t.pideTel) fields += `<input type="text" id="tel_p" placeholder="TELÉFONO" class="input-light mb-4">`;
+            if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELÉFONO DE CONTACTO" class="input-light mb-4">`;
+            if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
+            if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
+
+            if (t.pideCuestionarioPension) {
+                fields += `<div class="bg-blue-50 p-4 rounded-2xl mb-4 text-[10px] font-bold uppercase">
+                    <p class="mb-2">Análisis Detallado Activo</p>
                     <input type="number" id="q_semanas" placeholder="Semanas Cotizadas" class="input-light mb-2">
-                    <textarea id="q_beneficiarios" placeholder="Beneficiarios" class="input-light"></textarea></div>`;
+                    <textarea id="q_beneficiarios" placeholder="Beneficiarios" class="input-light"></textarea>
+                </div>`;
             }
 
-            if (t.pideIneFrente || t.pideFotoCli || t.pideEdoCta) {
+            if (t.pideIneFrente || t.pideIneReverso || t.pideFotoCli || t.pideCompDomicilio || t.pideEdoCta) {
                 fields += `<div class="bg-slate-50 p-4 rounded-2xl border mb-4 space-y-2">`;
-                if(t.pideIneFrente) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">INE FRENTE</label><input type="file" id="file_ine_f" class="w-full text-[10px]">`;
-                if(t.pideIneReverso) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">INE REVERSO</label><input type="file" id="file_ine_r" class="w-full text-[10px]">`;
-                if(t.pideFotoCli) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">FOTO CLIENTE</label><input type="file" id="file_selfie" class="w-full text-[10px]">`;
-                if(t.pideEdoCta) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">ESTADO DE CUENTA</label><input type="file" id="file_edocta" class="w-full text-[10px]">`;
+                if (t.pideIneFrente) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">INE FRENTE</label><input type="file" id="file_ine_f" class="w-full text-[10px]">`;
+                if (t.pideIneReverso) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">INE REVERSO</label><input type="file" id="file_ine_r" class="w-full text-[10px]">`;
+                if (t.pideFotoCli) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">FOTO CLIENTE</label><input type="file" id="file_selfie" class="w-full text-[10px]">`;
+                if (t.pideCompDomicilio) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">COMPROBANTE DOMICILIO</label><input type="file" id="file_comp_domicilio" class="w-full text-[10px]">`;
+                if (t.pideEdoCta) fields += `<label class="text-[8px] font-black text-slate-400 block uppercase">ESTADO DE CUENTA</label><input type="file" id="file_edocta" class="w-full text-[10px]">`;
                 fields += `</div>`;
             }
 
-            content.innerHTML = `<h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${t.nombre}</h2>${fields}
-                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">Pagar $${pFinal}.00</button>`;
+            content.innerHTML = `
+                <h2 class="text-lg font-black text-emerald-600 mb-6 uppercase italic">${t.nombre}</h2>
+                ${fields}
+                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
+                    Pagar $${pFinal}.00
+                </button>
+            `;
+
             window.abrirModal('modalTramite');
         };
 
@@ -264,6 +328,23 @@
             const textoOriginal = botonPago ? botonPago.innerText : "";
             enviandoTramite = true;
 
+            const subirArchivoCloudinary = async (inputId) => {
+                const archivo = document.getElementById(inputId)?.files?.[0];
+                if (!archivo) return "N/A";
+
+                const fd = new FormData();
+                fd.append('file', archivo);
+                fd.append('upload_preset', UPLOAD_PRESET);
+
+                const res = await fetch(CLOUDINARY_URL, {
+                    method: 'POST',
+                    body: fd
+                });
+
+                const data = await res.json();
+                return data.secure_url || "N/A";
+            };
+
             try {
                 if (botonPago) {
                     botonPago.disabled = true;
@@ -273,11 +354,45 @@
                 }
 
                 const val = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "N/A";
-                const extra = { nombre_cliente: val('nombre_p'), rfc: val('rfc_p'), idcif: val('idcif_p'), pass: val('pass_p'), num_servicio: val('num_servicio_p') };
-                let quest = "N/A";
-                if (t.pideCuestionarioPension) quest = { semanas: val('q_semanas'), beneficiarios: val('q_beneficiarios') };
 
-                await updateDoc(doc(db, "asesores", userUID), { saldo: increment(-c) });
+                const extra = {
+                    nombre_cliente: val('nombre_p'),
+                    rfc: val('rfc_p'),
+                    idcif: val('idcif_p'),
+                    pass: val('pass_p'),
+                    pass_nueva: val('pass_nueva_p'),
+                    num_servicio: val('num_servicio_p'),
+                    fecha: val('fecha_p'),
+                    telefono: val('tel_p'),
+                    telefono_contacto: val('tel_contacto_p'),
+                    correo: val('correo_p'),
+                    nota: val('nota_p')
+                };
+
+                let quest = "N/A";
+                if (t.pideCuestionarioPension) {
+                    quest = {
+                        semanas: val('q_semanas'),
+                        beneficiarios: val('q_beneficiarios')
+                    };
+                }
+
+                let file_ine_f = "N/A";
+                let file_ine_r = "N/A";
+                let file_selfie = "N/A";
+                let file_comp_domicilio = "N/A";
+                let file_edocta = "N/A";
+
+                if (t.pideIneFrente) file_ine_f = await subirArchivoCloudinary('file_ine_f');
+                if (t.pideIneReverso) file_ine_r = await subirArchivoCloudinary('file_ine_r');
+                if (t.pideFotoCli) file_selfie = await subirArchivoCloudinary('file_selfie');
+                if (t.pideCompDomicilio) file_comp_domicilio = await subirArchivoCloudinary('file_comp_domicilio');
+                if (t.pideEdoCta) file_edocta = await subirArchivoCloudinary('file_edocta');
+
+                await updateDoc(doc(db, "asesores", userUID), {
+                    saldo: increment(-c)
+                });
+
                 const docRef = await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID,
                     nombre_asesor: emailAsesor,
@@ -289,7 +404,12 @@
                     curp: val('curp_p').toUpperCase(),
                     nss: val('nss_p'),
                     detalles_extra: extra,
-                    cuestionario: quest
+                    cuestionario: quest,
+                    file_ine_f,
+                    file_ine_r,
+                    file_selfie,
+                    file_comp_domicilio,
+                    file_edocta
                 });
 
                 await fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
@@ -302,12 +422,18 @@
                         curp: val('curp_p'),
                         nss: val('nss_p'),
                         extra,
-                        quest
+                        quest,
+                        file_ine_f,
+                        file_ine_r,
+                        file_selfie,
+                        file_comp_domicilio,
+                        file_edocta
                     })
                 }).catch(e => console.log("n8n log", e));
 
                 alert("Enviado.");
                 window.cerrarModal();
+
             } catch (e) {
                 console.error(e);
                 alert("Error.");
@@ -323,19 +449,45 @@
         };
 
         window.notificarPago = async () => {
-            const m = parseFloat(document.getElementById('depMonto').value), r = document.getElementById('claveRastreo').value, f = document.getElementById('fileRecarga').files[0];
+            const m = parseFloat(document.getElementById('depMonto').value);
+            const r = document.getElementById('claveRastreo').value;
+            const f = document.getElementById('fileRecarga').files[0];
+
             if (!m || !r || !f) return alert("Completa datos.");
-            const fd = new FormData(); fd.append('file', f); fd.append('upload_preset', UPLOAD_PRESET);
+
+            const fd = new FormData();
+            fd.append('file', f);
+            fd.append('upload_preset', UPLOAD_PRESET);
+
             const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
             const d = await res.json();
-            await addDoc(collection(db, "notificaciones_pago"), { uid: userUID, asesorEmail: emailAsesor, monto: m, rastreo: r.toUpperCase(), comprobante: d.secure_url, fecha: serverTimestamp(), estatus: "pendiente" });
-            alert("Reportado."); window.cerrarModal();
+
+            await addDoc(collection(db, "notificaciones_pago"), {
+                uid: userUID,
+                asesorEmail: emailAsesor,
+                monto: m,
+                rastreo: r.toUpperCase(),
+                comprobante: d.secure_url,
+                fecha: serverTimestamp(),
+                estatus: "pendiente"
+            });
+
+            alert("Reportado.");
+            window.cerrarModal();
         };
 
         window.enviarMensajeManual = async () => {
             const input = document.getElementById('chat-input');
             if (!input.value.trim()) return;
-            await addDoc(collection(db, "chat_soporte"), { asesor_uid: userUID, remitente: emailAsesor, texto: input.value.trim(), timestamp: serverTimestamp(), respondido: false });
+
+            await addDoc(collection(db, "chat_soporte"), {
+                asesor_uid: userUID,
+                remitente: emailAsesor,
+                texto: input.value.trim(),
+                timestamp: serverTimestamp(),
+                respondido: false
+            });
+
             input.value = "";
         };
 
@@ -343,35 +495,79 @@
             const paso = FLUJO_AYUDA[pregunta] || FLUJO_AYUDA["inicio"];
             const box = document.getElementById('chat-messages');
             const menu = document.querySelector('.help-menu');
-            const dU = document.createElement('div'); dU.className="msg-user"; dU.innerText=pregunta; box.appendChild(dU);
+
+            const dU = document.createElement('div');
+            dU.className = "msg-user";
+            dU.innerText = pregunta;
+            box.appendChild(dU);
+
             setTimeout(() => {
-                const dB = document.createElement('div'); dB.className="msg-support"; dB.innerText=paso.texto; box.appendChild(dB);
+                const dB = document.createElement('div');
+                dB.className = "msg-support";
+                dB.innerText = paso.texto;
+                box.appendChild(dB);
                 box.scrollTop = box.scrollHeight;
+
                 menu.innerHTML = "";
                 paso.opciones.forEach(o => {
-                    const b = document.createElement('button'); b.className="btn-help"; b.innerText=o.toUpperCase();
-                    b.onclick=()=>window.enviarPreguntaRapida(o); menu.appendChild(b);
+                    const b = document.createElement('button');
+                    b.className = "btn-help";
+                    b.innerText = o.toUpperCase();
+                    b.onclick = () => window.enviarPreguntaRapida(o);
+                    menu.appendChild(b);
                 });
             }, 500);
         };
 
-        function escucharSaldo() { onSnapshot(doc(db, "asesores", userUID), (d) => { if(d.exists()) { saldoGlobal = d.data().saldo || 0; document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`; } }); }
-        function escucharHistorial() { onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(200)), (snap) => {
-            const tbody = document.getElementById('listaHistorial'); tbody.innerHTML = "";
-            snap.forEach(d => {
-                const s = d.data(), f = s.fecha ? s.fecha.toDate().toLocaleDateString() : '...';
-                tbody.innerHTML += `<tr class="border-b"><td class="py-3 px-2">${f}</td><td class="py-3 px-4">${s.tipo}<br><small>${s.curp}</small></td><td class="py-3 px-2 text-center font-black">${s.estatus}</td><td class="py-3 px-2 text-right">${s.archivoFinal ? `<a href="${s.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}</td></tr>`;
+        function escucharSaldo() {
+            onSnapshot(doc(db, "asesores", userUID), (d) => {
+                if (d.exists()) {
+                    saldoGlobal = d.data().saldo || 0;
+                    document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`;
+                }
             });
-        });}
-        function escucharChat() { onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc")), (snap) => {
-            const box = document.getElementById('chat-messages'); box.innerHTML = "";
-            snap.forEach(d => {
-                const m = d.data(), div = document.createElement('div');
-                div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
-                div.innerText = m.texto; box.appendChild(div);
+        }
+
+        function escucharHistorial() {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(200)), (snap) => {
+                const tbody = document.getElementById('listaHistorial');
+                tbody.innerHTML = "";
+
+                snap.forEach(d => {
+                    const s = d.data();
+                    const f = s.fecha ? s.fecha.toDate().toLocaleDateString() : '...';
+
+                    tbody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="py-3 px-2">${f}</td>
+                            <td class="py-3 px-4">${s.tipo}<br><small>${s.curp || ''}</small></td>
+                            <td class="py-3 px-2 text-center font-black">${s.estatus}</td>
+                            <td class="py-3 px-2 text-right">
+                                ${s.archivoFinal ? `<a href="${s.archivoFinal}" target="_blank" class="bg-emerald-600 text-white p-1 rounded text-[9px]">BAJAR</a>` : '--'}
+                            </td>
+                        </tr>
+                    `;
+                });
             });
-            box.scrollTop = box.scrollHeight;
-        });}
+        }
+
+        function escucharChat() {
+            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc")), (snap) => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+
+                snap.forEach(d => {
+                    const m = d.data();
+                    const div = document.createElement('div');
+                    div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
+                    div.innerText = m.texto;
+                    box.appendChild(div);
+                });
+
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
         window.cerrarSesion = () => signOut(auth).then(() => location.reload());
     </script>
 </body>
