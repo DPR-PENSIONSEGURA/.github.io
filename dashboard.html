@@ -26,17 +26,27 @@
 <body>
 
     <header class="sticky top-0 z-40 header-glass">
-        <div class="max-w-7xl mx-auto p-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="green-gradient w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-lg italic">DP</div>
-                <h1 class="font-black uppercase tracking-tighter text-lg text-slate-800">DPR <span class="text-emerald-600 italic">Consultoría</span></h1>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
-                    <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs tracking-widest">$0.00</span>
-                </button>
-                <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">Salir</button>
-            </div>
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+    <button onclick="window.abrirModal('modalSaldo')" class="bg-white px-4 py-2 rounded-full border-2 border-emerald-500 flex items-center gap-2">
+        <span id="txtSaldoHeader" class="font-black text-emerald-600 text-xs tracking-widest">$0.00</span>
+    </button>
+
+    <a href="finanzas.html" class="bg-white px-4 py-2 rounded-full border-2 border-slate-300 text-[10px] font-black uppercase text-slate-700 hover:border-emerald-500 hover:text-emerald-600 transition">
+        Finanzas
+    </a>
+
+    <a href="https://whatsapp.com/channel/0029Vb6qdE98qIzsQVAeeU3e" target="_blank" class="bg-white px-4 py-2 rounded-full border-2 border-green-500 text-[10px] font-black uppercase text-green-600 hover:bg-green-50 transition">
+        Canal
+    </a>
+
+    <button onclick="window.toggleChat()" class="bg-white px-4 py-2 rounded-full border-2 border-amber-400 text-[10px] font-black uppercase text-amber-600 hover:bg-amber-50 transition">
+        Ayuda
+    </button>
+
+    <button onclick="window.cerrarSesion()" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-500">
+        Salir
+    </button>
+</div>
         </div>
     </header>
 
