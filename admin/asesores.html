@@ -10,6 +10,8 @@
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .stat-card { background: white; padding: 1.2rem; border-radius: 1.5rem; border-bottom: 4px solid #e2e8f0; }
         .animate-fade { animation: fadeIn 0.3s ease-in-out; }
+        .btn-blue { background: #2563eb; color: white; padding: 8px 12px; border-radius: 10px; font-size: 9px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
+        .btn-blue:hover { background: #1e40af; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -26,7 +28,7 @@
 
         <div class="bg-white p-6 rounded-[2.5rem] shadow-xl mb-10 border border-blue-100">
             <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="inputBusqueda" placeholder="ESCRIBE EL NOMBRE DEL ASESOR (EJ: CECILIO)..." class="flex-1 p-4 rounded-2xl border-2 border-slate-100 outline-none focus:border-blue-500 font-bold uppercase text-sm">
+                <input type="text" id="inputBusqueda" placeholder="ESCRIBE EL NOMBRE DEL ASESOR O SU CORREO..." class="flex-1 p-4 rounded-2xl border-2 border-slate-100 outline-none focus:border-blue-500 font-bold uppercase text-sm">
                 <button onclick="buscarAsesor()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black uppercase italic shadow-lg hover:bg-blue-700 transition-all">Buscar Asesor</button>
             </div>
         </div>
@@ -53,7 +55,7 @@
 
             <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden mb-10">
                 <div class="p-5 border-b bg-emerald-50">
-                    <h3 class="font-black uppercase italic text-emerald-700 text-sm">Historial de Recargas del Cliente</h3>
+                    <h3 class="font-black uppercase italic text-emerald-700 text-sm">Historial de Recargas del Asesor</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -70,290 +72,284 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
-                <div class="p-5 border-b bg-slate-50">
-                    <h3 class="font-black uppercase italic text-slate-700 text-sm">Historial de Trámites Solicitados</h3>
+            <section class="mb-8">
+                <div class="flex justify-between items-center bg-slate-200 p-4 rounded-2xl mb-4">
+                    <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">
+                        Historial de Trámites Solicitados
+                    </h2>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900 text-white text-[9px] uppercase font-black italic">
-                            <tr>
-                                <th class="p-4">Fecha</th>
-                                <th class="p-4">Servicio</th>
-                                <th class="p-4">Cliente / Info</th>
-                                <th class="p-4">Costo</th>
-                                <th class="p-4 text-center">Estatus</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaHistorialAsesor" class="text-xs font-medium"></tbody>
-                    </table>
+
+                <div class="mb-4 flex flex-wrap gap-2">
+                    <button onclick="window.filtrarSolicitudesHoy()" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                        Solo hoy
+                    </button>
+
+                    <button onclick="window.verRiesgosDelDia()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                        Riesgos del día 🚨
+                    </button>
+
+                    <button onclick="window.verTodasSolicitudes()" class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                        Ver todo
+                    </button>
                 </div>
-            </div>
+
+                <div class="bg-white rounded-[2rem] shadow-xl border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 text-white text-[9px] uppercase font-black italic">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Origen</th>
+                                    <th class="p-4">Trámite</th>
+                                    <th class="p-4">Cliente / Info</th>
+                                    <th class="p-4 text-center">Costo</th>
+                                    <th class="p-4 text-center">Estatus</th>
+                                    <th class="p-4 text-center">Reembolso</th>
+                                    <th class="p-4 text-center">Finalizado</th>
+                                    <th class="p-4 text-center">Bloqueado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaHistorialAsesor" class="text-xs font-medium"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">Escaneando Base de Datos...</div>
+        <div id="loader" class="hidden py-20 text-center font-black uppercase text-slate-400 italic animate-pulse tracking-widest">
+            Escaneando Base de Datos...
+        </div>
     </div>
 
-   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
-        authDomain: "pensionsegura-9c817.firebaseapp.com", 
-        projectId: "pensionsegura-9c817" 
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
+            authDomain: "pensionsegura-9c817.firebaseapp.com", 
+            projectId: "pensionsegura-9c817" 
+        };
 
-    // Definimos la función de búsqueda globalmente para que el botón la encuentre
-    window.buscarAsesor = async () => {
-        const busqueda = document.getElementById('inputBusqueda').value.trim().toLowerCase();
-        if(!busqueda) return alert("Escribe un nombre o correo");
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        document.getElementById('loader').classList.remove('hidden');
-        document.getElementById('resultadoBusqueda').classList.add('hidden');
+        let solicitudesActuales = [];
 
-        try {
-            // 1. Buscamos al asesor para obtener su email real
-            const snapAsesores = await getDocs(collection(db, "asesores"));
-            let asesor = null;
+        function esMismoDia(fechaObj) {
+            if (!fechaObj) return false;
+            return fechaObj.toLocaleDateString() === new Date().toLocaleDateString();
+        }
 
-            snapAsesores.forEach(doc => {
-                const d = doc.data();
-                if((d.nombre && d.nombre.toLowerCase().includes(busqueda)) || (d.email && d.email.toLowerCase() === busqueda)) {
-                    asesor = d;
-                }
+        function renderizarSolicitudes(lista) {
+            const tabla = document.getElementById('tablaHistorialAsesor');
+            if (!tabla) return;
+
+            tabla.innerHTML = "";
+
+            const ordenadas = [...lista].sort((a, b) => {
+                const fa = a.fecha?.toDate ? a.fecha.toDate().getTime() : 0;
+                const fb = b.fecha?.toDate ? b.fecha.toDate().getTime() : 0;
+                return fb - fa;
             });
 
-            if(!asesor) {
-                alert("Asesor no encontrado");
-                document.getElementById('loader').classList.add('hidden');
+            if (ordenadas.length === 0) {
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="p-8 text-center text-slate-400 font-black uppercase">
+                            No hay solicitudes para mostrar
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
-            // 2. Cargamos su Saldo y datos principales
-            document.getElementById('resSaldo').innerText = `$${Number(asesor.saldo || 0).toLocaleString()}`;
-            const emailAsesor = asesor.email;
+            ordenadas.forEach(s => {
+                const fechaObj = s.fecha?.toDate ? s.fecha.toDate() : null;
+                const fStr = fechaObj
+                    ? fechaObj.toLocaleString('es-MX', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                    : 'Sin fecha';
 
-            // 3. CARGAR RECARGAS (notificaciones_pago)
-            const snapRecargas = await getDocs(collection(db, "notificaciones_pago"));
-            const tRecargas = document.getElementById('tablaRecargasAsesor');
-            tRecargas.innerHTML = "";
-            let totalAprobado = 0;
+                let info = `<div class="font-black text-slate-800 uppercase">${s.nombre_asesor || 'S/N'}</div>`;
+                if (s.curp && s.curp !== "N/A") info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+                if (s.nss && s.nss !== "N/A") info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
 
-            snapRecargas.forEach(docR => {
-                const r = docR.data();
-                // Filtramos manualmente por email para evitar errores de índices
-                if(r.asesorEmail === emailAsesor) {
-                    const monto = Number(r.monto || 0);
-                    const est = r.estatus || 'pendiente';
-                    const fecha = r.fecha?.toDate().toLocaleString() || '---';
+                const estatusActual = String(s.estatus || "").toUpperCase();
+                const costo = Number(s.costo || 0);
 
-                    if(est === 'aprobado') totalAprobado += monto;
-                    const color = est === 'aprobado' ? 'text-emerald-600' : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
+                const esError =
+                    estatusActual.includes("ERROR") ||
+                    estatusActual.includes("CURP") ||
+                    estatusActual.includes("NSS") ||
+                    estatusActual.includes("INCONSISTENCIAS") ||
+                    estatusActual.includes("FOTOS") ||
+                    estatusActual.includes("CONTRASEÑA") ||
+                    estatusActual.includes("LÍMITE") ||
+                    estatusActual.includes("LIMITE") ||
+                    estatusActual.includes("IMSS") ||
+                    estatusActual.includes("NO EXISTE");
 
-                    tRecargas.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-4 text-slate-500">${fecha}</td>
-                            <td class="p-4 font-bold">$${monto.toLocaleString()}</td>
-                            <td class="p-4 uppercase font-black ${color}">${est}</td>
-                            <td class="p-4 text-right">
-                                <a href="${r.comprobante}" target="_blank" class="text-blue-600 font-bold underline text-[10px]">VER TICKET</a>
-                            </td>
-                        </tr>`;
-                }
+                const sinReembolso = esError && s.reembolsado !== true;
+
+                let colorFila = "hover:bg-blue-50";
+                if (sinReembolso) colorFila = "bg-red-50 hover:bg-red-100";
+                else if (s.reembolsado === true) colorFila = "bg-purple-50 hover:bg-purple-100";
+                else if (estatusActual === "TERMINADO") colorFila = "bg-emerald-50 hover:bg-emerald-100";
+
+                tabla.innerHTML += `
+                    <tr class="border-b ${colorFila}">
+                        <td class="p-4 text-[10px] font-black">${fStr}</td>
+                        <td class="p-4 text-center">${s.origen || 'Portal'}</td>
+                        <td class="p-4 font-black uppercase">${s.tipo || ''}</td>
+                        <td class="p-4">${info}</td>
+                        <td class="p-4 text-center font-black text-emerald-700">$${costo.toFixed(2)}</td>
+                        <td class="p-4 text-center font-black">${s.estatus || ''}</td>
+                        <td class="p-4 text-center">${s.reembolsado ? '🟢' : '🔴'}</td>
+                        <td class="p-4 text-center">${s.finalizado ? '🟢' : '⚪'}</td>
+                        <td class="p-4 text-center">${s.bloqueado ? '🟣' : '⚪'}</td>
+                    </tr>
+                `;
             });
-            document.getElementById('resAgregado').innerText = `$${totalAprobado.toLocaleString()}`;
+        }
 
-            // 4. CARGAR TRÁMITES (solicitudes)
-            <section class="mb-8">
+        window.filtrarSolicitudesHoy = () => {
+            const hoy = solicitudesActuales.filter(s => s.fecha?.toDate && esMismoDia(s.fecha.toDate()));
+            renderizarSolicitudes(hoy);
+        };
 
-    <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" 
-        class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
-        
-        <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">
-            Solicitudes de Trámites
-        </h2>
+        window.verTodasSolicitudes = () => {
+            renderizarSolicitudes(solicitudesActuales);
+        };
 
-        <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
-    </div>
+        window.verRiesgosDelDia = () => {
+            const riesgos = solicitudesActuales.filter(s => {
+                const esHoy = s.fecha?.toDate && esMismoDia(s.fecha.toDate());
+                if (!esHoy) return false;
 
-    <div id="contenidoSolicitudes" class="seccion-contenido">
+                const estatus = String(s.estatus || "").toUpperCase();
 
-        <!-- BOTONES -->
-        <div class="mb-4 flex flex-wrap gap-2">
+                const esError =
+                    estatus.includes("ERROR") ||
+                    estatus.includes("CURP") ||
+                    estatus.includes("NSS") ||
+                    estatus.includes("INCONSISTENCIAS") ||
+                    estatus.includes("FOTOS") ||
+                    estatus.includes("CONTRASEÑA") ||
+                    estatus.includes("LÍMITE") ||
+                    estatus.includes("LIMITE") ||
+                    estatus.includes("IMSS");
 
-            <button onclick="window.filtrarPendientesHoy()" 
-                class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
-                Pendientes del día
-            </button>
+                const sinReembolso = esError && s.reembolsado !== true;
+                const sinArchivo = String(s.estatus || "") === "Terminado" && !s.archivoFinal;
 
-            <button onclick="window.verRiesgosDelDia()" 
-                class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
-                Riesgos 🚨
-            </button>
+                return sinReembolso || sinArchivo;
+            });
 
-            <button onclick="window.cargarSolicitudes(currentPage)" 
-                class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
-                Todas
-            </button>
+            renderizarSolicitudes(riesgos);
+        };
 
-        </div>
+        window.buscarAsesor = async () => {
+            const busqueda = document.getElementById('inputBusqueda').value.trim().toLowerCase();
+            if (!busqueda) return alert("Escribe un nombre o correo");
 
-        <!-- BUSCADOR -->
-        <div class="mb-4">
-            <input type="text" id="buscador" onkeyup="window.buscarGlobal()" 
-                placeholder="BUSCAR CURP O NSS..."
-                class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
-        </div>
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('resultadoBusqueda').classList.add('hidden');
 
-        <!-- TABLA -->
-        <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
+            try {
+                const snapAsesores = await getDocs(collection(db, "asesores"));
+                let asesor = null;
 
-            <div class="overflow-x-auto">
+                snapAsesores.forEach(docSnap => {
+                    const d = docSnap.data();
+                    if (
+                        (d.nombre && d.nombre.toLowerCase().includes(busqueda)) ||
+                        (d.email && d.email.toLowerCase() === busqueda)
+                    ) {
+                        asesor = d;
+                    }
+                });
 
-                <table class="w-full text-left border-collapse">
+                if (!asesor) {
+                    alert("Asesor no encontrado");
+                    document.getElementById('loader').classList.add('hidden');
+                    return;
+                }
 
-                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                        <tr>
-                            <th class="p-4">Fecha</th>
-                            <th class="p-4">Origen</th>
-                            <th class="p-4">Trámite</th>
-                            <th class="p-4">Información</th>
-                            <th class="p-4 text-center">Costo</th>
-                            <th class="p-4 text-center">Estatus</th>
-                            <th class="p-4 text-center">Reembolso</th>
-                            <th class="p-4 text-center">Finalizado</th>
-                            <th class="p-4 text-center">Bloqueado</th>
-                            <th class="p-4 text-right">Acción</th>
-                        </tr>
-                    </thead>
+                document.getElementById('resSaldo').innerText = `$${Number(asesor.saldo || 0).toLocaleString('es-MX')}`;
+                const emailAsesor = asesor.email;
 
-                    <tbody id="tablaSolicitudes"></tbody>
+                const snapRecargas = await getDocs(collection(db, "notificaciones_pago"));
+                const tRecargas = document.getElementById('tablaRecargasAsesor');
+                tRecargas.innerHTML = "";
+                let totalAprobado = 0;
 
-                </table>
+                snapRecargas.forEach(docR => {
+                    const r = docR.data();
+                    if (r.asesorEmail === emailAsesor) {
+                        const monto = Number(r.monto || 0);
+                        const est = r.estatus || 'pendiente';
+                        const fecha = r.fecha?.toDate ? r.fecha.toDate().toLocaleString('es-MX') : '---';
 
-            </div>
-        </div>
-    </div>
-</section>
-function renderizarTablaPersonalizada(docsArray) {
+                        if (est === 'aprobado') totalAprobado += monto;
+                        const color = est === 'aprobado'
+                            ? 'text-emerald-600'
+                            : (est === 'rechazado' ? 'text-red-500' : 'text-orange-500');
 
-    const tabla = document.getElementById('tablaSolicitudes');
-    if (!tabla) return;
+                        tRecargas.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-4 text-slate-500">${fecha}</td>
+                                <td class="p-4 font-bold">$${monto.toLocaleString('es-MX')}</td>
+                                <td class="p-4 uppercase font-black ${color}">${est}</td>
+                                <td class="p-4 text-right">
+                                    ${r.comprobante ? `<a href="${r.comprobante}" target="_blank" class="text-blue-600 font-bold underline text-[10px]">VER TICKET</a>` : '---'}
+                                </td>
+                            </tr>
+                        `;
+                    }
+                });
 
-    tabla.innerHTML = "";
+                document.getElementById('resAgregado').innerText = `$${totalAprobado.toLocaleString('es-MX')}`;
 
-    const ordenadas = [...docsArray].sort((a, b) => {
-        const fa = a.fecha?.toDate ? a.fecha.toDate().getTime() : 0;
-        const fb = b.fecha?.toDate ? b.fecha.toDate().getTime() : 0;
-        return fb - fa;
-    });
+                const snapSolicitudes = await getDocs(collection(db, "solicitudes"));
+                solicitudesActuales = [];
+                const tHist = document.getElementById('tablaHistorialAsesor');
+                tHist.innerHTML = "";
 
-    ordenadas.forEach(s => {
+                let totalGastado = 0;
+                let totalDevuelto = 0;
 
-        const fechaObj = s.fecha?.toDate ? s.fecha.toDate() : null;
+                snapSolicitudes.forEach(docS => {
+                    const s = docS.data();
 
-        const fStr = fechaObj
-            ? fechaObj.toLocaleString('es-MX', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-            : 'Sin fecha';
+                    if (s.nombre_asesor === emailAsesor) {
+                        solicitudesActuales.push(s);
 
-        let info = `<div class="font-black text-slate-800 uppercase">${s.nombre_asesor || 'S/N'}</div>`;
-        if (s.curp && s.curp !== "N/A") info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
-        if (s.nss && s.nss !== "N/A") info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+                        totalGastado += Number(s.costo || 0);
+                        if (s.reembolsado === true) {
+                            totalDevuelto += Number(s.costo || 0);
+                        }
+                    }
+                });
 
-        const estatusActual = String(s.estatus || "").toUpperCase();
-        const costo = Number(s.costo || 0);
+                document.getElementById('resGastado').innerText = `$${totalGastado.toLocaleString('es-MX')}`;
+                document.getElementById('resDevolucion').innerText = `$${totalDevuelto.toLocaleString('es-MX')}`;
 
-        const esError =
-            estatusActual.includes("ERROR") ||
-            estatusActual.includes("CURP") ||
-            estatusActual.includes("NSS") ||
-            estatusActual.includes("INCONSISTENCIAS") ||
-            estatusActual.includes("FOTOS") ||
-            estatusActual.includes("CONTRASEÑA") ||
-            estatusActual.includes("LÍMITE") ||
-            estatusActual.includes("IMSS") ||
-            estatusActual.includes("NO EXISTE");
+                renderizarSolicitudes(solicitudesActuales);
 
-        const sinReembolso = esError && s.reembolsado !== true;
-
-        let colorFila = "hover:bg-blue-50";
-
-        if (sinReembolso) colorFila = "bg-red-50 hover:bg-red-100";
-        else if (s.reembolsado) colorFila = "bg-purple-50";
-        else if (estatusActual === "TERMINADO") colorFila = "bg-emerald-50";
-
-        tabla.innerHTML += `
-        <tr class="border-b ${colorFila}">
-
-            <td class="p-4 text-[10px] font-black">${fStr}</td>
-
-            <td class="p-4 text-center">${s.origen || 'Portal'}</td>
-
-            <td class="p-4 font-black">${s.tipo || ''}</td>
-
-            <td class="p-4">${info}</td>
-
-            <td class="p-4 text-center font-black text-emerald-700">$${costo}</td>
-
-            <td class="p-4 text-center">
-                <select onchange="window.cambiarEstatus('${s.id}', this.value)">
-                    <option value="En Proceso">⏳</option>
-                    <option value="Terminado">✅</option>
-                    <option value="ERR_LIMITE">❌</option>
-                </select>
-            </td>
-
-            <td class="p-4 text-center">${s.reembolsado ? '🟢' : '🔴'}</td>
-            <td class="p-4 text-center">${s.finalizado ? '🟢' : '⚪'}</td>
-            <td class="p-4 text-center">${s.bloqueado ? '🟣' : '⚪'}</td>
-
-            <td class="p-4 text-right">
-                <button onclick="window.abrirSubida('${s.id}')" class="btn-blue">SUBIR</button>
-            </td>
-
-        </tr>
-        `;
-    });
-}
-
-window.verRiesgosDelDia = () => {
-
-    const hoy = new Date().toLocaleDateString();
-
-    const riesgos = todasLasSoliCargadas.filter(s => {
-
-        const esHoy = s.fecha?.toDate && s.fecha.toDate().toLocaleDateString() === hoy;
-        if (!esHoy) return false;
-
-        const estatus = String(s.estatus || "").toUpperCase();
-
-        const esError =
-            estatus.includes("ERROR") ||
-            estatus.includes("CURP") ||
-            estatus.includes("NSS") ||
-            estatus.includes("INCONSISTENCIAS") ||
-            estatus.includes("FOTOS") ||
-            estatus.includes("CONTRASEÑA") ||
-            estatus.includes("LÍMITE") ||
-            estatus.includes("IMSS");
-
-        const sinReembolso = esError && s.reembolsado !== true;
-        const sinArchivo = s.estatus === "Terminado" && !s.archivoFinal;
-
-        return sinReembolso || sinArchivo;
-    });
-
-    renderizarTablaPersonalizada(riesgos);
-};
-</script>
+                document.getElementById('resultadoBusqueda').classList.remove('hidden');
+            } catch (error) {
+                console.error(error);
+                alert("Ocurrió un error al buscar.");
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+            }
+        };
+    </script>
 </body>
 </html>
