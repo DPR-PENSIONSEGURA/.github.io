@@ -167,38 +167,193 @@
             document.getElementById('resAgregado').innerText = `$${totalAprobado.toLocaleString()}`;
 
             // 4. CARGAR TRÁMITES (solicitudes)
-            const snapSols = await getDocs(collection(db, "solicitudes"));
-            const tSols = document.getElementById('tablaHistorialAsesor');
-            tSols.innerHTML = "";
-            let totalGastado = 0;
+            <section class="mb-8">
 
-            snapSols.forEach(docS => {
-                const s = docS.data();
-                if(s.nombre_asesor === emailAsesor) {
-                    const costo = Number(s.costo || 0);
-                    if(s.estatus === 'Terminado') totalGastado += costo;
+    <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" 
+        class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+        
+        <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">
+            Solicitudes de Trámites
+        </h2>
 
-                    tSols.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-4">${s.fecha?.toDate().toLocaleDateString() || '--'}</td>
-                            <td class="p-4 uppercase font-black">${s.tipo}</td>
-                            <td class="p-4 uppercase text-[10px]">${s.cliente_nombre || 'S/N'}</td>
-                            <td class="p-4">$${costo}</td>
-                            <td class="p-4 text-center font-black ${s.estatus === 'Terminado' ? 'text-emerald-500' : 'text-orange-500'}">${s.estatus}</td>
-                        </tr>`;
-                }
-            });
-            document.getElementById('resGastado').innerText = `$${totalGastado.toLocaleString()}`;
+        <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+    </div>
 
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('resultadoBusqueda').classList.remove('hidden');
+    <div id="contenidoSolicitudes" class="seccion-contenido">
 
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Error al cargar los datos financieros.");
-            document.getElementById('loader').classList.add('hidden');
-        }
-    };
+        <!-- BOTONES -->
+        <div class="mb-4 flex flex-wrap gap-2">
+
+            <button onclick="window.filtrarPendientesHoy()" 
+                class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                Pendientes del día
+            </button>
+
+            <button onclick="window.verRiesgosDelDia()" 
+                class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                Riesgos 🚨
+            </button>
+
+            <button onclick="window.cargarSolicitudes(currentPage)" 
+                class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg">
+                Todas
+            </button>
+
+        </div>
+
+        <!-- BUSCADOR -->
+        <div class="mb-4">
+            <input type="text" id="buscador" onkeyup="window.buscarGlobal()" 
+                placeholder="BUSCAR CURP O NSS..."
+                class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
+        </div>
+
+        <!-- TABLA -->
+        <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left border-collapse">
+
+                    <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
+                        <tr>
+                            <th class="p-4">Fecha</th>
+                            <th class="p-4">Origen</th>
+                            <th class="p-4">Trámite</th>
+                            <th class="p-4">Información</th>
+                            <th class="p-4 text-center">Costo</th>
+                            <th class="p-4 text-center">Estatus</th>
+                            <th class="p-4 text-center">Reembolso</th>
+                            <th class="p-4 text-center">Finalizado</th>
+                            <th class="p-4 text-center">Bloqueado</th>
+                            <th class="p-4 text-right">Acción</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaSolicitudes"></tbody>
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+</section>
+function renderizarTablaPersonalizada(docsArray) {
+
+    const tabla = document.getElementById('tablaSolicitudes');
+    if (!tabla) return;
+
+    tabla.innerHTML = "";
+
+    const ordenadas = [...docsArray].sort((a, b) => {
+        const fa = a.fecha?.toDate ? a.fecha.toDate().getTime() : 0;
+        const fb = b.fecha?.toDate ? b.fecha.toDate().getTime() : 0;
+        return fb - fa;
+    });
+
+    ordenadas.forEach(s => {
+
+        const fechaObj = s.fecha?.toDate ? s.fecha.toDate() : null;
+
+        const fStr = fechaObj
+            ? fechaObj.toLocaleString('es-MX', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+            : 'Sin fecha';
+
+        let info = `<div class="font-black text-slate-800 uppercase">${s.nombre_asesor || 'S/N'}</div>`;
+        if (s.curp && s.curp !== "N/A") info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
+        if (s.nss && s.nss !== "N/A") info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+
+        const estatusActual = String(s.estatus || "").toUpperCase();
+        const costo = Number(s.costo || 0);
+
+        const esError =
+            estatusActual.includes("ERROR") ||
+            estatusActual.includes("CURP") ||
+            estatusActual.includes("NSS") ||
+            estatusActual.includes("INCONSISTENCIAS") ||
+            estatusActual.includes("FOTOS") ||
+            estatusActual.includes("CONTRASEÑA") ||
+            estatusActual.includes("LÍMITE") ||
+            estatusActual.includes("IMSS") ||
+            estatusActual.includes("NO EXISTE");
+
+        const sinReembolso = esError && s.reembolsado !== true;
+
+        let colorFila = "hover:bg-blue-50";
+
+        if (sinReembolso) colorFila = "bg-red-50 hover:bg-red-100";
+        else if (s.reembolsado) colorFila = "bg-purple-50";
+        else if (estatusActual === "TERMINADO") colorFila = "bg-emerald-50";
+
+        tabla.innerHTML += `
+        <tr class="border-b ${colorFila}">
+
+            <td class="p-4 text-[10px] font-black">${fStr}</td>
+
+            <td class="p-4 text-center">${s.origen || 'Portal'}</td>
+
+            <td class="p-4 font-black">${s.tipo || ''}</td>
+
+            <td class="p-4">${info}</td>
+
+            <td class="p-4 text-center font-black text-emerald-700">$${costo}</td>
+
+            <td class="p-4 text-center">
+                <select onchange="window.cambiarEstatus('${s.id}', this.value)">
+                    <option value="En Proceso">⏳</option>
+                    <option value="Terminado">✅</option>
+                    <option value="ERR_LIMITE">❌</option>
+                </select>
+            </td>
+
+            <td class="p-4 text-center">${s.reembolsado ? '🟢' : '🔴'}</td>
+            <td class="p-4 text-center">${s.finalizado ? '🟢' : '⚪'}</td>
+            <td class="p-4 text-center">${s.bloqueado ? '🟣' : '⚪'}</td>
+
+            <td class="p-4 text-right">
+                <button onclick="window.abrirSubida('${s.id}')" class="btn-blue">SUBIR</button>
+            </td>
+
+        </tr>
+        `;
+    });
+}
+
+window.verRiesgosDelDia = () => {
+
+    const hoy = new Date().toLocaleDateString();
+
+    const riesgos = todasLasSoliCargadas.filter(s => {
+
+        const esHoy = s.fecha?.toDate && s.fecha.toDate().toLocaleDateString() === hoy;
+        if (!esHoy) return false;
+
+        const estatus = String(s.estatus || "").toUpperCase();
+
+        const esError =
+            estatus.includes("ERROR") ||
+            estatus.includes("CURP") ||
+            estatus.includes("NSS") ||
+            estatus.includes("INCONSISTENCIAS") ||
+            estatus.includes("FOTOS") ||
+            estatus.includes("CONTRASEÑA") ||
+            estatus.includes("LÍMITE") ||
+            estatus.includes("IMSS");
+
+        const sinReembolso = esError && s.reembolsado !== true;
+        const sinArchivo = s.estatus === "Terminado" && !s.archivoFinal;
+
+        return sinReembolso || sinArchivo;
+    });
+
+    renderizarTablaPersonalizada(riesgos);
+};
 </script>
 </body>
 </html>
