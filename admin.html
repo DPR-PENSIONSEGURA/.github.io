@@ -544,86 +544,94 @@
         }
 
         window.cambiarEstatus = async (id, val) => {
-            const docRef = doc(db, 'solicitudes', id);
+    const docRef = doc(db, 'solicitudes', id);
 
-            try {
-                const snap = await getDoc(docRef);
-                if (!snap.exists()) {
-                    alert('La solicitud no existe');
-                    return;
+    try {
+        const snap = await getDoc(docRef);
+        if (!snap.exists()) {
+            alert('La solicitud no existe');
+            return;
+        }
+
+        const s = snap.data();
+        const est = LISTA_ERRORES_DPR[val] || val;
+
+        // Si NO es error, cualquier empleado puede cambiar el estatus normal
+        if (!val.startsWith('ERR_')) {
+            await updateDoc(docRef, { estatus: est });
+            return;
+        }
+
+        // Si es error y NO es admin:
+        // solo marca el error, finaliza y bloquea, pero NO devuelve saldo
+        if (miSesion.role !== 'admin') {
+            await updateDoc(docRef, {
+                estatus: est,
+                finalizado: true,
+                bloqueado: true
+            });
+            alert('✅ Error marcado. La devolución solo la puede hacer admin.');
+            return;
+        }
+
+        // Si ya estaba reembolsado, no duplicar
+        if (s.reembolsado === true) {
+            await updateDoc(docRef, {
+                estatus: est,
+                finalizado: true,
+                bloqueado: true
+            });
+            alert('⚠️ Ya estaba reembolsado');
+            return;
+        }
+
+        let refAsesor = null;
+
+        if (s.asesor_uid) {
+            refAsesor = doc(db, 'asesores', s.asesor_uid);
+        } else {
+            const emailAsesor = String(s.nombre_asesor || '').trim();
+            if (emailAsesor) {
+                const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
+                const res = await getDocs(q);
+                if (!res.empty) {
+                    refAsesor = doc(db, 'asesores', res.docs[0].id);
                 }
-
-                const s = snap.data();
-                const est = LISTA_ERRORES_DPR[val] || val;
-
-                if (!val.startsWith('ERR_')) {
-                    await updateDoc(docRef, { estatus: est });
-                    return;
-                }
-
-                if (miSesion.role !== 'admin') {
-                    alert('Solo admin puede aplicar errores con devolución');
-                    return;
-                }
-
-                if (s.reembolsado === true) {
-                    await updateDoc(docRef, {
-                        estatus: est,
-                        finalizado: true,
-                        bloqueado: true
-                    });
-                    alert('⚠️ Ya estaba reembolsado');
-                    return;
-                }
-
-                let refAsesor = null;
-
-                if (s.asesor_uid) {
-                    refAsesor = doc(db, 'asesores', s.asesor_uid);
-                } else {
-                    const emailAsesor = String(s.nombre_asesor || '').trim();
-                    if (emailAsesor) {
-                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
-                        const res = await getDocs(q);
-                        if (!res.empty) {
-                            refAsesor = doc(db, 'asesores', res.docs[0].id);
-                        }
-                    }
-                }
-
-                if (!refAsesor) {
-                    await updateDoc(docRef, {
-                        estatus: est,
-                        finalizado: true,
-                        bloqueado: true,
-                        nota_admin: 'No se pudo devolver saldo automáticamente'
-                    });
-                    alert('⚠️ No se encontró asesor → no se devolvió saldo');
-                    return;
-                }
-
-                const monto = Number(s.costo || 0);
-
-                await updateDoc(refAsesor, {
-                    saldo: increment(monto)
-                });
-
-                await updateDoc(docRef, {
-                    estatus: est,
-                    reembolsado: true,
-                    finalizado: true,
-                    bloqueado: true,
-                    monto_reembolsado: monto,
-                    fecha_reembolso: serverTimestamp()
-                });
-
-                alert(`✅ DEVOLUCIÓN APLICADA: $${monto.toFixed(2)}`);
-            } catch (e) {
-                console.error(e);
-                alert('Error al procesar devolución');
             }
-        };
+        }
 
+        if (!refAsesor) {
+            await updateDoc(docRef, {
+                estatus: est,
+                finalizado: true,
+                bloqueado: true,
+                nota_admin: 'No se pudo devolver saldo automáticamente'
+            });
+            alert('⚠️ No se encontró asesor → no se devolvió saldo');
+            return;
+        }
+
+        const monto = Number(s.costo || 0);
+
+        await updateDoc(refAsesor, {
+            saldo: increment(monto)
+        });
+
+        await updateDoc(docRef, {
+            estatus: est,
+            reembolsado: true,
+            finalizado: true,
+            bloqueado: true,
+            monto_reembolsado: monto,
+            fecha_reembolso: serverTimestamp()
+        });
+
+        alert(`✅ DEVOLUCIÓN APLICADA: $${monto.toFixed(2)}`);
+    } catch (e) {
+        console.error(e);
+        alert('Error al procesar estatus/devolución');
+    }
+};
         window.reembolsarManual = async (id) => {
             if (miSesion.role !== 'admin') {
                 alert('Solo admin puede devolver saldo');
