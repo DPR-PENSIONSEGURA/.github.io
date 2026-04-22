@@ -33,25 +33,35 @@
                     <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesión: <span id="txtSesion">Cargando...</span></p>
                 </div>
             </div>
+
             <div class="flex gap-4 w-full lg:w-auto flex-wrap">
                 <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1 min-w-[110px] solo-admin">
                     <p class="text-[8px] font-black text-slate-400 uppercase">Usuarios conectados</p>
                     <p id="txtVisitas" class="text-xl font-black">0</p>
                 </div>
+
                 <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px]">
                     <p class="text-[8px] font-black uppercase">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
+
                 <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center flex-1 min-w-[110px] solo-admin">
                     <p class="text-[8px] font-black uppercase">Ventas del día</p>
                     <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
                 </div>
+
                 <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px]">
                     <p class="text-[10px] font-black uppercase">Pendientes de hoy</p>
                 </button>
+
+                <button onclick="window.verErroresSinDevolucion()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px] solo-admin">
+                    <p class="text-[10px] font-black uppercase">Sin devolución</p>
+                </button>
+
                 <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px]">
                     <p class="text-[10px] font-black uppercase text-slate-700">Ver todo</p>
                 </button>
+
                 <button onclick="window.logoutStaff()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px]">
                     <p class="text-[10px] font-black uppercase">Salir</p>
                 </button>
@@ -65,7 +75,9 @@
             </div>
             <div id="contenidoSaldo" class="seccion-contenido mt-4">
                 <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
-                    <table class="w-full text-left text-[10px]"><tbody id="tablaRecargas"></tbody></table>
+                    <table class="w-full text-left text-[10px]">
+                        <tbody id="tablaRecargas"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -86,6 +98,7 @@
                             <button onclick="window.agregarAsesor()" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar empleado</button>
                         </div>
                     </div>
+
                     <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-2">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xs font-black uppercase text-slate-500">Empleados / asesores</h3>
@@ -108,7 +121,7 @@
                 </div>
             </div>
         </section>
-        
+
         <section>
             <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Historial de solicitudes</h2>
@@ -118,11 +131,12 @@
             <div id="contenidoSolicitudes" class="seccion-contenido">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div class="flex items-center gap-2">
-                        <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> < </button>
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(-1)"> &lt; </button>
                         <select id="selectorPagina" onchange="window.cambiarPaginaDirecto(this.value)" class="nav-select"></select>
-                        <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> > </button>
+                        <button class="nav-pag" onclick="window.cambiarPaginaPag(1)"> &gt; </button>
                     </div>
-                    <div class="flex gap-2 items-center">
+
+                    <div class="flex gap-2 items-center flex-wrap">
                         <span id="estadoFiltro" class="text-[10px] font-black uppercase text-amber-600"></span>
                         <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP, NSS O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
                     </div>
@@ -131,9 +145,7 @@
                 <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900 text-white text-[10px] uppercase font-black italic">
-                                <tr><th class="p-4">Origen</th><th class="p-4">Trámite</th><th class="p-4">Información</th><th class="p-4 text-center">Estatus</th><th class="p-4 text-right">Acción</th></tr>
-                            </thead>
+                            <thead id="theadSolicitudes" class="bg-slate-900 text-white text-[10px] uppercase font-black italic"></thead>
                             <tbody id="tablaSolicitudes" class="text-xs font-medium italic"></tbody>
                         </table>
                     </div>
@@ -223,6 +235,7 @@
             authDomain: "pensionsegura-9c817.firebaseapp.com",
             projectId: "pensionsegura-9c817"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
@@ -234,7 +247,7 @@
             "ERR_INCONSISTENCIAS": "Error: existen inconsistencias en la información. El cliente debe acudir a su subdelegación del IMSS más cercana o realizar la aclaración correspondiente en línea.",
             "ERR_FOTOS": "Error: las fotos o documentos enviados son ilegibles, están incompletos o no se distinguen correctamente.",
             "ERR_INEXISTENTE": "Error: el documento, registro o información solicitada no existe o no fue encontrada en el sistema.",
-             "ERR_SOPORTE": "Error: el documento, contacta a soporte técnico",
+            "ERR_SOPORTE": "Error: el documento, contacta a soporte técnico",
             "ERR_PASS": "Error: la contraseña proporcionada es incorrecta.",
             "ERR_LIMITE": "Error: límite de consultas. Alguien ya realizó esta consulta anteriormente o el sistema detecta que el trámite ya fue intentado antes, por lo que es necesario esperar e intentar nuevamente más tarde.",
             "ERR_IMSS": "Error: el sistema del IMSS presentó una falla al momento de procesar la consulta. Se recomienda intentar nuevamente más tarde."
@@ -251,7 +264,27 @@
         const selector = document.getElementById('selectorPagina');
         for (let i = 1; i <= 50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
 
-        window.cambiarPaginaDirecto = (p) => { currentPage = parseInt(p); cargarSolicitudes(currentPage); };
+        function configurarEncabezadoSolicitudes() {
+            const thead = document.getElementById('theadSolicitudes');
+            if (!thead) return;
+
+            thead.innerHTML = `
+                <tr>
+                    <th class="p-4">Origen</th>
+                    <th class="p-4">Trámite</th>
+                    <th class="p-4">Información</th>
+                    <th class="p-4 text-center">Estatus</th>
+                    ${miSesion.role === 'admin' ? '<th class="p-4 text-center">Reembolsado</th>' : ''}
+                    <th class="p-4 text-right">Acción</th>
+                </tr>
+            `;
+        }
+
+        window.cambiarPaginaDirecto = (p) => {
+            currentPage = parseInt(p);
+            cargarSolicitudes(currentPage);
+        };
+
         window.cambiarPaginaPag = (dir) => {
             let p = currentPage + dir;
             if (p > 0 && p <= 50) {
@@ -260,15 +293,21 @@
                 cargarSolicitudes(p);
             }
         };
+
         window.toggleSeccion = (id, ico) => {
             const c = document.getElementById(id), i = document.getElementById(ico);
             c.classList.toggle('seccion-cerrada');
             i.innerText = c.classList.contains('seccion-cerrada') ? '▶' : '▼';
         };
-        window.cerrarModales = () => document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+
+        window.cerrarModales = () => {
+            document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        };
 
         function esMismoDia(fechaA, fechaB) {
-            return fechaA.getFullYear() === fechaB.getFullYear() && fechaA.getMonth() === fechaB.getMonth() && fechaA.getDate() === fechaB.getDate();
+            return fechaA.getFullYear() === fechaB.getFullYear() &&
+                   fechaA.getMonth() === fechaB.getMonth() &&
+                   fechaA.getDate() === fechaB.getDate();
         }
 
         function actualizarFiltroLabel(texto = '') {
@@ -284,34 +323,58 @@
             });
         }
 
-        window.filtrarPendientesHoy = () => {
-            filtroPendientesHoyActivo = true;
-            currentPage = 1;
-            selector.value = 1;
-            actualizarFiltroLabel('Mostrando solo pendientes del día');
-            cargarSolicitudes(1);
-        };
-
         window.mostrarTodas = () => {
             filtroPendientesHoyActivo = false;
+            actualizarFiltroLabel('');
+            cargarSolicitudes(currentPage);
+        };
+
+        window.filtrarPendientesHoy = () => {
+            filtroPendientesHoyActivo = true;
+            actualizarFiltroLabel('Pendientes del día');
             currentPage = 1;
             selector.value = 1;
-            actualizarFiltroLabel('');
             cargarSolicitudes(1);
         };
 
-        onSnapshot(doc(db, 'visitas_diarias', new Date().toISOString().split('T')[0]), (d) => {
-            if (d.exists()) document.getElementById('txtVisitas').innerText = d.data().contador || 0;
+        window.verErroresSinDevolucion = () => {
+            const base = todasLasSoliCargadas;
+            const filtrados = base.filter(s => {
+                const estatus = String(s.estatus || '').toUpperCase();
+                const esError =
+                    estatus.includes('ERROR') ||
+                    estatus.includes('CURP') ||
+                    estatus.includes('NSS') ||
+                    estatus.includes('INCONSISTENCIAS') ||
+                    estatus.includes('FOTOS') ||
+                    estatus.includes('CONTRASEÑA') ||
+                    estatus.includes('LÍMITE') ||
+                    estatus.includes('LIMITE') ||
+                    estatus.includes('IMSS') ||
+                    estatus.includes('NO EXISTE') ||
+                    estatus.includes('NO FUE ENCONTRADA') ||
+                    estatus.includes('SOPORTE');
+
+                return esError && s.reembolsado !== true;
+            });
+
+            actualizarFiltroLabel(`Errores sin devolución: ${filtrados.length}`);
+            renderizarTablaPersonalizada(filtrados);
+        };
+
+        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
+            if (d.exists() && document.getElementById('txtVisitas')) {
+                document.getElementById('txtVisitas').innerText = d.data().contador || 0;
+            }
         });
 
         onSnapshot(collection(db, 'accesos_crm'), (snap) => {
             const total = snap.size + 1;
-            const totalEl = document.getElementById('txtAsesores');
-            const totalAdmin = document.getElementById('totalAsesoresAdmin');
-            if (totalEl) totalEl.innerText = total;
-            if (totalAdmin) totalAdmin.innerText = total;
+            if (document.getElementById('txtAsesores')) document.getElementById('txtAsesores').innerText = total;
+            if (document.getElementById('totalAsesoresAdmin')) document.getElementById('totalAsesoresAdmin').innerText = total;
 
             if (miSesion.role !== 'admin') return;
+
             const div = document.getElementById('listaAsesores');
             div.innerHTML = `
                 <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border">
@@ -320,7 +383,9 @@
                         <p class="text-[10px] font-bold text-slate-500">Usuario: admin</p>
                     </div>
                     <span class="text-[10px] font-black text-emerald-600 uppercase">Fijo</span>
-                </div>`;
+                </div>
+            `;
+
             snap.forEach(d => {
                 const a = d.data();
                 div.innerHTML += `
@@ -330,15 +395,18 @@
                             <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} · Clave: ${a.password || ''}</p>
                         </div>
                         <button onclick="window.eliminarAsesor('${d.id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Quitar</button>
-                    </div>`;
+                    </div>
+                `;
             });
         });
 
         window.agregarAsesor = async () => {
             if (miSesion.role !== 'admin') return;
+
             const username = document.getElementById('nuevoAsesorUser').value.trim();
             const nombre = document.getElementById('nuevoAsesorNombre').value.trim();
             const password = document.getElementById('nuevoAsesorPass').value.trim();
+
             if (!username || !nombre || !password) return alert('Llena usuario, nombre y contraseña');
 
             const existente = await getDocs(query(collection(db, 'accesos_crm'), where('username', '==', username)));
@@ -351,6 +419,7 @@
                 role: 'asesor',
                 creado: serverTimestamp()
             });
+
             document.getElementById('nuevoAsesorUser').value = '';
             document.getElementById('nuevoAsesorNombre').value = '';
             document.getElementById('nuevoAsesorPass').value = '';
@@ -367,16 +436,24 @@
             todasLasSoliCargadas = [];
             let ganancia = 0;
             const hoy = new Date();
+
             snap.forEach(d => {
                 const data = { id: d.id, ...d.data() };
                 todasLasSoliCargadas.push(data);
+
                 const fecha = data.fecha?.toDate?.();
-                if (fecha && esMismoDia(fecha, hoy) && data.estatus === 'Terminado') ganancia += Number(data.costo || 0);
+                if (fecha && esMismoDia(fecha, hoy) && data.estatus === 'Terminado') {
+                    ganancia += Number(data.costo || 0);
+                }
             });
-            document.getElementById('contadorPendientes').innerText = todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
+
+            document.getElementById('contadorPendientes').innerText =
+                todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
+
             const gananciaText = `$${ganancia.toFixed(2)}`;
             if (document.getElementById('gananciaHoy')) document.getElementById('gananciaHoy').innerText = gananciaText;
             if (document.getElementById('gananciaHoyHeader')) document.getElementById('gananciaHoyHeader').innerText = gananciaText;
+
             cargarSolicitudes(currentPage);
         });
 
@@ -389,70 +466,241 @@
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = '';
+
             docsArray.forEach(s => {
-                const fStr = s.fecha?.toDate?.().toLocaleString('es-MX', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) || '...';
+                const fStr = s.fecha?.toDate?.().toLocaleString('es-MX', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) || '...';
+
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if (s.curp && s.curp !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
                 if (s.nss && s.nss !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
-                const estatusActual = String(s.estatus || '');
 
-                tabla.innerHTML += `<tr class="border-b hover:bg-blue-50 transition">
-                    <td class="p-4 text-center"><span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span></td>
-                    <td class="p-4"><div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div><div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div></td>
-                    <td class="p-4">${info}</td>
-                    <td class="p-4 text-center">
-                        <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
-                            <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}>⏳ EN PROCESO</option>
-                            <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
-                            <option value="ERR_NSS_CURP" ${estatusActual.includes('CURP') || estatusActual.includes('NSS') ? 'selected' : ''}>❌ CURP / NSS INCORRECTO</option>
-                            <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}>❌ INCONSISTENCIAS EN DATOS</option>
-                            <option value="ERR_FOTOS" ${estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles') ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
-                            <option value="ERR_INEXISTENTE" ${estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada') ? 'selected' : ''}>❌ DOCUMENTO NO ENCONTRADO</option>
-                            <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
-                            <option value="ERR_LIMITE" ${estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta') ? 'selected' : ''}>❌ LÍMITE DE CONSULTAS</option>
-                            <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}>❌ FALLA DEL SISTEMA IMSS</option>
-                        </select>
-                    </td>
-                    <td class="p-4 text-right space-x-1">
-                        <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] transition hover:scale-110">👁️</button>
-                        <button onclick="window.abrirSubida('${s.id}')" class="btn-blue">SUBIR</button>
-                    </td>
-                </tr>`;
+                const estatusActual = String(s.estatus || '');
+                const estatusUpper = estatusActual.toUpperCase();
+
+                const esError =
+                    estatusUpper.includes('ERROR') ||
+                    estatusUpper.includes('CURP') ||
+                    estatusUpper.includes('NSS') ||
+                    estatusUpper.includes('INCONSISTENCIAS') ||
+                    estatusUpper.includes('FOTOS') ||
+                    estatusUpper.includes('CONTRASEÑA') ||
+                    estatusUpper.includes('LÍMITE') ||
+                    estatusUpper.includes('LIMITE') ||
+                    estatusUpper.includes('IMSS') ||
+                    estatusUpper.includes('NO EXISTE') ||
+                    estatusUpper.includes('NO FUE ENCONTRADA') ||
+                    estatusUpper.includes('SOPORTE');
+
+                const riesgo = esError && s.reembolsado !== true;
+                const claseFila = riesgo ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-blue-50';
+
+                const celdaReembolso = miSesion.role === 'admin'
+                    ? `<td class="p-4 text-center"><span class="inline-block w-3 h-3 rounded-full ${s.reembolsado === true ? 'bg-emerald-500' : 'bg-red-500'}"></span></td>`
+                    : '';
+
+                tabla.innerHTML += `
+                    <tr class="border-b transition ${claseFila}">
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-slate-100">${s.origen || 'Portal'}</span>
+                        </td>
+
+                        <td class="p-4">
+                            <div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div>
+                            <div class="text-[8px] text-slate-400 font-bold italic">${fStr}</div>
+                        </td>
+
+                        <td class="p-4">${info}</td>
+
+                        <td class="p-4 text-center">
+                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
+                                <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}>⏳ EN PROCESO</option>
+                                <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}>✅ TERMINADO</option>
+                                <option value="ERR_NSS_CURP" ${(estatusActual.includes('CURP') || estatusActual.includes('NSS')) ? 'selected' : ''}>❌ CURP / NSS INCORRECTO</option>
+                                <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}>❌ INCONSISTENCIAS EN DATOS</option>
+                                <option value="ERR_FOTOS" ${(estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles')) ? 'selected' : ''}>❌ FOTOS ILEGIBLES</option>
+                                <option value="ERR_INEXISTENTE" ${(estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada')) ? 'selected' : ''}>❌ DOCUMENTO NO ENCONTRADO</option>
+                                <option value="ERR_SOPORTE" ${estatusActual.toLowerCase().includes('soporte técnico') ? 'selected' : ''}>❌ SOPORTE TÉCNICO</option>
+                                <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}>❌ CONTRASEÑA INCORRECTA</option>
+                                <option value="ERR_LIMITE" ${(estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta')) ? 'selected' : ''}>❌ LÍMITE DE CONSULTAS</option>
+                                <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}>❌ FALLA DEL SISTEMA IMSS</option>
+                            </select>
+                        </td>
+
+                        ${celdaReembolso}
+
+                        <td class="p-4 text-right space-x-1">
+                            <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[12px] transition hover:scale-110">👁️</button>
+                            <button onclick="window.abrirSubida('${s.id}')" class="btn-blue">SUBIR</button>
+                            ${miSesion.role === 'admin' && s.reembolsado !== true ? `<button onclick="window.reembolsarManual('${s.id}')" class="bg-emerald-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase">Devolver</button>` : ''}
+                        </td>
+                    </tr>
+                `;
             });
         }
 
         window.cambiarEstatus = async (id, val) => {
             const docRef = doc(db, 'solicitudes', id);
+
             try {
                 const snap = await getDoc(docRef);
-                const s = snap.data();
-                let est = LISTA_ERRORES_DPR[val] || val;
-
-                if (val.startsWith('ERR_')) {
-                    if (!s.reembolsado && miSesion.role === 'admin' && s.asesor_uid) {
-                        await updateDoc(doc(db, 'asesores', s.asesor_uid), { saldo: increment(Number(s.costo || 0)) });
-                        await updateDoc(docRef, { estatus: est, reembolsado: true, finalizado: true, bloqueado: true });
-                        alert('✅ Reembolso aplicado y trámite bloqueado.');
-                    } else {
-                        await updateDoc(docRef, { estatus: est, finalizado: true });
-                    }
-                } else {
-                    await updateDoc(docRef, { estatus: est });
+                if (!snap.exists()) {
+                    alert('La solicitud no existe');
+                    return;
                 }
+
+                const s = snap.data();
+                const est = LISTA_ERRORES_DPR[val] || val;
+
+                if (!val.startsWith('ERR_')) {
+                    await updateDoc(docRef, { estatus: est });
+                    return;
+                }
+
+                if (miSesion.role !== 'admin') {
+                    alert('Solo admin puede aplicar errores con devolución');
+                    return;
+                }
+
+                if (s.reembolsado === true) {
+                    await updateDoc(docRef, {
+                        estatus: est,
+                        finalizado: true,
+                        bloqueado: true
+                    });
+                    alert('⚠️ Ya estaba reembolsado');
+                    return;
+                }
+
+                let refAsesor = null;
+
+                if (s.asesor_uid) {
+                    refAsesor = doc(db, 'asesores', s.asesor_uid);
+                } else {
+                    const emailAsesor = String(s.nombre_asesor || '').trim();
+                    if (emailAsesor) {
+                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
+                        const res = await getDocs(q);
+                        if (!res.empty) {
+                            refAsesor = doc(db, 'asesores', res.docs[0].id);
+                        }
+                    }
+                }
+
+                if (!refAsesor) {
+                    await updateDoc(docRef, {
+                        estatus: est,
+                        finalizado: true,
+                        bloqueado: true,
+                        nota_admin: 'No se pudo devolver saldo automáticamente'
+                    });
+                    alert('⚠️ No se encontró asesor → no se devolvió saldo');
+                    return;
+                }
+
+                const monto = Number(s.costo || 0);
+
+                await updateDoc(refAsesor, {
+                    saldo: increment(monto)
+                });
+
+                await updateDoc(docRef, {
+                    estatus: est,
+                    reembolsado: true,
+                    finalizado: true,
+                    bloqueado: true,
+                    monto_reembolsado: monto,
+                    fecha_reembolso: serverTimestamp()
+                });
+
+                alert(`✅ DEVOLUCIÓN APLICADA: $${monto.toFixed(2)}`);
             } catch (e) {
                 console.error(e);
-                alert('Error al cambiar estatus.');
+                alert('Error al procesar devolución');
+            }
+        };
+
+        window.reembolsarManual = async (id) => {
+            if (miSesion.role !== 'admin') {
+                alert('Solo admin puede devolver saldo');
+                return;
+            }
+
+            if (!confirm('¿Aplicar devolución manual de saldo a esta solicitud?')) return;
+
+            const docRef = doc(db, 'solicitudes', id);
+
+            try {
+                const snap = await getDoc(docRef);
+                if (!snap.exists()) {
+                    alert('La solicitud no existe');
+                    return;
+                }
+
+                const s = snap.data();
+
+                if (s.reembolsado === true) {
+                    alert('Esta solicitud ya fue reembolsada.');
+                    return;
+                }
+
+                let refAsesor = null;
+
+                if (s.asesor_uid) {
+                    refAsesor = doc(db, 'asesores', s.asesor_uid);
+                } else {
+                    const emailAsesor = String(s.nombre_asesor || '').trim();
+                    if (emailAsesor) {
+                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
+                        const res = await getDocs(q);
+                        if (!res.empty) {
+                            refAsesor = doc(db, 'asesores', res.docs[0].id);
+                        }
+                    }
+                }
+
+                if (!refAsesor) {
+                    alert('No se encontró el asesor para devolver saldo.');
+                    return;
+                }
+
+                const monto = Number(s.costo || 0);
+
+                await updateDoc(refAsesor, {
+                    saldo: increment(monto)
+                });
+
+                await updateDoc(docRef, {
+                    reembolsado: true,
+                    finalizado: true,
+                    bloqueado: true,
+                    monto_reembolsado: monto,
+                    fecha_reembolso: serverTimestamp(),
+                    nota_admin: 'Devolución manual desde panel'
+                });
+
+                alert(`✅ DEVOLUCIÓN MANUAL APLICADA: $${monto.toFixed(2)}`);
+            } catch (e) {
+                console.error(e);
+                alert('Error en devolución manual');
             }
         };
 
         window.verDetalles = (data) => {
-            const cont = document.getElementById('contenedorDetalles'); cont.innerHTML = '';
+            const cont = document.getElementById('contenedorDetalles');
+            cont.innerHTML = '';
+
             const campos = [
                 { l: 'Asesor', v: data.nombre_asesor },
                 { l: 'Trámite', v: data.tipo },
                 { l: 'CURP', v: data.curp },
                 { l: 'NSS', v: data.nss }
             ];
+
             if (data.detalles_extra) {
                 const e = data.detalles_extra;
                 if (e.nombre_cliente && e.nombre_cliente !== 'N/A') campos.push({ l: 'Cliente', v: e.nombre_cliente });
@@ -464,9 +712,15 @@
                 if (e.num_servicio && e.num_servicio !== 'N/A') campos.push({ l: 'Núm. Servicio CFE', v: e.num_servicio });
                 if (e.idcif && e.idcif !== 'N/A') campos.push({ l: 'IDCIF (SAT)', v: e.idcif });
             }
+
             campos.forEach(c => {
                 if (c.v && c.v !== 'N/A') {
-                    cont.innerHTML += `<div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p><p class="text-[11px] font-bold text-slate-800 uppercase" style="${c.isPass ? 'text-transform:none;' : ''}">${c.v}</p></div>`;
+                    cont.innerHTML += `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <p class="text-[8px] text-slate-400 font-black uppercase">${c.l}</p>
+                            <p class="text-[11px] font-bold text-slate-800 uppercase" style="${c.isPass ? 'text-transform:none;' : ''}">${c.v}</p>
+                        </div>
+                    `;
                 }
             });
 
@@ -477,14 +731,21 @@
                 gridQ.innerHTML = '';
                 Object.entries(data.cuestionario).forEach(([key, val]) => {
                     if (val && val !== 'N/A') {
-                        gridQ.innerHTML += `<div class="border-b py-1"><span class="text-blue-500 font-black text-[7px] uppercase block">${key.replace(/_/g, ' ')}</span><span class="font-bold text-slate-700">${val}</span></div>`;
+                        gridQ.innerHTML += `
+                            <div class="border-b py-1">
+                                <span class="text-blue-500 font-black text-[7px] uppercase block">${key.replace(/_/g, ' ')}</span>
+                                <span class="font-bold text-slate-700">${val}</span>
+                            </div>
+                        `;
                     }
                 });
             } else {
                 boxQ.classList.add('hidden');
             }
 
-            const contFotos = document.getElementById('contenedorFotos'); contFotos.innerHTML = '';
+            const contFotos = document.getElementById('contenedorFotos');
+            contFotos.innerHTML = '';
+
             const f = data.detalles_extra || {};
             const fotos = [
                 { l: 'INE F', u: data.file_ine_f || f.file_ine_f },
@@ -493,9 +754,13 @@
                 { l: 'DOMICILIO', u: data.file_comp_domicilio || f.file_comp_domicilio },
                 { l: 'EDO CTA', u: data.file_edocta || f.file_edocta }
             ];
+
             fotos.forEach(foto => {
-                if (foto.u && foto.u !== 'N/A' && foto.u !== '') contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`;
+                if (foto.u && foto.u !== 'N/A' && foto.u !== '') {
+                    contFotos.innerHTML += `<button onclick="window.open('${foto.u}')" class="btn-descarga">📥 ${foto.l}</button>`;
+                }
             });
+
             document.getElementById('modalDetalles').classList.remove('hidden');
         };
 
@@ -507,17 +772,29 @@
         document.getElementById('btnGuardarFinal').onclick = async () => {
             const f = document.getElementById('inputArchivo').files[0];
             if (!f) return alert('Selecciona archivo');
+
             const btn = document.getElementById('btnGuardarFinal');
             btn.innerText = 'SUBIENDO...';
             btn.disabled = true;
+
             try {
                 const fd = new FormData();
                 fd.append('file', f);
                 fd.append('upload_preset', 'dpr_uploads');
-                const res = await fetch('https://api.cloudinary.com/v1_1/de5abnhul/auto/upload', { method: 'POST', body: fd });
+
+                const res = await fetch('https://api.cloudinary.com/v1_1/de5abnhul/auto/upload', {
+                    method: 'POST',
+                    body: fd
+                });
+
                 const data = await res.json();
+
                 if (data.secure_url) {
-                    await updateDoc(doc(db, 'solicitudes', idTramiteActual), { archivoFinal: data.secure_url, estatus: 'Terminado', finalizado: true });
+                    await updateDoc(doc(db, 'solicitudes', idTramiteActual), {
+                        archivoFinal: data.secure_url,
+                        estatus: 'Terminado',
+                        finalizado: true
+                    });
                     window.cerrarModales();
                     alert('✅ Trámite terminado.');
                 }
@@ -533,12 +810,26 @@
             onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
                 const t = document.getElementById('tablaRecargas');
                 t.innerHTML = '';
+
                 snap.forEach(d => {
                     const r = d.data(), id = d.id;
                     let btns = (r.estatus === 'pendiente')
                         ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
                         : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
-                    t.innerHTML += `<tr class="border-b"><td class="p-4"><b>${r.asesorEmail}</b><br><small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small></td><td class="p-4 text-center"><b>$${r.monto}</b></td><td class="p-4 text-center"><button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button></td><td class="p-4 text-right">${btns}</td></tr>`;
+
+                    t.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-4">
+                                <b>${r.asesorEmail}</b><br>
+                                <small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small>
+                            </td>
+                            <td class="p-4 text-center"><b>$${r.monto}</b></td>
+                            <td class="p-4 text-center">
+                                <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
+                            </td>
+                            <td class="p-4 text-right">${btns}</td>
+                        </tr>
+                    `;
                 });
             });
         }
@@ -551,25 +842,17 @@
             }
         };
 
-        window.abrirCajaFuerte = () => {
-            if (miSesion.role !== 'admin') return;
-            const ingreso = prompt('Clave Maestra:');
-            if (ingreso === CLAVE_CAJA_FUERTE) {
-                document.getElementById('modalCajaFuerte').classList.remove('hidden');
-            } else {
-                alert('Denegado');
-            }
-        };
-
         window.buscarGlobal = () => {
             const bus = document.getElementById('buscador').value.toUpperCase();
             if (bus.length < 1) return cargarSolicitudes(currentPage);
+
             const base = obtenerSolicitudesFiltradas();
             const filtrados = base.filter(s =>
                 (s.curp && s.curp.includes(bus)) ||
                 (s.nss && s.nss.includes(bus)) ||
                 (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))
             );
+
             renderizarTablaPersonalizada(filtrados);
         };
 
@@ -577,43 +860,58 @@
             const cont = document.getElementById('listaChat');
             cont.innerHTML = '';
             let uniqueChats = {};
+
             snap.forEach(d => {
                 const m = d.data();
                 if (!m.asesor_uid || uniqueChats[m.asesor_uid]) return;
                 uniqueChats[m.asesor_uid] = true;
+
                 const alertClass = m.respondido ? '' : 'msg-alerta';
                 const statusDot = m.respondido ? '🟢' : '🔴';
+
                 cont.innerHTML += `
-                    <div onclick="window.abrirChat('${m.asesor_uid}', '${(m.remitente || '').replace(/'/g, "\\'")}')" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
+                    <div onclick="window.abrirChat('${m.asesor_uid}', '${(m.remitente || '').replace(/'/g, "\'")}')" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[9px] font-black uppercase text-blue-600">${m.remitente || 'Usuario'}</span>
                             <span>${statusDot}</span>
                         </div>
                         <p class="text-[10px] font-bold text-slate-600 truncate">${m.texto || ''}</p>
-                    </div>`;
+                    </div>
+                `;
             });
-            if (!cont.innerHTML) cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin mensajes todavía</p>';
+
+            if (!cont.innerHTML) {
+                cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin mensajes todavía</p>';
+            }
         });
 
         window.abrirChat = (uid, email) => {
             idChatActivo = uid;
             document.getElementById('chatTitle').innerText = 'Responder a: ' + email;
             document.getElementById('modalChat').classList.remove('hidden');
+
             if (unsubscribeChatHistory) unsubscribeChatHistory();
-            unsubscribeChatHistory = onSnapshot(query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid), orderBy('timestamp', 'asc')), (snap) => {
-                const box = document.getElementById('chatHistory');
-                box.innerHTML = '';
-                snap.forEach(d => {
-                    const m = d.data();
-                    const align = m.remitente === email ? 'self-start bg-white' : 'self-end bg-blue-600 text-white';
-                    box.innerHTML += `<div class="p-2 rounded-xl text-[10px] font-bold shadow-sm max-w-[80%] ${align}">${m.texto}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
+
+            unsubscribeChatHistory = onSnapshot(
+                query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid), orderBy('timestamp', 'asc')),
+                (snap) => {
+                    const box = document.getElementById('chatHistory');
+                    box.innerHTML = '';
+
+                    snap.forEach(d => {
+                        const m = d.data();
+                        const align = m.remitente === email ? 'self-start bg-white' : 'self-end bg-blue-600 text-white';
+                        box.innerHTML += `<div class="p-2 rounded-xl text-[10px] font-bold shadow-sm max-w-[80%] ${align}">${m.texto}</div>`;
+                    });
+
+                    box.scrollTop = box.scrollHeight;
+                }
+            );
 
             document.getElementById('btnEnviarRespuesta').onclick = async () => {
                 const txt = document.getElementById('inputRespuesta').value.trim();
                 if (!txt) return;
+
                 await addDoc(collection(db, 'chat_soporte'), {
                     asesor_uid: uid,
                     remitente: 'Soporte DPR',
@@ -621,13 +919,17 @@
                     timestamp: serverTimestamp(),
                     respondido: true
                 });
+
                 const qMsg = await getDocs(query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid)));
                 qMsg.forEach(async (docChat) => {
                     await updateDoc(doc(db, 'chat_soporte', docChat.id), { respondido: true });
                 });
+
                 document.getElementById('inputRespuesta').value = '';
             };
         };
+
+        configurarEncabezadoSolicitudes();
     </script>
 </body>
 </html>
