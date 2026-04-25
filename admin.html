@@ -110,6 +110,45 @@
             </div>
         </section>
 
+
+        <section class="mb-8 solo-admin">
+            <div onclick="window.toggleSeccion('contenidoAvisos', 'icoAvisos')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-amber-500 pl-4">Control de Avisos</h2>
+                <div id="icoAvisos" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+            </div>
+
+            <div id="contenidoAvisos" class="seccion-contenido">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-1">
+                        <h3 class="text-xs font-black uppercase text-slate-500 mb-4">Publicar aviso</h3>
+                        <div class="space-y-3">
+                            <input id="tituloAviso" type="text" placeholder="Título del aviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <textarea id="mensajeAviso" placeholder="Mensaje del aviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold min-h-[120px]"></textarea>
+                            <select id="tipoAviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                                <option value="info">Informativo</option>
+                                <option value="promo">Promoción</option>
+                                <option value="urgente">Urgente</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                            </select>
+                            <label class="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500">
+                                <input id="avisoFijado" type="checkbox" class="w-4 h-4">
+                                Mostrar como aviso principal
+                            </label>
+                            <button onclick="window.crearAviso()" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-xl font-black text-xs uppercase">Publicar aviso</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-black uppercase text-slate-500">Avisos publicados</h3>
+                            <span class="text-[10px] font-black uppercase text-amber-600">Solo admin</span>
+                        </div>
+                        <div id="listaAvisosAdmin" class="space-y-3 max-h-[420px] overflow-y-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="mb-8">
             <div onclick="window.toggleSeccion('contenidoChat', 'icoChat')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-fuchsia-600 pl-4">Mensajes del chat interno</h2>
