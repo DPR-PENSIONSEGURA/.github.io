@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPR Admin | Panel Interno</title>
+    <title>DPR || Pensión Segura | CRM Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -19,17 +19,140 @@
         .btn-descarga:hover { background: #7e22ce; transform: scale(1.05); }
         .msg-alerta { border-left: 4px solid #ef4444; background: #fef2f2; }
         .solo-admin { display: none; }
+
+        :root { --navy:#071832; --navy2:#0F2A55; --emerald:#10B981; --gold:#D4AF37; --paper:#F8FAFC; }
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(16,185,129,.16), transparent 32%),
+                radial-gradient(circle at top right, rgba(212,175,55,.18), transparent 30%),
+                linear-gradient(180deg, #F8FAFC 0%, #EEF4F1 100%) !important;
+            color: #0F172A;
+        }
+        .max-w-7xl { position: relative; }
+        header {
+            background: rgba(255,255,255,.82);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(148,163,184,.22);
+            box-shadow: 0 22px 60px rgba(15,23,42,.08);
+            border-radius: 2rem;
+            padding: 1.2rem;
+        }
+        header h1 { letter-spacing: -0.06em; }
+        .card-stat {
+            border: 1px solid rgba(148,163,184,.20) !important;
+            box-shadow: 0 14px 34px rgba(15,23,42,.08);
+            transform: translateZ(0);
+        }
+        .card-stat:hover { transform: translateY(-2px); box-shadow: 0 20px 46px rgba(15,23,42,.12); }
+        section > div:first-child {
+            background: rgba(255,255,255,.78) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148,163,184,.22);
+            box-shadow: 0 14px 38px rgba(15,23,42,.06);
+        }
+        .bg-white {
+            border-color: rgba(148,163,184,.22) !important;
+        }
+        .shadow-xl, .shadow-2xl {
+            box-shadow: 0 22px 55px rgba(15,23,42,.09) !important;
+        }
+        input, textarea, select {
+            border: 1.8px solid #E2E8F0 !important;
+            transition: all .2s ease;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #10B981 !important;
+            box-shadow: 0 0 0 4px rgba(16,185,129,.10);
+        }
+        .btn-blue {
+            background: linear-gradient(135deg, #2563EB, #1E40AF) !important;
+            box-shadow: 0 12px 28px rgba(37,99,235,.18);
+        }
+        .btn-descarga {
+            background: linear-gradient(135deg, #7C3AED, #9333EA) !important;
+        }
+        table thead {
+            background: linear-gradient(135deg, #071832, #0F2A55) !important;
+        }
+        tbody tr { transition: background .18s ease; }
+        .premium-admin-banner {
+            background: linear-gradient(135deg, #071832 0%, #0F2A55 65%, #123B74 100%);
+            color: white;
+            border-radius: 2rem;
+            padding: 1.4rem;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 28px 70px rgba(7,24,50,.24);
+            border: 1px solid rgba(255,255,255,.10);
+            overflow: hidden;
+            position: relative;
+        }
+        .premium-admin-banner:after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 999px;
+            background: rgba(212,175,55,.18);
+            right: -80px;
+            top: -110px;
+        }
+        .premium-brand-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #FDE68A, #D4AF37);
+            color: #071832;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:900;
+            font-style:italic;
+            box-shadow: 0 16px 35px rgba(212,175,55,.25);
+        }
+        .premium-chip {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.14);
+            color: rgba(255,255,255,.86);
+            padding: .55rem .85rem;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+        @media (max-width: 768px) {
+            body { padding: 1rem !important; }
+            header { border-radius: 1.6rem; }
+            .premium-admin-banner { border-radius: 1.6rem; }
+        }
+
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
+        <div class="premium-admin-banner">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                <div class="flex items-center gap-4">
+                    <div class="premium-brand-mark">DP</div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300">CRM Administrativo</p>
+                        <h1 class="text-2xl md:text-4xl font-black tracking-tight">DPR || Pensión Segura</h1>
+                        <p class="text-xs md:text-sm font-bold text-white/65 mt-1">Control premium de solicitudes, asesores, avisos, saldo y soporte interno.</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="premium-chip">Panel interno</span>
+                    <span class="premium-chip">Firebase activo</span>
+                    <span class="premium-chip">n8n protegido</span>
+                </div>
+            </div>
+        </div>
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
                 <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
                 <div>
-                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">Interno</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR Consultoría Executive</p>
+                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">CRM</span></h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DPR || Pensión Segura</p>
                     <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesión: <span id="txtSesion">Cargando...</span></p>
                 </div>
             </div>
@@ -838,6 +961,133 @@
                 btn.disabled = false;
             }
         };
+
+
+        window.crearAviso = async () => {
+            if (miSesion.role !== 'admin') {
+                alert('No autorizado');
+                return;
+            }
+
+            const tituloEl = document.getElementById('tituloAviso');
+            const mensajeEl = document.getElementById('mensajeAviso');
+            const tipoEl = document.getElementById('tipoAviso');
+            const fijadoEl = document.getElementById('avisoFijado');
+
+            const titulo = tituloEl.value.trim();
+            const mensaje = mensajeEl.value.trim();
+            const tipo = tipoEl.value;
+            const fijado = fijadoEl.checked;
+
+            if (!titulo || !mensaje) {
+                alert('Completa título y mensaje');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, 'avisos'), {
+                    titulo,
+                    mensaje,
+                    tipo,
+                    activo: true,
+                    fijado,
+                    creado: serverTimestamp(),
+                    creado_por: miSesion.name || miSesion.username || 'admin'
+                });
+
+                tituloEl.value = '';
+                mensajeEl.value = '';
+                tipoEl.value = 'info';
+                fijadoEl.checked = false;
+
+                alert('✅ Aviso publicado');
+            } catch (e) {
+                console.error(e);
+                alert('Error al publicar aviso. Revisa permisos de Firestore.');
+            }
+        };
+
+        window.desactivarAviso = async (id) => {
+            if (miSesion.role !== 'admin') return alert('No autorizado');
+            if (!confirm('¿Desactivar este aviso?')) return;
+
+            await updateDoc(doc(db, 'avisos', id), {
+                activo: false,
+                desactivado: serverTimestamp()
+            });
+        };
+
+        window.reactivarAviso = async (id) => {
+            if (miSesion.role !== 'admin') return alert('No autorizado');
+
+            await updateDoc(doc(db, 'avisos', id), {
+                activo: true,
+                reactivado: serverTimestamp()
+            });
+        };
+
+        window.eliminarAviso = async (id) => {
+            if (miSesion.role !== 'admin') return alert('No autorizado');
+            if (!confirm('¿Eliminar aviso definitivamente?')) return;
+
+            await deleteDoc(doc(db, 'avisos', id));
+        };
+
+        if (miSesion.role === 'admin') {
+            onSnapshot(query(collection(db, 'avisos'), orderBy('creado', 'desc'), limit(50)), (snap) => {
+                const cont = document.getElementById('listaAvisosAdmin');
+                if (!cont) return;
+
+                cont.innerHTML = '';
+
+                snap.forEach(d => {
+                    const a = d.data();
+                    const id = d.id;
+                    const fecha = a.creado?.toDate?.().toLocaleString('es-MX', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) || 'Sin fecha';
+
+                    const tipoColor = {
+                        info: 'bg-blue-50 text-blue-700 border-blue-200',
+                        promo: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                        urgente: 'bg-red-50 text-red-700 border-red-200',
+                        mantenimiento: 'bg-amber-50 text-amber-700 border-amber-200'
+                    }[a.tipo || 'info'] || 'bg-slate-50 text-slate-700 border-slate-200';
+
+                    cont.innerHTML += `
+                        <div class="p-4 rounded-2xl border ${a.activo === false ? 'bg-slate-50 opacity-60' : 'bg-white'}">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="flex gap-2 items-center mb-2 flex-wrap">
+                                        <span class="px-2 py-1 rounded-full border text-[8px] font-black uppercase ${tipoColor}">${a.tipo || 'info'}</span>
+                                        ${a.fijado ? '<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-[8px] font-black uppercase">Fijado</span>' : ''}
+                                        <span class="px-2 py-1 rounded-full ${a.activo === false ? 'bg-slate-200 text-slate-500' : 'bg-emerald-100 text-emerald-700'} text-[8px] font-black uppercase">${a.activo === false ? 'Inactivo' : 'Activo'}</span>
+                                    </div>
+                                    <p class="text-[12px] font-black uppercase text-slate-800">${a.titulo || ''}</p>
+                                    <p class="text-[11px] font-bold text-slate-500 mt-1 leading-relaxed">${a.mensaje || ''}</p>
+                                    <p class="text-[9px] font-black text-slate-300 uppercase mt-2">${fecha}</p>
+                                </div>
+
+                                <div class="flex flex-col gap-2 shrink-0">
+                                    ${a.activo === false
+                                        ? `<button onclick="window.reactivarAviso('${id}')" class="bg-emerald-500 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Activar</button>`
+                                        : `<button onclick="window.desactivarAviso('${id}')" class="bg-amber-500 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Pausar</button>`
+                                    }
+                                    <button onclick="window.eliminarAviso('${id}')" class="bg-red-500 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Borrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (!cont.innerHTML) {
+                    cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin avisos publicados</p>';
+                }
+            });
+        }
 
         if (miSesion.role === 'admin') {
             onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
