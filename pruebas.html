@@ -30,6 +30,10 @@
         .input-light:focus { border-color:#10B981; box-shadow:0 0 0 4px rgba(16,185,129,.10); }
         .orange-btn { background: linear-gradient(135deg, #F97316, #EA580C); color: white; transition: all 0.3s ease; cursor: pointer; box-shadow:0 18px 32px rgba(249,115,22,.22); }
         .orange-btn:hover { transform: translateY(-1px); box-shadow:0 22px 42px rgba(249,115,22,.28); }
+        .clip-pay-btn { background: linear-gradient(135deg, #081A3A, #0F2A55); color:white; border-radius: 18px; padding: 14px 12px; font-size: 11px; font-weight: 900; text-transform: uppercase; box-shadow: 0 16px 30px rgba(8,26,58,.18); transition: .2s; }
+        .clip-pay-btn:hover { transform: translateY(-1px); box-shadow: 0 20px 40px rgba(8,26,58,.24); }
+        .clip-pay-btn:disabled { opacity:.65; cursor:not-allowed; transform:none; }
+        .manual-pay-box { background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:24px; padding:16px; }
         #chat-window { display: none; width: 360px; height: 540px; background: white; border-radius: 28px; border: 1px solid rgba(148,163,184,.28); flex-direction: column; overflow: hidden; box-shadow: 0 25px 70px rgba(15,23,42,.24); margin-bottom: 15px; }
         .chat-header { background: linear-gradient(135deg, #081A3A, #0F2A55); color: white; padding: 16px; font-weight: 900; font-size: 11px; text-transform: uppercase; }
         #chat-messages { flex: 1; padding: 15px; overflow-y: auto; font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
@@ -165,18 +169,37 @@
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-8 md:p-10 relative text-center border shadow-2xl max-h-[92vh] overflow-y-auto">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
-            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
-                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
-                <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">DPR || Pensión Segura</p>
+            <h2 class="text-lg font-black text-slate-800 uppercase mb-2 italic">Recargar Saldo</h2>
+            <p class="text-[11px] font-bold text-slate-500 mb-5">Paga con tarjeta mediante Clip. El saldo se acredita automáticamente cuando el pago sea confirmado.</p>
+
+            <div class="grid grid-cols-3 gap-2 mb-4">
+                <button onclick="window.crearRecargaClip(200)" class="clip-pay-btn">$200</button>
+                <button onclick="window.crearRecargaClip(500)" class="clip-pay-btn">$500</button>
+                <button onclick="window.crearRecargaClip(1000)" class="clip-pay-btn">$1,000</button>
             </div>
-            <div class="space-y-3">
-                <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
-                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
-                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
+
+            <div class="flex gap-2 mb-5">
+                <input type="number" id="clipMontoPersonalizado" placeholder="OTRO MONTO MÍN $200" class="input-light text-center flex-1">
+                <button onclick="window.crearRecargaClipPersonalizada()" id="btnClipPersonalizado" class="orange-btn px-4 rounded-2xl font-black text-white uppercase text-[10px]">Pagar</button>
+            </div>
+
+            <div id="clipEstadoPago" class="hidden mb-5 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-[11px] font-black text-emerald-700 uppercase"></div>
+
+            <div class="manual-pay-box text-left">
+                <p class="text-[10px] font-black uppercase text-slate-500 mb-3 text-center">O reporta transferencia manual</p>
+                <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-3xl mb-4 text-center">
+                    <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
+                    <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
+                </div>
+                <div class="space-y-3">
+                    <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
+                    <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
+                    <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                    <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-slate-900 py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-2">Informar Pago Manual</button>
+                </div>
             </div>
         </div>
     </div>
@@ -224,6 +247,10 @@
         const CLOUD_NAME = "de5abnhul";
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
+        // Webhook de n8n que CREA el link de pago de Clip.
+        // IMPORTANTE: aquí va la URL del workflow de creación, NO la de confirmación/postback.
+        const N8N_CREAR_PAGO_CLIP_URL = "https://n8n.srv1567730.hstgr.cloud/webhook/crear-pago-clip-dpr";
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
         let historialSolicitudesCache = [];
@@ -539,6 +566,88 @@
                     botonPago.style.opacity = "1";
                     botonPago.style.cursor = "pointer";
                 }
+            }
+        };
+
+        let creandoPagoClip = false;
+
+        function setClipEstado(mensaje, tipo = "info") {
+            const box = document.getElementById('clipEstadoPago');
+            if (!box) return;
+            box.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-100', 'text-emerald-700', 'bg-red-50', 'border-red-100', 'text-red-700', 'bg-amber-50', 'border-amber-100', 'text-amber-700');
+            if (tipo === "error") box.classList.add('bg-red-50', 'border-red-100', 'text-red-700');
+            else if (tipo === "warn") box.classList.add('bg-amber-50', 'border-amber-100', 'text-amber-700');
+            else box.classList.add('bg-emerald-50', 'border-emerald-100', 'text-emerald-700');
+            box.innerText = mensaje;
+        }
+
+        function setBotonesClip(disabled) {
+            document.querySelectorAll('.clip-pay-btn, #btnClipPersonalizado').forEach(btn => {
+                btn.disabled = disabled;
+                btn.style.opacity = disabled ? "0.65" : "1";
+                btn.style.cursor = disabled ? "not-allowed" : "pointer";
+            });
+        }
+
+        window.crearRecargaClipPersonalizada = () => {
+            const monto = parseFloat(document.getElementById('clipMontoPersonalizado')?.value || 0);
+            window.crearRecargaClip(monto);
+        };
+
+        window.crearRecargaClip = async (monto) => {
+            if (creandoPagoClip) return;
+
+            monto = Number(monto);
+            if (!userUID) return alert("No se encontró tu sesión. Vuelve a iniciar sesión.");
+            if (!monto || monto < 200) return alert("La recarga mínima es de $200 MXN.");
+
+            const confirmar = confirm(`¿Deseas crear una recarga por $${monto.toLocaleString('es-MX')} MXN con Clip?`);
+            if (!confirmar) return;
+
+            creandoPagoClip = true;
+            setBotonesClip(true);
+            setClipEstado("Generando link de pago seguro con Clip...");
+
+            try {
+                const res = await fetch(N8N_CREAR_PAGO_CLIP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        asesor_uid: userUID,
+                        asesorEmail: emailAsesor,
+                        monto,
+                        concepto: "Recarga saldo DPR",
+                        origen: "dashboard_asesor",
+                        success_url: window.location.href,
+                        error_url: window.location.href
+                    })
+                });
+
+                let data = {};
+                try { data = await res.json(); } catch (_) {}
+
+                if (!res.ok) {
+                    console.error("n8n crear pago Clip", data);
+                    throw new Error(data?.message || data?.error || "No se pudo crear el link de pago.");
+                }
+
+                const urlPago = data.url || data.link_pago || data.payment_url || data.checkout_url || data.payment_request_url || data?.data?.url;
+
+                if (!urlPago) {
+                    console.error("Respuesta sin URL de pago", data);
+                    throw new Error("n8n respondió, pero no regresó una URL de pago de Clip.");
+                }
+
+                setClipEstado("Link creado. Redirigiendo a Clip...");
+                window.location.href = urlPago;
+
+            } catch (error) {
+                console.error("Error creando recarga Clip:", error);
+                setClipEstado("No se pudo generar el link de pago. Revisa n8n o intenta de nuevo.", "error");
+                alert(error.message || "Error al conectar con Clip.");
+            } finally {
+                creandoPagoClip = false;
+                setBotonesClip(false);
             }
         };
 
