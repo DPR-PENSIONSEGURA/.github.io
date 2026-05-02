@@ -184,6 +184,12 @@
                 <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px]">
                     <p class="text-[10px] font-black uppercase text-slate-700">Ver todo</p>
                 </button>
+                <button onclick="window.abrirModalReportes()" class="card-stat bg-indigo-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-indigo-800 text-center flex-1 min-w-[110px] solo-admin">
+                    <p class="text-[10px] font-black uppercase">Métricas</p>
+                </button>
+                <button onclick="window.abrirModalTramites()" class="card-stat bg-teal-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-teal-800 text-center flex-1 min-w-[110px] solo-admin">
+                    <p class="text-[10px] font-black uppercase">Trámites</p>
+                </button>
 
                 <button onclick="window.logoutStaff()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px]">
                     <p class="text-[10px] font-black uppercase">Salir</p>
@@ -206,9 +212,9 @@
         </section>
 
         <section class="mb-8 solo-admin">
-            <div onclick="window.toggleSeccion('contenidoAdmin', 'icoAdmin')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+            <div class="flex justify-between items-center bg-slate-200 p-4 rounded-2xl mb-4">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-purple-600 pl-4">Control Administrativo</h2>
-                <div id="icoAdmin" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+                <button onclick="window.abrirModalControlAdmin()" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Abrir modal</button>
             </div>
             <div id="contenidoAdmin" class="seccion-contenido">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -235,9 +241,9 @@
 
 
         <section class="mb-8 solo-admin">
-            <div onclick="window.toggleSeccion('contenidoAvisos', 'icoAvisos')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+            <div class="flex justify-between items-center bg-slate-200 p-4 rounded-2xl mb-4">
                 <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-amber-500 pl-4">Control de Avisos</h2>
-                <div id="icoAvisos" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
+                <button onclick="window.abrirModalAvisosAdmin()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Abrir modal</button>
             </div>
 
             <div id="contenidoAvisos" class="seccion-contenido">
@@ -315,8 +321,7 @@
             </div>
         </section>
     </div>
-
-    <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
+        <div id="modalCajaFuerte" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md hidden z-[120] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl border-4 border-slate-800">
             <h2 class="text-2xl font-black mb-6 uppercase italic text-slate-800">Finanzas DPR</h2>
             <div class="space-y-6">
@@ -370,6 +375,41 @@
         </div>
     </div>
 
+    <div id="modalReportes" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[170] flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-6xl rounded-[2rem] p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-indigo-700">Métricas y reportes</h2><button onclick="window.cerrarModales()" class="text-2xl">×</button></div>
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black">Ventas hoy</p><p id="repVentasHoy" class="text-2xl font-black">$0</p></div>
+          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black">Semanas cotizadas (hoy)</p><p id="repSemanasHoy" class="text-2xl font-black">0</p></div>
+          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black">Actas (hoy)</p><p id="repActasHoy" class="text-2xl font-black">0</p></div>
+        </div>
+        <div class="mb-4"><h3 class="font-black text-sm mb-2">Ventas diarias (últimos 14 días)</h3><div id="graficaVentas" class="flex items-end gap-2 h-48 bg-slate-50 p-3 rounded-xl border"></div></div>
+        <div class="mb-4"><h3 class="font-black text-sm mb-2">Usuarios registrados</h3><div id="tablaUsuariosAdmin" class="text-xs"></div></div>
+        <div class="mb-4"><h3 class="font-black text-sm mb-2">Leads de index</h3><div id="tablaLeadsAdmin" class="text-xs"></div></div>
+        <div class="flex gap-2 items-center"><button onclick="window.descargarReporte('semanal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-black">PDF semanal</button><input id="mesReporte" type="month" class="border rounded-lg p-2 text-xs"><button onclick="window.descargarReporte('mensual')" class="bg-indigo-800 text-white px-4 py-2 rounded-lg text-xs font-black">PDF mensual</button></div>
+      </div>
+    </div>
+
+    <div id="modalTramitesAdmin" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[171] flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-4xl rounded-[2rem] p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-teal-700">Gestión de trámites</h2><button onclick="window.cerrarModales()" class="text-2xl">×</button></div>
+        <div class="grid md:grid-cols-2 gap-3 mb-4"><input id="tramiteNombre" placeholder="Nombre" class="bg-slate-100 p-3 rounded-xl text-xs font-bold"><input id="tramitePrecio" type="number" placeholder="Precio" class="bg-slate-100 p-3 rounded-xl text-xs font-bold"><input id="tramiteCampos" placeholder="Campos solicitados (coma)" class="bg-slate-100 p-3 rounded-xl text-xs font-bold md:col-span-2"><textarea id="tramiteDesc" placeholder="Descripción" class="bg-slate-100 p-3 rounded-xl text-xs font-bold md:col-span-2"></textarea><button onclick="window.agregarTramiteAdmin()" class="bg-teal-600 text-white py-3 rounded-xl font-black text-xs md:col-span-2">Agregar trámite</button></div>
+        <div id="listaTramitesAdmin"></div>
+      </div>
+    </div>
+    <div id="modalControlAdmin" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[172] flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-6xl rounded-[2rem] p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-purple-700">Control administrativo</h2><button onclick="window.cerrarModales()" class="text-2xl">×</button></div>
+        <div id="modalAdminBody"></div>
+      </div>
+    </div>
+    <div id="modalAvisosAdmin" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[173] flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-6xl rounded-[2rem] p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-amber-700">Control de avisos</h2><button onclick="window.cerrarModales()" class="text-2xl">×</button></div>
+        <div id="modalAvisosBody"></div>
+      </div>
+    </div>
+
     <script>
         const staffSession = JSON.parse(localStorage.getItem('staffSession'));
         if (!staffSession) {
@@ -388,6 +428,7 @@
         };
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -476,6 +517,60 @@
         }
 
         function obtenerSolicitudesFiltradas() {
+            if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
+            const hoy = new Date();
+            return todasLasSoliCargadas.filter(s => {
+                const fecha = s.fecha?.toDate?.();
+                return fecha && esMismoDia(fecha, hoy) && s.estatus === 'En Proceso';
+            });
+        }
+
+        window.mostrarTodas = () => {
+            filtroPendientesHoyActivo = false;
+            actualizarFiltroLabel('');
+            cargarSolicitudes(currentPage);
+        };
+
+        window.filtrarPendientesHoy = () => {
+            filtroPendientesHoyActivo = true;
+            actualizarFiltroLabel('Pendientes del día');
+            currentPage = 1;
+            selector.value = 1;
+            cargarSolicitudes(1);
+        };
+
+        window.verErroresSinDevolucion = () => {
+            const base = todasLasSoliCargadas;
+            const filtrados = base.filter(s => {
+                const estatus = String(s.estatus || '').toUpperCase();
+                const esError =
+                    estatus.includes('ERROR') ||
+                    estatus.includes('CURP') ||
+                    estatus.includes('NSS') ||
+                    estatus.includes('INCONSISTENCIAS') ||
+                    estatus.includes('FOTOS') ||
+                    estatus.includes('CONTRASEÑA') ||
+                    estatus.includes('LÍMITE') ||
+                    estatus.includes('LIMITE') ||
+                    estatus.includes('IMSS') ||
+                    estatus.includes('NO EXISTE') ||
+                    estatus.includes('NO FUE ENCONTRADA') ||
+                    estatus.includes('SOPORTE');
+
+                return esError && s.reembolsado !== true;
+            });
+
+            if (!filtrados.length) {
+                alert('No hay trámites con error pendientes de devolución.');
+                return;
+            }
+
+            renderizarTablaPersonalizada(filtrados);
+            actualizarFiltroLabel('Errores sin devolución');
+            selector.value = 1;
+            currentPage = 1;
+        };
+                function obtenerSolicitudesFiltradas() {
             if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
             const hoy = new Date();
             return todasLasSoliCargadas.filter(s => {
@@ -856,6 +951,7 @@
                 { l: 'CURP', v: data.curp },
                 { l: 'NSS', v: data.nss }
             ];
+                        ];
 
             if (data.detalles_extra) {
                 const e = data.detalles_extra;
@@ -1212,6 +1308,49 @@
         };
 
         configurarEncabezadoSolicitudes();
+        let cacheSolicitudes = [];
+        onSnapshot(query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(400)), snap=>{ cacheSolicitudes = snap.docs.map(d=>({id:d.id,...d.data()})); });
+        window.abrirModalReportes = () => { document.getElementById('modalReportes').classList.remove('hidden'); cargarReportesAdmin(); };
+        window.abrirModalTramites = () => { document.getElementById('modalTramitesAdmin').classList.remove('hidden'); };
+        window.abrirModalControlAdmin = () => {
+          const body = document.getElementById('modalAdminBody');
+          body.innerHTML = document.getElementById('contenidoAdmin').innerHTML;
+          document.getElementById('modalControlAdmin').classList.remove('hidden');
+        };
+        window.abrirModalAvisosAdmin = () => {
+          const body = document.getElementById('modalAvisosBody');
+          body.innerHTML = document.getElementById('contenidoAvisos').innerHTML;
+          document.getElementById('modalAvisosAdmin').classList.remove('hidden');
+        };
+        const fechaKey = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+        async function cargarReportesAdmin(){
+          const hoy = fechaKey(new Date()); const dias = {}; for(let i=13;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); dias[fechaKey(d)] = 0;}
+          let semanas=0, actas=0, ventasHoy=0;
+          cacheSolicitudes.forEach(s=>{ const f=s.fecha?.toDate?.(); if(!f) return; const k=fechaKey(f); const m=Number(s.precio||s.monto||0); if(k in dias) dias[k]+=m; if(k===hoy){ventasHoy+=m; const t=String(s.tramite||'').toLowerCase(); if(t.includes('semanas')) semanas++; if(t.includes('acta')) actas++; }});
+          document.getElementById('repVentasHoy').textContent = `$${ventasHoy.toLocaleString('es-MX')}`; document.getElementById('repSemanasHoy').textContent = semanas; document.getElementById('repActasHoy').textContent = actas;
+          const g=document.getElementById('graficaVentas'); g.innerHTML=''; const max=Math.max(...Object.values(dias),1); Object.entries(dias).forEach(([k,v])=>{ const h=Math.max(8,Math.round((v/max)*140)); g.innerHTML += `<div class="flex-1 flex flex-col items-center justify-end"><div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: $${v}"></div><span class="text-[9px]">${k.slice(5)}</span></div>`; });
+        }
+        onSnapshot(query(collection(db,'asesores'), limit(100)), snap=>{ const el=document.getElementById('tablaUsuariosAdmin'); if(!el) return; const rows=snap.docs.map(d=>d.data()); el.innerHTML='<table class="w-full"><tr><th>Nombre</th><th>Usuario</th><th>Saldo</th></tr>'+rows.map(r=>`<tr><td>${r.name||''}</td><td>${r.username||''}</td><td>$${Number(r.saldo||0).toLocaleString('es-MX')}</td></tr>`).join('')+'</table>'; });
+        onSnapshot(query(collection(db,'leads_web'), orderBy('fecha','desc'), limit(50)), snap=>{ const el=document.getElementById('tablaLeadsAdmin'); if(!el) return; const rows=snap.docs.map(d=>d.data()); el.innerHTML='<table class="w-full"><tr><th>Nombre</th><th>Teléfono</th><th>Interés</th></tr>'+rows.map(r=>`<tr><td>${r.nombre||''}</td><td>${r.telefono||''}</td><td>${r.interes||''}</td></tr>`).join('')+'</table>'; });
+        window.descargarReporte = (tipo) => {
+          const { jsPDF } = window.jspdf || {};
+          if (!jsPDF) return alert('No se pudo cargar la librería PDF');
+          const docPdf = new jsPDF();
+          const mesElegido = document.getElementById('mesReporte')?.value || '';
+          docPdf.setFontSize(16);
+          docPdf.text(`Reporte ${tipo === 'mensual' ? 'mensual' : 'semanal'} DPR`, 14, 18);
+          docPdf.setFontSize(11);
+          docPdf.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, 26);
+          if (tipo === 'mensual') docPdf.text(`Mes seleccionado: ${mesElegido || 'No definido'}`, 14, 33);
+          docPdf.text(`Ventas hoy: ${document.getElementById('repVentasHoy')?.textContent || '$0'}`, 14, 42);
+          docPdf.text(`Semanas hoy: ${document.getElementById('repSemanasHoy')?.textContent || '0'}`, 14, 49);
+          docPdf.text(`Actas hoy: ${document.getElementById('repActasHoy')?.textContent || '0'}`, 14, 56);
+          docPdf.save(`reporte-${tipo}-${new Date().toISOString().slice(0,10)}.pdf`);
+        };
+        window.agregarTramiteAdmin = async () => { const nombre=document.getElementById('tramiteNombre').value.trim(); if(!nombre) return alert('Nombre requerido'); const precio=Number(document.getElementById('tramitePrecio').value||0); const descripcion=document.getElementById('tramiteDesc').value.trim(); const campos=document.getElementById('tramiteCampos').value.split(',').map(x=>x.trim()).filter(Boolean); await addDoc(collection(db,'tramites'),{nombre,precio,descripcion,campos,activo:true,creado:serverTimestamp()}); alert('Trámite agregado'); };
+        onSnapshot(query(collection(db,'tramites'), limit(200)), snap=>{ const cont=document.getElementById('listaTramitesAdmin'); if(!cont) return; cont.innerHTML=''; snap.forEach(d=>{ const t=d.data(); cont.innerHTML += `<div class="p-3 border rounded-xl mb-2 flex justify-between gap-2"><div><p class="font-black text-sm">${t.nombre||''} - $${Number(t.precio||0).toLocaleString('es-MX')}</p><p class="text-xs">${t.descripcion||''}</p></div><button onclick="window.toggleTramite('${d.id}', ${t.activo===false?'true':'false'})" class="px-3 py-2 rounded-lg text-xs font-black ${t.activo===false?'bg-emerald-600':'bg-red-600'} text-white">${t.activo===false?'Activar':'Desactivar'}</button></div>`; }); });
+        window.toggleTramite = async (id, activar) => { await updateDoc(doc(db,'tramites',id), { activo: activar }); };
+
     </script>
 </body>
 </html>
