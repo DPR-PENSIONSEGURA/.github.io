@@ -429,40 +429,6 @@
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <script>
-        // Funciones tempranas para que los botones y modales abran aunque Firebase tarde o falle.
-        window.cerrarModales = window.cerrarModales || function () {
-            document.querySelectorAll('.fixed').forEach(function (m) { m.classList.add('hidden'); });
-        };
-        window.abrirModalSimple = function (id) {
-            const modal = document.getElementById(id);
-            if (!modal) {
-                alert('No se encontró el modal: ' + id);
-                return;
-            }
-            modal.classList.remove('hidden');
-        };
-        window.abrirModalReportes = window.abrirModalReportes || function () {
-            window.abrirModalSimple('modalReportes');
-            if (typeof window.cargarReportesAdmin === 'function') window.cargarReportesAdmin();
-        };
-        window.abrirModalTramites = window.abrirModalTramites || function () {
-            window.abrirModalSimple('modalTramitesAdmin');
-        };
-        window.abrirModalControlAdmin = window.abrirModalControlAdmin || function () {
-            const body = document.getElementById('modalAdminBody');
-            const origen = document.getElementById('contenidoAdmin');
-            if (body && origen) body.innerHTML = origen.innerHTML;
-            window.abrirModalSimple('modalControlAdmin');
-        };
-        window.abrirModalAvisosAdmin = window.abrirModalAvisosAdmin || function () {
-            const body = document.getElementById('modalAvisosBody');
-            const origen = document.getElementById('contenidoAvisos');
-            if (body && origen) body.innerHTML = origen.innerHTML;
-            window.abrirModalSimple('modalAvisosAdmin');
-        };
-    </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, deleteDoc, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -604,54 +570,6 @@
             selector.value = 1;
             currentPage = 1;
         };
-                function obtenerSolicitudesFiltradas() {
-            if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
-            const hoy = new Date();
-            return todasLasSoliCargadas.filter(s => {
-                const fecha = s.fecha?.toDate?.();
-                return fecha && esMismoDia(fecha, hoy) && s.estatus === 'En Proceso';
-            });
-        }
-
-        window.mostrarTodas = () => {
-            filtroPendientesHoyActivo = false;
-            actualizarFiltroLabel('');
-            cargarSolicitudes(currentPage);
-        };
-
-        window.filtrarPendientesHoy = () => {
-            filtroPendientesHoyActivo = true;
-            actualizarFiltroLabel('Pendientes del día');
-            currentPage = 1;
-            selector.value = 1;
-            cargarSolicitudes(1);
-        };
-
-        window.verErroresSinDevolucion = () => {
-            const base = todasLasSoliCargadas;
-            const filtrados = base.filter(s => {
-                const estatus = String(s.estatus || '').toUpperCase();
-                const esError =
-                    estatus.includes('ERROR') ||
-                    estatus.includes('CURP') ||
-                    estatus.includes('NSS') ||
-                    estatus.includes('INCONSISTENCIAS') ||
-                    estatus.includes('FOTOS') ||
-                    estatus.includes('CONTRASEÑA') ||
-                    estatus.includes('LÍMITE') ||
-                    estatus.includes('LIMITE') ||
-                    estatus.includes('IMSS') ||
-                    estatus.includes('NO EXISTE') ||
-                    estatus.includes('NO FUE ENCONTRADA') ||
-                    estatus.includes('SOPORTE');
-
-                return esError && s.reembolsado !== true;
-            });
-
-            actualizarFiltroLabel(`Errores sin devolución: ${filtrados.length}`);
-            renderizarTablaPersonalizada(filtrados);
-        };
-
         onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
             if (d.exists() && document.getElementById('txtVisitas')) {
                 document.getElementById('txtVisitas').innerText = d.data().contador || 0;
@@ -1282,7 +1200,7 @@
                 const statusDot = m.respondido ? '🟢' : '🔴';
 
                 cont.innerHTML += `
-                    <div onclick="window.abrirChat('${m.asesor_uid}', '${(m.remitente || '').replace(/'/g, "\'")}')" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
+                    <div onclick="window.abrirChat('${String(m.asesor_uid || '').replace(/'/g, "\'")}', ${JSON.stringify(m.remitente || 'Usuario')})" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-[9px] font-black uppercase text-blue-600">${m.remitente || 'Usuario'}</span>
                             <span>${statusDot}</span>
@@ -1384,43 +1302,6 @@
         onSnapshot(query(collection(db,'tramites'), limit(200)), snap=>{ const cont=document.getElementById('listaTramitesAdmin'); if(!cont) return; cont.innerHTML=''; snap.forEach(d=>{ const t=d.data(); cont.innerHTML += `<div class="p-3 border rounded-xl mb-2 flex justify-between gap-2"><div><p class="font-black text-sm">${t.nombre||''} - $${Number(t.precio||0).toLocaleString('es-MX')}</p><p class="text-xs">${t.descripcion||''}</p></div><button onclick="window.toggleTramite('${d.id}', ${t.activo===false?'true':'false'})" class="px-3 py-2 rounded-lg text-xs font-black ${t.activo===false?'bg-emerald-600':'bg-red-600'} text-white">${t.activo===false?'Activar':'Desactivar'}</button></div>`; }); });
         window.toggleTramite = async (id, activar) => { await updateDoc(doc(db,'tramites',id), { activo: activar }); };
 
-
-
-        // Refuerzo: modales disponibles al final del módulo también.
-        window.cargarReportesAdmin = window.cargarReportesAdmin || function () {
-            const hoy = new Date();
-            const ventasHoy = todasLasSoliCargadas
-                .filter(s => s.fecha?.toDate?.() && esMismoDia(s.fecha.toDate(), hoy) && s.estatus === 'Terminado')
-                .reduce((sum, s) => sum + Number(s.costo || 0), 0);
-            const semanasHoy = todasLasSoliCargadas.filter(s => {
-                const f = s.fecha?.toDate?.();
-                return f && esMismoDia(f, hoy) && String(s.tipo || '').toLowerCase().includes('semana');
-            }).length;
-            const actasHoy = todasLasSoliCargadas.filter(s => {
-                const f = s.fecha?.toDate?.();
-                return f && esMismoDia(f, hoy) && String(s.tipo || '').toLowerCase().includes('acta');
-            }).length;
-            const repVentas = document.getElementById('repVentasHoy');
-            const repSemanas = document.getElementById('repSemanasHoy');
-            const repActas = document.getElementById('repActasHoy');
-            if (repVentas) repVentas.innerText = `$${ventasHoy.toFixed(2)}`;
-            if (repSemanas) repSemanas.innerText = semanasHoy;
-            if (repActas) repActas.innerText = actasHoy;
-        };
-        window.abrirModalReportes = () => { window.abrirModalSimple('modalReportes'); window.cargarReportesAdmin(); };
-        window.abrirModalTramites = () => { window.abrirModalSimple('modalTramitesAdmin'); };
-        window.abrirModalControlAdmin = () => {
-            const body = document.getElementById('modalAdminBody');
-            const origen = document.getElementById('contenidoAdmin');
-            if (body && origen) body.innerHTML = origen.innerHTML;
-            window.abrirModalSimple('modalControlAdmin');
-        };
-        window.abrirModalAvisosAdmin = () => {
-            const body = document.getElementById('modalAvisosBody');
-            const origen = document.getElementById('contenidoAvisos');
-            if (body && origen) body.innerHTML = origen.innerHTML;
-            window.abrirModalSimple('modalAvisosAdmin');
-        };
     </script>
 </body>
 </html>
