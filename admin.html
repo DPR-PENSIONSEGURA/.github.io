@@ -161,6 +161,68 @@
         .admin-vista.admin-oculta { display: none !important; }
         @keyframes fadeAdmin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
+
+        .admin-menu-shell {
+            position: sticky;
+            top: 14px;
+            z-index: 40;
+        }
+        .admin-menu-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .admin-menu-btn:before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,.42), transparent);
+            transform: translateX(-120%);
+            transition: transform .55s ease;
+        }
+        .admin-menu-btn:hover:before { transform: translateX(120%); }
+        .admin-menu-btn:active { transform: scale(.98); }
+        .premium-module-card {
+            background: rgba(255,255,255,.86) !important;
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(148,163,184,.24) !important;
+            box-shadow: 0 24px 70px rgba(15,23,42,.10) !important;
+            border-radius: 2.2rem !important;
+        }
+        .chat-preview-card {
+            position: relative;
+            border: 1px solid rgba(148,163,184,.26);
+            background: rgba(255,255,255,.86);
+            box-shadow: 0 14px 34px rgba(15,23,42,.07);
+            transform: translateZ(0);
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .chat-preview-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 22px 48px rgba(15,23,42,.13);
+            border-color: rgba(37,99,235,.38);
+        }
+        .chat-preview-card:after {
+            content: "Abrir";
+            position: absolute;
+            right: 14px;
+            bottom: 12px;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #2563eb;
+            background: #eff6ff;
+            border-radius: 999px;
+            padding: 4px 8px;
+        }
+        #modalChat > div, #modalDetalles > div, #modalSubir > div, #modalCajaFuerte > div,
+        #modalReportes > div, #modalTramitesAdmin > div, #modalControlAdmin > div, #modalAvisosAdmin > div {
+            animation: modalPop .22s ease both;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: translateY(12px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         @media (max-width: 768px) {
             body { padding: 1rem !important; }
             header { border-radius: 1.6rem; }
@@ -205,7 +267,7 @@
                     <p id="txtVisitas" class="text-xl font-black">0</p>
                 </div>
 
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px]">
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px] solo-admin">
                     <p class="text-[8px] font-black uppercase">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
@@ -215,7 +277,7 @@
                     <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
                 </div>
 
-                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px]">
+                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px] solo-admin">
                     <p class="text-[10px] font-black uppercase">Pendientes de hoy</p>
                 </button>
 
@@ -223,7 +285,7 @@
                     <p class="text-[10px] font-black uppercase">Sin devolución</p>
                 </button>
 
-                <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px]">
+                <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px] solo-admin">
                     <p class="text-[10px] font-black uppercase text-slate-700">Ver todo</p>
                 </button>
                 <button onclick="window.abrirModalReportes()" class="card-stat bg-indigo-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-indigo-800 text-center flex-1 min-w-[110px] solo-admin">
@@ -242,7 +304,7 @@
         <nav class="admin-menu-shell" aria-label="Menú administrativo">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                 <div>
-                    <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Menú del admin</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Menú del panel</p>
                     <h2 class="text-xl font-black text-slate-800 uppercase italic">Selecciona un módulo</h2>
                 </div>
                 <p class="text-[10px] font-bold text-slate-400 uppercase">Solo se muestra una sección a la vez</p>
@@ -266,7 +328,7 @@
                 <div id="icoSaldo" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
             </div>
             <div id="contenidoSaldo" class="seccion-contenido mt-4">
-                <div class="bg-white rounded-[2.5rem] shadow-xl border overflow-hidden">
+                <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border overflow-hidden">
                     <table class="w-full text-left text-[10px]">
                         <tbody id="tablaRecargas"></tbody>
                     </table>
@@ -347,7 +409,7 @@
                 <div id="icoChat" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400">▼</div>
             </div>
             <div id="contenidoChat" class="seccion-contenido">
-                <div class="bg-white rounded-[2.5rem] shadow-xl border p-5">
+                <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border p-5">
                     <div id="listaChat" class="space-y-3 max-h-[380px] overflow-y-auto"></div>
                 </div>
             </div>
@@ -373,7 +435,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
+                <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead id="theadSolicitudes" class="bg-slate-900 text-white text-[10px] uppercase font-black italic"></thead>
@@ -486,8 +548,11 @@
         } else {
             document.body.style.display = 'block';
             document.getElementById('txtSesion').textContent = `${staffSession.name || staffSession.username} · ${staffSession.role}`;
-            if (staffSession.role === 'admin') {
+            const esAdmin = staffSession.role === 'admin';
+            if (esAdmin) {
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'block');
+            } else {
+                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
             }
         }
 
@@ -497,6 +562,12 @@
         };
 
         window.mostrarModuloAdmin = function (modulo) {
+            const staff = JSON.parse(localStorage.getItem('staffSession')) || {};
+            const permitidoAsesor = ['solicitudes', 'chat'];
+            if (staff.role !== 'admin' && !permitidoAsesor.includes(modulo)) {
+                modulo = 'solicitudes';
+            }
+
             document.querySelectorAll('[data-admin-view]').forEach(function (el) {
                 el.classList.toggle('admin-oculta', el.getAttribute('data-admin-view') !== modulo);
             });
@@ -508,6 +579,11 @@
             const objetivo = document.querySelector(`[data-admin-view="${modulo}"]`);
             if (objetivo) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const staff = JSON.parse(localStorage.getItem('staffSession')) || {};
+            window.mostrarModuloAdmin(staff.role === 'admin' ? 'solicitudes' : 'solicitudes');
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             window.mostrarModuloAdmin('solicitudes');
@@ -1285,15 +1361,17 @@
 
                 const alertClass = m.respondido ? '' : 'msg-alerta';
                 const statusDot = m.respondido ? '🟢' : '🔴';
+                const uidSeguro = encodeURIComponent(String(m.asesor_uid || ''));
+                const remitenteSeguro = encodeURIComponent(String(m.remitente || 'Usuario'));
 
                 cont.innerHTML += `
-                    <div onclick="window.abrirChat('${String(m.asesor_uid || '').replace(/'/g, "\'")}', ${JSON.stringify(m.remitente || 'Usuario')})" class="p-4 rounded-2xl border cursor-pointer hover:shadow-md transition ${alertClass}">
-                        <div class="flex justify-between items-center mb-1">
+                    <button type="button" onclick="window.abrirChat(decodeURIComponent('${uidSeguro}'), decodeURIComponent('${remitenteSeguro}'))" class="chat-preview-card w-full text-left p-4 rounded-2xl cursor-pointer transition ${alertClass}">
+                        <div class="flex justify-between items-center mb-1 pr-12">
                             <span class="text-[9px] font-black uppercase text-blue-600">${m.remitente || 'Usuario'}</span>
                             <span>${statusDot}</span>
                         </div>
-                        <p class="text-[10px] font-bold text-slate-600 truncate">${m.texto || ''}</p>
-                    </div>
+                        <p class="text-[10px] font-bold text-slate-600 truncate pr-14">${m.texto || ''}</p>
+                    </button>
                 `;
             });
 
@@ -1303,8 +1381,14 @@
         });
 
         window.abrirChat = (uid, email) => {
+            if (!uid) {
+                alert('No se encontró el ID del chat. Revisa que el mensaje tenga asesor_uid.');
+                return;
+            }
+            const modal = document.getElementById('modalChat');
             document.getElementById('chatTitle').innerText = 'Responder a: ' + email;
-            document.getElementById('modalChat').classList.remove('hidden');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
 
             if (unsubscribeChatHistory) unsubscribeChatHistory();
 
