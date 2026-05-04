@@ -551,7 +551,7 @@
 
             const subirArchivoCloudinary = async (inputId) => {
                 const archivo = document.getElementById(inputId)?.files?.[0];
-                if (!archivo) return "N/A";
+                if (!archivo) return "  ";
 
                 const fd = new FormData();
                 fd.append('file', archivo);
@@ -563,7 +563,7 @@
                 });
 
                 const data = await res.json();
-                return data.secure_url || "N/A";
+                return data.secure_url || "  ";
             };
 
             try {
@@ -680,8 +680,8 @@
                     estatus: "En Proceso",
                     finalizado: false,
                     fecha: serverTimestamp(),
-                    curp: (val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp')).toUpperCase(),
-                    nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
+                    curp: (val('curp_p') !== ' ' ? val('curp_p') : val('q_curp')).toUpperCase(),
+                    nss: val('nss_p') !== ' ' ? val('nss_p') : val('q_nss'),
                     detalles_extra: extra,
                     cuestionario: quest,
                     file_ine_f,
@@ -698,8 +698,8 @@
                         id_solicitud: docRef.id,
                         asesor: emailAsesor,
                         tramite: t.nombre,
-                        curp: val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp'),
-                        nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
+                        curp: val('curp_p') !== ' ' ? val('curp_p') : val('q_curp'),
+                        nss: val('nss_p') !== ' ' ? val('nss_p') : val('q_nss'),
                         extra,
                         quest,
                         file_ine_f,
