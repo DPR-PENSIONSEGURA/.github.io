@@ -157,6 +157,37 @@
             color: white;
             border-color: rgba(15,42,85,.4);
         }
+        .notif-dot {
+            position: absolute;
+            top: 9px;
+            right: 10px;
+            min-width: 10px;
+            height: 10px;
+            padding: 0 4px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 5px rgba(239,68,68,.12), 0 8px 16px rgba(239,68,68,.28);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            line-height: 1;
+            font-weight: 900;
+            z-index: 3;
+            animation: pulseDot 1.4s infinite ease-in-out;
+        }
+        .notif-dot.con-numero {
+            height: 17px;
+            min-width: 17px;
+        }
+        .admin-menu-btn.tiene-notificacion .notif-dot { display: inline-flex; }
+        .admin-menu-btn.activo .notif-dot { border-color: #071832; }
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+        }
         .admin-vista { animation: fadeAdmin .18s ease; }
         .admin-vista.admin-oculta { display: none !important; }
         @keyframes fadeAdmin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -311,12 +342,12 @@
             </div>
             <div class="admin-menu-grid">
                 <button type="button" class="admin-menu-btn activo" data-admin-btn="solicitudes" onclick="window.mostrarModuloAdmin('solicitudes')">📋 Historial</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="recargas" onclick="window.mostrarModuloAdmin('recargas')">💳 Recargas</button>
+                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="recargas" onclick="window.mostrarModuloAdmin('recargas')">💳 Recargas <span class="notif-dot" data-notif-dot="recargas"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="metricas" onclick="window.mostrarModuloAdmin('metricas')">📊 Métricas</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')">🧲 Leads</button>
+                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')">🧲 Leads <span class="notif-dot" data-notif-dot="leads"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="avisos" onclick="window.mostrarModuloAdmin('avisos')">📢 Avisos</button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="tramites" onclick="window.mostrarModuloAdmin('tramites')">🧾 Trámites</button>
-                <button type="button" class="admin-menu-btn" data-admin-btn="chat" onclick="window.mostrarModuloAdmin('chat')">💬 Chat</button>
+                <button type="button" class="admin-menu-btn" data-admin-btn="chat" onclick="window.mostrarModuloAdmin('chat')">💬 Chat <span class="notif-dot" data-notif-dot="chat"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="control" onclick="window.mostrarModuloAdmin('control')">⚙️ Control</button>
             </div>
         </nav>
@@ -561,6 +592,32 @@
             window.location.href = 'staff-login.html';
         };
 
+        window.actualizarNotificacionAdmin = function (modulo, activo, cantidad = '') {
+            const btn = document.querySelector(`[data-admin-btn="${modulo}"]`);
+            const dot = document.querySelector(`[data-notif-dot="${modulo}"]`);
+            if (!btn || !dot) return;
+
+            btn.classList.toggle('tiene-notificacion', Boolean(activo));
+            const numero = Number(cantidad || 0);
+            if (activo && numero > 0 && numero < 100) {
+                dot.textContent = numero;
+                dot.classList.add('con-numero');
+            } else if (activo && numero >= 100) {
+                dot.textContent = '99+';
+                dot.classList.add('con-numero');
+            } else {
+                dot.textContent = '';
+                dot.classList.remove('con-numero');
+            }
+        };
+
+        window.marcarModuloVistoAdmin = function (modulo) {
+            if (modulo === 'leads') {
+                localStorage.setItem('admin_leads_vistos_ts', String(Date.now()));
+                window.actualizarNotificacionAdmin('leads', false);
+            }
+        };
+
         window.mostrarModuloAdmin = function (modulo) {
             const staff = JSON.parse(localStorage.getItem('staffSession')) || {};
             const permitidoAsesor = ['solicitudes', 'chat'];
@@ -575,6 +632,8 @@
             document.querySelectorAll('[data-admin-btn]').forEach(function (btn) {
                 btn.classList.toggle('activo', btn.getAttribute('data-admin-btn') === modulo);
             });
+
+            window.marcarModuloVistoAdmin(modulo);
 
             const objetivo = document.querySelector(`[data-admin-view="${modulo}"]`);
             if (objetivo) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1303,9 +1362,11 @@
             onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
                 const t = document.getElementById('tablaRecargas');
                 t.innerHTML = '';
+                let pendientesRecarga = 0;
 
                 snap.forEach(d => {
                     const r = d.data(), id = d.id;
+                    if (r.estatus === 'pendiente') pendientesRecarga++;
                     let btns = (r.estatus === 'pendiente')
                         ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
                         : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
@@ -1324,6 +1385,8 @@
                         </tr>
                     `;
                 });
+
+                window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
             });
         }
 
@@ -1353,11 +1416,13 @@
             const cont = document.getElementById('listaChat');
             cont.innerHTML = '';
             let uniqueChats = {};
+            let chatsSinResponder = 0;
 
             snap.forEach(d => {
                 const m = d.data();
                 if (!m.asesor_uid || uniqueChats[m.asesor_uid]) return;
                 uniqueChats[m.asesor_uid] = true;
+                if (m.respondido !== true) chatsSinResponder++;
 
                 const alertClass = m.respondido ? '' : 'msg-alerta';
                 const statusDot = m.respondido ? '🟢' : '🔴';
@@ -1374,6 +1439,8 @@
                     </button>
                 `;
             });
+
+            window.actualizarNotificacionAdmin('chat', chatsSinResponder > 0, chatsSinResponder);
 
             if (!cont.innerHTML) {
                 cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin mensajes todavía</p>';
@@ -1431,8 +1498,23 @@
 
         configurarEncabezadoSolicitudes();
         let cacheSolicitudes = [];
-        onSnapshot(query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(400)), snap=>{ cacheSolicitudes = snap.docs.map(d=>({id:d.id,...d.data()})); });
-        window.abrirModalReportes = () => { document.getElementById('modalReportes').classList.remove('hidden'); cargarReportesAdmin(); };
+        let metricasListas = false;
+        onSnapshot(
+            query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(1500)),
+            snap => {
+                cacheSolicitudes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                metricasListas = true;
+                if (!document.getElementById('modalReportes')?.classList.contains('hidden')) cargarReportesAdmin();
+            },
+            error => {
+                console.error('Error cargando solicitudes para métricas:', error);
+                metricasListas = false;
+            }
+        );
+        window.abrirModalReportes = () => {
+            document.getElementById('modalReportes').classList.remove('hidden');
+            cargarReportesAdmin();
+        };
         window.abrirModalTramites = () => { document.getElementById('modalTramitesAdmin').classList.remove('hidden'); };
         window.abrirModalControlAdmin = () => {
           const body = document.getElementById('modalAdminBody');
@@ -1446,14 +1528,99 @@
         };
         const fechaKey = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
         async function cargarReportesAdmin(){
-          const hoy = fechaKey(new Date()); const dias = {}; for(let i=13;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); dias[fechaKey(d)] = 0;}
-          let semanas=0, actas=0, ventasHoy=0;
-          cacheSolicitudes.forEach(s=>{ const f=s.fecha?.toDate?.(); if(!f) return; const k=fechaKey(f); const m=Number(s.precio||s.monto||0); if(k in dias) dias[k]+=m; if(k===hoy){ventasHoy+=m; const t=String(s.tramite||'').toLowerCase(); if(t.includes('semanas')) semanas++; if(t.includes('acta')) actas++; }});
-          document.getElementById('repVentasHoy').textContent = `$${ventasHoy.toLocaleString('es-MX')}`; document.getElementById('repSemanasHoy').textContent = semanas; document.getElementById('repActasHoy').textContent = actas;
-          const g=document.getElementById('graficaVentas'); g.innerHTML=''; const max=Math.max(...Object.values(dias),1); Object.entries(dias).forEach(([k,v])=>{ const h=Math.max(8,Math.round((v/max)*140)); g.innerHTML += `<div class="flex-1 flex flex-col items-center justify-end"><div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: $${v}"></div><span class="text-[9px]">${k.slice(5)}</span></div>`; });
+          const hoy = fechaKey(new Date());
+          const dias = {};
+          for(let i=13;i>=0;i--){
+            const d = new Date();
+            d.setDate(d.getDate()-i);
+            dias[fechaKey(d)] = 0;
+          }
+
+          let semanas = 0;
+          let actas = 0;
+          let ventasHoy = 0;
+
+          cacheSolicitudes.forEach(s => {
+            const fechaSolicitud = s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
+            if (!fechaSolicitud || isNaN(fechaSolicitud.getTime())) return;
+
+            const k = fechaKey(fechaSolicitud);
+            const monto = Number(s.costo ?? s.precio ?? s.monto ?? 0);
+            const tipo = String(s.tipo || s.tramite || '').toLowerCase();
+            const estatus = String(s.estatus || '').toLowerCase();
+            const cuentaComoVenta = estatus === 'terminado' || estatus === 'finalizado';
+
+            if (cuentaComoVenta && k in dias) dias[k] += monto;
+
+            if (k === hoy) {
+              if (cuentaComoVenta) ventasHoy += monto;
+              if (tipo.includes('semana')) semanas++;
+              if (tipo.includes('acta')) actas++;
+            }
+          });
+
+          document.getElementById('repVentasHoy').textContent = `$${ventasHoy.toLocaleString('es-MX')}`;
+          document.getElementById('repSemanasHoy').textContent = semanas.toLocaleString('es-MX');
+          document.getElementById('repActasHoy').textContent = actas.toLocaleString('es-MX');
+
+          const g = document.getElementById('graficaVentas');
+          if (!g) return;
+          g.innerHTML = '';
+          const max = Math.max(...Object.values(dias), 1);
+          Object.entries(dias).forEach(([k,v]) => {
+            const h = Math.max(8, Math.round((v / max) * 140));
+            g.innerHTML += `
+              <div class="flex-1 flex flex-col items-center justify-end min-w-[28px]">
+                <div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: $${Number(v).toLocaleString('es-MX')}"></div>
+                <span class="text-[9px] mt-1">${k.slice(5)}</span>
+              </div>`;
+          });
+
+          if (!metricasListas && g) {
+            g.innerHTML = '<p class="text-xs font-black text-amber-600 uppercase">Cargando métricas...</p>';
+          }
         }
-        onSnapshot(query(collection(db,'asesores'), limit(1000)), snap=>{ const el=document.getElementById('tablaUsuariosAdmin'); if(!el) return; el.textContent = snap.size.toLocaleString('es-MX'); });
-        onSnapshot(query(collection(db,'leads_web'), orderBy('fecha','desc'), limit(50)), snap=>{ const el=document.getElementById('tablaLeadsAdmin'); if(!el) return; const rows=snap.docs.map(d=>d.data()); el.innerHTML='<table class="w-full"><tr><th>Nombre</th><th>Teléfono</th><th>Interés</th></tr>'+rows.map(r=>`<tr><td>${r.nombre||''}</td><td>${r.telefono||''}</td><td>${r.interes||''}</td></tr>`).join('')+'</table>'; });
+        onSnapshot(
+          query(collection(db,'asesores'), limit(1000)),
+          snap => {
+            const el = document.getElementById('tablaUsuariosAdmin');
+            if (!el) return;
+            el.textContent = snap.size.toLocaleString('es-MX');
+          },
+          error => {
+            console.error('Error usuarios registrados:', error);
+            const el = document.getElementById('tablaUsuariosAdmin');
+            if (el) el.textContent = 'Error';
+          }
+        );
+        onSnapshot(
+          query(collection(db,'leads_web'), orderBy('fecha','desc'), limit(50)),
+          snap => {
+            const el = document.getElementById('tablaLeadsAdmin');
+            if (!el) return;
+            const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const ultimoLeadTs = rows.reduce((max, r) => {
+              const ts = r.fecha?.toDate?.().getTime?.() || r.creado?.toDate?.().getTime?.() || 0;
+              return Math.max(max, ts);
+            }, 0);
+            const vistosLeadTs = Number(localStorage.getItem('admin_leads_vistos_ts') || 0);
+            window.actualizarNotificacionAdmin('leads', ultimoLeadTs > vistosLeadTs, rows.length);
+
+            if (!rows.length) {
+              window.actualizarNotificacionAdmin('leads', false);
+              el.innerHTML = '<p class="text-xs font-black text-slate-400 uppercase py-4">Sin leads registrados</p>';
+              return;
+            }
+            el.innerHTML = '<table class="w-full"><tr><th class="text-left p-2">Nombre</th><th class="text-left p-2">Teléfono</th><th class="text-left p-2">Interés</th></tr>' +
+              rows.map(r => `<tr class="border-t"><td class="p-2">${r.nombre || r.name || ''}</td><td class="p-2">${r.telefono || r.celular || r.phone || ''}</td><td class="p-2">${r.interes || r.tipo || r.servicio || ''}</td></tr>`).join('') +
+              '</table>';
+          },
+          error => {
+            console.error('Error leads_web:', error);
+            const el = document.getElementById('tablaLeadsAdmin');
+            if (el) el.innerHTML = '<p class="text-xs font-black text-red-600 uppercase">No se pudieron cargar los leads. Revisa permisos de Firestore.</p>';
+          }
+        );
         window.descargarReporte = (tipo) => {
           const { jsPDF } = window.jspdf || {};
           if (!jsPDF) return alert('No se pudo cargar la librería PDF');
