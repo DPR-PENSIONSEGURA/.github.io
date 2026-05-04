@@ -183,7 +183,7 @@
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
-                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
+                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DPR PENSION SEGURA</p>
                 <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
             </div>
             <div class="space-y-3">
@@ -254,13 +254,15 @@
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 19, nss: true, curp: true },
-               { nombre: 'SEMANAS DETALLADAS', precio: 35, nss: true, curp: true },
+               
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true },
                  { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
                  { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
+                { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta Para Desempleo con linea de captura', precio: 200, nss: true, curp: true, pideNombre: true },
@@ -268,7 +270,7 @@
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
-                { nombre: 'RFC Verificable', precio: 95, curp: true },
+                { nombre: 'RFC Verificable', precio: 110, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
@@ -288,7 +290,7 @@
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
                 { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true },
+                { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true, curp: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
@@ -379,7 +381,9 @@
             const content = document.getElementById('formContent');
             let pFinal = t.precio;
 
-            const vips = [       ];
+            const vips = [
+                "camaron19950404@gmail.com"
+            ];
 
             if ((t.nombre === 'SEMANAS COTIZADAS' || t.nombre === 'Tarjeta NSS') && vips.includes(emailAsesor)) pFinal = 17;
 
@@ -395,6 +399,13 @@
             if (t.pidePassNueva) fields += `<input type="text" id="pass_nueva_p" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4">`;
             if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
             if (t.pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+            if (t.pideTurno) fields += `<input type="text" id="turno_p" placeholder="TURNO" class="input-light mb-4 uppercase">`;
+            if (t.pideDelegacion) fields += `<input type="text" id="delegacion_p" placeholder="DELEGACIÓN" class="input-light mb-4 uppercase">`;
+            if (t.pideClinica) fields += `<input type="text" id="clinica_p" placeholder="CLÍNICA" class="input-light mb-4 uppercase">`;
+            if (t.pideConsultorio) fields += `<input type="text" id="consultorio_p" placeholder="CONSULTORIO" class="input-light mb-4 uppercase">`;
+            if (t.pidePatron) fields += `<input type="text" id="patron_p" placeholder="PATRÓN" class="input-light mb-4 uppercase">`;
+            if (t.pidePuesto) fields += `<input type="text" id="puesto_p" placeholder="PUESTO" class="input-light mb-4 uppercase">`;
+            if (t.pideDiasIncapacidad) fields += `<input type="number" id="dias_incapacidad_p" placeholder="DÍAS DE INCAPACIDAD" class="input-light mb-4">`;
             if (t.pideTel) fields += `<input type="text" id="tel_p" placeholder="TELÉFONO" class="input-light mb-4">`;
             if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELÉFONO DE CONTACTO" class="input-light mb-4">`;
             if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
@@ -573,6 +584,13 @@
                     pass_nueva: val('pass_nueva_p'),
                     num_servicio: val('num_servicio_p'),
                     fecha: val('fecha_p'),
+                    turno: val('turno_p'),
+                    delegacion: val('delegacion_p'),
+                    clinica: val('clinica_p'),
+                    consultorio: val('consultorio_p'),
+                    patron: val('patron_p'),
+                    puesto: val('puesto_p'),
+                    dias_incapacidad: val('dias_incapacidad_p'),
                     telefono: val('tel_p'),
                     telefono_contacto: val('tel_contacto_p'),
                     correo: val('correo_p'),
