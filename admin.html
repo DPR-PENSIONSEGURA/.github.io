@@ -1265,6 +1265,118 @@
             return { ...variables, ...detalles };
         }
 
+
+
+        window.datosExpedienteActualWpp = null;
+
+        function etiquetaVariableWpp(key) {
+            return LABELS_VARIABLES_EXTRA[key] || String(key || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function copiarTextoSeguro(texto) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(texto);
+            }
+
+            return new Promise((resolve, reject) => {
+                try {
+                    const area = document.createElement('textarea');
+                    area.value = texto;
+                    area.setAttribute('readonly', '');
+                    area.style.position = 'fixed';
+                    area.style.top = '-9999px';
+                    area.style.left = '-9999px';
+                    document.body.appendChild(area);
+                    area.focus();
+                    area.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(area);
+                    ok ? resolve() : reject(new Error('No se pudo copiar'));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        function construirFormatoWpp(data) {
+            const bolsa = obtenerBolsaVariablesExtra(data || {});
+            const tipo = limpiarValorExtra(data?.tipo) || 'Trámite';
+            const asesor = limpiarValorExtra(data?.nombre_asesor) || 'N/A';
+            const curp = limpiarValorExtra(data?.curp || bolsa.curp);
+            const nss = limpiarValorExtra(data?.nss || bolsa.nss);
+            const costo = limpiarValorExtra(data?.costo);
+            const estatus = limpiarValorExtra(data?.estatus);
+            const fechaSolicitud = data?.fecha?.toDate?.()
+                ? data.fecha.toDate().toLocaleString('es-MX')
+                : limpiarValorExtra(data?.fecha);
+
+            const lineas = [];
+            lineas.push('*📄 EXPEDIENTE DPR*');
+            lineas.push('');
+            lineas.push(`*🧾 Trámite:* ${tipo}`);
+            lineas.push(`*👤 Asesor:* ${asesor}`);
+            if (estatus) lineas.push(`*📌 Estatus:* ${estatus}`);
+            if (fechaSolicitud) lineas.push(`*🕒 Fecha:* ${fechaSolicitud}`);
+            if (costo) lineas.push(`*💳 Costo:* $${Number(costo).toLocaleString('es-MX')}`);
+            if (curp) lineas.push(`*🔑 CURP:* ${curp}`);
+            if (nss) lineas.push(`*🆔 NSS:* ${nss}`);
+
+            const keys = [
+                ...ORDEN_VARIABLES_IMSS,
+                ...Object.keys(bolsa).filter(k => !ORDEN_VARIABLES_IMSS.includes(k))
+            ];
+
+            const usadas = new Set(['curp', 'nss']);
+            const datos = [];
+            keys.forEach(key => {
+                if (usadas.has(key)) return;
+                if (String(key).startsWith('file_')) return;
+                const valor = limpiarValorExtra(bolsa[key] ?? data?.[key]);
+                if (!valor) return;
+                datos.push(`• *${etiquetaVariableWpp(key)}:* ${valor}`);
+            });
+
+            if (datos.length) {
+                lineas.push('');
+                lineas.push('*📦 Datos del trámite:*');
+                lineas.push(...datos);
+            }
+
+            lineas.push('');
+            lineas.push('_DPR Consultoría | Pensión Segura_');
+            return lineas.join('\n');
+        }
+
+        window.copiarVariablesWpp = async function () {
+            const data = window.datosExpedienteActualWpp;
+            const btn = document.getElementById('btnCopiarWpp');
+
+            if (!data) {
+                alert('Abre nuevamente el expediente e intenta copiar otra vez.');
+                return;
+            }
+
+            try {
+                const texto = construirFormatoWpp(data);
+                await copiarTextoSeguro(texto);
+
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '✅ Copiado para WPP';
+                    btn.classList.add('copiado');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('copiado');
+                    }, 1800);
+                } else {
+                    alert('✅ Copiado para WhatsApp');
+                }
+            } catch (error) {
+                console.error('Error copiando formato WPP:', error);
+                alert('No se pudo copiar automáticamente. Revisa que el sitio esté abierto en HTTPS o localhost.');
+            }
+        };
+
         function pintarVariablesExtraPremium(data) {
             const box = document.getElementById('contenedorVariablesExtra');
             const grid = document.getElementById('gridVariablesExtra');
@@ -1307,14 +1419,14 @@
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles');
-            const payloadCopiar = JSON.stringify(data).replace(/'/g, "&apos;");
+            window.datosExpedienteActualWpp = data;
             cont.innerHTML = `
                 <div class="md:col-span-2 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
                     <div>
                         <p class="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">Formato operativo</p>
                         <p class="text-[11px] font-bold text-slate-500">Copia los datos del trámite listos para WhatsApp o soporte.</p>
                     </div>
-                    <button type="button" id="btnCopiarWpp" onclick='window.copiarVariablesWpp(${payloadCopiar})' class="btn-copiar-wpp">📲 Copiar formato WPP</button>
+                    <button type="button" id="btnCopiarWpp" onclick="window.copiarVariablesWpp()" class="btn-copiar-wpp">📲 Copiar formato WPP</button>
                 </div>
             `;
 
