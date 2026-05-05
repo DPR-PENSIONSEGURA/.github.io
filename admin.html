@@ -260,6 +260,86 @@
             .premium-admin-banner { border-radius: 1.6rem; }
         }
 
+
+
+        .premium-extra-box {
+            background: linear-gradient(135deg, rgba(7,24,50,.96), rgba(15,42,85,.94));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 2rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 24px 65px rgba(7,24,50,.18);
+            position: relative;
+            overflow: hidden;
+        }
+        .premium-extra-box:after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 999px;
+            background: rgba(212,175,55,.16);
+            right: -70px;
+            top: -80px;
+        }
+        .premium-extra-title {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .premium-extra-title h3 {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+        }
+        .premium-extra-title span {
+            background: rgba(16,185,129,.15);
+            color: #A7F3D0;
+            border: 1px solid rgba(16,185,129,.22);
+            border-radius: 999px;
+            padding: .42rem .7rem;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .premium-extra-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: .65rem;
+        }
+        @media (min-width: 768px) {
+            .premium-extra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        .premium-extra-item {
+            background: rgba(255,255,255,.92);
+            border: 1px solid rgba(226,232,240,.75);
+            border-radius: 1.1rem;
+            padding: .85rem;
+        }
+        .premium-extra-item p:first-child {
+            font-size: 8px;
+            color: #64748B;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: .22rem;
+        }
+        .premium-extra-item p:last-child {
+            font-size: 11px;
+            color: #0F172A;
+            font-weight: 800;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -495,6 +575,13 @@
             <div id="contenedorCuestionario" class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
                 <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Pensión</h3>
                 <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
+            </div>
+            <div id="contenedorVariablesExtra" class="premium-extra-box hidden">
+                <div class="premium-extra-title">
+                    <h3>Variables extra IMSS</h3>
+                    <span id="badgeVariablesExtra">Datos operativos</span>
+                </div>
+                <div id="gridVariablesExtra" class="premium-extra-grid"></div>
             </div>
             <div class="border-t pt-6">
                 <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Documentos Adjuntos</h3>
@@ -898,9 +985,15 @@
                     minute: '2-digit'
                 }) || '...';
 
+                const extraTabla = obtenerBolsaVariablesExtra(s);
+                const curpTabla = s.curp || extraTabla.curp;
+                const nssTabla = s.nss || extraTabla.nss;
+                const nombreTabla = extraTabla.nombre_completo || extraTabla.nombre_cliente || '';
+
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
-                if (s.curp && s.curp !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${s.curp}</div>`;
-                if (s.nss && s.nss !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${s.nss}</div>`;
+                if (nombreTabla && nombreTabla !== 'N/A') info += `<div class="text-[9px] text-emerald-600 font-bold uppercase truncate w-48">CLIENTE: ${nombreTabla}</div>`;
+                if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
+                if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
 
                 const estatusActual = String(s.estatus || '');
                 const estatusUpper = estatusActual.toUpperCase();
@@ -1108,15 +1201,99 @@
             }
         };
 
+        const LABELS_VARIABLES_EXTRA = {
+            curp: 'CURP',
+            nombre_completo: 'Nombre completo',
+            nombre_cliente: 'Nombre del cliente',
+            nss: 'NSS',
+            turno_delegacion: 'Turno / Delegación',
+            delegacion: 'Delegación',
+            fecha: 'Fecha',
+            clinica: 'Clínica',
+            consultorio: 'Consultorio',
+            patron: 'Patrón',
+            puesto: 'Puesto',
+            dias_incapacidad: 'Días de incapacidad'
+        };
+
+        const ORDEN_VARIABLES_IMSS = [
+            'nombre_completo',
+            'nombre_cliente',
+            'curp',
+            'nss',
+            'turno_delegacion',
+            'delegacion',
+            'fecha',
+            'clinica',
+            'consultorio',
+            'patron',
+            'puesto',
+            'dias_incapacidad'
+        ];
+
+        function limpiarValorExtra(valor) {
+            if (valor === null || valor === undefined) return '';
+            const texto = String(valor).trim();
+            if (!texto || texto === 'N/A' || texto === 'undefined' || texto === 'null') return '';
+            return texto;
+        }
+
+        function obtenerBolsaVariablesExtra(data) {
+            const detalles = data.detalles_extra || {};
+            const variables = data.variables_extra || data.variablesExtra || data.extra || {};
+            return { ...variables, ...detalles };
+        }
+
+        function pintarVariablesExtraPremium(data) {
+            const box = document.getElementById('contenedorVariablesExtra');
+            const grid = document.getElementById('gridVariablesExtra');
+            const badge = document.getElementById('badgeVariablesExtra');
+            if (!box || !grid) return;
+
+            const bolsa = obtenerBolsaVariablesExtra(data);
+            const tipo = String(data.tipo || '').toLowerCase();
+            const esIMSS = tipo.includes('receta') || tipo.includes('incapacidad');
+
+            const keys = [
+                ...ORDEN_VARIABLES_IMSS,
+                ...Object.keys(bolsa).filter(k => !ORDEN_VARIABLES_IMSS.includes(k))
+            ];
+
+            const items = [];
+            keys.forEach(key => {
+                const valor = limpiarValorExtra(bolsa[key] ?? data[key]);
+                if (!valor) return;
+                if (String(key).startsWith('file_')) return;
+                if (['pass', 'pass_nueva', 'correo', 'telefono', 'rfc', 'idcif', 'num_servicio'].includes(key) && esIMSS) return;
+                items.push({ key, valor });
+            });
+
+            if (!items.length) {
+                box.classList.add('hidden');
+                grid.innerHTML = '';
+                return;
+            }
+
+            badge.textContent = tipo.includes('incapacidad') ? 'Incapacidad' : tipo.includes('receta') ? 'Receta' : 'Variables extra';
+            grid.innerHTML = items.map(item => `
+                <div class="premium-extra-item">
+                    <p>${LABELS_VARIABLES_EXTRA[item.key] || item.key.replace(/_/g, ' ')}</p>
+                    <p>${item.valor}</p>
+                </div>
+            `).join('');
+            box.classList.remove('hidden');
+        }
+
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles');
             cont.innerHTML = '';
 
+            const extraModal = obtenerBolsaVariablesExtra(data);
             const campos = [
                 { l: 'Asesor', v: data.nombre_asesor },
                 { l: 'Trámite', v: data.tipo },
-                { l: 'CURP', v: data.curp },
-                { l: 'NSS', v: data.nss }
+                { l: 'CURP', v: data.curp || extraModal.curp },
+                { l: 'NSS', v: data.nss || extraModal.nss }
             ];
 
             if (data.detalles_extra) {
@@ -1160,6 +1337,8 @@
             } else {
                 boxQ.classList.add('hidden');
             }
+
+            pintarVariablesExtraPremium(data);
 
             const contFotos = document.getElementById('contenedorFotos');
             contFotos.innerHTML = '';
