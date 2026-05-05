@@ -333,6 +333,27 @@
             letter-spacing: .08em;
             margin-bottom: .22rem;
         }
+
+        .btn-copiar-wpp {
+            background: linear-gradient(135deg, #16A34A, #059669);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 16px 32px rgba(5,150,105,.22);
+            transition: all .2s ease;
+            cursor: pointer;
+        }
+        .btn-copiar-wpp:hover { transform: translateY(-1px) scale(1.02); box-shadow: 0 22px 42px rgba(5,150,105,.30); }
+        .btn-copiar-wpp.copiado { background: linear-gradient(135deg, #0F172A, #1E293B); }
         .premium-extra-item p:last-child {
             font-size: 11px;
             color: #0F172A;
@@ -1286,7 +1307,16 @@
 
         window.verDetalles = (data) => {
             const cont = document.getElementById('contenedorDetalles');
-            cont.innerHTML = '';
+            const payloadCopiar = JSON.stringify(data).replace(/'/g, "&apos;");
+            cont.innerHTML = `
+                <div class="md:col-span-2 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+                    <div>
+                        <p class="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">Formato operativo</p>
+                        <p class="text-[11px] font-bold text-slate-500">Copia los datos del trámite listos para WhatsApp o soporte.</p>
+                    </div>
+                    <button type="button" id="btnCopiarWpp" onclick='window.copiarVariablesWpp(${payloadCopiar})' class="btn-copiar-wpp">📲 Copiar formato WPP</button>
+                </div>
+            `;
 
             const extraModal = obtenerBolsaVariablesExtra(data);
             const campos = [
