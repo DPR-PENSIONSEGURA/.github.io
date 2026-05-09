@@ -254,13 +254,14 @@
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 19, nss: true, curp: true },
-               
+               { nombre: 'SEMANAS DETALLADAS', precio: 35, nss: true, curp: true },
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true, curp: true },
                  { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
                  { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
+                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true },
                 { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
                 { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
                 { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
@@ -270,7 +271,7 @@
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
-                { nombre: 'RFC Verificable', precio: 110, curp: true },
+                { nombre: 'RFC Verificable', precio: 95, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
@@ -278,12 +279,12 @@
             'DOC': [
                 
                 { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-                { nombre: 'CURP Certificada', precio: 4, curp: true },
+                { nombre: 'CURP', precio: 4, curp: true },
                 { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
                 { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
                 { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true },
-                { nombre: 'Vigencia de Derechos', precio: 24, curp: true, nss: true }
+                { nombre: 'Acta de Defunción', precio: 11, curp: true }
+                
             ],
             'INF': [
                 { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
