@@ -685,14 +685,29 @@
           <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Duplicados / errores</p><p id="opErroresHoy" class="text-3xl font-black text-red-600">0</p></div>
         </div>
 
+        <div class="op-card mb-6 border-l-4 border-l-blue-600">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-blue-600">Cloudflare Email Routing</p>
+              <h3 class="text-lg font-black uppercase italic text-slate-800">Modo catch-all activo</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">Cuando el operador da clic en TOMAR, el CRM genera un alias único @pensionsegura.org y lo guarda como llave para n8n.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] font-black uppercase">
+              <span class="op-pill blue">Dominio: <b id="opCloudflareDominio">pensionsegura.org</b></span>
+              <span class="op-pill green">Catch-all: <b id="opCloudflareDestino">consultoriadpr@gmail.com</b></span>
+              <span class="op-pill amber">Sin contraseña</span>
+            </div>
+          </div>
+        </div>
+
         <div class="grid lg:grid-cols-3 gap-5">
           <div class="op-card lg:col-span-1">
             <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Registrar correo operativo</h3>
             <div class="space-y-3">
-              <input id="opCorreoEmail" type="email" placeholder="Correo Outlook/Hotmail" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <input id="opCorreoPass" type="text" placeholder="Contraseña del correo" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <textarea id="opCorreoNota" placeholder="Nota opcional: recuperación, perfil, observación" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none min-h-[90px]"></textarea>
-              <button onclick="window.guardarCorreoOperativo()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar correo válido</button>
+              <input id="opCorreoEmail" type="email" placeholder="Alias o correo manual: ejemplo@pensionsegura.org" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <input id="opCorreoPass" type="text" placeholder="Contraseña si aplica; en Cloudflare puede quedar vacío" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <textarea id="opCorreoNota" placeholder="Nota opcional: alias manual, recuperación, perfil, observación" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none min-h-[90px]"></textarea>
+              <button onclick="window.guardarCorreoOperativo()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar correo / alias válido</button>
             </div>
             <p class="text-[10px] text-slate-500 font-bold mt-3">Solo cuentan para productividad los correos marcados como válidos y no duplicados.</p>
           </div>
@@ -718,6 +733,9 @@
               <li>✅ Una solicitud solo puede estar tomada por un operador a la vez.</li>
               <li>✅ Solo cuenta como producción si el estatus queda en <b>Terminado</b>.</li>
               <li>✅ Los correos duplicados no se guardan dos veces.</li>
+              <li>✅ Al tomar una solicitud de semanas, el sistema genera/asigna un alias Cloudflare automáticamente.</li>
+              <li>✅ Con Cloudflare no se necesita contraseña: todo llega al correo catch-all configurado.</li>
+              <li>✅ n8n podrá identificar el alias receptor y conectarlo con la solicitud en Firebase.</li>
               <li>✅ Se guarda quién tomó, quién terminó y qué correo usó.</li>
             </ul>
           </div>
@@ -865,6 +883,18 @@
         const staffNombre = String(miSesion.name || miSesion.nombre || miSesion.username || 'Empleado').trim();
         const staffRol = String(miSesion.role || 'asesor').toLowerCase();
         const LOCK_MINUTOS = 20;
+
+        // ==============================
+        // DPR + CLOUDFLARE EMAIL ROUTING
+        // ==============================
+        // Modo recomendado: catch-all en Cloudflare.
+        // NO se crean 200 buzones. El CRM genera alias únicos @pensionsegura.org
+        // y todos llegan al correo destino configurado en Cloudflare.
+        const MODO_CORREO_OPERACION = 'cloudflare'; // 'cloudflare' o 'pool_manual'
+        const CLOUDFLARE_DOMINIO_OPERACION = 'pensionsegura.org';
+        const CLOUDFLARE_CORREO_CATCHALL_DESTINO = 'consultoriadpr@gmail.com';
+        const CLOUDFLARE_PREFIJO_ALIAS = 'sem';
+
 
         const LISTA_ERRORES_DPR = {
             "ERR_NSS_CURP": "Error: el CURP o el NSS están incorrectos, están mal escritos o no coinciden con los datos registrados.",
@@ -1121,19 +1151,83 @@
             return tipo.includes('semana');
         }
 
+
+        function limpiarParaAlias(valor) {
+            return String(valor || '')
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]/g, '')
+                .slice(0, 12);
+        }
+
+        function obtenerIdentificadorSolicitudParaAlias(s, id) {
+            const extra = obtenerBolsaVariablesExtra(s || {});
+            const nss = limpiarParaAlias(s?.nss || extra.nss || '');
+            const curp = limpiarParaAlias(s?.curp || extra.curp || '');
+            const base = nss || curp || limpiarParaAlias(id).slice(0, 8) || 'cliente';
+            return base.slice(-8);
+        }
+
+        function generarAliasCloudflare(s, id) {
+            const parteSolicitud = obtenerIdentificadorSolicitudParaAlias(s, id);
+            const fecha = new Date();
+            const ymd = `${fecha.getFullYear()}${String(fecha.getMonth()+1).padStart(2,'0')}${String(fecha.getDate()).padStart(2,'0')}`;
+            const random = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(2, 7);
+            return `${CLOUDFLARE_PREFIJO_ALIAS}.${parteSolicitud}.${ymd}.${random}@${CLOUDFLARE_DOMINIO_OPERACION}`.toLowerCase();
+        }
+
+        function esAliasCloudflare(correo) {
+            return String(correo || '').toLowerCase().endsWith(`@${CLOUDFLARE_DOMINIO_OPERACION}`);
+        }
+
+        function textoPasswordCorreo(s) {
+            if (s?.correo_provider === 'cloudflare' || s?.cloudflare_alias === true) {
+                return 'No aplica · Cloudflare catch-all';
+            }
+            return s?.correo_password || '';
+        }
+
         window.tomarSolicitud = async (id) => {
             const ref = doc(db, 'solicitudes', id);
+
+            /*
+              Lógica DPR + Cloudflare:
+              - Al dar clic en TOMAR, la solicitud se bloquea para el operador.
+              - Si es Semanas Cotizadas y todavía NO tiene correo asignado:
+                   a) MODO cloudflare: genera un alias único @pensionsegura.org.
+                   b) MODO pool_manual: reserva un correo de correos_operacion.
+              - El alias/correo se guarda en solicitudes y en correos_operacion.
+              - n8n deberá buscar por n8n_match_key / alias_destino cuando llegue el correo al catch-all.
+            */
             try {
+                let candidatoCorreo = null;
+
+                if (MODO_CORREO_OPERACION !== 'cloudflare') {
+                    const correosDisponiblesSnap = await getDocs(query(
+                        collection(db, 'correos_operacion'),
+                        where('estatus', '==', 'valido'),
+                        where('usado', '==', false),
+                        limit(1)
+                    ));
+                    if (!correosDisponiblesSnap.empty) candidatoCorreo = correosDisponiblesSnap.docs[0];
+                }
+
+                let correoAsignadoAlerta = '';
+                let correoPasswordAlerta = '';
+
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(ref);
                     if (!snap.exists()) throw new Error('La solicitud no existe');
+
                     const s = snap.data();
                     const base = fechaMsCampo(s.ultima_actividad || s.fecha_tomado);
                     const vigente = s.tomado_uid && (!base || (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000));
+
                     if (vigente && String(s.tomado_uid) !== staffUid && miSesion.role !== 'admin') {
                         throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
                     }
-                    tx.update(ref, {
+
+                    const payload = {
                         tomado_uid: staffUid,
                         tomado_nombre: staffNombre,
                         tomado_role: staffRol,
@@ -1141,8 +1235,101 @@
                         ultima_actividad: serverTimestamp(),
                         lock_activo: true,
                         estatus_operativo: 'Tomada'
-                    });
+                    };
+
+                    const requiereCorreo = esSemanasCotizadas(s);
+                    const yaTieneCorreo = Boolean(s.correo_operacion_id || s.correo_operacion);
+
+                    if (requiereCorreo && !yaTieneCorreo) {
+                        if (MODO_CORREO_OPERACION === 'cloudflare') {
+                            const aliasCloudflare = generarAliasCloudflare(s, id);
+                            const correoRefNuevo = doc(collection(db, 'correos_operacion'));
+
+                            Object.assign(payload, {
+                                correo_operacion_id: correoRefNuevo.id,
+                                correo_operacion: aliasCloudflare,
+                                correo_password: '',
+                                correo_provider: 'cloudflare',
+                                cloudflare_alias: true,
+                                correo_destino_master: CLOUDFLARE_CORREO_CATCHALL_DESTINO,
+                                email_routing_estatus: 'esperando_correo',
+                                n8n_match_key: aliasCloudflare,
+                                correo_asignado_por_uid: staffUid,
+                                correo_asignado_por_nombre: staffNombre,
+                                correo_fecha_asignacion: serverTimestamp()
+                            });
+
+                            tx.set(correoRefNuevo, {
+                                correo: aliasCloudflare,
+                                password: '',
+                                provider: 'cloudflare',
+                                tipo: 'alias_cloudflare_catchall',
+                                dominio: CLOUDFLARE_DOMINIO_OPERACION,
+                                destino_master: CLOUDFLARE_CORREO_CATCHALL_DESTINO,
+                                estatus: 'reservado',
+                                usado: true,
+                                solicitud_id: id,
+                                solicitud_tipo: s.tipo || '',
+                                cliente_email: s.email_cliente || s.correo_cliente || s.email || '',
+                                n8n_match_key: aliasCloudflare,
+                                email_routing_estatus: 'esperando_correo',
+                                ultimo_correo_recibido: null,
+                                creado_por_uid: staffUid,
+                                creado_por_nombre: staffNombre,
+                                reservado_por_uid: staffUid,
+                                reservado_por_nombre: staffNombre,
+                                fecha_creado: serverTimestamp(),
+                                fecha_reservado: serverTimestamp()
+                            });
+
+                            correoAsignadoAlerta = aliasCloudflare;
+                            correoPasswordAlerta = 'No aplica · Cloudflare catch-all';
+                        } else {
+                            if (!candidatoCorreo) {
+                                throw new Error('No hay correos disponibles. Registra correos válidos en Operación antes de tomar esta solicitud.');
+                            }
+
+                            const correoRef = doc(db, 'correos_operacion', candidatoCorreo.id);
+                            const correoSnap = await tx.get(correoRef);
+
+                            if (!correoSnap.exists()) throw new Error('El correo disponible ya no existe. Intenta de nuevo.');
+
+                            const correoData = correoSnap.data();
+                            if (correoData.usado === true || correoData.estatus !== 'valido') {
+                                throw new Error('El correo disponible fue tomado por otra solicitud. Intenta de nuevo.');
+                            }
+
+                            Object.assign(payload, {
+                                correo_operacion_id: candidatoCorreo.id,
+                                correo_operacion: correoData.correo || '',
+                                correo_password: correoData.password || '',
+                                correo_provider: correoData.provider || 'manual',
+                                n8n_match_key: correoData.correo || '',
+                                correo_asignado_por_uid: staffUid,
+                                correo_asignado_por_nombre: staffNombre,
+                                correo_fecha_asignacion: serverTimestamp()
+                            });
+
+                            tx.update(correoRef, {
+                                usado: true,
+                                estatus: 'reservado',
+                                solicitud_id: id,
+                                reservado_por_uid: staffUid,
+                                reservado_por_nombre: staffNombre,
+                                fecha_reservado: serverTimestamp()
+                            });
+
+                            correoAsignadoAlerta = correoData.correo || '';
+                            correoPasswordAlerta = correoData.password || '';
+                        }
+                    }
+
+                    tx.update(ref, payload);
                 });
+
+                if (correoAsignadoAlerta) {
+                    alert(`✅ Solicitud tomada. Correo asignado automáticamente:\n${correoAsignadoAlerta}\n${correoPasswordAlerta ? 'Contraseña: ' + correoPasswordAlerta : ''}`);
+                }
             } catch (e) {
                 alert(e.message || 'No se pudo tomar la solicitud');
             }
@@ -1150,28 +1337,76 @@
 
         window.liberarSolicitud = async (id) => {
             const ref = doc(db, 'solicitudes', id);
-            const snap = await getDoc(ref);
-            if (!snap.exists()) return alert('La solicitud no existe');
-            const s = snap.data();
-            if (miSesion.role !== 'admin' && String(s.tomado_uid || '') !== staffUid) {
-                return alert('Solo puede liberar la solicitud quien la tomó o un admin.');
+
+            try {
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(ref);
+                    if (!snap.exists()) throw new Error('La solicitud no existe');
+
+                    const s = snap.data();
+                    if (miSesion.role !== 'admin' && String(s.tomado_uid || '') !== staffUid) {
+                        throw new Error('Solo puede liberar la solicitud quien la tomó o un admin.');
+                    }
+
+                    const payloadSolicitud = {
+                        tomado_uid: '',
+                        tomado_nombre: '',
+                        tomado_role: '',
+                        lock_activo: false,
+                        estatus_operativo: 'Libre',
+                        liberada_por: staffNombre,
+                        fecha_liberacion: serverTimestamp()
+                    };
+
+                    // Si todavía no está terminada, liberamos también el correo reservado para que pueda usarse después.
+                    if (s.estatus !== 'Terminado' && s.correo_operacion_id) {
+                        const correoRef = doc(db, 'correos_operacion', s.correo_operacion_id);
+                        const correoSnap = await tx.get(correoRef);
+
+                        if (correoSnap.exists()) {
+                            const correoData = correoSnap.data();
+                            const esCloudflare = correoData.provider === 'cloudflare' || correoData.tipo === 'alias_cloudflare_catchall' || s.correo_provider === 'cloudflare';
+
+                            tx.update(correoRef, {
+                                usado: esCloudflare ? true : false,
+                                estatus: esCloudflare ? 'cancelado_liberado' : 'valido',
+                                solicitud_id: esCloudflare ? id : '',
+                                reservado_por_uid: esCloudflare ? (s.tomado_uid || '') : '',
+                                reservado_por_nombre: esCloudflare ? (s.tomado_nombre || '') : '',
+                                liberado_por: staffNombre,
+                                fecha_liberado: serverTimestamp(),
+                                nota_liberacion: esCloudflare ? 'Alias Cloudflare no se reutiliza para evitar cruces de correos tardíos.' : 'Correo manual liberado para reutilizar.'
+                            });
+                        }
+
+                        Object.assign(payloadSolicitud, {
+                            correo_operacion_id: '',
+                            correo_operacion: '',
+                            correo_password: '',
+                            correo_provider: '',
+                            cloudflare_alias: false,
+                            correo_destino_master: '',
+                            email_routing_estatus: '',
+                            n8n_match_key: '',
+                            correo_liberado_por: staffNombre,
+                            correo_fecha_liberacion: serverTimestamp()
+                        });
+                    }
+
+                    tx.update(ref, payloadSolicitud);
+                });
+            } catch (e) {
+                alert(e.message || 'No se pudo liberar la solicitud');
             }
-            await updateDoc(ref, {
-                tomado_uid: '',
-                tomado_nombre: '',
-                tomado_role: '',
-                lock_activo: false,
-                estatus_operativo: 'Libre',
-                liberada_por: staffNombre,
-                fecha_liberacion: serverTimestamp()
-            });
         };
 
         window.guardarCorreoOperativo = async () => {
             const correo = document.getElementById('opCorreoEmail')?.value.trim().toLowerCase();
             const password = document.getElementById('opCorreoPass')?.value.trim();
             const nota = document.getElementById('opCorreoNota')?.value.trim() || '';
-            if (!correo || !password) return alert('Agrega correo y contraseña');
+            if (!correo) return alert('Agrega correo o alias');
+            const esCloudflareManual = esAliasCloudflare(correo);
+            if (!password && !esCloudflareManual) return alert('Agrega contraseña para correos que NO sean alias Cloudflare');
             if (!correo.includes('@')) return alert('El correo no parece válido');
 
             const existente = await getDocs(query(collection(db, 'correos_operacion'), where('correo', '==', correo), limit(1)));
@@ -1181,6 +1416,11 @@
                 correo,
                 password,
                 nota,
+                provider: esCloudflareManual ? 'cloudflare' : 'manual',
+                tipo: esCloudflareManual ? 'alias_cloudflare_manual' : 'correo_manual',
+                dominio: esCloudflareManual ? CLOUDFLARE_DOMINIO_OPERACION : '',
+                destino_master: esCloudflareManual ? CLOUDFLARE_CORREO_CATCHALL_DESTINO : '',
+                n8n_match_key: correo,
                 creado_por_uid: staffUid,
                 creado_por_nombre: staffNombre,
                 creado_por_role: staffRol,
@@ -1287,6 +1527,17 @@
                 if (nombreTabla && nombreTabla !== 'N/A') info += `<div class="text-[9px] text-emerald-600 font-bold uppercase truncate w-48">CLIENTE: ${nombreTabla}</div>`;
                 if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
                 if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
+
+                const puedeVerCorreoAsignado = miSesion.role === 'admin' || tomadoPorMi(s);
+                if (puedeVerCorreoAsignado && s.correo_operacion) {
+                    info += `
+                        <div class="mt-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                            <div class="text-[8px] text-emerald-700 font-black uppercase">Correo asignado automático</div>
+                            <div class="text-[9px] text-slate-800 font-black normal-case break-all">${s.correo_operacion}</div>
+                            ${textoPasswordCorreo(s) ? `<div class="text-[9px] text-slate-500 font-bold normal-case break-all">Pass: ${textoPasswordCorreo(s)}</div>` : ''}${s.correo_destino_master ? `<div class="text-[8px] text-blue-600 font-black normal-case break-all">Catch-all: ${s.correo_destino_master}</div>` : ''}
+                        </div>
+                    `;
+                }
 
                 const estatusActual = String(s.estatus || '');
                 const estatusUpper = estatusActual.toUpperCase();
