@@ -263,7 +263,7 @@
                 { nombre: 'Tarjeta NSS', precio: 20, nss: true, curp: true },
                 { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
                 { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true },
+                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
                 { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta Para Desempleo con linea de captura', precio: 200, nss: true, curp: true, pideNombre: true },
                 { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
@@ -297,14 +297,7 @@
                 { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
                 { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
                 { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
-                { nombre: 'Estado de cuenta Azteca', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Coppel', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Profuturo', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Invercap', precio: 1400, nss: true, curp: true },
-                { nombre: 'Estado de cuenta SURA', precio: 800, nss: true, curp: true },
-                { nombre: 'Estado de cuenta BANORTE', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Principal', precio: 500, nss: true, curp: true },
-                { nombre: 'Estado de cuenta Banamex', precio: 1200, nss: true, curp: true }
+                { nombre: 'Estado de cuenta AFORE', precio: 500, pideNombre: true, nss: true, curp: true, pideAforeTipo: true }
             ],
             'PENSIONES': [
                 { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
@@ -321,6 +314,7 @@
 
         const LOGIN_URL = "https://pensionsegura.org/login";
         const SESSION_KEY_DPR = "dpr_login_activo";
+        const LOGIN_FRESCO_MAX_MS = 2 * 60 * 1000;
 
         async function mandarALoginSeguro() {
             try {
@@ -333,9 +327,20 @@
             }
         }
 
-        window.addEventListener("pagehide", () => {
-            // Al cerrar, refrescar o salir del panel se borra la llave de sesión del asesor.
-            // Si Firebase todavía recuerda el usuario, el Dashboard lo bloqueará al volver.
+        async function sesionFirebaseEsReciente(user) {
+            try {
+                const token = await user.getIdTokenResult();
+                const authTime = new Date(token.authTime).getTime();
+                return (Date.now() - authTime) <= LOGIN_FRESCO_MAX_MS;
+            } catch (e) {
+                console.log("authTime", e);
+                return false;
+            }
+        }
+
+        window.addEventListener("beforeunload", () => {
+            // sessionStorage se borra al cerrar pestaña/navegador. No usamos pagehide
+            // porque también se dispara en navegación normal y puede cerrar sesión al segundo.
             sessionStorage.removeItem(SESSION_KEY_DPR);
         });
 
@@ -345,11 +350,15 @@
                 return;
             }
 
-            if (sessionStorage.getItem(SESSION_KEY_DPR) !== "1") {
+            const tieneSesionDeEstaPestana = sessionStorage.getItem(SESSION_KEY_DPR) === "1";
+            const loginReciente = await sesionFirebaseEsReciente(user);
+
+            if (!tieneSesionDeEstaPestana && !loginReciente) {
                 await mandarALoginSeguro();
                 return;
             }
 
+            sessionStorage.setItem(SESSION_KEY_DPR, "1");
             userUID = user.uid;
             emailAsesor = user.email;
             registrarConexionDiaria();
@@ -403,33 +412,94 @@
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
         };
 
+        const VALIDADORES_DPR = {
+            curp: {
+                regex: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,
+                msg: "La CURP debe tener estructura real: 18 caracteres, ejemplo: ABCD900101HDFRRL09. No ingreses RFC en CURP."
+            },
+            nss: {
+                regex: /^\d{11}$/,
+                msg: "El NSS debe tener exactamente 11 números. No lleva letras ni espacios."
+            },
+            rfc: {
+                regex: /^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/,
+                msg: "El RFC debe tener estructura válida: 12 o 13 caracteres con homoclave. No ingreses CURP en RFC."
+            },
+            idcif: {
+                regex: /^\d{11}$/,
+                msg: "El IDCIF debe capturarse como 11 números. Revisa que no tenga letras ni espacios."
+            }
+        };
+
+        function normalizarInputIdentidad(id, tipo) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = String(el.value || '').trim().toUpperCase().replace(/\s+/g, '');
+            if (tipo === 'nss' || tipo === 'idcif') el.value = el.value.replace(/\D/g, '');
+        }
+
+        function validarCampoIdentidad(id, tipo, etiqueta) {
+            const el = document.getElementById(id);
+            if (!el) return true;
+            normalizarInputIdentidad(id, tipo);
+            const valor = el.value;
+            if (!valor || valor === 'N/A') return true;
+            const regla = VALIDADORES_DPR[tipo];
+            if (!regla.regex.test(valor)) {
+                el.focus();
+                el.classList.add('border-red-500');
+                alert(`Candado de validación: ${etiqueta}\n\n${regla.msg}`);
+                return false;
+            }
+            el.classList.remove('border-red-500');
+            return true;
+        }
+
+        function validarCandadosTramite(t) {
+            const checks = [];
+            if (t.curp) checks.push(['curp_p', 'curp', 'CURP']);
+            if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
+            if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
+            if (t.idcif) checks.push(['idcif_p', 'idcif', 'IDCIF']);
+            if (t.pideCuestionarioPension) {
+                checks.push(['q_curp', 'curp', 'CURP del cuestionario']);
+                checks.push(['q_nss', 'nss', 'NSS del cuestionario']);
+                checks.push(['q_rfc', 'rfc', 'RFC del cuestionario']);
+            }
+            return checks.every(([id, tipo, etiqueta]) => validarCampoIdentidad(id, tipo, etiqueta));
+        }
+
+        const OPCIONES_ESTADO_CUENTA_AFORE = [
+            { nombre: 'Azteca', precio: 500 },
+            { nombre: 'Coppel', precio: 500 },
+            { nombre: 'Profuturo', precio: 500 },
+            { nombre: 'Invercap', precio: 1400 },
+            { nombre: 'SURA', precio: 800 },
+            { nombre: 'BANORTE', precio: 500 },
+            { nombre: 'Principal', precio: 500 },
+            { nombre: 'Banamex', precio: 1200 }
+        ];
+
+        window.actualizarPrecioAfore = () => {
+            const sel = document.getElementById('afore_tipo_p');
+            const btn = document.getElementById('btnPagarTramite');
+            if (!sel || !btn) return;
+            const precio = Number(sel.selectedOptions[0]?.dataset?.precio || 500);
+            btn.innerText = `Pagar $${precio}.00`;
+        };
+
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
             let pFinal = t.precio;
-
-            const vips = [
-                
-                "symconsultoria2.2024@gmail.com",
-                "symconsultoria3.2024@gmail.com",
-                
-                "ompesa86@gmail.com",
-                "symconsultoria4.2024@gmail.com",
-                "cris19330@outlook.com",
-                
-                "gestoriayserviciosgonzalez@gmail.com",
-                "camaron19950404@gmail.com"
-            ];
-
-            if ((t.nombre === 'SEMANAS COTIZADAS' || t.nombre === 'Tarjeta NSS') && vips.includes(emailAsesor)) pFinal = 17;
 
             let fields = '';
 
             if (t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
             if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" class="input-light mb-4 uppercase">`;
-            if (t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS" class="input-light mb-4">`;
-            if (t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC" class="input-light mb-4 uppercase">`;
-            if (t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF" class="input-light mb-4 uppercase">`;
+            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" maxlength="18" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
+            if (t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS — 11 números, sin letras" maxlength="11" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)" class="input-light mb-4">`;
+            if (t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC con homoclave" maxlength="13" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
+            if (t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF — 11 números" maxlength="11" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)" class="input-light mb-4 uppercase">`;
             if (t.pidePass) fields += `<input type="text" id="pass_p" placeholder="CONTRASEÑA" class="input-light mb-4">`;
             if (t.pidePassNueva) fields += `<input type="text" id="pass_nueva_p" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4">`;
             if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
@@ -445,6 +515,17 @@
             if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELÉFONO DE CONTACTO" class="input-light mb-4">`;
             if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
             if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
+            if (t.pideCalle) fields += `<input type="text" id="calle_p" placeholder="CALLE" class="input-light mb-4 uppercase">`;
+            if (t.pideColonia) fields += `<input type="text" id="colonia_p" placeholder="COLONIA" class="input-light mb-4 uppercase">`;
+            if (t.pideMunicipio) fields += `<input type="text" id="municipio_p" placeholder="MUNICIPIO" class="input-light mb-4 uppercase">`;
+            if (t.pideEstado) fields += `<input type="text" id="estado_p" placeholder="ESTADO" class="input-light mb-4 uppercase">`;
+            if (t.pideCP) fields += `<input type="text" id="cp_p" placeholder="CÓDIGO POSTAL" maxlength="5" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,5)" class="input-light mb-4">`;
+            if (t.pideOcupacion) fields += `<input type="text" id="ocupacion_p" placeholder="OCUPACIÓN" class="input-light mb-4 uppercase">`;
+            if (t.pideSalarioMensual) fields += `<input type="number" id="salario_mensual_p" min="9451.20" step="0.01" placeholder="SALARIO MENSUAL — MÍNIMO $9,451.20" class="input-light mb-4">`;
+            if (t.pidePeriodicidadPago) fields += `<select id="periodicidad_pago_p" class="input-light mb-4"><option value="N/A">SELECCIONA FORMA DE PAGO</option><option>Mensual</option><option>Bimestral</option><option>Semestral</option><option>Anual</option></select>`;
+            if (t.notaLineaCaptura) fields += `<div class="mb-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-black uppercase leading-relaxed">⚠️ Nota: cuando terminemos la inscripción, el cliente tiene que ir a pagar la línea de captura directamente a un banco.</div>`;
+            if (t.pideAforeTipo) fields += `<div class="mb-4 p-4 rounded-2xl bg-slate-50 border border-slate-200"><label class="text-[9px] font-black uppercase text-slate-500 block mb-2">Selecciona AFORE / estado de cuenta</label><select id="afore_tipo_p" onchange="window.actualizarPrecioAfore()" class="input-light">${OPCIONES_ESTADO_CUENTA_AFORE.map(o => `<option value="${o.nombre}" data-precio="${o.precio}">${o.nombre} — $${o.precio}</option>`).join('')}</select></div>`;
+
 
             if (t.pideCuestionarioPension) {
                 fields += `
@@ -566,12 +647,13 @@
             content.innerHTML = `
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">DPR || Pensión Segura</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${t.nombre}</h2>
                 ${fields}
-                <button onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
+                <button id="btnPagarTramite" onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
                     Pagar $${pFinal}.00
                 </button>
             `;
 
             window.abrirModal('modalTramite');
+            setTimeout(() => window.actualizarPrecioAfore?.(), 0);
         };
 
         let enviandoTramite = false;
@@ -602,6 +684,22 @@
             };
 
             try {
+                if (!validarCandadosTramite(t)) return;
+
+                if (t.pideSalarioMensual) {
+                    const salario = Number(document.getElementById('salario_mensual_p')?.value || 0);
+                    if (salario < 9451.20) {
+                        alert('El salario mensual para Modalidad 10 debe ser mínimo $9,451.20.');
+                        document.getElementById('salario_mensual_p')?.focus();
+                        return;
+                    }
+                }
+
+                if (t.pideAforeTipo) {
+                    const sel = document.getElementById('afore_tipo_p');
+                    c = Number(sel?.selectedOptions?.[0]?.dataset?.precio || c);
+                }
+
                 if (botonPago) {
                     botonPago.disabled = true;
                     botonPago.innerText = "ENVIANDO...";
@@ -619,6 +717,15 @@
                     pass_nueva: val('pass_nueva_p'),
                     num_servicio: val('num_servicio_p'),
                     fecha: val('fecha_p'),
+                    calle: val('calle_p'),
+                    colonia: val('colonia_p'),
+                    municipio: val('municipio_p'),
+                    estado: val('estado_p'),
+                    cp: val('cp_p'),
+                    ocupacion: val('ocupacion_p'),
+                    salario_mensual: val('salario_mensual_p'),
+                    periodicidad_pago: val('periodicidad_pago_p'),
+                    afore_tipo: val('afore_tipo_p'),
                     turno: val('turno_p'),
                     delegacion: val('delegacion_p'),
                     clinica: val('clinica_p'),
@@ -717,7 +824,7 @@
                 const docRef = await addDoc(collection(db, "solicitudes"), {
                     asesor_uid: userUID,
                     nombre_asesor: emailAsesor,
-                    tipo: t.nombre,
+                    tipo: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
                     costo: c,
                     estatus: "En Proceso",
                     finalizado: false,
@@ -739,7 +846,7 @@
                     body: JSON.stringify({
                         id_solicitud: docRef.id,
                         asesor: emailAsesor,
-                        tramite: t.nombre,
+                        tramite: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
                         curp: val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp'),
                         nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
                         extra,
