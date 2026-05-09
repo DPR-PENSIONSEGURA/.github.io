@@ -1169,11 +1169,55 @@
         }
 
         function generarAliasCloudflare(s, id) {
-            const parteSolicitud = obtenerIdentificadorSolicitudParaAlias(s, id);
-            const fecha = new Date();
-            const ymd = `${fecha.getFullYear()}${String(fecha.getMonth()+1).padStart(2,'0')}${String(fecha.getDate()).padStart(2,'0')}`;
-            const random = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(2, 7);
-            return `${CLOUDFLARE_PREFIJO_ALIAS}.${parteSolicitud}.${ymd}.${random}@${CLOUDFLARE_DOMINIO_OPERACION}`.toLowerCase();
+            // Generador orgánico para Cloudflare catch-all.
+            // Alterna entre nombres, apellidos, palabras operativas y números para evitar aliases repetitivos.
+            const nombres = [
+                'maria','juan','ana','carlos','laura','miguel','sofia','jose',
+                'daniel','karla','fernanda','luis','paola','ricardo','gabriela',
+                'andrea','pedro','monica','raul','alejandra','oscar','veronica',
+                'eduardo','patricia','sergio','claudia','roberto','diana','adriana'
+            ];
+
+            const apellidos = [
+                'garcia','hernandez','lopez','martinez','rodriguez','perez',
+                'sanchez','ramirez','torres','flores','gomez','vazquez','cruz',
+                'morales','reyes','ortiz','gutierrez','chavez','mendoza','castillo',
+                'romero','alvarez','jimenez','ramos','rivera','medina','aguilar'
+            ];
+
+            const palabras = [
+                'consulta','tramite','gestion','cliente','servicio','folio',
+                'revision','registro','solicitud','documento','apoyo','control'
+            ];
+
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const numero = Math.floor(100 + Math.random() * 9000);
+            const corto = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(2, 5);
+
+            // Este dato ayuda a reducir colisiones sin que el correo se vea robótico.
+            const baseSolicitud = obtenerIdentificadorSolicitudParaAlias(s, id).slice(-3);
+            const sufijo = `${numero}${baseSolicitud}${corto}`.slice(0, 9);
+
+            const formato = Math.floor(Math.random() * 7);
+            let local = '';
+
+            if (formato === 0) {
+                local = `${pick(nombres)}.${pick(apellidos)}${sufijo}`;
+            } else if (formato === 1) {
+                local = `${pick(apellidos)}.${pick(nombres)}${sufijo}`;
+            } else if (formato === 2) {
+                local = `${pick(nombres)}${pick(apellidos)}${sufijo}`;
+            } else if (formato === 3) {
+                local = `${pick(palabras)}.${pick(apellidos)}${sufijo}`;
+            } else if (formato === 4) {
+                local = `${pick(palabras)}.${pick(nombres)}${sufijo}`;
+            } else if (formato === 5) {
+                local = `${pick(nombres)}.${pick(palabras)}${sufijo}`;
+            } else {
+                local = `${pick(apellidos)}${pick(palabras)}${sufijo}`;
+            }
+
+            return `${local}@${CLOUDFLARE_DOMINIO_OPERACION}`.toLowerCase();
         }
 
         function esAliasCloudflare(correo) {
