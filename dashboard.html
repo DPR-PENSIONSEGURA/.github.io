@@ -183,7 +183,7 @@
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">×</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
             <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
-                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DPR PENSION SEGURA</p>
+                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
                 <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
             </div>
             <div class="space-y-3">
@@ -254,9 +254,9 @@
         const TRAMITES = {
             'IMSS': [
                 { nombre: 'SEMANAS COTIZADAS', precio: 19, nss: true, curp: true },
-               { nombre: 'SEMANAS DETALLADAS', precio: 35, nss: true, curp: true },
+               
                 { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true },
+                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true },
                  { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
                  { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
                 { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
@@ -270,7 +270,7 @@
             ],
             'SAT': [
                 { nombre: 'RFC Clon', precio: 25, curp: true },
-                { nombre: 'RFC Verificable', precio: 95, curp: true },
+                { nombre: 'RFC Verificable', precio: 110, curp: true },
                 { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
                 { nombre: 'RFC Original', precio: 180, curp: true },
                 { nombre: 'Localización de IDcif', precio: 60, rfc: true }
@@ -290,7 +290,7 @@
                 { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
                 { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
                 { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true, curp: true },
+                { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true },
                 { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
             ],
             'AFORE': [
@@ -319,19 +319,45 @@
             "📋 Trámites": { texto: "Semanas: 10min. RFC: 1h-3h. Altas: 2-3 días.", opciones: ["Volver al inicio"] }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                userUID = user.uid;
-                emailAsesor = user.email;
-                registrarConexionDiaria();
-                escucharSaldo();
-                escucharHistorial();
-                escucharAvisos();
-                escucharChat();
-                window.actualizarPuntoAvisos?.();
-            } else {
-                window.location.href = "login/index.html";
+        const LOGIN_URL = "https://pensionsegura.org/login";
+        const SESSION_KEY_DPR = "dpr_login_activo";
+
+        async function mandarALoginSeguro() {
+            try {
+                sessionStorage.removeItem(SESSION_KEY_DPR);
+                await signOut(auth);
+            } catch (e) {
+                console.log("logout seguro", e);
+            } finally {
+                window.location.replace(LOGIN_URL);
             }
+        }
+
+        window.addEventListener("pagehide", () => {
+            // Al cerrar, refrescar o salir del panel se borra la llave de sesión del asesor.
+            // Si Firebase todavía recuerda el usuario, el Dashboard lo bloqueará al volver.
+            sessionStorage.removeItem(SESSION_KEY_DPR);
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.replace(LOGIN_URL);
+                return;
+            }
+
+            if (sessionStorage.getItem(SESSION_KEY_DPR) !== "1") {
+                await mandarALoginSeguro();
+                return;
+            }
+
+            userUID = user.uid;
+            emailAsesor = user.email;
+            registrarConexionDiaria();
+            escucharSaldo();
+            escucharHistorial();
+            escucharAvisos();
+            escucharChat();
+            window.actualizarPuntoAvisos?.();
         });
 
         window.toggleChat = () => {
@@ -382,6 +408,15 @@
             let pFinal = t.precio;
 
             const vips = [
+                
+                "symconsultoria2.2024@gmail.com",
+                "symconsultoria3.2024@gmail.com",
+                
+                "ompesa86@gmail.com",
+                "symconsultoria4.2024@gmail.com",
+                "cris19330@outlook.com",
+                
+                "gestoriayserviciosgonzalez@gmail.com",
                 "camaron19950404@gmail.com"
             ];
 
@@ -1057,7 +1092,10 @@
             });
         }
 
-        window.cerrarSesion = () => signOut(auth).then(() => location.reload());
+        window.cerrarSesion = () => {
+            sessionStorage.removeItem(SESSION_KEY_DPR);
+            signOut(auth).finally(() => window.location.replace(LOGIN_URL));
+        };
     </script>
 </body>
 </html>
