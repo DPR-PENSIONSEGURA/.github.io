@@ -314,12 +314,46 @@
         };
 
         const LOGIN_URL = "https://pensionsegura.org/login";
+
+        // ==============================
+        // DPR: SESIÓN REAL DE 12 HORAS
+        // ==============================
+        // Antes se usaba sessionStorage + beforeunload, eso provocaba que al refrescar,
+        // cambiar de página o abrir otra pestaña el dashboard pudiera mandar a login.
+        // Ahora usamos localStorage con vencimiento fijo de 12 horas.
         const SESSION_KEY_DPR = "dpr_login_activo";
-        const LOGIN_FRESCO_MAX_MS = 2 * 60 * 1000;
+        const SESSION_START_KEY_DPR = "dpr_login_inicio_ms";
+        const SESSION_MAX_MS_DPR = 12 * 60 * 60 * 1000; // 12 horas
+
+        function limpiarSesionLocalDPR() {
+            localStorage.removeItem(SESSION_KEY_DPR);
+            localStorage.removeItem(SESSION_START_KEY_DPR);
+            sessionStorage.removeItem(SESSION_KEY_DPR); // Limpieza de compatibilidad con versión anterior
+        }
+
+        function marcarSesionActivaDPR() {
+            const inicioGuardado = Number(localStorage.getItem(SESSION_START_KEY_DPR) || 0);
+            const ahora = Date.now();
+
+            // Si no existe inicio, lo creamos. No lo renovamos en cada refresh,
+            // para que realmente expire a las 12 horas.
+            if (!inicioGuardado || Number.isNaN(inicioGuardado)) {
+                localStorage.setItem(SESSION_START_KEY_DPR, String(ahora));
+            }
+
+            localStorage.setItem(SESSION_KEY_DPR, "1");
+        }
+
+        function sesionDPRVigente() {
+            const activa = localStorage.getItem(SESSION_KEY_DPR) === "1";
+            const inicio = Number(localStorage.getItem(SESSION_START_KEY_DPR) || 0);
+            if (!activa || !inicio || Number.isNaN(inicio)) return false;
+            return (Date.now() - inicio) <= SESSION_MAX_MS_DPR;
+        }
 
         async function mandarALoginSeguro() {
             try {
-                sessionStorage.removeItem(SESSION_KEY_DPR);
+                limpiarSesionLocalDPR();
                 await signOut(auth);
             } catch (e) {
                 console.log("logout seguro", e);
@@ -328,38 +362,32 @@
             }
         }
 
-        async function sesionFirebaseEsReciente(user) {
-            try {
-                const token = await user.getIdTokenResult();
-                const authTime = new Date(token.authTime).getTime();
-                return (Date.now() - authTime) <= LOGIN_FRESCO_MAX_MS;
-            } catch (e) {
-                console.log("authTime", e);
-                return false;
+        // Revisión suave cada minuto. Así no se corta al segundo,
+        // pero al cumplir 12 horas sí obliga a iniciar sesión otra vez.
+        setInterval(() => {
+            if (!sesionDPRVigente()) {
+                mandarALoginSeguro();
             }
-        }
-
-        window.addEventListener("beforeunload", () => {
-            // sessionStorage se borra al cerrar pestaña/navegador. No usamos pagehide
-            // porque también se dispara en navegación normal y puede cerrar sesión al segundo.
-            sessionStorage.removeItem(SESSION_KEY_DPR);
-        });
+        }, 60 * 1000);
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
+                limpiarSesionLocalDPR();
                 window.location.replace(LOGIN_URL);
                 return;
             }
 
-            const tieneSesionDeEstaPestana = sessionStorage.getItem(SESSION_KEY_DPR) === "1";
-            const loginReciente = await sesionFirebaseEsReciente(user);
+            // Primera entrada después del login: crea la sesión de 12 horas.
+            if (localStorage.getItem(SESSION_KEY_DPR) !== "1") {
+                marcarSesionActivaDPR();
+            }
 
-            if (!tieneSesionDeEstaPestana && !loginReciente) {
+            if (!sesionDPRVigente()) {
                 await mandarALoginSeguro();
                 return;
             }
 
-            sessionStorage.setItem(SESSION_KEY_DPR, "1");
+            marcarSesionActivaDPR();
             userUID = user.uid;
             emailAsesor = user.email;
             registrarConexionDiaria();
@@ -1201,7 +1229,7 @@
         }
 
         window.cerrarSesion = () => {
-            sessionStorage.removeItem(SESSION_KEY_DPR);
+            limpiarSesionLocalDPR();
             signOut(auth).finally(() => window.location.replace(LOGIN_URL));
         };
     </script>
