@@ -1,1 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DPR Admin | Trámites Especiales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:Inter,sans-serif;background:#eef2f7}.glass{background:rgba(255,255,255,.86);backdrop-filter:blur(18px)}.card{background:white;border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 18px 40px rgba(15,23,42,.08)}.btn{border-radius:16px;padding:12px 16px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.field{width:100%;border:2px solid #e5e7eb;border-radius:16px;padding:12px;font-size:13px;outline:none;background:white}.field:focus{border-color:#2563eb}.label{font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;letter-spacing:.08em;margin-bottom:6px}.chip{font-size:10px;font-weight:900;text-transform:uppercase;border-radius:999px;padding:7px 10px}.fade{animation:fade .25s ease}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 text-slate-800">
+  <div id="accessBox" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-6">
+    <div class="max-w-md w-full bg-white rounded-[2rem] p-8 shadow-2xl">
+      <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl mb-4">🔐</div>
+      <h1 class="text-2xl font-black uppercase italic">Acceso privado</h1>
+      <p class="text-sm text-slate-500 mt-2">Este módulo solo es visible para Admin y Rodolfo.</p>
+      <input id="accessCode" class="field mt-6" placeholder="Código de acceso" type="password">
+      <button onclick="validarAccesoManual()" class="btn bg-slate-900 text-white w-full mt-4">Entrar</button>
+      <p class="text-[10px] text-slate-400 mt-4">Clave autorizada: usuario interno SAMR26 o sesión admin.</p>
+    </div>
+  </div>
 
+  <div class="max-w-7xl mx-auto">
+    <header class="glass sticky top-0 z-30 rounded-[2rem] border border-white shadow-xl p-4 md:p-5 mb-7 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+      <div>
+        <p class="text-[10px] font-black uppercase tracking-[.25em] text-blue-600">DPR Pensión Segura</p>
+        <h1 class="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Control de Trámites</h1>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="abrirModalCategoria()" class="btn bg-blue-600 text-white shadow-lg">+ Agregar categoría</button>
+        <button onclick="exportarCSV()" class="btn bg-emerald-600 text-white shadow-lg">Exportar CSV</button>
+        <a href="index.html" class="btn bg-slate-900 text-white shadow-lg">⬅ Panel</a>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="card p-5"><p class="label">Expedientes activos</p><p id="mActivos" class="text-3xl font-black">0</p></div>
+      <div class="card p-5"><p class="label">Archivados</p><p id="mArchivados" class="text-3xl font-black text-emerald-600">0</p></div>
+      <div class="card p-5"><p class="label">Cobro estimado</p><p id="mCobro" class="text-3xl font-black text-blue-600">$0</p></div>
+      <div class="card p-5"><p class="label">Categorías</p><p id="mCategorias" class="text-3xl font-black text-purple-600">0</p></div>
+    </section>
+
+    <section class="card p-5 mb-6">
+      <div class="flex flex-col md:flex-row gap-3">
+        <input id="buscar" oninput="renderExpedientes()" class="field" placeholder="Buscar por nombre, CURP, NSS, teléfono o trámite...">
+        <select id="filtroCategoria" onchange="renderExpedientes()" class="field md:max-w-xs"><option value="">Todas las categorías</option></select>
+        <select id="filtroEstado" onchange="renderExpedientes()" class="field md:max-w-xs"><option value="activos">Activos</option><option value="archivados">Archivados</option><option value="todos">Todos</option></select>
+      </div>
+    </section>
+
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <aside class="lg:col-span-4 card p-5 h-fit">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-black uppercase italic">Nuevo expediente</h2>
+          <span class="chip bg-blue-50 text-blue-700">Admin</span>
+        </div>
+        <div class="mb-4"><p class="label">Categoría / Trámite</p><select id="categoria" class="field" onchange="pintarFormulario()"></select></div>
+        <form id="formExpediente" class="space-y-4"></form>
+        <button onclick="guardarExpediente()" class="btn bg-blue-600 text-white w-full mt-5 shadow-lg">Guardar expediente</button>
+        <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">Los archivos se guardan en Firebase Storage y el expediente en la colección <b>tramites_admin</b>.</p>
+      </aside>
+      <section class="lg:col-span-8 space-y-4" id="listaExpedientes"></section>
+    </main>
+  </div>
+
+  <div id="modalCategoria" class="hidden fixed inset-0 bg-slate-950/70 z-40 p-5 items-center justify-center">
+    <div class="bg-white rounded-[2rem] p-6 max-w-2xl w-full shadow-2xl">
+      <h3 class="text-xl font-black uppercase italic mb-2">Agregar categoría o trámite</h3>
+      <p class="text-sm text-slate-500 mb-4">Escribe el nombre y los campos separados por coma. Se agregará como categoría personalizada.</p>
+      <input id="nuevaCatNombre" class="field mb-3" placeholder="Nombre de categoría">
+      <textarea id="nuevaCatCampos" class="field h-32" placeholder="Ejemplo: nombre, curp, nss, notas, subir archivo"></textarea>
+      <div class="flex gap-2 mt-4 justify-end"><button onclick="cerrarModalCategoria()" class="btn bg-slate-200">Cancelar</button><button onclick="agregarCategoria()" class="btn bg-blue-600 text-white">Guardar categoría</button></div>
+    </div>
+  </div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
+const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com'};
+const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
+const ALLOWED_EMAILS=['consultoriadpr@gmail.com']; const ALLOWED_CODES=['SAMR26','samr26'];
+let expedientes=[], categoriasPersonalizadas=JSON.parse(localStorage.getItem('categoriasDPR')||'[]');
+const AFORES=['Azteca','Banamex','Coppel','Inbursa','Invercap','PensionISSSTE','Principal','Profuturo','SURA','XXI Banorte'];
+const CESI=['CESI Mexicali','CESI Tijuana','CESI Ensenada','CESI Tecate','CESI Otro'];
+const DEFINICIONES={
+ 'AYUDA POR DESEMPLEO':{calc:'desempleo',fields:['nombreCompleto','curp','nss','correo','telefono','referenciaNombre','referenciaTelefono','fechaAlta','fechaSolicitudAuto','fechaCitaAfore','afore','fechaCobro','sindo','fechaUltimoRetiro','montoRecibira','cobroAuto','fotoCliente:file','comprobanteDomicilio:file','rfcClon:file','ineFrente:file','ineReverso:file','semanasCotizadas:file','estadoCuentaClabe:file']},
+ 'MEJORAVIT - SOLO EXPEDIENTE':{calc:'mejoravit',fields:['nombreCompleto','telefono','passwordPortal','cesi','fechaCitaInfonavit','fechaSegundaCita','creditoPreautorizado','cobroAuto','anotaciones:textarea','ineFrente:file','ineReverso:file','comprobanteDomicilio:file','fotoDomicilio:file','estadoCuenta:file','solicitudCredito:file','precalificacion:file','cartaBajoProtesta:file','presupuesto:file','verificacionIne:file','acta:file','rfc:file','curpDoc:file']},
+ 'MEJORAVIT - COMPLETO':{calc:'mejoravit',fields:['nombreCompleto','telefono','passwordPortal','cesi','fechaCitaInfonavit','fechaSegundaCita','creditoPreautorizado','cobroAuto','anotaciones:textarea','ineFrente:file','ineReverso:file','comprobanteDomicilio:file','fotoDomicilio:file','estadoCuenta:file','solicitudCredito:file','precalificacion:file','cartaBajoProtesta:file','presupuesto:file','verificacionIne:file','acta:file','rfc:file','curpDoc:file']},
+ 'UNIFICACIONES':{fields:['nombreCompleto','nss1','nss2','masNssCurp:textarea','curp','notas:textarea','costoProveedor','precioFinal','fechaInicioTramite','fechaSolucion','curpDoc:file','documentosProbatorios:file']},
+ 'CORRECCIÓN DE DATOS IMSS':{fields:['nombreCompleto','nss','curp','masNssCurp:textarea','notasError:textarea','documentosProbatorios1:file','documentosProbatorios2:file','documentosProbatoriosExtra:file']},
+ 'ANÁLISIS RÁPIDO DE PENSIÓN':{fields:['curp','nss','semanas:file','documentoAnalisis:file']},
+ 'ANÁLISIS DETALLADO DE PENSIÓN':{fields:['curp','nss','semanasDetalladas:file','cuestionario:textarea','documentoAnalisis:file','notas:textarea']},
+ 'SEGUIMIENTO DE PENSIÓN':{calc:'seguimiento',fields:['tipoSeguimiento','precioAuto','ine:file','fotoCliente:file','estadoCuentaBancario:file','beneficiarioNombre','beneficiarioTelefono','beneficiarioCorreo']}
+};
+const LABELS={nombreCompleto:'Nombre completo',curp:'CURP',nss:'NSS',correo:'Correo',telefono:'Teléfono',referenciaNombre:'Referencia: nombre',referenciaTelefono:'Referencia: teléfono',fechaAlta:'Fecha de alta',fechaSolicitudAuto:'Fecha de solicitud automática',fechaCitaAfore:'Fecha de cita al AFORE',afore:'AFORE del cliente',fechaCobro:'Fecha de cobro',sindo:'SINDO',fechaUltimoRetiro:'Fecha último retiro',montoRecibira:'Cuánto recibirá el cliente',cobroAuto:'Cobro automático',fotoCliente:'Foto del cliente',comprobanteDomicilio:'Comprobante de domicilio',rfcClon:'RFC clon',ineFrente:'INE frente',ineReverso:'INE reverso',semanasCotizadas:'Semanas cotizadas',estadoCuentaClabe:'Estado de cuenta con CLABE',passwordPortal:'Contraseña del portal',cesi:'CESI',fechaCitaInfonavit:'Fecha de cita en Infonavit',fechaSegundaCita:'Fecha de segunda cita',creditoPreautorizado:'Crédito pre autorizado',anotaciones:'Anotaciones',fotoDomicilio:'Foto del domicilio',estadoCuenta:'Estado de cuenta',solicitudCredito:'Solicitud de crédito',precalificacion:'Precalificación',cartaBajoProtesta:'Carta bajo protesta',presupuesto:'Presupuesto',verificacionIne:'Verificación de INE',acta:'Acta',rfc:'RFC',curpDoc:'CURP documento',nss1:'NSS 1',nss2:'NSS 2',masNssCurp:'Agregar más NSS o CURP',notas:'Notas',costoProveedor:'Cobro del proveedor',precioFinal:'Precio final',fechaInicioTramite:'Fecha de inicio de trámite',fechaSolucion:'Fecha en que se solucionó',documentosProbatorios:'Documentos probatorios',notasError:'Explicar error del cliente',documentosProbatorios1:'Documentos probatorios 1',documentosProbatorios2:'Documentos probatorios 2',documentosProbatoriosExtra:'Documentos probatorios extra',semanas:'Subir semanas',documentoAnalisis:'Subir documento de análisis',semanasDetalladas:'Subir semanas detalladas',cuestionario:'Cuestionario de análisis detallado',tipoSeguimiento:'Tipo de seguimiento',precioAuto:'Precio automático',estadoCuentaBancario:'Estado de cuenta bancario',beneficiarioNombre:'Beneficiario: nombre',beneficiarioTelefono:'Beneficiario: teléfono',beneficiarioCorreo:'Beneficiario: correo'};
+function money(n){return Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});} function val(id){return document.getElementById(id)?.value||'';}
+window.validarAccesoManual=()=>{if(ALLOWED_CODES.includes(val('accessCode').trim())) iniciar(); else alert('Acceso no autorizado');};
+onAuthStateChanged(auth,u=>{const email=(u?.email||'').toLowerCase(); const display=(u?.displayName||''); if(ALLOWED_EMAILS.includes(email)||ALLOWED_CODES.includes(display)) iniciar();});
+function iniciar(){document.getElementById('accessBox').classList.add('hidden'); cargarCategorias(); escucharExpedientes();}
+function cargarCategorias(){const all={...DEFINICIONES}; categoriasPersonalizadas.forEach(c=>all[c.nombre]={fields:c.fields}); ['categoria','filtroCategoria'].forEach(id=>{const s=document.getElementById(id); const first=id==='filtroCategoria'?'<option value="">Todas las categorías</option>':''; s.innerHTML=first+Object.keys(all).map(k=>`<option>${k}</option>`).join('');}); document.getElementById('mCategorias').innerText=Object.keys(all).length; pintarFormulario();}
+window.pintarFormulario=()=>{const cat=val('categoria'), def={...DEFINICIONES,...Object.fromEntries(categoriasPersonalizadas.map(c=>[c.nombre,{fields:c.fields}]))}[cat]; const f=document.getElementById('formExpediente'); f.innerHTML=''; (def?.fields||[]).forEach(raw=>{let [name,type]=raw.split(':'); let input=''; if(type==='file') input=`<input class="field" id="${name}" type="file" multiple>`; else if(type==='textarea') input=`<textarea class="field h-28" id="${name}"></textarea>`; else if(name==='afore') input=`<select class="field" id="${name}">${AFORES.map(x=>`<option>${x}</option>`).join('')}</select>`; else if(name==='cesi') input=`<select class="field" id="${name}">${CESI.map(x=>`<option>${x}</option>`).join('')}</select>`; else if(name==='tipoSeguimiento') input=`<select class="field" id="${name}" onchange="calcular()"><option value="Seguimiento en Sub Delegación">Seguimiento en Sub Delegación - $7,000</option><option value="Resolución de Pensión">Resolución de Pensión - $12,000</option></select>`; else if(name==='sindo') input=`<select class="field" id="${name}"><option value="No">No</option><option value="Sí">Sí</option></select>`; else {let t=name.toLowerCase().includes('fecha')?'date':(name.toLowerCase().includes('monto')||name.toLowerCase().includes('credito')||name.toLowerCase().includes('precio')||name.toLowerCase().includes('cobro')?'number':'text'); input=`<input class="field" id="${name}" type="${t}" oninput="calcular()" ${name.includes('Auto')?'readonly':''}>`; } f.innerHTML+=`<div class="fade"><p class="label">${LABELS[name]||name}</p>${input}</div>`;}); calcular();};
+function feriados(year){return [`${year}-01-01`,`${year}-02-05`,`${year}-03-21`,`${year}-05-01`,`${year}-09-16`,`${year}-11-20`,`${year}-12-25`];}
+function sumarSinFeriados(fecha, dias){if(!fecha)return ''; let d=new Date(fecha+'T00:00:00'); let cont=0; while(cont<dias){d.setDate(d.getDate()+1); if(!feriados(d.getFullYear()).includes(d.toISOString().slice(0,10))) cont++;} return d.toISOString().slice(0,10);}
+window.calcular=()=>{const cat=val('categoria'); if(cat==='AYUDA POR DESEMPLEO'){if(document.getElementById('fechaSolicitudAuto')) document.getElementById('fechaSolicitudAuto').value=sumarSinFeriados(val('fechaAlta'),46); if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('montoRecibira'))*.30).toFixed(2);} if(cat.includes('MEJORAVIT')){if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('creditoPreautorizado'))*.20+2500).toFixed(2);} if(cat==='SEGUIMIENTO DE PENSIÓN'){document.getElementById('precioAuto').value=val('tipoSeguimiento')==='Resolución de Pensión'?12000:7000;}};
+async function subirArchivos(expId){const urls={}; for(const el of document.querySelectorAll('#formExpediente input[type=file]')){urls[el.id]=[]; for(const file of el.files){const r=ref(storage,`tramites_admin/${expId}/${Date.now()}_${file.name}`); await uploadBytes(r,file); urls[el.id].push({nombre:file.name,url:await getDownloadURL(r)});}} return urls;}
+window.guardarExpediente=async()=>{calcular(); const cat=val('categoria'); const data={categoria:cat,archivado:false,completo:false,creadoEn:serverTimestamp(),actualizadoEn:serverTimestamp(),campos:{}}; document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>data.campos[e.id]=e.value); const refDoc=await addDoc(collection(db,'tramites_admin'),data); const archivos=await subirArchivos(refDoc.id); await updateDoc(doc(db,'tramites_admin',refDoc.id),{archivos,expedienteId:refDoc.id}); alert('Expediente guardado correctamente'); document.getElementById('formExpediente').reset(); pintarFormulario();};
+function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes();});}
+window.renderExpedientes=()=>{const q=val('buscar').toLowerCase(), fc=val('filtroCategoria'), fe=val('filtroEstado'), box=document.getElementById('listaExpedientes'); let lista=expedientes.filter(e=>(!fc||e.categoria===fc)); if(fe==='activos') lista=lista.filter(e=>!e.archivado); if(fe==='archivados') lista=lista.filter(e=>e.archivado); if(q) lista=lista.filter(e=>JSON.stringify(e).toLowerCase().includes(q)); box.innerHTML=lista.length?lista.map(cardExpediente).join(''):'<div class="card p-10 text-center font-black text-slate-400 uppercase">Sin expedientes</div>'; metricas();};
+function cardExpediente(e){const c=e.campos||{}, a=e.archivos||{}; const nombre=c.nombreCompleto||c.curp||'Sin nombre'; const cobro=c.cobroAuto||c.precioAuto||c.precioFinal||0; const fecha=e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleString('es-MX'):'Fecha pendiente'; const docs=Object.entries(a).flatMap(([k,arr])=>(arr||[]).map(x=>`<a target="_blank" class="chip bg-slate-100 text-blue-700" href="${x.url}">${LABELS[k]||k}</a>`)).join(' '); return `<article class="card p-5 fade"><div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3"><div><span class="chip bg-blue-50 text-blue-700">${e.categoria}</span><h3 class="text-xl font-black uppercase mt-3">${nombre}</h3><p class="text-xs font-bold text-slate-400">Creado: ${fecha}</p></div><div class="text-right"><p class="label">Cobro</p><p class="text-2xl font-black text-emerald-600">${money(cobro)}</p></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-xs">${Object.entries(c).slice(0,12).map(([k,v])=>`<div class="bg-slate-50 rounded-2xl p-3"><b class="block text-[9px] uppercase text-slate-400">${LABELS[k]||k}</b>${v||'---'}</div>`).join('')}</div><div class="mt-4 flex flex-wrap gap-2">${docs||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div><div class="flex flex-wrap gap-2 mt-4 justify-end"><button onclick="marcarCompleto('${e.id}',${!e.completo})" class="btn ${e.completo?'bg-emerald-100 text-emerald-700':'bg-slate-900 text-white'}">${e.completo?'Completo ✓':'Marcar completo'}</button><button onclick="archivar('${e.id}',${!e.archivado})" class="btn bg-purple-600 text-white">${e.archivado?'Desarchivar':'Archivar'}</button></div></article>`;}
+window.marcarCompleto=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{completo:v,actualizadoEn:serverTimestamp()}); window.archivar=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{archivado:v,actualizadoEn:serverTimestamp()});
+function metricas(){const activos=expedientes.filter(e=>!e.archivado).length, arch=expedientes.filter(e=>e.archivado).length; const total=expedientes.reduce((s,e)=>s+Number(e.campos?.cobroAuto||e.campos?.precioAuto||e.campos?.precioFinal||0),0); mActivos.innerText=activos; mArchivados.innerText=arch; mCobro.innerText=money(total);} 
+window.abrirModalCategoria=()=>modalCategoria.classList.remove('hidden')||modalCategoria.classList.add('flex'); window.cerrarModalCategoria=()=>modalCategoria.classList.add('hidden');
+window.agregarCategoria=()=>{const nombre=val('nuevaCatNombre').trim().toUpperCase(); const fields=val('nuevaCatCampos').split(',').map(x=>x.trim()).filter(Boolean); if(!nombre||!fields.length)return alert('Completa nombre y campos'); categoriasPersonalizadas.push({nombre,fields}); localStorage.setItem('categoriasDPR',JSON.stringify(categoriasPersonalizadas)); cerrarModalCategoria(); cargarCategorias();};
+window.exportarCSV=()=>{const rows=[['categoria','nombre','curp','nss','telefono','cobro','completo','archivado']].concat(expedientes.map(e=>[e.categoria,e.campos?.nombreCompleto||'',e.campos?.curp||'',e.campos?.nss||'',e.campos?.telefono||'',e.campos?.cobroAuto||e.campos?.precioAuto||e.campos?.precioFinal||'',e.completo?'SI':'NO',e.archivado?'SI':'NO'])); const csv=rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tramites_dpr.csv'; a.click();};
+window.iniciar=iniciar;
+</script>
+</body>
+</html>
