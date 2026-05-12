@@ -251,60 +251,91 @@
             });
         };
 
-        const TRAMITES = {
-            'IMSS': [
-                { nombre: 'SEMANAS COTIZADAS', precio: 19, nss: true, curp: true },
-               { nombre: 'SEMANAS DETALLADAS', precio: 35, nss: true, curp: true },
-                { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
-                { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true, curp: true },
-                 { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
-                 { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
-                { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-                { nombre: 'Tarjeta NSS', precio: 8, nss: true, curp: true },
-                { nombre: 'Vigencia de Derechos', precio: 8, curp: true, nss: true },
-                { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
-                { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
-                { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
-                { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta Para Desempleo con linea de captura', precio: 200, nss: true, curp: true, pideNombre: true },
-                { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
-            ],
-            'SAT': [
-                { nombre: 'RFC Clon', precio: 25, curp: true },
-                { nombre: 'RFC Verificable', precio: 95, curp: true },
-                { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
-                { nombre: 'RFC Original', precio: 180, curp: true },
-                { nombre: 'Localización de IDcif', precio: 60, rfc: true }
-            ],
-            'DOC': [
-                
-                { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
-                { nombre: 'CURP', precio: 4, curp: true },
-                { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
-                { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
-                { nombre: 'Acta de Divorcio', precio: 11, curp: true },
-                { nombre: 'Acta de Defunción', precio: 11, curp: true }
-                
-            ],
-            'INF': [
-                { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
-                { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true },
-                { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
-            ],
-            'AFORE': [
-                { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
-                { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
-                { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
-                { nombre: 'Estado de cuenta AFORE', precio: 500, pideNombre: true, nss: true, curp: true, pideAforeTipo: true }
-            ],
-            'PENSIONES': [
-                { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
-                { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
-            ]
-        };
+const TRAMITES = {
+    'IMSS': [
+        { nombre: 'SEMANAS COTIZADAS', precio: 19, nss: true, curp: true },
+        { nombre: 'SEMANAS DETALLADAS', precio: 35, nss: true, curp: true },
+        { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
+        { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true, curp: true },
+        { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
+        { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
+        { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
+        { nombre: 'Tarjeta NSS', precio: 8, nss: true, curp: true },
+        { nombre: 'Vigencia de Derechos', precio: 8, curp: true, nss: true },
+        { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
+        { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
+        { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
+        { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+        { nombre: 'Alta Para Desempleo con linea de captura', precio: 200, nss: true, curp: true, pideNombre: true },
+        { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
+    ],
+
+    'SAT': [
+        { nombre: 'RFC Clon', precio: 25, curp: true },
+        { nombre: 'RFC Verificable', precio: 95, curp: true },
+        { nombre: 'RFC con IDCIF', precio: 20, rfc: true, idcif: true },
+        { nombre: 'RFC Original', precio: 180, curp: true },
+        { nombre: 'Localización de IDcif', precio: 60, rfc: true }
+    ],
+
+    'DOC': [
+
+        { nombre: 'Buró de Crédito', precio: 170, curp: true, pideIneFrente: true },
+
+        { nombre: 'CURP', precio: 4, curp: true },
+
+        { nombre: 'Acta de Nacimiento', precio: 11, curp: true },
+
+        { nombre: 'Acta de Matrimonio', precio: 11, curp: true },
+
+        { nombre: 'Acta de Divorcio', precio: 11, curp: true },
+
+        { nombre: 'Acta de Defunción', precio: 11, curp: true },
+
+        {
+            nombre: 'Certificado INEA',
+            precio: 30,
+            pideNombre: true,
+            curp: true,
+            pideDia: true,
+            pideMes: true,
+            pideAnio: true,
+            pideNivelEducativo: true,
+            pidePromedio: true,
+            pideEstado: true
+        },
+
+        {
+            nombre: 'Certificado COVID',
+            precio: 20,
+            pideNombre: true,
+            curp: true,
+            pideVacunaCovid: true
+        }
+
+    ],
+
+    'INF': [
+        { nombre: 'Localización de Contraseña', precio: 150, nss: true, pideFecha: true },
+        { nombre: 'Reseteo Cuenta', precio: 150, nss: true, pideFecha: true },
+        { nombre: 'Precalificación Mejoravit', precio: 100, nss: true, pideFecha: true },
+        { nombre: 'Precalificación Linea II', precio: 100, nss: true, pideFecha: true },
+        { nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', precio: 150, nss: true, pideFecha: true },
+        { nombre: 'Histórico Infonavit', precio: 150, nss: true, pideFecha: true }
+    ],
+
+    'AFORE': [
+        { nombre: 'Registro a Distancia', precio: 90, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+        { nombre: 'Retiro Desempleo a Distancia', precio: 60, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
+        { nombre: 'Cambiar Contraseña AFORE Web', precio: 30, curp: true, pidePassNueva: true, pideFotoCli: true },
+        { nombre: 'Estado de cuenta AFORE', precio: 500, pideNombre: true, nss: true, curp: true, pideAforeTipo: true }
+    ],
+
+    'PENSIONES': [
+        { nombre: 'Análisis rápido de pensión', precio: 200, curp: true, nss: true },
+        { nombre: 'Análisis Detallado de pensión', precio: 3000, pideCuestionarioPension: true }
+    ]
+};
 
         const FLUJO_AYUDA = {
             "inicio": { texto: "Hola, ¿en qué puedo ayudarte?", opciones: ["💰 Pagos", "📋 Trámites"] },
@@ -523,6 +554,61 @@
 
             let fields = '';
 
+if (t.pideDia)
+fields += `
+<input 
+type="number" 
+id="dia_p" 
+placeholder="DÍA" 
+class="input-light mb-4">
+`;
+
+if (t.pideMes)
+fields += `
+<input 
+type="number" 
+id="mes_p" 
+placeholder="MES" 
+class="input-light mb-4">
+`;
+
+if (t.pideAnio)
+fields += `
+<input 
+type="number" 
+id="anio_p" 
+placeholder="AÑO" 
+class="input-light mb-4">
+`;
+
+if (t.pideNivelEducativo)
+fields += `
+<select id="nivel_educativo_p" class="input-light mb-4">
+    <option value="N/A">NIVEL EDUCATIVO</option>
+    <option>Primaria</option>
+    <option>Secundaria</option>
+    <option>Preparatoria</option>
+</select>
+`;
+
+if (t.pidePromedio)
+fields += `
+<input 
+type="text" 
+id="promedio_p" 
+placeholder="PROMEDIO" 
+class="input-light mb-4">
+`;
+
+if (t.pideVacunaCovid)
+fields += `
+<select id="vacuna_covid_p" class="input-light mb-4">
+    <option value="N/A">VACUNA</option>
+    <option>AstraZeneca</option>
+    <option>Sputnik V</option>
+    <option>Pfizer</option>
+</select>
+`;
             if (t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
             if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
             if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" maxlength="18" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
@@ -765,7 +851,13 @@
                     telefono: val('tel_p'),
                     telefono_contacto: val('tel_contacto_p'),
                     correo: val('correo_p'),
-                    nota: val('nota_p')
+                    nota: val('nota_p'),
+dia: val('dia_p'),
+mes: val('mes_p'),
+anio: val('anio_p'),
+nivel_educativo: val('nivel_educativo_p'),
+promedio: val('promedio_p'),
+vacuna_covid: val('vacuna_covid_p'),
                 };
 
                 let quest = "N/A";
