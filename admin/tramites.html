@@ -97,11 +97,12 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 import { getFirestore, collection, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
-const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com'};
+const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com' /* si tu bucket nuevo en Firebase aparece como pensionsegura-9c817.firebasestorage.app, cámbialo aquí */};
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
 const ALLOWED_EMAILS=['consultoriadpr@gmail.com']; const ALLOWED_CODES=['SAMR26','samr26'];
 let expedientes=[], categoriasPersonalizadas=JSON.parse(localStorage.getItem('categoriasDPR')||'[]');
 let expedienteEditandoId=null, camposEditandoExtra=[];
+let guardandoExpediente=false;
 const AFORES=['Azteca','Banamex','Coppel','Inbursa','Invercap','PensionISSSTE','Principal','Profuturo','SURA','XXI Banorte'];
 const CESI=['CESI Mexicali','CESI Tijuana','CESI Ensenada','CESI Tecate','CESI Otro'];
 const DEFINICIONES={
@@ -135,11 +136,14 @@ function camposEditorActuales(){
     if(c.type==='file') return;
     if(!map.has(c.name)) map.set(c.name,c);
   });
-  return [...map.values()];
+  // IMPORTANTE: los campos tipo archivo NO se pintan aquí.
+  // Si se pintan aquí y también en "Archivos del expediente", aparecen duplicados
+  // y puede guardarse el campo equivocado.
+  return [...map.values()].filter(c=>c.type!=='file');
 }
 function pintarCampo(c, valor=''){
   const name=c.name, type=c.type; let input='';
-  if(type==='file') input=`<input class="field" id="${name}" type="file" multiple>`;
+  if(type==='file') return '';
   else if(type==='textarea') input=`<textarea class="field h-28" id="${name}">${escapeHtml(valor)}</textarea>`;
   else if(name==='afore') input=`<select class="field" id="${name}">${AFORES.map(x=>`<option ${x===valor?'selected':''}>${x}</option>`).join('')}</select>`;
   else if(name==='cesi') input=`<select class="field" id="${name}">${CESI.map(x=>`<option ${x===valor?'selected':''}>${x}</option>`).join('')}</select>`;
@@ -161,38 +165,60 @@ window.pintarFormulario=(mantenerValores=false)=>{
 function feriados(year){return [`${year}-01-01`,`${year}-02-05`,`${year}-03-21`,`${year}-05-01`,`${year}-09-16`,`${year}-11-20`,`${year}-12-25`];}
 function sumarSinFeriados(fecha, dias){if(!fecha)return ''; let d=new Date(fecha+'T00:00:00'); let cont=0; while(cont<dias){d.setDate(d.getDate()+1); if(!feriados(d.getFullYear()).includes(d.toISOString().slice(0,10))) cont++;} return d.toISOString().slice(0,10);}
 window.calcular=()=>{const cat=val('categoria'); if(cat==='AYUDA POR DESEMPLEO'){if(document.getElementById('fechaSolicitudAuto')) document.getElementById('fechaSolicitudAuto').value=sumarSinFeriados(val('fechaAlta'),46); if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('montoRecibira'))*.30).toFixed(2);} if(cat.includes('MEJORAVIT')){if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('creditoPreautorizado'))*.20+2500).toFixed(2);} if(cat==='SEGUIMIENTO DE PENSIÓN' && document.getElementById('precioAuto')){document.getElementById('precioAuto').value=val('tipoSeguimiento')==='Resolución de Pensión'?12000:7000;}};
+function promesaConTimeout(promise, ms, mensaje){
+  let timer;
+  const timeout=new Promise((_,reject)=>{
+    timer=setTimeout(()=>reject(new Error(mensaje)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(()=>clearTimeout(timer));
+}
+
 async function subirArchivos(expId){
   const urls={};
-  // Los inputs de archivos viven en #archivosActuales para evitar duplicados.
   const inputs=[...document.querySelectorAll('#archivosActuales input[type=file]')];
 
   for(const el of inputs){
     if(!el.files || !el.files.length) continue;
 
-    const campo=el.dataset.campo || el.id;
+    const campo=el.dataset.campo || el.id?.replace(/^archivo_/, '');
     if(!campo) continue;
     if(!urls[campo]) urls[campo]=[];
 
-    for(const file of el.files){
-      const nombreSeguro=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-      const ruta=`tramites_admin/${expId}/${campo}/${Date.now()}_${nombreSeguro}`;
+    for(const file of [...el.files]){
+      if(file.size > 10 * 1024 * 1024){
+        throw new Error(`El archivo "${file.name}" pesa más de 10 MB. Sube un archivo más ligero.`);
+      }
+
+      const nombreSeguro=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]/g,'_');
+      const unico=(crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(16).slice(2)}`);
+      const ruta=`tramites_admin/${expId}/${campo}/${unico}_${nombreSeguro}`;
       const r=ref(storage,ruta);
 
-      await uploadBytes(r,file);
-      const url=await getDownloadURL(r);
+      await promesaConTimeout(
+        uploadBytes(r,file,{contentType:file.type || 'application/octet-stream'}),
+        60000,
+        `La imagen/documento "${file.name}" tardó demasiado en subir. Revisa Firebase Storage, reglas o conexión.`
+      );
+
+      const url=await promesaConTimeout(
+        getDownloadURL(r),
+        30000,
+        `El archivo "${file.name}" subió, pero no se pudo obtener la URL pública.`
+      );
 
       urls[campo].push({
         nombre:file.name,
         url,
+        ruta,
         tipo:file.type || '',
-        peso:file.size || 0,
+        size:file.size,
         subidoEn:new Date().toISOString()
       });
     }
   }
-
   return urls;
 }
+
 window.abrirEditor=(id)=>{
   const exp=expedientes.find(e=>e.id===id); if(!exp) return alert('No encontré el expediente');
   expedienteEditandoId=id; camposEditandoExtra=[];
@@ -220,9 +246,10 @@ window.guardarCambiosExpediente=async()=>{
   const textoOriginal=btn?.innerText || 'Guardar cambios';
 
   try{
+    guardandoExpediente=true;
     if(btn){
       btn.disabled=true;
-      btn.innerText='Guardando...';
+      btn.innerText='SUBIENDO / GUARDANDO...';
       btn.classList.add('opacity-60','cursor-not-allowed');
     }
 
@@ -257,8 +284,9 @@ window.guardarCambiosExpediente=async()=>{
     pintarArchivosActuales();
   }catch(error){
     console.error('Error al guardar expediente:', error);
-    alert('No se pudieron guardar los cambios: ' + (error?.message || error));
+    alert('No se pudieron guardar los cambios: ' + (error?.message || error) + '\n\nSi se queda en subida o marca permisos, revisa que Firebase Storage esté habilitado y que las reglas permitan escribir en tramites_admin/{expedienteId}.');
   }finally{
+    guardandoExpediente=false;
     if(btn){
       btn.disabled=false;
       btn.innerText=textoOriginal;
@@ -266,7 +294,7 @@ window.guardarCambiosExpediente=async()=>{
     }
   }
 };
-function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes(); if(expedienteEditandoId && expedientes.some(e=>e.id===expedienteEditandoId)) pintarFormulario(true);});}
+function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes(); if(!guardandoExpediente && expedienteEditandoId && expedientes.some(e=>e.id===expedienteEditandoId)) pintarFormulario(true);});}
 window.renderExpedientes=()=>{const q=val('buscar').toLowerCase(), fc=val('filtroCategoria'), fe=val('filtroEstado'), box=document.getElementById('listaExpedientes'); let lista=expedientes.filter(e=>(!fc||e.categoria===fc)); if(fe==='activos') lista=lista.filter(e=>!e.archivado); if(fe==='archivados') lista=lista.filter(e=>e.archivado); if(q) lista=lista.filter(e=>JSON.stringify(e).toLowerCase().includes(q)); box.innerHTML=lista.length?lista.map(cardExpediente).join(''):'<div class="card p-10 text-center font-black text-slate-400 uppercase">Sin expedientes</div>'; metricas();};
 function cardExpediente(e){const c=e.campos||{}, a=e.archivos||{}; const nombre=c.nombreCompleto||c.curp||'Sin nombre'; const cobro=c.cobroAuto||c.precioAuto||c.precioFinal||0; const fecha=e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleString('es-MX'):'Fecha pendiente'; const docs=Object.entries(a).flatMap(([k,arr])=>(arr||[]).map(x=>`<a target="_blank" class="chip bg-slate-100 text-blue-700" href="${x.url}">${LABELS[k]||k}</a>`)).join(' '); return `<article class="card p-5 fade ${expedienteEditandoId===e.id?'ring-4 ring-blue-100':''}"><div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3"><div><span class="chip bg-blue-50 text-blue-700">${e.categoria}</span><h3 class="text-xl font-black uppercase mt-3">${escapeHtml(nombre)}</h3><p class="text-xs font-bold text-slate-400">Creado: ${fecha}</p></div><div class="text-right"><p class="label">Cobro</p><p class="text-2xl font-black text-emerald-600">${money(cobro)}</p></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-xs">${Object.entries(c).slice(0,12).map(([k,v])=>`<div class="bg-slate-50 rounded-2xl p-3"><b class="block text-[9px] uppercase text-slate-400">${LABELS[k]||k}</b>${escapeHtml(v||'---')}</div>`).join('')}</div><div class="mt-4 flex flex-wrap gap-2">${docs||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div><div class="flex flex-wrap gap-2 mt-4 justify-end"><button onclick="abrirEditor('${e.id}')" class="btn bg-blue-600 text-white">Editar</button><button onclick="marcarCompleto('${e.id}',${!e.completo})" class="btn ${e.completo?'bg-emerald-100 text-emerald-700':'bg-slate-900 text-white'}">${e.completo?'Completo ✓':'Marcar completo'}</button><button onclick="archivar('${e.id}',${!e.archivado})" class="btn bg-purple-600 text-white">${e.archivado?'Desarchivar':'Archivar'}</button></div></article>`;}
 window.marcarCompleto=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{completo:v,actualizadoEn:serverTimestamp()}); window.archivar=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{archivado:v,actualizadoEn:serverTimestamp()});
