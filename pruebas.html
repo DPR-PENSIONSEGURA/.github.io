@@ -776,10 +776,12 @@ class="admin-menu-btn solo-admin relative">
           <div class="op-card lg:col-span-1">
             <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Configurar inventario</h3>
             <div class="space-y-3">
+              <input id="vdInventarioEditId" type="hidden">
               <input id="vdNombreTramite" type="text" placeholder="Nombre del trámite" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
               <input id="vdPrecioProveedor" type="number" min="0" step="0.01" placeholder="Precio proveedor" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
               <input id="vdPrecioPublico" type="number" min="0" step="0.01" placeholder="Precio público" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar / actualizar trámite</button>
+              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar trámite / cambios</button>
+              <button onclick="window.limpiarFormularioInventarioVentaDirecta()" class="w-full bg-slate-200 text-slate-700 py-4 rounded-xl font-black text-xs uppercase">Limpiar formulario</button>
               <button onclick="window.precargarInventarioVentaDirecta()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase">Precargar trámites del dashboard</button>
             </div>
             <p class="text-[10px] text-slate-500 font-bold mt-3">Puedes editar los precios después. La utilidad se calcula: precio público - precio proveedor.</p>
@@ -935,7 +937,7 @@ class="admin-menu-btn solo-admin relative">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, deleteDoc, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, setDoc, deleteDoc, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -1457,35 +1459,57 @@ class="admin-menu-btn solo-admin relative">
         window.precargarInventarioVentaDirecta = async function () {
             try {
                 for (const item of INVENTARIO_VENTA_DIRECTA_DEFAULT) {
-                    const refId = item.key;
-                    await updateDoc(doc(db, 'inventario_venta_directa', refId), {
+                    const utilidad = Number(item.publico || 0) - Number(item.proveedor || 0);
+                    await setDoc(doc(db, 'inventario_venta_directa', item.key), {
                         ...item,
-                        utilidad: Number(item.publico || 0) - Number(item.proveedor || 0),
+                        utilidad,
+                        activo: true,
                         actualizado_por: staffNombre,
                         fecha_actualizado: serverTimestamp()
-                    }).catch(async () => {
-                        await addDoc(collection(db, 'inventario_venta_directa'), {
-                            ...item,
-                            utilidad: Number(item.publico || 0) - Number(item.proveedor || 0),
-                            actualizado_por: staffNombre,
-                            fecha_actualizado: serverTimestamp()
-                        });
-                    });
+                    }, { merge: true });
                 }
-                alert('✅ Inventario precargado. Puedes editar precios y utilidad.');
+                alert('✅ Inventario precargado sin duplicar. Puedes editar precios y utilidad.');
             } catch (e) {
                 alert(e.message || 'No se pudo precargar inventario');
             }
         };
 
+        window.editarInventarioVentaDirecta = function (id) {
+            const item = inventarioVentaDirecta.find(i => String(i.id) === String(id));
+            if (!item) return alert('No se encontró el trámite para editar');
+
+            document.getElementById('vdInventarioEditId').value = item.id || item.key || '';
+            document.getElementById('vdNombreTramite').value = item.nombre || item.key || '';
+            document.getElementById('vdPrecioProveedor').value = Number(item.proveedor || 0);
+            document.getElementById('vdPrecioPublico').value = Number(item.publico || 0);
+            document.getElementById('vdNombreTramite').focus();
+        };
+
+        window.limpiarFormularioInventarioVentaDirecta = function () {
+            document.getElementById('vdInventarioEditId').value = '';
+            document.getElementById('vdNombreTramite').value = '';
+            document.getElementById('vdPrecioProveedor').value = '';
+            document.getElementById('vdPrecioPublico').value = '';
+        };
+
         window.guardarInventarioVentaDirecta = async function () {
+            const editId = document.getElementById('vdInventarioEditId')?.value.trim();
             const nombre = document.getElementById('vdNombreTramite')?.value.trim();
             const proveedor = Number(document.getElementById('vdPrecioProveedor')?.value || 0);
             const publico = Number(document.getElementById('vdPrecioPublico')?.value || 0);
+
             if (!nombre) return alert('Agrega el nombre del trámite');
             if (publico < proveedor) return alert('El precio público no debe ser menor al precio proveedor');
+
             const key = normalizarKeyInventario(nombre);
-            await addDoc(collection(db, 'inventario_venta_directa'), {
+            const existente = inventarioVentaDirecta.find(i =>
+                String(i.id) === String(editId) ||
+                String(i.key) === String(key) ||
+                normalizarKeyInventario(i.nombre) === key
+            );
+            const docId = editId || existente?.id || key;
+
+            await setDoc(doc(db, 'inventario_venta_directa', docId), {
                 key,
                 nombre,
                 proveedor,
@@ -1494,11 +1518,10 @@ class="admin-menu-btn solo-admin relative">
                 activo: true,
                 actualizado_por: staffNombre,
                 fecha_actualizado: serverTimestamp()
-            });
-            document.getElementById('vdNombreTramite').value = '';
-            document.getElementById('vdPrecioProveedor').value = '';
-            document.getElementById('vdPrecioPublico').value = '';
-            alert('✅ Trámite guardado en inventario');
+            }, { merge: true });
+
+            window.limpiarFormularioInventarioVentaDirecta();
+            alert(editId ? '✅ Trámite actualizado sin duplicar' : '✅ Trámite guardado sin duplicar');
         };
 
         window.renderVentaDirecta = function () {
@@ -1558,20 +1581,30 @@ class="admin-menu-btn solo-admin relative">
         };
 
         onSnapshot(query(collection(db, 'inventario_venta_directa'), limit(200)), (snap) => {
-            inventarioVentaDirecta = [];
-            snap.forEach(d => inventarioVentaDirecta.push({ id: d.id, ...d.data() }));
-            if (!inventarioVentaDirecta.length) inventarioVentaDirecta = [...INVENTARIO_VENTA_DIRECTA_DEFAULT];
+            const mapa = new Map();
+            snap.forEach(d => {
+                const item = { id: d.id, ...d.data() };
+                const llave = item.key || normalizarKeyInventario(item.nombre || d.id);
+                if (!mapa.has(llave)) mapa.set(llave, item);
+            });
+            inventarioVentaDirecta = Array.from(mapa.values());
+            if (!inventarioVentaDirecta.length) {
+                inventarioVentaDirecta = INVENTARIO_VENTA_DIRECTA_DEFAULT.map(i => ({ id: i.key, ...i }));
+            }
 
             const lista = document.getElementById('vdInventarioLista');
             const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             if (lista) {
                 lista.innerHTML = inventarioVentaDirecta.map(i => `
-                    <div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-slate-50 border rounded-xl p-3 gap-3">
                         <div>
                             <p class="text-xs font-black uppercase text-slate-800">${i.nombre || i.key}</p>
                             <p class="text-[10px] font-bold text-slate-500">Proveedor: ${money(i.proveedor)} · Público: ${money(i.publico)}</p>
                         </div>
-                        <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
+                        <div class="flex items-center gap-2 flex-wrap justify-end">
+                            <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
+                            <button type="button" onclick="window.editarInventarioVentaDirecta('${i.id || i.key}')" class="op-btn take">Editar</button>
+                        </div>
                     </div>
                 `).join('');
             }
