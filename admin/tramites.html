@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DPR Admin | Trámites Especiales</title>
+  <title>DPR Admin | Editor de Expedientes</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -26,7 +26,8 @@
     <header class="glass sticky top-0 z-30 rounded-[2rem] border border-white shadow-xl p-4 md:p-5 mb-7 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
       <div>
         <p class="text-[10px] font-black uppercase tracking-[.25em] text-blue-600">DPR Pensión Segura</p>
-        <h1 class="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Control de Trámites</h1>
+        <h1 class="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Editor de Expedientes</h1>
+        <p class="text-xs text-slate-500 font-bold mt-1">Edita expedientes existentes sin duplicarlos.</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="abrirModalCategoria()" class="btn bg-blue-600 text-white shadow-lg">+ Agregar categoría</button>
@@ -51,15 +52,31 @@
     </section>
 
     <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <aside class="lg:col-span-4 card p-5 h-fit">
+      <aside class="lg:col-span-4 card p-5 h-fit sticky top-32">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="font-black uppercase italic">Nuevo expediente</h2>
-          <span class="chip bg-blue-50 text-blue-700">Admin</span>
+          <h2 id="editorTitulo" class="font-black uppercase italic">Selecciona un expediente</h2>
+          <span id="editorBadge" class="chip bg-slate-100 text-slate-600">Sin editar</span>
         </div>
-        <div class="mb-4"><p class="label">Categoría / Trámite</p><select id="categoria" class="field" onchange="pintarFormulario()"></select></div>
-        <form id="formExpediente" class="space-y-4"></form>
-        <button onclick="guardarExpediente()" class="btn bg-blue-600 text-white w-full mt-5 shadow-lg">Guardar expediente</button>
-        <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">Los archivos se guardan en Firebase Storage y el expediente en la colección <b>tramites_admin</b>.</p>
+        <div id="editorEmpty" class="bg-slate-50 rounded-[1.5rem] p-5 text-sm text-slate-500 font-bold leading-relaxed">
+          Da clic en <b>Editar</b> dentro de cualquier expediente para modificar datos, agregar campos nuevos, quitar campos o subir archivos adicionales. Los cambios se guardan en el mismo documento de Firebase.
+        </div>
+        <div id="editorBox" class="hidden">
+          <div class="mb-4"><p class="label">Categoría / Trámite</p><select id="categoria" class="field" onchange="pintarFormulario(true)"></select></div>
+          <form id="formExpediente" class="space-y-4"></form>
+          <div class="mt-5 rounded-[1.5rem] bg-slate-50 p-4">
+            <p class="label">Agregar campo extra</p>
+            <div class="flex gap-2">
+              <input id="nuevoCampoNombre" class="field" placeholder="Ejemplo: observacionesProveedor">
+              <button type="button" onclick="agregarCampoManual()" class="btn bg-slate-900 text-white shrink-0">Agregar</button>
+            </div>
+          </div>
+          <div id="archivosActuales" class="mt-5"></div>
+          <div class="flex gap-2 mt-5">
+            <button type="button" onclick="guardarCambiosExpediente()" class="btn bg-blue-600 text-white w-full shadow-lg">Guardar cambios</button>
+            <button type="button" onclick="cancelarEdicion()" class="btn bg-slate-200 text-slate-700">Cancelar</button>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">Modo edición: usa <b>updateDoc</b>. No crea documentos nuevos ni duplica expedientes.</p>
+        </div>
       </aside>
       <section class="lg:col-span-8 space-y-4" id="listaExpedientes"></section>
     </main>
@@ -78,12 +95,13 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getFirestore, collection, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com'};
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
 const ALLOWED_EMAILS=['consultoriadpr@gmail.com']; const ALLOWED_CODES=['SAMR26','samr26'];
 let expedientes=[], categoriasPersonalizadas=JSON.parse(localStorage.getItem('categoriasDPR')||'[]');
+let expedienteEditandoId=null, camposEditandoExtra=[];
 const AFORES=['Azteca','Banamex','Coppel','Inbursa','Invercap','PensionISSSTE','Principal','Profuturo','SURA','XXI Banorte'];
 const CESI=['CESI Mexicali','CESI Tijuana','CESI Ensenada','CESI Tecate','CESI Otro'];
 const DEFINICIONES={
@@ -98,19 +116,73 @@ const DEFINICIONES={
 };
 const LABELS={nombreCompleto:'Nombre completo',curp:'CURP',nss:'NSS',correo:'Correo',telefono:'Teléfono',referenciaNombre:'Referencia: nombre',referenciaTelefono:'Referencia: teléfono',fechaAlta:'Fecha de alta',fechaSolicitudAuto:'Fecha de solicitud automática',fechaCitaAfore:'Fecha de cita al AFORE',afore:'AFORE del cliente',fechaCobro:'Fecha de cobro',sindo:'SINDO',fechaUltimoRetiro:'Fecha último retiro',montoRecibira:'Cuánto recibirá el cliente',cobroAuto:'Cobro automático',fotoCliente:'Foto del cliente',comprobanteDomicilio:'Comprobante de domicilio',rfcClon:'RFC clon',ineFrente:'INE frente',ineReverso:'INE reverso',semanasCotizadas:'Semanas cotizadas',estadoCuentaClabe:'Estado de cuenta con CLABE',passwordPortal:'Contraseña del portal',cesi:'CESI',fechaCitaInfonavit:'Fecha de cita en Infonavit',fechaSegundaCita:'Fecha de segunda cita',creditoPreautorizado:'Crédito pre autorizado',anotaciones:'Anotaciones',fotoDomicilio:'Foto del domicilio',estadoCuenta:'Estado de cuenta',solicitudCredito:'Solicitud de crédito',precalificacion:'Precalificación',cartaBajoProtesta:'Carta bajo protesta',presupuesto:'Presupuesto',verificacionIne:'Verificación de INE',acta:'Acta',rfc:'RFC',curpDoc:'CURP documento',nss1:'NSS 1',nss2:'NSS 2',masNssCurp:'Agregar más NSS o CURP',notas:'Notas',costoProveedor:'Cobro del proveedor',precioFinal:'Precio final',fechaInicioTramite:'Fecha de inicio de trámite',fechaSolucion:'Fecha en que se solucionó',documentosProbatorios:'Documentos probatorios',notasError:'Explicar error del cliente',documentosProbatorios1:'Documentos probatorios 1',documentosProbatorios2:'Documentos probatorios 2',documentosProbatoriosExtra:'Documentos probatorios extra',semanas:'Subir semanas',documentoAnalisis:'Subir documento de análisis',semanasDetalladas:'Subir semanas detalladas',cuestionario:'Cuestionario de análisis detallado',tipoSeguimiento:'Tipo de seguimiento',precioAuto:'Precio automático',estadoCuentaBancario:'Estado de cuenta bancario',beneficiarioNombre:'Beneficiario: nombre',beneficiarioTelefono:'Beneficiario: teléfono',beneficiarioCorreo:'Beneficiario: correo'};
 function money(n){return Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});} function val(id){return document.getElementById(id)?.value||'';}
+function escapeHtml(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
 window.validarAccesoManual=()=>{if(ALLOWED_CODES.includes(val('accessCode').trim())) iniciar(); else alert('Acceso no autorizado');};
 onAuthStateChanged(auth,u=>{const email=(u?.email||'').toLowerCase(); const display=(u?.displayName||''); if(ALLOWED_EMAILS.includes(email)||ALLOWED_CODES.includes(display)) iniciar();});
 function iniciar(){document.getElementById('accessBox').classList.add('hidden'); cargarCategorias(); escucharExpedientes();}
-function cargarCategorias(){const all={...DEFINICIONES}; categoriasPersonalizadas.forEach(c=>all[c.nombre]={fields:c.fields}); ['categoria','filtroCategoria'].forEach(id=>{const s=document.getElementById(id); const first=id==='filtroCategoria'?'<option value="">Todas las categorías</option>':''; s.innerHTML=first+Object.keys(all).map(k=>`<option>${k}</option>`).join('');}); document.getElementById('mCategorias').innerText=Object.keys(all).length; pintarFormulario();}
-window.pintarFormulario=()=>{const cat=val('categoria'), def={...DEFINICIONES,...Object.fromEntries(categoriasPersonalizadas.map(c=>[c.nombre,{fields:c.fields}]))}[cat]; const f=document.getElementById('formExpediente'); f.innerHTML=''; (def?.fields||[]).forEach(raw=>{let [name,type]=raw.split(':'); let input=''; if(type==='file') input=`<input class="field" id="${name}" type="file" multiple>`; else if(type==='textarea') input=`<textarea class="field h-28" id="${name}"></textarea>`; else if(name==='afore') input=`<select class="field" id="${name}">${AFORES.map(x=>`<option>${x}</option>`).join('')}</select>`; else if(name==='cesi') input=`<select class="field" id="${name}">${CESI.map(x=>`<option>${x}</option>`).join('')}</select>`; else if(name==='tipoSeguimiento') input=`<select class="field" id="${name}" onchange="calcular()"><option value="Seguimiento en Sub Delegación">Seguimiento en Sub Delegación - $7,000</option><option value="Resolución de Pensión">Resolución de Pensión - $12,000</option></select>`; else if(name==='sindo') input=`<select class="field" id="${name}"><option value="No">No</option><option value="Sí">Sí</option></select>`; else {let t=name.toLowerCase().includes('fecha')?'date':(name.toLowerCase().includes('monto')||name.toLowerCase().includes('credito')||name.toLowerCase().includes('precio')||name.toLowerCase().includes('cobro')?'number':'text'); input=`<input class="field" id="${name}" type="${t}" oninput="calcular()" ${name.includes('Auto')?'readonly':''}>`; } f.innerHTML+=`<div class="fade"><p class="label">${LABELS[name]||name}</p>${input}</div>`;}); calcular();};
+function todasDefiniciones(){const all={...DEFINICIONES}; categoriasPersonalizadas.forEach(c=>all[c.nombre]={fields:c.fields}); return all;}
+function cargarCategorias(){const all=todasDefiniciones(); ['categoria','filtroCategoria'].forEach(id=>{const s=document.getElementById(id); const first=id==='filtroCategoria'?'<option value="">Todas las categorías</option>':''; s.innerHTML=first+Object.keys(all).map(k=>`<option>${k}</option>`).join('');}); document.getElementById('mCategorias').innerText=Object.keys(all).length;}
+function campoBase(raw){let [name,type]=raw.split(':'); return {name,type:type||'text'};}
+function camposCategoria(cat){return (todasDefiniciones()[cat]?.fields||[]).map(campoBase);}
+function camposEditorActuales(){const exp=expedientes.find(e=>e.id===expedienteEditandoId); const cat=val('categoria') || exp?.categoria || ''; const base=camposCategoria(cat); const existentes=Object.keys(exp?.campos||{}).map(name=>({name,type:'text'})); const extras=camposEditandoExtra.map(name=>({name,type:'text'})); const map=new Map(); [...base,...existentes,...extras].forEach(c=>{if(!map.has(c.name)) map.set(c.name,c);}); return [...map.values()].filter(c=>!c.name.endsWith(':file'));
+}
+function pintarCampo(c, valor=''){
+  const name=c.name, type=c.type; let input='';
+  if(type==='file') input=`<input class="field" id="${name}" type="file" multiple>`;
+  else if(type==='textarea') input=`<textarea class="field h-28" id="${name}">${escapeHtml(valor)}</textarea>`;
+  else if(name==='afore') input=`<select class="field" id="${name}">${AFORES.map(x=>`<option ${x===valor?'selected':''}>${x}</option>`).join('')}</select>`;
+  else if(name==='cesi') input=`<select class="field" id="${name}">${CESI.map(x=>`<option ${x===valor?'selected':''}>${x}</option>`).join('')}</select>`;
+  else if(name==='tipoSeguimiento') input=`<select class="field" id="${name}" onchange="calcular()"><option ${valor==='Seguimiento en Sub Delegación'?'selected':''} value="Seguimiento en Sub Delegación">Seguimiento en Sub Delegación - $7,000</option><option ${valor==='Resolución de Pensión'?'selected':''} value="Resolución de Pensión">Resolución de Pensión - $12,000</option></select>`;
+  else if(name==='sindo') input=`<select class="field" id="${name}"><option ${valor==='No'?'selected':''} value="No">No</option><option ${valor==='Sí'?'selected':''} value="Sí">Sí</option></select>`;
+  else {let t=name.toLowerCase().includes('fecha')?'date':(name.toLowerCase().includes('monto')||name.toLowerCase().includes('credito')||name.toLowerCase().includes('precio')||name.toLowerCase().includes('cobro')?'number':'text'); input=`<input class="field" id="${name}" type="${t}" value="${escapeHtml(valor)}" oninput="calcular()" ${name.includes('Auto')?'readonly':''}>`;}
+  const removable=!camposCategoria(val('categoria')).some(x=>x.name===name);
+  return `<div class="fade rounded-[1.25rem] border border-slate-100 p-3"><div class="flex items-center justify-between gap-2 mb-1"><p class="label mb-0">${LABELS[name]||name}</p>${removable?`<button type="button" onclick="quitarCampoManual('${name}')" class="text-[10px] font-black text-red-600 uppercase">Quitar</button>`:''}</div>${input}</div>`;
+}
+window.pintarFormulario=(mantenerValores=false)=>{
+  if(!expedienteEditandoId) return;
+  const exp=expedientes.find(e=>e.id===expedienteEditandoId); if(!exp) return;
+  const valoresActuales={...(exp.campos||{})};
+  if(mantenerValores){document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>valoresActuales[e.id]=e.value);}
+  const f=document.getElementById('formExpediente'); f.innerHTML='';
+  camposEditorActuales().forEach(c=>{f.innerHTML+=pintarCampo(c,valoresActuales[c.name]||'');});
+  pintarArchivosActuales(); calcular();
+};
 function feriados(year){return [`${year}-01-01`,`${year}-02-05`,`${year}-03-21`,`${year}-05-01`,`${year}-09-16`,`${year}-11-20`,`${year}-12-25`];}
 function sumarSinFeriados(fecha, dias){if(!fecha)return ''; let d=new Date(fecha+'T00:00:00'); let cont=0; while(cont<dias){d.setDate(d.getDate()+1); if(!feriados(d.getFullYear()).includes(d.toISOString().slice(0,10))) cont++;} return d.toISOString().slice(0,10);}
-window.calcular=()=>{const cat=val('categoria'); if(cat==='AYUDA POR DESEMPLEO'){if(document.getElementById('fechaSolicitudAuto')) document.getElementById('fechaSolicitudAuto').value=sumarSinFeriados(val('fechaAlta'),46); if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('montoRecibira'))*.30).toFixed(2);} if(cat.includes('MEJORAVIT')){if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('creditoPreautorizado'))*.20+2500).toFixed(2);} if(cat==='SEGUIMIENTO DE PENSIÓN'){document.getElementById('precioAuto').value=val('tipoSeguimiento')==='Resolución de Pensión'?12000:7000;}};
-async function subirArchivos(expId){const urls={}; for(const el of document.querySelectorAll('#formExpediente input[type=file]')){urls[el.id]=[]; for(const file of el.files){const r=ref(storage,`tramites_admin/${expId}/${Date.now()}_${file.name}`); await uploadBytes(r,file); urls[el.id].push({nombre:file.name,url:await getDownloadURL(r)});}} return urls;}
-window.guardarExpediente=async()=>{calcular(); const cat=val('categoria'); const data={categoria:cat,archivado:false,completo:false,creadoEn:serverTimestamp(),actualizadoEn:serverTimestamp(),campos:{}}; document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>data.campos[e.id]=e.value); const refDoc=await addDoc(collection(db,'tramites_admin'),data); const archivos=await subirArchivos(refDoc.id); await updateDoc(doc(db,'tramites_admin',refDoc.id),{archivos,expedienteId:refDoc.id}); alert('Expediente guardado correctamente'); document.getElementById('formExpediente').reset(); pintarFormulario();};
-function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes();});}
+window.calcular=()=>{const cat=val('categoria'); if(cat==='AYUDA POR DESEMPLEO'){if(document.getElementById('fechaSolicitudAuto')) document.getElementById('fechaSolicitudAuto').value=sumarSinFeriados(val('fechaAlta'),46); if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('montoRecibira'))*.30).toFixed(2);} if(cat.includes('MEJORAVIT')){if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('creditoPreautorizado'))*.20+2500).toFixed(2);} if(cat==='SEGUIMIENTO DE PENSIÓN' && document.getElementById('precioAuto')){document.getElementById('precioAuto').value=val('tipoSeguimiento')==='Resolución de Pensión'?12000:7000;}};
+async function subirArchivos(expId){const urls={}; for(const el of document.querySelectorAll('#formExpediente input[type=file]')){if(!el.files.length) continue; urls[el.id]=[]; for(const file of el.files){const r=ref(storage,`tramites_admin/${expId}/${Date.now()}_${file.name}`); await uploadBytes(r,file); urls[el.id].push({nombre:file.name,url:await getDownloadURL(r)});}} return urls;}
+window.abrirEditor=(id)=>{
+  const exp=expedientes.find(e=>e.id===id); if(!exp) return alert('No encontré el expediente');
+  expedienteEditandoId=id; camposEditandoExtra=[];
+  document.getElementById('editorEmpty').classList.add('hidden'); document.getElementById('editorBox').classList.remove('hidden');
+  document.getElementById('editorTitulo').innerText='Editando expediente'; document.getElementById('editorBadge').innerText='Modo edición'; document.getElementById('editorBadge').className='chip bg-blue-50 text-blue-700';
+  document.getElementById('categoria').value=exp.categoria||'';
+  pintarFormulario(false);
+  document.getElementById('editorBox').scrollIntoView({behavior:'smooth',block:'start'});
+};
+window.cancelarEdicion=()=>{expedienteEditandoId=null; camposEditandoExtra=[]; document.getElementById('editorBox').classList.add('hidden'); document.getElementById('editorEmpty').classList.remove('hidden'); document.getElementById('editorTitulo').innerText='Selecciona un expediente'; document.getElementById('editorBadge').innerText='Sin editar'; document.getElementById('editorBadge').className='chip bg-slate-100 text-slate-600'; document.getElementById('formExpediente').innerHTML='';};
+window.agregarCampoManual=()=>{const raw=val('nuevoCampoNombre').trim().replace(/\s+/g,'_'); if(!raw) return alert('Escribe el nombre del campo'); if(camposEditorActuales().some(c=>c.name===raw)) return alert('Ese campo ya existe'); camposEditandoExtra.push(raw); document.getElementById('nuevoCampoNombre').value=''; pintarFormulario(true);};
+window.quitarCampoManual=(name)=>{if(!confirm('¿Quitar este campo del expediente?')) return; const el=document.getElementById(name); if(el) el.closest('.fade')?.remove(); camposEditandoExtra=camposEditandoExtra.filter(x=>x!==name);};
+function pintarArchivosActuales(){
+  const exp=expedientes.find(e=>e.id===expedienteEditandoId); const box=document.getElementById('archivosActuales'); if(!exp){box.innerHTML='';return;}
+  const archivos=exp.archivos||{}; const fileFields=camposCategoria(val('categoria')).filter(c=>c.type==='file');
+  let actuales=Object.entries(archivos).map(([k,arr])=>`<div class="mb-3"><p class="label">${LABELS[k]||k}</p><div class="flex flex-wrap gap-2">${(arr||[]).map((x,i)=>`<span class="chip bg-slate-100 text-blue-700"><a target="_blank" href="${x.url}">${escapeHtml(x.nombre||k)}</a> <button type="button" onclick="quitarArchivo('${k}',${i})" class="text-red-600 ml-1">×</button></span>`).join('')||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div></div>`).join('');
+  const subir=fileFields.map(c=>`<div class="mt-3"><p class="label">Subir / agregar ${LABELS[c.name]||c.name}</p><input class="field" id="${c.name}" type="file" multiple></div>`).join('');
+  box.innerHTML=`<div class="rounded-[1.5rem] bg-slate-50 p-4"><h3 class="font-black uppercase italic mb-3">Archivos del expediente</h3>${actuales||'<p class="text-xs text-slate-400 font-bold mb-3">Sin archivos actuales.</p>'}${subir}</div>`;
+}
+window.quitarArchivo=(campo,index)=>{const exp=expedientes.find(e=>e.id===expedienteEditandoId); if(!exp) return; if(!confirm('¿Quitar este archivo del expediente? El enlace se quitará del registro.')) return; const archivos={...(exp.archivos||{})}; archivos[campo]=[...(archivos[campo]||[])]; archivos[campo].splice(index,1); if(!archivos[campo].length) delete archivos[campo]; updateDoc(doc(db,'tramites_admin',expedienteEditandoId),{archivos,actualizadoEn:serverTimestamp()});};
+window.guardarCambiosExpediente=async()=>{
+  if(!expedienteEditandoId) return alert('Selecciona un expediente'); calcular();
+  const exp=expedientes.find(e=>e.id===expedienteEditandoId); if(!exp) return;
+  const campos={}; document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>{if(e.id) campos[e.id]=e.value;});
+  const nuevosArchivos=await subirArchivos(expedienteEditandoId); const archivos={...(exp.archivos||{})};
+  Object.entries(nuevosArchivos).forEach(([k,arr])=>{archivos[k]=[...(archivos[k]||[]),...arr];});
+  await updateDoc(doc(db,'tramites_admin',expedienteEditandoId),{categoria:val('categoria'),campos,archivos,actualizadoEn:serverTimestamp()});
+  alert('Cambios guardados sin duplicar expediente');
+};
+function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes(); if(expedienteEditandoId && expedientes.some(e=>e.id===expedienteEditandoId)) pintarFormulario(true);});}
 window.renderExpedientes=()=>{const q=val('buscar').toLowerCase(), fc=val('filtroCategoria'), fe=val('filtroEstado'), box=document.getElementById('listaExpedientes'); let lista=expedientes.filter(e=>(!fc||e.categoria===fc)); if(fe==='activos') lista=lista.filter(e=>!e.archivado); if(fe==='archivados') lista=lista.filter(e=>e.archivado); if(q) lista=lista.filter(e=>JSON.stringify(e).toLowerCase().includes(q)); box.innerHTML=lista.length?lista.map(cardExpediente).join(''):'<div class="card p-10 text-center font-black text-slate-400 uppercase">Sin expedientes</div>'; metricas();};
-function cardExpediente(e){const c=e.campos||{}, a=e.archivos||{}; const nombre=c.nombreCompleto||c.curp||'Sin nombre'; const cobro=c.cobroAuto||c.precioAuto||c.precioFinal||0; const fecha=e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleString('es-MX'):'Fecha pendiente'; const docs=Object.entries(a).flatMap(([k,arr])=>(arr||[]).map(x=>`<a target="_blank" class="chip bg-slate-100 text-blue-700" href="${x.url}">${LABELS[k]||k}</a>`)).join(' '); return `<article class="card p-5 fade"><div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3"><div><span class="chip bg-blue-50 text-blue-700">${e.categoria}</span><h3 class="text-xl font-black uppercase mt-3">${nombre}</h3><p class="text-xs font-bold text-slate-400">Creado: ${fecha}</p></div><div class="text-right"><p class="label">Cobro</p><p class="text-2xl font-black text-emerald-600">${money(cobro)}</p></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-xs">${Object.entries(c).slice(0,12).map(([k,v])=>`<div class="bg-slate-50 rounded-2xl p-3"><b class="block text-[9px] uppercase text-slate-400">${LABELS[k]||k}</b>${v||'---'}</div>`).join('')}</div><div class="mt-4 flex flex-wrap gap-2">${docs||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div><div class="flex flex-wrap gap-2 mt-4 justify-end"><button onclick="marcarCompleto('${e.id}',${!e.completo})" class="btn ${e.completo?'bg-emerald-100 text-emerald-700':'bg-slate-900 text-white'}">${e.completo?'Completo ✓':'Marcar completo'}</button><button onclick="archivar('${e.id}',${!e.archivado})" class="btn bg-purple-600 text-white">${e.archivado?'Desarchivar':'Archivar'}</button></div></article>`;}
+function cardExpediente(e){const c=e.campos||{}, a=e.archivos||{}; const nombre=c.nombreCompleto||c.curp||'Sin nombre'; const cobro=c.cobroAuto||c.precioAuto||c.precioFinal||0; const fecha=e.creadoEn?.toDate?e.creadoEn.toDate().toLocaleString('es-MX'):'Fecha pendiente'; const docs=Object.entries(a).flatMap(([k,arr])=>(arr||[]).map(x=>`<a target="_blank" class="chip bg-slate-100 text-blue-700" href="${x.url}">${LABELS[k]||k}</a>`)).join(' '); return `<article class="card p-5 fade ${expedienteEditandoId===e.id?'ring-4 ring-blue-100':''}"><div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3"><div><span class="chip bg-blue-50 text-blue-700">${e.categoria}</span><h3 class="text-xl font-black uppercase mt-3">${escapeHtml(nombre)}</h3><p class="text-xs font-bold text-slate-400">Creado: ${fecha}</p></div><div class="text-right"><p class="label">Cobro</p><p class="text-2xl font-black text-emerald-600">${money(cobro)}</p></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-xs">${Object.entries(c).slice(0,12).map(([k,v])=>`<div class="bg-slate-50 rounded-2xl p-3"><b class="block text-[9px] uppercase text-slate-400">${LABELS[k]||k}</b>${escapeHtml(v||'---')}</div>`).join('')}</div><div class="mt-4 flex flex-wrap gap-2">${docs||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div><div class="flex flex-wrap gap-2 mt-4 justify-end"><button onclick="abrirEditor('${e.id}')" class="btn bg-blue-600 text-white">Editar</button><button onclick="marcarCompleto('${e.id}',${!e.completo})" class="btn ${e.completo?'bg-emerald-100 text-emerald-700':'bg-slate-900 text-white'}">${e.completo?'Completo ✓':'Marcar completo'}</button><button onclick="archivar('${e.id}',${!e.archivado})" class="btn bg-purple-600 text-white">${e.archivado?'Desarchivar':'Archivar'}</button></div></article>`;}
 window.marcarCompleto=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{completo:v,actualizadoEn:serverTimestamp()}); window.archivar=async(id,v)=>updateDoc(doc(db,'tramites_admin',id),{archivado:v,actualizadoEn:serverTimestamp()});
 function metricas(){const activos=expedientes.filter(e=>!e.archivado).length, arch=expedientes.filter(e=>e.archivado).length; const total=expedientes.reduce((s,e)=>s+Number(e.campos?.cobroAuto||e.campos?.precioAuto||e.campos?.precioFinal||0),0); mActivos.innerText=activos; mArchivados.innerText=arch; mCobro.innerText=money(total);} 
 window.abrirModalCategoria=()=>modalCategoria.classList.remove('hidden')||modalCategoria.classList.add('flex'); window.cerrarModalCategoria=()=>modalCategoria.classList.add('hidden');
