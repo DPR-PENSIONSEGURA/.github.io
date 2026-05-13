@@ -124,7 +124,18 @@ function todasDefiniciones(){const all={...DEFINICIONES}; categoriasPersonalizad
 function cargarCategorias(){const all=todasDefiniciones(); ['categoria','filtroCategoria'].forEach(id=>{const s=document.getElementById(id); const first=id==='filtroCategoria'?'<option value="">Todas las categorías</option>':''; s.innerHTML=first+Object.keys(all).map(k=>`<option>${k}</option>`).join('');}); document.getElementById('mCategorias').innerText=Object.keys(all).length;}
 function campoBase(raw){let [name,type]=raw.split(':'); return {name,type:type||'text'};}
 function camposCategoria(cat){return (todasDefiniciones()[cat]?.fields||[]).map(campoBase);}
-function camposEditorActuales(){const exp=expedientes.find(e=>e.id===expedienteEditandoId); const cat=val('categoria') || exp?.categoria || ''; const base=camposCategoria(cat); const existentes=Object.keys(exp?.campos||{}).map(name=>({name,type:'text'})); const extras=camposEditandoExtra.map(name=>({name,type:'text'})); const map=new Map(); [...base,...existentes,...extras].forEach(c=>{if(!map.has(c.name)) map.set(c.name,c);}); return [...map.values()].filter(c=>!c.name.endsWith(':file'));
+function camposEditorActuales(){
+  const exp=expedientes.find(e=>e.id===expedienteEditandoId);
+  const cat=val('categoria') || exp?.categoria || '';
+  const base=camposCategoria(cat).filter(c=>c.type!=='file'); // IMPORTANTE: los archivos se pintan solo en #archivosActuales
+  const existentes=Object.keys(exp?.campos||{}).map(name=>({name,type:'text'}));
+  const extras=camposEditandoExtra.map(name=>({name,type:'text'}));
+  const map=new Map();
+  [...base,...existentes,...extras].forEach(c=>{
+    if(c.type==='file') return;
+    if(!map.has(c.name)) map.set(c.name,c);
+  });
+  return [...map.values()];
 }
 function pintarCampo(c, valor=''){
   const name=c.name, type=c.type; let input='';
@@ -150,7 +161,38 @@ window.pintarFormulario=(mantenerValores=false)=>{
 function feriados(year){return [`${year}-01-01`,`${year}-02-05`,`${year}-03-21`,`${year}-05-01`,`${year}-09-16`,`${year}-11-20`,`${year}-12-25`];}
 function sumarSinFeriados(fecha, dias){if(!fecha)return ''; let d=new Date(fecha+'T00:00:00'); let cont=0; while(cont<dias){d.setDate(d.getDate()+1); if(!feriados(d.getFullYear()).includes(d.toISOString().slice(0,10))) cont++;} return d.toISOString().slice(0,10);}
 window.calcular=()=>{const cat=val('categoria'); if(cat==='AYUDA POR DESEMPLEO'){if(document.getElementById('fechaSolicitudAuto')) document.getElementById('fechaSolicitudAuto').value=sumarSinFeriados(val('fechaAlta'),46); if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('montoRecibira'))*.30).toFixed(2);} if(cat.includes('MEJORAVIT')){if(document.getElementById('cobroAuto')) document.getElementById('cobroAuto').value=(Number(val('creditoPreautorizado'))*.20+2500).toFixed(2);} if(cat==='SEGUIMIENTO DE PENSIÓN' && document.getElementById('precioAuto')){document.getElementById('precioAuto').value=val('tipoSeguimiento')==='Resolución de Pensión'?12000:7000;}};
-async function subirArchivos(expId){const urls={}; for(const el of document.querySelectorAll('#formExpediente input[type=file]')){if(!el.files.length) continue; urls[el.id]=[]; for(const file of el.files){const r=ref(storage,`tramites_admin/${expId}/${Date.now()}_${file.name}`); await uploadBytes(r,file); urls[el.id].push({nombre:file.name,url:await getDownloadURL(r)});}} return urls;}
+async function subirArchivos(expId){
+  const urls={};
+  // Los inputs de archivos viven en #archivosActuales para evitar duplicados.
+  const inputs=[...document.querySelectorAll('#archivosActuales input[type=file]')];
+
+  for(const el of inputs){
+    if(!el.files || !el.files.length) continue;
+
+    const campo=el.dataset.campo || el.id;
+    if(!campo) continue;
+    if(!urls[campo]) urls[campo]=[];
+
+    for(const file of el.files){
+      const nombreSeguro=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+      const ruta=`tramites_admin/${expId}/${campo}/${Date.now()}_${nombreSeguro}`;
+      const r=ref(storage,ruta);
+
+      await uploadBytes(r,file);
+      const url=await getDownloadURL(r);
+
+      urls[campo].push({
+        nombre:file.name,
+        url,
+        tipo:file.type || '',
+        peso:file.size || 0,
+        subidoEn:new Date().toISOString()
+      });
+    }
+  }
+
+  return urls;
+}
 window.abrirEditor=(id)=>{
   const exp=expedientes.find(e=>e.id===id); if(!exp) return alert('No encontré el expediente');
   expedienteEditandoId=id; camposEditandoExtra=[];
@@ -167,18 +209,62 @@ function pintarArchivosActuales(){
   const exp=expedientes.find(e=>e.id===expedienteEditandoId); const box=document.getElementById('archivosActuales'); if(!exp){box.innerHTML='';return;}
   const archivos=exp.archivos||{}; const fileFields=camposCategoria(val('categoria')).filter(c=>c.type==='file');
   let actuales=Object.entries(archivos).map(([k,arr])=>`<div class="mb-3"><p class="label">${LABELS[k]||k}</p><div class="flex flex-wrap gap-2">${(arr||[]).map((x,i)=>`<span class="chip bg-slate-100 text-blue-700"><a target="_blank" href="${x.url}">${escapeHtml(x.nombre||k)}</a> <button type="button" onclick="quitarArchivo('${k}',${i})" class="text-red-600 ml-1">×</button></span>`).join('')||'<span class="text-xs text-slate-400 font-bold">Sin archivos</span>'}</div></div>`).join('');
-  const subir=fileFields.map(c=>`<div class="mt-3"><p class="label">Subir / agregar ${LABELS[c.name]||c.name}</p><input class="field" id="${c.name}" type="file" multiple></div>`).join('');
+  const subir=fileFields.map(c=>`<div class="mt-3"><p class="label">Subir / agregar ${LABELS[c.name]||c.name}</p><input class="field archivo-expediente" id="archivo_${c.name}" data-campo="${c.name}" type="file" accept="image/*,.pdf,.doc,.docx" multiple></div>`).join('');
   box.innerHTML=`<div class="rounded-[1.5rem] bg-slate-50 p-4"><h3 class="font-black uppercase italic mb-3">Archivos del expediente</h3>${actuales||'<p class="text-xs text-slate-400 font-bold mb-3">Sin archivos actuales.</p>'}${subir}</div>`;
 }
 window.quitarArchivo=(campo,index)=>{const exp=expedientes.find(e=>e.id===expedienteEditandoId); if(!exp) return; if(!confirm('¿Quitar este archivo del expediente? El enlace se quitará del registro.')) return; const archivos={...(exp.archivos||{})}; archivos[campo]=[...(archivos[campo]||[])]; archivos[campo].splice(index,1); if(!archivos[campo].length) delete archivos[campo]; updateDoc(doc(db,'tramites_admin',expedienteEditandoId),{archivos,actualizadoEn:serverTimestamp()});};
 window.guardarCambiosExpediente=async()=>{
-  if(!expedienteEditandoId) return alert('Selecciona un expediente'); calcular();
-  const exp=expedientes.find(e=>e.id===expedienteEditandoId); if(!exp) return;
-  const campos={}; document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>{if(e.id) campos[e.id]=e.value;});
-  const nuevosArchivos=await subirArchivos(expedienteEditandoId); const archivos={...(exp.archivos||{})};
-  Object.entries(nuevosArchivos).forEach(([k,arr])=>{archivos[k]=[...(archivos[k]||[]),...arr];});
-  await updateDoc(doc(db,'tramites_admin',expedienteEditandoId),{categoria:val('categoria'),campos,archivos,actualizadoEn:serverTimestamp()});
-  alert('Cambios guardados sin duplicar expediente');
+  if(!expedienteEditandoId) return alert('Selecciona un expediente');
+
+  const btn=document.querySelector('button[onclick="guardarCambiosExpediente()"]');
+  const textoOriginal=btn?.innerText || 'Guardar cambios';
+
+  try{
+    if(btn){
+      btn.disabled=true;
+      btn.innerText='Guardando...';
+      btn.classList.add('opacity-60','cursor-not-allowed');
+    }
+
+    calcular();
+
+    const exp=expedientes.find(e=>e.id===expedienteEditandoId);
+    if(!exp) throw new Error('No se encontró el expediente seleccionado.');
+
+    const campos={};
+    document.querySelectorAll('#formExpediente input:not([type=file]),#formExpediente textarea,#formExpediente select').forEach(e=>{
+      if(e.id) campos[e.id]=e.value;
+    });
+
+    const nuevosArchivos=await subirArchivos(expedienteEditandoId);
+    const archivos={...(exp.archivos||{})};
+
+    Object.entries(nuevosArchivos).forEach(([k,arr])=>{
+      archivos[k]=[...(archivos[k]||[]),...arr];
+    });
+
+    await updateDoc(doc(db,'tramites_admin',expedienteEditandoId),{
+      categoria:val('categoria'),
+      campos,
+      archivos,
+      actualizadoEn:serverTimestamp()
+    });
+
+    // Limpiar inputs de archivos después de guardar para que no se vuelvan a subir al siguiente guardado.
+    document.querySelectorAll('#archivosActuales input[type=file]').forEach(input=>input.value='');
+
+    alert('Cambios guardados sin duplicar expediente');
+    pintarArchivosActuales();
+  }catch(error){
+    console.error('Error al guardar expediente:', error);
+    alert('No se pudieron guardar los cambios: ' + (error?.message || error));
+  }finally{
+    if(btn){
+      btn.disabled=false;
+      btn.innerText=textoOriginal;
+      btn.classList.remove('opacity-60','cursor-not-allowed');
+    }
+  }
 };
 function escucharExpedientes(){onSnapshot(query(collection(db,'tramites_admin'),orderBy('creadoEn','desc')),snap=>{expedientes=snap.docs.map(d=>({id:d.id,...d.data()})); renderExpedientes(); if(expedienteEditandoId && expedientes.some(e=>e.id===expedienteEditandoId)) pintarFormulario(true);});}
 window.renderExpedientes=()=>{const q=val('buscar').toLowerCase(), fc=val('filtroCategoria'), fe=val('filtroEstado'), box=document.getElementById('listaExpedientes'); let lista=expedientes.filter(e=>(!fc||e.categoria===fc)); if(fe==='activos') lista=lista.filter(e=>!e.archivado); if(fe==='archivados') lista=lista.filter(e=>e.archivado); if(q) lista=lista.filter(e=>JSON.stringify(e).toLowerCase().includes(q)); box.innerHTML=lista.length?lista.map(cardExpediente).join(''):'<div class="card p-10 text-center font-black text-slate-400 uppercase">Sin expedientes</div>'; metricas();};
