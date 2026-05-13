@@ -11,17 +11,7 @@
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 text-slate-800">
-  <div id="accessBox" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-6">
-    <div class="max-w-md w-full bg-white rounded-[2rem] p-8 shadow-2xl">
-      <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl mb-4">🔐</div>
-      <h1 class="text-2xl font-black uppercase italic">Acceso privado</h1>
-      <p class="text-sm text-slate-500 mt-2">Este módulo solo es visible para Admin y Rodolfo.</p>
-      <input id="accessCode" class="field mt-6" placeholder="Código de acceso" type="password">
-      <button onclick="validarAccesoManual()" class="btn bg-slate-900 text-white w-full mt-4">Entrar</button>
-      <p class="text-[10px] text-slate-400 mt-4">Clave autorizada: usuario interno SAMR26 o sesión admin.</p>
-    </div>
-  </div>
-
+ 
   <div class="max-w-7xl mx-auto">
     <header class="glass sticky top-0 z-30 rounded-[2rem] border border-white shadow-xl p-4 md:p-5 mb-7 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
       <div>
@@ -99,7 +89,6 @@ import { getFirestore, collection, updateDoc, doc, onSnapshot, serverTimestamp, 
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com' /* si tu bucket nuevo en Firebase aparece como pensionsegura-9c817.firebasestorage.app, cámbialo aquí */};
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
-const ALLOWED_EMAILS=['consultoriadpr@gmail.com']; const ALLOWED_CODES=['SAMR26','samr26'];
 let expedientes=[], categoriasPersonalizadas=JSON.parse(localStorage.getItem('categoriasDPR')||'[]');
 let expedienteEditandoId=null, camposEditandoExtra=[];
 let guardandoExpediente=false;
@@ -118,9 +107,10 @@ const DEFINICIONES={
 const LABELS={nombreCompleto:'Nombre completo',curp:'CURP',nss:'NSS',correo:'Correo',telefono:'Teléfono',referenciaNombre:'Referencia: nombre',referenciaTelefono:'Referencia: teléfono',fechaAlta:'Fecha de alta',fechaSolicitudAuto:'Fecha de solicitud automática',fechaCitaAfore:'Fecha de cita al AFORE',afore:'AFORE del cliente',fechaCobro:'Fecha de cobro',sindo:'SINDO',fechaUltimoRetiro:'Fecha último retiro',montoRecibira:'Cuánto recibirá el cliente',cobroAuto:'Cobro automático',fotoCliente:'Foto del cliente',comprobanteDomicilio:'Comprobante de domicilio',rfcClon:'RFC clon',ineFrente:'INE frente',ineReverso:'INE reverso',semanasCotizadas:'Semanas cotizadas',estadoCuentaClabe:'Estado de cuenta con CLABE',passwordPortal:'Contraseña del portal',cesi:'CESI',fechaCitaInfonavit:'Fecha de cita en Infonavit',fechaSegundaCita:'Fecha de segunda cita',creditoPreautorizado:'Crédito pre autorizado',anotaciones:'Anotaciones',fotoDomicilio:'Foto del domicilio',estadoCuenta:'Estado de cuenta',solicitudCredito:'Solicitud de crédito',precalificacion:'Precalificación',cartaBajoProtesta:'Carta bajo protesta',presupuesto:'Presupuesto',verificacionIne:'Verificación de INE',acta:'Acta',rfc:'RFC',curpDoc:'CURP documento',nss1:'NSS 1',nss2:'NSS 2',masNssCurp:'Agregar más NSS o CURP',notas:'Notas',costoProveedor:'Cobro del proveedor',precioFinal:'Precio final',fechaInicioTramite:'Fecha de inicio de trámite',fechaSolucion:'Fecha en que se solucionó',documentosProbatorios:'Documentos probatorios',notasError:'Explicar error del cliente',documentosProbatorios1:'Documentos probatorios 1',documentosProbatorios2:'Documentos probatorios 2',documentosProbatoriosExtra:'Documentos probatorios extra',semanas:'Subir semanas',documentoAnalisis:'Subir documento de análisis',semanasDetalladas:'Subir semanas detalladas',cuestionario:'Cuestionario de análisis detallado',tipoSeguimiento:'Tipo de seguimiento',precioAuto:'Precio automático',estadoCuentaBancario:'Estado de cuenta bancario',beneficiarioNombre:'Beneficiario: nombre',beneficiarioTelefono:'Beneficiario: teléfono',beneficiarioCorreo:'Beneficiario: correo'};
 function money(n){return Number(n||0).toLocaleString('es-MX',{style:'currency',currency:'MXN'});} function val(id){return document.getElementById(id)?.value||'';}
 function escapeHtml(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
-window.validarAccesoManual=()=>{if(ALLOWED_CODES.includes(val('accessCode').trim())) iniciar(); else alert('Acceso no autorizado');};
-onAuthStateChanged(auth,u=>{const email=(u?.email||'').toLowerCase(); const display=(u?.displayName||''); if(ALLOWED_EMAILS.includes(email)||ALLOWED_CODES.includes(display)) iniciar();});
-function iniciar(){document.getElementById('accessBox').classList.add('hidden'); cargarCategorias(); escucharExpedientes();}
+function iniciar(){
+  cargarCategorias();
+  escucharExpedientes();
+}
 function todasDefiniciones(){const all={...DEFINICIONES}; categoriasPersonalizadas.forEach(c=>all[c.nombre]={fields:c.fields}); return all;}
 function cargarCategorias(){const all=todasDefiniciones(); ['categoria','filtroCategoria'].forEach(id=>{const s=document.getElementById(id); const first=id==='filtroCategoria'?'<option value="">Todas las categorías</option>':''; s.innerHTML=first+Object.keys(all).map(k=>`<option>${k}</option>`).join('');}); document.getElementById('mCategorias').innerText=Object.keys(all).length;}
 function campoBase(raw){let [name,type]=raw.split(':'); return {name,type:type||'text'};}
@@ -302,6 +292,7 @@ function metricas(){const activos=expedientes.filter(e=>!e.archivado).length, ar
 window.abrirModalCategoria=()=>modalCategoria.classList.remove('hidden')||modalCategoria.classList.add('flex'); window.cerrarModalCategoria=()=>modalCategoria.classList.add('hidden');
 window.agregarCategoria=()=>{const nombre=val('nuevaCatNombre').trim().toUpperCase(); const fields=val('nuevaCatCampos').split(',').map(x=>x.trim()).filter(Boolean); if(!nombre||!fields.length)return alert('Completa nombre y campos'); categoriasPersonalizadas.push({nombre,fields}); localStorage.setItem('categoriasDPR',JSON.stringify(categoriasPersonalizadas)); cerrarModalCategoria(); cargarCategorias();};
 window.exportarCSV=()=>{const rows=[['categoria','nombre','curp','nss','telefono','cobro','completo','archivado']].concat(expedientes.map(e=>[e.categoria,e.campos?.nombreCompleto||'',e.campos?.curp||'',e.campos?.nss||'',e.campos?.telefono||'',e.campos?.cobroAuto||e.campos?.precioAuto||e.campos?.precioFinal||'',e.completo?'SI':'NO',e.archivado?'SI':'NO'])); const csv=rows.map(r=>r.map(x=>'"'+String(x).replaceAll('"','""')+'"').join(',')).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tramites_dpr.csv'; a.click();};
+iniciar();
 window.iniciar=iniciar;
 </script>
 </body>
