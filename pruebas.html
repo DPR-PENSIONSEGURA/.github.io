@@ -506,7 +506,6 @@ class="admin-menu-btn solo-admin relative">
     💬 Chat
     <span class="notif-dot" data-notif-dot="chat"></span>
 </button>
-                <button type="button" class="admin-menu-btn" data-admin-btn="chat" onclick="window.mostrarModuloAdmin('chat')">💬 Chat <span class="notif-dot" data-notif-dot="chat"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="control" onclick="window.mostrarModuloAdmin('control')">⚙️ Control</button>
             </div>
         </nav>
@@ -741,72 +740,73 @@ class="admin-menu-btn solo-admin relative">
       <div class="bg-white rounded-[2rem] p-6 shadow-xl border">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Control de producción</p>
-            <h2 class="text-xl font-black uppercase italic text-slate-800">Correos, semanas y pagos internos</h2>
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Venta directa / WhatsApp</p>
+            <h2 class="text-xl font-black uppercase italic text-slate-800">Inventario, ventas y utilidad</h2>
+            <p class="text-xs font-bold text-slate-500 mt-1">Módulo conectado visualmente con el corte: registra trámites, precio proveedor, precio público y utilidad estimada.</p>
           </div>
-          <button onclick="window.recalcularOperacionHoy()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar métricas</button>
+          <div class="flex gap-2 flex-wrap">
+            <a href="https://pensionsegura.org/admin/corte.html" target="_blank" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Abrir corte</a>
+            <button onclick="window.renderVentaDirecta()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar tablas</button>
+          </div>
+        </div>
+
+        <div class="op-card mb-6 border-l-4 border-l-emerald-600">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Referencia de corte</p>
+              <h3 class="text-lg font-black uppercase italic text-slate-800">https://pensionsegura.org/admin/corte.html</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">Este recuadro reemplaza Cloudflare y se enfoca en ventas directas por WhatsApp, inventario y utilidad real.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] font-black uppercase">
+              <span class="op-pill green">Venta directa</span>
+              <span class="op-pill blue">WhatsApp</span>
+              <span class="op-pill amber">Sin contar errores</span>
+            </div>
+          </div>
         </div>
 
         <div class="grid md:grid-cols-4 gap-4 mb-6">
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Correos válidos hoy</p><p id="opCorreosHoy" class="text-3xl font-black text-blue-700">0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Semanas terminadas hoy</p><p id="opSemanasHoy" class="text-3xl font-black text-emerald-700">0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Solicitudes tomadas</p><p id="opTomadasHoy" class="text-3xl font-black text-amber-600">0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Duplicados / errores</p><p id="opErroresHoy" class="text-3xl font-black text-red-600">0</p></div>
-        </div>
-
-        <div class="op-card mb-6 border-l-4 border-l-blue-600">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-blue-600">Cloudflare Email Routing</p>
-              <h3 class="text-lg font-black uppercase italic text-slate-800">Modo catch-all activo</h3>
-              <p class="text-xs font-bold text-slate-500 mt-1">Cuando el operador da clic en TOMAR, el CRM genera un alias único @pensionsegura.org y lo guarda como llave para n8n.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] font-black uppercase">
-              <span class="op-pill blue">Dominio: <b id="opCloudflareDominio">pensionsegura.org</b></span>
-              <span class="op-pill green">Catch-all: <b id="opCloudflareDestino">consultoriadpr@gmail.com</b></span>
-              <span class="op-pill amber">Sin contraseña</span>
-            </div>
-          </div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ventas válidas hoy</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">0</p></div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ingreso público</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">$0</p></div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Costo proveedor</p><p id="vdCostoHoy" class="text-3xl font-black text-amber-600">$0</p></div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Utilidad estimada</p><p id="vdUtilidadHoy" class="text-3xl font-black text-purple-700">$0</p></div>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-5">
           <div class="op-card lg:col-span-1">
-            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Registrar correo operativo</h3>
+            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Configurar inventario</h3>
             <div class="space-y-3">
-              <input id="opCorreoEmail" type="email" placeholder="Alias o correo manual: ejemplo@pensionsegura.org" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <input id="opCorreoPass" type="text" placeholder="Contraseña si aplica; en Cloudflare puede quedar vacío" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <textarea id="opCorreoNota" placeholder="Nota opcional: alias manual, recuperación, perfil, observación" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none min-h-[90px]"></textarea>
-              <button onclick="window.guardarCorreoOperativo()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar correo / alias válido</button>
+              <input id="vdNombreTramite" type="text" placeholder="Nombre del trámite" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <input id="vdPrecioProveedor" type="number" min="0" step="0.01" placeholder="Precio proveedor" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <input id="vdPrecioPublico" type="number" min="0" step="0.01" placeholder="Precio público" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar / actualizar trámite</button>
+              <button onclick="window.precargarInventarioVentaDirecta()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase">Precargar trámites del dashboard</button>
             </div>
-            <p class="text-[10px] text-slate-500 font-bold mt-3">Solo cuentan para productividad los correos marcados como válidos y no duplicados.</p>
+            <p class="text-[10px] text-slate-500 font-bold mt-3">Puedes editar los precios después. La utilidad se calcula: precio público - precio proveedor.</p>
           </div>
 
           <div class="op-card lg:col-span-2">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-xs font-black uppercase text-emerald-700">Ranking de producción de hoy</h3>
-              <span class="op-pill green">Tiempo real</span>
+              <h3 class="text-xs font-black uppercase text-emerald-700">Inventario configurado</h3>
+              <span class="op-pill green">Editable</span>
             </div>
-            <div id="opRankingHoy" class="space-y-2"></div>
+            <div id="vdInventarioLista" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
           </div>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-5 mt-5">
           <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Últimos correos registrados</h3>
-            <div id="opListaCorreos" class="space-y-2 max-h-[380px] overflow-y-auto"></div>
+            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Tabla de utilidad por trámite</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-[10px]">
+                <thead class="text-white uppercase font-black"><tr><th class="p-3">Trámite</th><th class="p-3 text-center">Vendidos</th><th class="p-3 text-right">Venta</th><th class="p-3 text-right">Utilidad</th></tr></thead>
+                <tbody id="vdTablaUtilidad"></tbody>
+              </table>
+            </div>
           </div>
           <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-slate-700 mb-3">Reglas automáticas aplicadas</h3>
-            <ul class="space-y-2 text-xs font-bold text-slate-600">
-              <li>✅ No se paga documento duplicado.</li>
-              <li>✅ Una solicitud solo puede estar tomada por un operador a la vez.</li>
-              <li>✅ Solo cuenta como producción si el estatus queda en <b>Terminado</b>.</li>
-              <li>✅ Los correos duplicados no se guardan dos veces.</li>
-              <li>✅ Al tomar una solicitud de semanas, el sistema genera/asigna un alias Cloudflare automáticamente.</li>
-              <li>✅ Con Cloudflare no se necesita contraseña: todo llega al correo catch-all configurado.</li>
-              <li>✅ n8n podrá identificar el alias receptor y conectarlo con la solicitud en Firebase.</li>
-              <li>✅ Se guarda quién tomó, quién terminó y qué correo usó.</li>
-            </ul>
+            <h3 class="text-xs font-black uppercase text-slate-700 mb-3">Últimas ventas válidas</h3>
+            <div id="vdUltimasVentas" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
           </div>
         </div>
       </div>
@@ -956,7 +956,7 @@ class="admin-menu-btn solo-admin relative">
         // ==============================
         // DPR · PERMISOS Y CORTE DIARIO
         // ==============================
-        const PAUSAR_CORREOS_SEMANAS = true; // Mientras no vendas semanas, TOMAR ya no genera correos/alias.
+        const PAUSAR_CORREOS_SEMANAS = true; // Correos/alias desactivados: TOMAR solo bloquea/asigna la solicitud.
         const TRAMITES_CRM = [
             { key: 'RFC_CLON', label: 'RFC Clon', aliases: ['rfc clon'] },
             { key: 'RFC_IDCIF', label: 'RFC con IDCIF', aliases: ['rfc con idcif','idcif','constancia fiscal'] },
@@ -977,18 +977,6 @@ class="admin-menu-btn solo-admin relative">
         };
         let tarifasPagoOperador = { ...TARIFAS_DEFAULT_OPERADOR };
         let staffTramitesPermitidos = Array.isArray(miSesion.tramitesPermitidos) ? miSesion.tramitesPermitidos : [];
-
-        // ==============================
-        // DPR + CLOUDFLARE EMAIL ROUTING
-        // ==============================
-        // Modo recomendado: catch-all en Cloudflare.
-        // NO se crean 200 buzones. El CRM genera alias únicos @pensionsegura.org
-        // y todos llegan al correo destino configurado en Cloudflare.
-        const MODO_CORREO_OPERACION = 'cloudflare'; // 'cloudflare' o 'pool_manual'
-        const CLOUDFLARE_DOMINIO_OPERACION = 'pensionsegura.org';
-        const CLOUDFLARE_CORREO_CATCHALL_DESTINO = 'consultoriadpr@gmail.com';
-        const CLOUDFLARE_PREFIJO_ALIAS = 'sem';
-
 
         const LISTA_ERRORES_DPR = {
             "ERR_NSS_CURP": "Error: el CURP o el NSS están incorrectos, están mal escritos o no coinciden con los datos registrados.",
@@ -1353,113 +1341,27 @@ class="admin-menu-btn solo-admin relative">
         }
 
 
-        function limpiarParaAlias(valor) {
-            return String(valor || '')
-                .toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9]/g, '')
-                .slice(0, 12);
-        }
-
-        function obtenerIdentificadorSolicitudParaAlias(s, id) {
-            const extra = obtenerBolsaVariablesExtra(s || {});
-            const nss = limpiarParaAlias(s?.nss || extra.nss || '');
-            const curp = limpiarParaAlias(s?.curp || extra.curp || '');
-            const base = nss || curp || limpiarParaAlias(id).slice(0, 8) || 'cliente';
-            return base.slice(-8);
-        }
-
-        function generarAliasCloudflare(s, id) {
-            // Generador orgánico para Cloudflare catch-all.
-            // Alterna entre nombres, apellidos, palabras operativas y números para evitar aliases repetitivos.
-            const nombres = [
-                'maria','juan','ana','carlos','laura','miguel','sofia','jose',
-                'daniel','karla','fernanda','luis','paola','ricardo','gabriela',
-                'andrea','pedro','monica','raul','alejandra','oscar','veronica',
-                'eduardo','patricia','sergio','claudia','roberto','diana','adriana'
-            ];
-
-            const apellidos = [
-                'garcia','hernandez','lopez','martinez','rodriguez','perez',
-                'sanchez','ramirez','torres','flores','gomez','vazquez','cruz',
-                'morales','reyes','ortiz','gutierrez','chavez','mendoza','castillo',
-                'romero','alvarez','jimenez','ramos','rivera','medina','aguilar'
-            ];
-
-            const palabras = [
-                'consulta','tramite','gestion','cliente','servicio','folio',
-                'revision','registro','solicitud','documento','apoyo','control'
-            ];
-
-            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-            const numero = Math.floor(100 + Math.random() * 9000);
-            const corto = Math.random().toString(36).replace(/[^a-z0-9]/g, '').slice(2, 5);
-
-            // Este dato ayuda a reducir colisiones sin que el correo se vea robótico.
-            const baseSolicitud = obtenerIdentificadorSolicitudParaAlias(s, id).slice(-3);
-            const sufijo = `${numero}${baseSolicitud}${corto}`.slice(0, 9);
-
-            const formato = Math.floor(Math.random() * 7);
-            let local = '';
-
-            if (formato === 0) {
-                local = `${pick(nombres)}.${pick(apellidos)}${sufijo}`;
-            } else if (formato === 1) {
-                local = `${pick(apellidos)}.${pick(nombres)}${sufijo}`;
-            } else if (formato === 2) {
-                local = `${pick(nombres)}${pick(apellidos)}${sufijo}`;
-            } else if (formato === 3) {
-                local = `${pick(palabras)}.${pick(apellidos)}${sufijo}`;
-            } else if (formato === 4) {
-                local = `${pick(palabras)}.${pick(nombres)}${sufijo}`;
-            } else if (formato === 5) {
-                local = `${pick(nombres)}.${pick(palabras)}${sufijo}`;
-            } else {
-                local = `${pick(apellidos)}${pick(palabras)}${sufijo}`;
-            }
-
-            return `${local}@${CLOUDFLARE_DOMINIO_OPERACION}`.toLowerCase();
-        }
-
-        function esAliasCloudflare(correo) {
-            return String(correo || '').toLowerCase().endsWith(`@${CLOUDFLARE_DOMINIO_OPERACION}`);
-        }
-
-        function textoPasswordCorreo(s) {
-            if (s?.correo_provider === 'cloudflare' || s?.cloudflare_alias === true) {
-                return 'No aplica · Cloudflare catch-all';
-            }
-            return s?.correo_password || '';
+        function esDocumentoConError(s) {
+            const estatusUpper = String(s?.estatus || '').toUpperCase();
+            return estatusUpper.includes('ERROR') ||
+                estatusUpper.includes('ERR_') ||
+                estatusUpper.includes('CURP') ||
+                estatusUpper.includes('NSS') ||
+                estatusUpper.includes('INCONSISTENCIAS') ||
+                estatusUpper.includes('FOTOS') ||
+                estatusUpper.includes('CONTRASEÑA') ||
+                estatusUpper.includes('LÍMITE') ||
+                estatusUpper.includes('LIMITE') ||
+                estatusUpper.includes('IMSS') ||
+                estatusUpper.includes('NO EXISTE') ||
+                estatusUpper.includes('NO FUE ENCONTRADA') ||
+                estatusUpper.includes('SOPORTE') ||
+                s?.duplicado === true;
         }
 
         window.tomarSolicitud = async (id) => {
             const ref = doc(db, 'solicitudes', id);
-
-            /*
-              Lógica DPR + Cloudflare:
-              - Al dar clic en TOMAR, la solicitud se bloquea para el operador.
-              - Si es Semanas Cotizadas y todavía NO tiene correo asignado:
-                   a) MODO cloudflare: genera un alias único @pensionsegura.org.
-                   b) MODO pool_manual: reserva un correo de correos_operacion.
-              - El alias/correo se guarda en solicitudes y en correos_operacion.
-              - n8n deberá buscar por n8n_match_key / alias_destino cuando llegue el correo al catch-all.
-            */
             try {
-                let candidatoCorreo = null;
-
-                if (MODO_CORREO_OPERACION !== 'cloudflare') {
-                    const correosDisponiblesSnap = await getDocs(query(
-                        collection(db, 'correos_operacion'),
-                        where('estatus', '==', 'valido'),
-                        where('usado', '==', false),
-                        limit(1)
-                    ));
-                    if (!correosDisponiblesSnap.empty) candidatoCorreo = correosDisponiblesSnap.docs[0];
-                }
-
-                let correoAsignadoAlerta = '';
-                let correoPasswordAlerta = '';
-
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(ref);
                     if (!snap.exists()) throw new Error('La solicitud no existe');
@@ -1472,114 +1374,18 @@ class="admin-menu-btn solo-admin relative">
                         throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
                     }
 
-                    const payload = {
+                    tx.update(ref, {
                         tomado_uid: staffUid,
                         tomado_nombre: staffNombre,
                         tomado_role: staffRol,
                         fecha_tomado: serverTimestamp(),
                         ultima_actividad: serverTimestamp(),
                         lock_activo: true,
-                        estatus_operativo: 'Tomada'
-                    };
-
-                    const requiereCorreo = esSemanasCotizadas(s);
-                    const yaTieneCorreo = Boolean(s.correo_operacion_id || s.correo_operacion);
-
-                    if (requiereCorreo && PAUSAR_CORREOS_SEMANAS) {
-                        Object.assign(payload, {
-                            correo_pausado: true,
-                            nota_correo_pausado: 'Generación de correos para semanas cotizadas pausada temporalmente desde CRM.'
-                        });
-                    } else if (requiereCorreo && !yaTieneCorreo) {
-                        if (MODO_CORREO_OPERACION === 'cloudflare') {
-                            const aliasCloudflare = generarAliasCloudflare(s, id);
-                            const correoRefNuevo = doc(collection(db, 'correos_operacion'));
-
-                            Object.assign(payload, {
-                                correo_operacion_id: correoRefNuevo.id,
-                                correo_operacion: aliasCloudflare,
-                                correo_password: '',
-                                correo_provider: 'cloudflare',
-                                cloudflare_alias: true,
-                                correo_destino_master: CLOUDFLARE_CORREO_CATCHALL_DESTINO,
-                                email_routing_estatus: 'esperando_correo',
-                                n8n_match_key: aliasCloudflare,
-                                correo_asignado_por_uid: staffUid,
-                                correo_asignado_por_nombre: staffNombre,
-                                correo_fecha_asignacion: serverTimestamp()
-                            });
-
-                            tx.set(correoRefNuevo, {
-                                correo: aliasCloudflare,
-                                password: '',
-                                provider: 'cloudflare',
-                                tipo: 'alias_cloudflare_catchall',
-                                dominio: CLOUDFLARE_DOMINIO_OPERACION,
-                                destino_master: CLOUDFLARE_CORREO_CATCHALL_DESTINO,
-                                estatus: 'reservado',
-                                usado: true,
-                                solicitud_id: id,
-                                solicitud_tipo: s.tipo || '',
-                                cliente_email: s.email_cliente || s.correo_cliente || s.email || '',
-                                n8n_match_key: aliasCloudflare,
-                                email_routing_estatus: 'esperando_correo',
-                                ultimo_correo_recibido: null,
-                                creado_por_uid: staffUid,
-                                creado_por_nombre: staffNombre,
-                                reservado_por_uid: staffUid,
-                                reservado_por_nombre: staffNombre,
-                                fecha_creado: serverTimestamp(),
-                                fecha_reservado: serverTimestamp()
-                            });
-
-                            correoAsignadoAlerta = aliasCloudflare;
-                            correoPasswordAlerta = 'No aplica · Cloudflare catch-all';
-                        } else {
-                            if (!candidatoCorreo) {
-                                throw new Error('No hay correos disponibles. Registra correos válidos en Operación antes de tomar esta solicitud.');
-                            }
-
-                            const correoRef = doc(db, 'correos_operacion', candidatoCorreo.id);
-                            const correoSnap = await tx.get(correoRef);
-
-                            if (!correoSnap.exists()) throw new Error('El correo disponible ya no existe. Intenta de nuevo.');
-
-                            const correoData = correoSnap.data();
-                            if (correoData.usado === true || correoData.estatus !== 'valido') {
-                                throw new Error('El correo disponible fue tomado por otra solicitud. Intenta de nuevo.');
-                            }
-
-                            Object.assign(payload, {
-                                correo_operacion_id: candidatoCorreo.id,
-                                correo_operacion: correoData.correo || '',
-                                correo_password: correoData.password || '',
-                                correo_provider: correoData.provider || 'manual',
-                                n8n_match_key: correoData.correo || '',
-                                correo_asignado_por_uid: staffUid,
-                                correo_asignado_por_nombre: staffNombre,
-                                correo_fecha_asignacion: serverTimestamp()
-                            });
-
-                            tx.update(correoRef, {
-                                usado: true,
-                                estatus: 'reservado',
-                                solicitud_id: id,
-                                reservado_por_uid: staffUid,
-                                reservado_por_nombre: staffNombre,
-                                fecha_reservado: serverTimestamp()
-                            });
-
-                            correoAsignadoAlerta = correoData.correo || '';
-                            correoPasswordAlerta = correoData.password || '';
-                        }
-                    }
-
-                    tx.update(ref, payload);
+                        estatus_operativo: 'Tomada',
+                        correo_pausado: true,
+                        nota_correo_pausado: 'Correos automáticos desactivados desde CRM. Solicitud tomada sin generar alias.'
+                    });
                 });
-
-                if (correoAsignadoAlerta) {
-                    alert(`✅ Solicitud tomada. Correo asignado automáticamente:\n${correoAsignadoAlerta}\n${correoPasswordAlerta ? 'Contraseña: ' + correoPasswordAlerta : ''}`);
-                }
             } catch (e) {
                 alert(e.message || 'No se pudo tomar la solicitud');
             }
@@ -1587,7 +1393,6 @@ class="admin-menu-btn solo-admin relative">
 
         window.liberarSolicitud = async (id) => {
             const ref = doc(db, 'solicitudes', id);
-
             try {
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(ref);
@@ -1598,7 +1403,7 @@ class="admin-menu-btn solo-admin relative">
                         throw new Error('Solo puede liberar la solicitud quien la tomó o un admin.');
                     }
 
-                    const payloadSolicitud = {
+                    tx.update(ref, {
                         tomado_uid: '',
                         tomado_nombre: '',
                         tomado_role: '',
@@ -1606,149 +1411,176 @@ class="admin-menu-btn solo-admin relative">
                         estatus_operativo: 'Libre',
                         liberada_por: staffNombre,
                         fecha_liberacion: serverTimestamp()
-                    };
-
-                    // Si todavía no está terminada, liberamos también el correo reservado para que pueda usarse después.
-                    if (s.estatus !== 'Terminado' && s.correo_operacion_id) {
-                        const correoRef = doc(db, 'correos_operacion', s.correo_operacion_id);
-                        const correoSnap = await tx.get(correoRef);
-
-                        if (correoSnap.exists()) {
-                            const correoData = correoSnap.data();
-                            const esCloudflare = correoData.provider === 'cloudflare' || correoData.tipo === 'alias_cloudflare_catchall' || s.correo_provider === 'cloudflare';
-
-                            tx.update(correoRef, {
-                                usado: esCloudflare ? true : false,
-                                estatus: esCloudflare ? 'cancelado_liberado' : 'valido',
-                                solicitud_id: esCloudflare ? id : '',
-                                reservado_por_uid: esCloudflare ? (s.tomado_uid || '') : '',
-                                reservado_por_nombre: esCloudflare ? (s.tomado_nombre || '') : '',
-                                liberado_por: staffNombre,
-                                fecha_liberado: serverTimestamp(),
-                                nota_liberacion: esCloudflare ? 'Alias Cloudflare no se reutiliza para evitar cruces de correos tardíos.' : 'Correo manual liberado para reutilizar.'
-                            });
-                        }
-
-                        Object.assign(payloadSolicitud, {
-                            correo_operacion_id: '',
-                            correo_operacion: '',
-                            correo_password: '',
-                            correo_provider: '',
-                            cloudflare_alias: false,
-                            correo_destino_master: '',
-                            email_routing_estatus: '',
-                            n8n_match_key: '',
-                            correo_liberado_por: staffNombre,
-                            correo_fecha_liberacion: serverTimestamp()
-                        });
-                    }
-
-                    tx.update(ref, payloadSolicitud);
+                    });
                 });
             } catch (e) {
                 alert(e.message || 'No se pudo liberar la solicitud');
             }
         };
 
-        window.guardarCorreoOperativo = async () => {
-            const correo = document.getElementById('opCorreoEmail')?.value.trim().toLowerCase();
-            const password = document.getElementById('opCorreoPass')?.value.trim();
-            const nota = document.getElementById('opCorreoNota')?.value.trim() || '';
-            if (!correo) return alert('Agrega correo o alias');
-            const esCloudflareManual = esAliasCloudflare(correo);
-            if (!password && !esCloudflareManual) return alert('Agrega contraseña para correos que NO sean alias Cloudflare');
-            if (!correo.includes('@')) return alert('El correo no parece válido');
+        const INVENTARIO_VENTA_DIRECTA_DEFAULT = [
+            { key: 'RFC_CLON', nombre: 'RFC Clon', proveedor: 10, publico: 25 },
+            { key: 'RFC_IDCIF', nombre: 'RFC con IDCIF', proveedor: 10, publico: 35 },
+            { key: 'TARJETA_NSS', nombre: 'Tarjeta NSS', proveedor: 5, publico: 20 },
+            { key: 'VIGENCIA', nombre: 'Vigencia de derechos', proveedor: 6, publico: 25 },
+            { key: 'SEMANAS_COTIZADAS', nombre: 'Semanas Cotizadas', proveedor: 0, publico: 19 },
+            { key: 'RFC_VERIFICABLE', nombre: 'RFC Verificable', proveedor: 0, publico: 25 },
+            { key: 'ACTA_NACIMIENTO', nombre: 'Acta de nacimiento', proveedor: 0, publico: 11 }
+        ];
+        let inventarioVentaDirecta = [];
 
-            const existente = await getDocs(query(collection(db, 'correos_operacion'), where('correo', '==', correo), limit(1)));
-            if (!existente.empty) return alert('Ese correo ya existe en el sistema. No se paga duplicado.');
-
-            await addDoc(collection(db, 'correos_operacion'), {
-                correo,
-                password,
-                nota,
-                provider: esCloudflareManual ? 'cloudflare' : 'manual',
-                tipo: esCloudflareManual ? 'alias_cloudflare_manual' : 'correo_manual',
-                dominio: esCloudflareManual ? CLOUDFLARE_DOMINIO_OPERACION : '',
-                destino_master: esCloudflareManual ? CLOUDFLARE_CORREO_CATCHALL_DESTINO : '',
-                n8n_match_key: correo,
-                creado_por_uid: staffUid,
-                creado_por_nombre: staffNombre,
-                creado_por_role: staffRol,
-                estatus: 'valido',
-                usado: false,
-                fecha_creado: serverTimestamp()
-            });
-
-            document.getElementById('opCorreoEmail').value = '';
-            document.getElementById('opCorreoPass').value = '';
-            document.getElementById('opCorreoNota').value = '';
-            alert('✅ Correo guardado como válido');
-        };
-
-        window.recalcularOperacionHoy = function () {
-            renderOperacionDashboard();
-        };
-
-        function renderOperacionDashboard() {
-            const hoy = new Date();
-            const semanasTerminadas = todasLasSoliCargadas.filter(s => {
-                const f = s.fecha_finalizado?.toDate?.() || s.fecha?.toDate?.();
-                return esSemanasCotizadas(s) && s.estatus === 'Terminado' && f && esMismoDia(f, hoy);
-            });
-            const tomadas = todasLasSoliCargadas.filter(s => {
-                const f = s.fecha_tomado?.toDate?.();
-                return f && esMismoDia(f, hoy);
-            });
-            const errores = todasLasSoliCargadas.filter(s => {
-                const f = s.fecha?.toDate?.();
-                const e = String(s.estatus || '').toUpperCase();
-                return f && esMismoDia(f, hoy) && (e.includes('ERROR') || e.includes('ERR_') || s.duplicado === true);
-            });
-
-            if (document.getElementById('opSemanasHoy')) document.getElementById('opSemanasHoy').textContent = semanasTerminadas.length;
-            if (document.getElementById('opTomadasHoy')) document.getElementById('opTomadasHoy').textContent = tomadas.length;
-            if (document.getElementById('opErroresHoy')) document.getElementById('opErroresHoy').textContent = errores.length;
-
-            const mapa = {};
-            semanasTerminadas.forEach(s => {
-                const k = s.terminado_por_uid || s.tomado_uid || 'sin_uid';
-                if (!mapa[k]) mapa[k] = { nombre: s.terminado_por_nombre || s.tomado_nombre || 'Sin asignar', semanas: 0, correos: 0 };
-                mapa[k].semanas++;
-            });
-            const ranking = Object.values(mapa).sort((a,b)=>b.semanas-a.semanas);
-            const div = document.getElementById('opRankingHoy');
-            if (div) {
-                div.innerHTML = ranking.length ? ranking.map((r,i)=>`
-                    <div class="flex items-center justify-between bg-slate-50 border p-3 rounded-xl">
-                        <div><p class="text-xs font-black uppercase text-slate-800">#${i+1} ${r.nombre}</p><p class="text-[10px] font-bold text-slate-500">Operador de semanas</p></div>
-                        <span class="op-pill green">${r.semanas} semanas</span>
-                    </div>
-                `).join('') : '<p class="text-xs font-bold text-slate-400">Aún no hay producción terminada hoy.</p>';
-            }
+        function normalizarKeyInventario(nombre = '') {
+            return String(nombre || '')
+                .toUpperCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^A-Z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '') || 'TRAMITE';
         }
 
-        onSnapshot(query(collection(db, 'correos_operacion'), orderBy('fecha_creado', 'desc'), limit(100)), (snap) => {
-            let correosHoy = 0;
-            const hoy = new Date();
-            const lista = document.getElementById('opListaCorreos');
-            if (lista) lista.innerHTML = '';
-            snap.forEach(d => {
-                const c = { id: d.id, ...d.data() };
-                const f = c.fecha_creado?.toDate?.();
-                if (f && esMismoDia(f, hoy) && c.estatus === 'valido') correosHoy++;
-                if (lista) {
-                    lista.innerHTML += `
-                        <div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
-                            <div>
-                                <p class="text-xs font-black text-slate-800">${c.correo || ''}</p>
-                                <p class="text-[10px] font-bold text-slate-500">Por: ${c.creado_por_nombre || 'N/A'} · ${f ? f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
-                            </div>
-                            <span class="op-pill ${c.usado ? 'amber' : 'blue'}">${c.usado ? 'Usado' : 'Libre'}</span>
-                        </div>`;
-                }
+        function obtenerInventarioParaSolicitud(s) {
+            const key = obtenerKeyTramite(s);
+            const nombre = String(s.tipo || s.tramite || s.servicio || key || 'Trámite').trim();
+            return inventarioVentaDirecta.find(i => i.key === key) ||
+                   inventarioVentaDirecta.find(i => normalizarKeyInventario(i.nombre) === normalizarKeyInventario(nombre)) ||
+                   { key, nombre, proveedor: Number(s.costoProveedor || 0), publico: Number(s.costo || s.precio || 0) };
+        }
+
+        function ventasValidasDelDia() {
+            const fechaInput = document.getElementById('fechaCorteOperadores')?.value;
+            const objetivo = fechaInput ? new Date(fechaInput + 'T12:00:00') : new Date();
+            return todasLasSoliCargadas.filter(s => {
+                const f = fechaSolicitudTerminada(s) || s.fecha?.toDate?.();
+                return f && esMismoDia(f, objetivo) && String(s.estatus || '') === 'Terminado' && !esDocumentoConError(s);
             });
-            if (document.getElementById('opCorreosHoy')) document.getElementById('opCorreosHoy').textContent = correosHoy;
+        }
+
+        window.precargarInventarioVentaDirecta = async function () {
+            try {
+                for (const item of INVENTARIO_VENTA_DIRECTA_DEFAULT) {
+                    const refId = item.key;
+                    await updateDoc(doc(db, 'inventario_venta_directa', refId), {
+                        ...item,
+                        utilidad: Number(item.publico || 0) - Number(item.proveedor || 0),
+                        actualizado_por: staffNombre,
+                        fecha_actualizado: serverTimestamp()
+                    }).catch(async () => {
+                        await addDoc(collection(db, 'inventario_venta_directa'), {
+                            ...item,
+                            utilidad: Number(item.publico || 0) - Number(item.proveedor || 0),
+                            actualizado_por: staffNombre,
+                            fecha_actualizado: serverTimestamp()
+                        });
+                    });
+                }
+                alert('✅ Inventario precargado. Puedes editar precios y utilidad.');
+            } catch (e) {
+                alert(e.message || 'No se pudo precargar inventario');
+            }
+        };
+
+        window.guardarInventarioVentaDirecta = async function () {
+            const nombre = document.getElementById('vdNombreTramite')?.value.trim();
+            const proveedor = Number(document.getElementById('vdPrecioProveedor')?.value || 0);
+            const publico = Number(document.getElementById('vdPrecioPublico')?.value || 0);
+            if (!nombre) return alert('Agrega el nombre del trámite');
+            if (publico < proveedor) return alert('El precio público no debe ser menor al precio proveedor');
+            const key = normalizarKeyInventario(nombre);
+            await addDoc(collection(db, 'inventario_venta_directa'), {
+                key,
+                nombre,
+                proveedor,
+                publico,
+                utilidad: publico - proveedor,
+                activo: true,
+                actualizado_por: staffNombre,
+                fecha_actualizado: serverTimestamp()
+            });
+            document.getElementById('vdNombreTramite').value = '';
+            document.getElementById('vdPrecioProveedor').value = '';
+            document.getElementById('vdPrecioPublico').value = '';
+            alert('✅ Trámite guardado en inventario');
+        };
+
+        window.renderVentaDirecta = function () {
+            const ventas = ventasValidasDelDia();
+            let ingreso = 0, costo = 0, utilidad = 0;
+            const porTramite = {};
+
+            ventas.forEach(s => {
+                const inv = obtenerInventarioParaSolicitud(s);
+                const nombre = inv.nombre || s.tipo || 'Trámite';
+                const publico = Number(inv.publico || s.costo || s.precio || 0);
+                const proveedor = Number(inv.proveedor || s.costoProveedor || 0);
+                const util = publico - proveedor;
+                ingreso += publico;
+                costo += proveedor;
+                utilidad += util;
+                if (!porTramite[nombre]) porTramite[nombre] = { nombre, cantidad: 0, ingreso: 0, utilidad: 0 };
+                porTramite[nombre].cantidad++;
+                porTramite[nombre].ingreso += publico;
+                porTramite[nombre].utilidad += util;
+            });
+
+            const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+            setText('vdVentasHoy', ventas.length);
+            setText('vdIngresoHoy', money(ingreso));
+            setText('vdCostoHoy', money(costo));
+            setText('vdUtilidadHoy', money(utilidad));
+
+            const tabla = document.getElementById('vdTablaUtilidad');
+            if (tabla) {
+                const filas = Object.values(porTramite).sort((a,b)=>b.utilidad-a.utilidad);
+                tabla.innerHTML = filas.length ? filas.map(r => `
+                    <tr class="border-b hover:bg-emerald-50">
+                        <td class="p-3 font-black uppercase text-slate-700">${r.nombre}</td>
+                        <td class="p-3 text-center font-black">${r.cantidad}</td>
+                        <td class="p-3 text-right font-black text-blue-700">${money(r.ingreso)}</td>
+                        <td class="p-3 text-right font-black text-emerald-700">${money(r.utilidad)}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No hay ventas terminadas válidas hoy.</td></tr>';
+            }
+
+            const ultimas = document.getElementById('vdUltimasVentas');
+            if (ultimas) {
+                ultimas.innerHTML = ventas.slice(0, 20).map(s => {
+                    const inv = obtenerInventarioParaSolicitud(s);
+                    const f = (fechaSolicitudTerminada(s) || s.fecha?.toDate?.());
+                    return `<div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
+                        <div>
+                            <p class="text-xs font-black uppercase text-slate-800">${inv.nombre || s.tipo || 'Trámite'}</p>
+                            <p class="text-[10px] font-bold text-slate-500">${s.nombre_asesor || 'Venta directa'} · ${f ? f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
+                        </div>
+                        <span class="op-pill green">${money(Number(inv.publico || s.costo || 0))}</span>
+                    </div>`;
+                }).join('') || '<p class="text-xs font-bold text-slate-400">Aún no hay ventas válidas terminadas hoy.</p>';
+            }
+        };
+
+        onSnapshot(query(collection(db, 'inventario_venta_directa'), limit(200)), (snap) => {
+            inventarioVentaDirecta = [];
+            snap.forEach(d => inventarioVentaDirecta.push({ id: d.id, ...d.data() }));
+            if (!inventarioVentaDirecta.length) inventarioVentaDirecta = [...INVENTARIO_VENTA_DIRECTA_DEFAULT];
+
+            const lista = document.getElementById('vdInventarioLista');
+            const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (lista) {
+                lista.innerHTML = inventarioVentaDirecta.map(i => `
+                    <div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
+                        <div>
+                            <p class="text-xs font-black uppercase text-slate-800">${i.nombre || i.key}</p>
+                            <p class="text-[10px] font-bold text-slate-500">Proveedor: ${money(i.proveedor)} · Público: ${money(i.publico)}</p>
+                        </div>
+                        <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
+                    </div>
+                `).join('');
+            }
+            window.renderVentaDirecta?.();
         });
+
+        window.recalcularOperacionHoy = function () {
+            window.renderVentaDirecta?.();
+        };
 
         window.cargarSolicitudes = (pagina = 1) => {
             const fuente = aplicarFiltroPermisosSolicitudes(obtenerSolicitudesFiltradas());
@@ -1778,33 +1610,10 @@ class="admin-menu-btn solo-admin relative">
                 if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
                 if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
 
-                const puedeVerCorreoAsignado = miSesion.role === 'admin' || tomadoPorMi(s);
-                if (puedeVerCorreoAsignado && s.correo_operacion) {
-                    info += `
-                        <div class="mt-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                            <div class="text-[8px] text-emerald-700 font-black uppercase">Correo asignado automático</div>
-                            <div class="text-[9px] text-slate-800 font-black normal-case break-all">${s.correo_operacion}</div>
-                            ${textoPasswordCorreo(s) ? `<div class="text-[9px] text-slate-500 font-bold normal-case break-all">Pass: ${textoPasswordCorreo(s)}</div>` : ''}${s.correo_destino_master ? `<div class="text-[8px] text-blue-600 font-black normal-case break-all">Catch-all: ${s.correo_destino_master}</div>` : ''}
-                        </div>
-                    `;
-                }
-
                 const estatusActual = String(s.estatus || '');
                 const estatusUpper = estatusActual.toUpperCase();
 
-                const esError =
-                    estatusUpper.includes('ERROR') ||
-                    estatusUpper.includes('CURP') ||
-                    estatusUpper.includes('NSS') ||
-                    estatusUpper.includes('INCONSISTENCIAS') ||
-                    estatusUpper.includes('FOTOS') ||
-                    estatusUpper.includes('CONTRASEÑA') ||
-                    estatusUpper.includes('LÍMITE') ||
-                    estatusUpper.includes('LIMITE') ||
-                    estatusUpper.includes('IMSS') ||
-                    estatusUpper.includes('NO EXISTE') ||
-                    estatusUpper.includes('NO FUE ENCONTRADA') ||
-                    estatusUpper.includes('SOPORTE');
+                const esError = esDocumentoConError(s);
 
                 const riesgo = esError && s.reembolsado !== true;
                 const claseFila = riesgo ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-blue-50';
