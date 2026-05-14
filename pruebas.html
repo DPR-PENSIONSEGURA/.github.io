@@ -455,11 +455,10 @@ const TRAMITES = {
             const lista = document.getElementById('listaServicios');
             let html = '';
 
-            TRAMITES[cat].forEach(t => {
-                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">Solicitud rápida y segura</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${t.precio}</span></div>
-                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center">→</span></div>
+            TRAMITES[cat].forEach((t, idx) => {
+                html += `<div onclick="window.prepararTramitePorIndice('${cat}', ${idx})" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">${t.loteSemanas ? 'Pega hasta 50 CURP y se crean solicitudes individuales' : 'Solicitud rápida y segura'}</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${t.precio}</span></div>
+                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">${t.loteSemanas ? 'Enviar lote' : 'Iniciar trámite'}</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center">→</span></div>
                 </div>`;
             });
 
@@ -471,6 +470,38 @@ const TRAMITES = {
             document.getElementById('listaServicios').classList.add('hidden');
             document.getElementById('btnVolver').classList.add('hidden');
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+        };
+
+        window.prepararTramitePorIndice = (cat, idx) => {
+            const tramite = TRAMITES?.[cat]?.[idx];
+            if (!tramite) return alert('No se pudo abrir el trámite. Recarga la página e intenta de nuevo.');
+            window.prepararTramite(tramite);
+        };
+
+        function obtenerCurpsLoteDPR() {
+            const texto = document.getElementById('curps_lote_p')?.value || '';
+            const capturados = texto
+                .toUpperCase()
+                .replace(/[^A-Z0-9Ñ&,;\s]/g, '')
+                .split(/[,;\s]+/)
+                .map(x => x.trim())
+                .filter(Boolean);
+            return [...new Set(capturados)];
+        }
+
+        window.actualizarContadorLoteSemanas = () => {
+            const curps = obtenerCurpsLoteDPR();
+            const contador = document.getElementById('contador_lote_curps');
+            const ayuda = document.getElementById('ayuda_lote_curps');
+            const maximo = 50;
+            if (!contador) return;
+            contador.innerText = `${curps.length}/${maximo} CURP`;
+            contador.className = `text-[11px] font-black px-3 py-2 rounded-2xl ${curps.length > maximo ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`;
+            if (ayuda) {
+                ayuda.innerText = curps.length > maximo
+                    ? `Te pasaste por ${curps.length - maximo} CURP. El lote acepta máximo 50.`
+                    : `Espacios disponibles: ${maximo - curps.length}. Precio fijo del lote: $750.`;
+            }
         };
 
         const VALIDADORES_DPR = {
@@ -529,33 +560,6 @@ const TRAMITES = {
             }
             return checks.every(([id, tipo, etiqueta]) => validarCampoIdentidad(id, tipo, etiqueta));
         }
-
-        function obtenerCurpsLoteDPR() {
-            const texto = document.getElementById('curps_lote_p')?.value || '';
-            const capturados = texto
-                .toUpperCase()
-                .replace(/[^A-Z0-9Ñ&,;\s]/g, '')
-                .split(/[,;\s]+/)
-                .map(x => x.trim())
-                .filter(Boolean);
-
-            return [...new Set(capturados)];
-        }
-
-        window.actualizarContadorLoteSemanas = () => {
-            const curps = obtenerCurpsLoteDPR();
-            const contador = document.getElementById('contador_lote_curps');
-            const ayuda = document.getElementById('ayuda_lote_curps');
-            if (!contador) return;
-            const maximo = 50;
-            contador.innerText = `${curps.length}/${maximo} CURP`;
-            contador.className = `text-[11px] font-black px-3 py-2 rounded-2xl ${curps.length > maximo ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`;
-            if (ayuda) {
-                ayuda.innerText = curps.length > maximo
-                    ? `Te pasaste por ${curps.length - maximo} CURP. El lote acepta máximo 50.`
-                    : `Espacios disponibles: ${maximo - curps.length}. Precio fijo del lote: $750.`;
-            }
-        };
 
         const OPCIONES_ESTADO_CUENTA_AFORE = [
             { nombre: 'Azteca', precio: 500 },
@@ -647,10 +651,7 @@ fields += `
                         </div>
                         <span id="contador_lote_curps" class="text-[11px] font-black px-3 py-2 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100">0/50 CURP</span>
                     </div>
-                    <textarea id="curps_lote_p" oninput="window.actualizarContadorLoteSemanas()" rows="10" placeholder="PEGA UN CURP POR LÍNEA:
-ABCD900101HDFRRL09
-XEXX010101HNEXXXA4
-PEMJ850304MDFABC01" class="input-light mb-3 uppercase leading-relaxed"></textarea>
+                    <textarea id="curps_lote_p" oninput="window.actualizarContadorLoteSemanas()" rows="10" placeholder="PEGA UN CURP POR LÍNEA:\nABCD900101HDFRRL09\nXEXX010101HNEXXXA4\nPEMJ850304MDFABC01" class="input-light mb-3 uppercase leading-relaxed"></textarea>
                     <p id="ayuda_lote_curps" class="text-[10px] font-black uppercase text-slate-500">Espacios disponibles: 50. Precio fijo del lote: $750.</p>
                     <div class="mt-3 p-3 rounded-2xl bg-white border border-slate-200 text-[10px] font-bold text-slate-500 leading-relaxed">
                         Cada CURP se enviará al admin y al proveedor como una solicitud individual, pero todas quedarán agrupadas con el mismo folio de lote.
@@ -809,7 +810,7 @@ PEMJ850304MDFABC01" class="input-light mb-3 uppercase leading-relaxed"></textare
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">DPR || Pensión Segura</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${t.nombre}</h2>
                 ${fields}
                 <button id="btnPagarTramite" onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
-                    Pagar $${pFinal}.00
+                    ${t.loteSemanas ? `Enviar lote $${pFinal}.00` : `Pagar $${pFinal}.00`}
                 </button>
             `;
 
@@ -855,7 +856,7 @@ PEMJ850304MDFABC01" class="input-light mb-3 uppercase leading-relaxed"></textare
                     const erroresFormato = curpsLote.filter(curp => !VALIDADORES_DPR.curp.regex.test(curp));
 
                     if (!curpsLote.length) {
-                        alert('Agrega al menos 1 CURP para enviar el lote.');
+                        alert("Agrega al menos 1 CURP para enviar el lote.");
                         document.getElementById('curps_lote_p')?.focus();
                         return;
                     }
@@ -867,35 +868,31 @@ PEMJ850304MDFABC01" class="input-light mb-3 uppercase leading-relaxed"></textare
                     }
 
                     if (erroresFormato.length) {
-                        alert(`Hay CURP con formato incorrecto:
-
-${erroresFormato.slice(0, 10).join('
-')}${erroresFormato.length > 10 ? '
-...' : ''}`);
+                        alert(`Hay CURP con formato incorrecto:\n\n${erroresFormato.slice(0, 10).join('\n')}${erroresFormato.length > 10 ? '\n...' : ''}`);
                         document.getElementById('curps_lote_p')?.focus();
                         return;
                     }
 
                     c = Number(t.precio || 750);
-                    if (saldoGlobal < c) return alert('Saldo insuficiente para pagar el lote de $750.');
+                    if (saldoGlobal < c) return alert("Saldo insuficiente para pagar el lote de $750.");
 
                     if (botonPago) {
                         botonPago.disabled = true;
-                        botonPago.innerText = 'ENVIANDO LOTE...';
-                        botonPago.style.opacity = '0.7';
-                        botonPago.style.cursor = 'not-allowed';
+                        botonPago.innerText = "ENVIANDO LOTE...";
+                        botonPago.style.opacity = "0.7";
+                        botonPago.style.cursor = "not-allowed";
                     }
 
                     const folioLote = `L50-${Date.now().toString().slice(-6)}`;
 
-                    await updateDoc(doc(db, 'asesores', userUID), {
+                    await updateDoc(doc(db, "asesores", userUID), {
                         saldo: increment(-c)
                     });
 
                     let enviados = 0;
                     for (const curpLote of curpsLote) {
                         const extraLote = {
-                            origen: 'LOTE',
+                            origen: "LOTE",
                             folio_lote: folioLote,
                             lote_maximo: maximoLote,
                             total_curps_lote: curpsLote.length,
@@ -904,58 +901,55 @@ ${erroresFormato.slice(0, 10).join('
                             nota: `Solicitud generada desde lote de ${maximoLote} semanas cotizadas.`
                         };
 
-                        const docRef = await addDoc(collection(db, 'solicitudes'), {
+                        const docRef = await addDoc(collection(db, "solicitudes"), {
                             asesor_uid: userUID,
                             nombre_asesor: emailAsesor,
-                            tipo: 'SEMANAS COTIZADAS',
+                            tipo: "SEMANAS COTIZADAS",
                             costo: precioUnitarioLote,
                             costo_lote_pagado: c,
-                            origen: 'LOTE',
+                            origen: "LOTE",
                             folio_lote: folioLote,
                             lote_maximo: maximoLote,
                             total_curps_lote: curpsLote.length,
-                            estatus: 'En Proceso',
+                            estatus: "En Proceso",
                             finalizado: false,
                             fecha: serverTimestamp(),
                             curp: curpLote,
-                            nss: 'N/A',
+                            nss: "N/A",
                             detalles_extra: extraLote,
-                            cuestionario: 'N/A',
-                            file_ine_f: 'N/A',
-                            file_ine_r: 'N/A',
-                            file_selfie: 'N/A',
-                            file_comp_domicilio: 'N/A',
-                            file_edocta: 'N/A'
+                            cuestionario: "N/A",
+                            file_ine_f: "N/A",
+                            file_ine_r: "N/A",
+                            file_selfie: "N/A",
+                            file_comp_domicilio: "N/A",
+                            file_edocta: "N/A"
                         });
 
                         enviados++;
 
-                        await fetch('https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta', {
+                        await fetch("https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta", {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 id_solicitud: docRef.id,
                                 asesor: emailAsesor,
-                                tramite: 'SEMANAS COTIZADAS',
+                                tramite: "SEMANAS COTIZADAS",
                                 curp: curpLote,
-                                nss: 'N/A',
-                                origen: 'LOTE',
+                                nss: "N/A",
+                                origen: "LOTE",
                                 folio_lote: folioLote,
                                 extra: extraLote,
-                                quest: 'N/A',
-                                file_ine_f: 'N/A',
-                                file_ine_r: 'N/A',
-                                file_selfie: 'N/A',
-                                file_comp_domicilio: 'N/A',
-                                file_edocta: 'N/A'
+                                quest: "N/A",
+                                file_ine_f: "N/A",
+                                file_ine_r: "N/A",
+                                file_selfie: "N/A",
+                                file_comp_domicilio: "N/A",
+                                file_edocta: "N/A"
                             })
-                        }).catch(e => console.log('n8n lote', e));
+                        }).catch(e => console.log("n8n lote", e));
                     }
 
-                    alert(`Lote enviado correctamente.
-Folio: ${folioLote}
-Solicitudes creadas: ${enviados}
-Cobro total: $${c}.00`);
+                    alert(`Lote enviado correctamente.\nFolio: ${folioLote}\nSolicitudes creadas: ${enviados}\nCobro total: $${c}.00`);
                     window.cerrarModal();
                     return;
                 }
