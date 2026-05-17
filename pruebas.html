@@ -1380,8 +1380,26 @@ class="admin-menu-btn solo-admin relative">
                 s?.duplicado === true;
         }
 
+        function actualizarSolicitudLocalRapida(id, cambios = {}) {
+            todasLasSoliCargadas = todasLasSoliCargadas.map(item => {
+                if (String(item.id) !== String(id)) return item;
+                return { ...item, ...cambios };
+            });
+            cargarSolicitudes(currentPage);
+        }
+
         window.tomarSolicitud = async (id) => {
             const ref = doc(db, 'solicitudes', id);
+            const respaldoLocal = todasLasSoliCargadas.find(item => String(item.id) === String(id));
+            actualizarSolicitudLocalRapida(id, {
+                tomado_uid: staffUid,
+                tomado_nombre: staffNombre,
+                tomado_role: staffRol,
+                fecha_tomado: new Date(),
+                ultima_actividad: new Date(),
+                lock_activo: true,
+                estatus_operativo: 'Tomada'
+            });
             try {
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(ref);
@@ -1408,6 +1426,7 @@ class="admin-menu-btn solo-admin relative">
                     });
                 });
             } catch (e) {
+                if (respaldoLocal) actualizarSolicitudLocalRapida(id, respaldoLocal);
                 alert(e.message || 'No se pudo tomar la solicitud');
             }
         };
@@ -1544,6 +1563,19 @@ class="admin-menu-btn solo-admin relative">
             document.getElementById('vdNombreTramite').focus();
         };
 
+        window.borrarInventarioVentaDirecta = async function (id) {
+            if (miSesion.role !== 'admin') return;
+            const item = inventarioVentaDirecta.find(i => String(i.id || i.key) === String(id));
+            const nombre = item?.nombre || id;
+            if (!confirm(`¿Borrar del inventario: ${nombre}?`)) return;
+            try {
+                await deleteDoc(doc(db, 'inventario_venta_directa', id));
+                window.limpiarFormularioInventarioVentaDirecta?.();
+            } catch (e) {
+                alert(e.message || 'No se pudo borrar el trámite del inventario');
+            }
+        };
+
         window.limpiarFormularioInventarioVentaDirecta = function () {
             document.getElementById('vdInventarioEditId').value = '';
             document.getElementById('vdNombreTramite').value = '';
@@ -1663,6 +1695,7 @@ class="admin-menu-btn solo-admin relative">
                         <div class="flex items-center gap-2 flex-wrap justify-end">
                             <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
                             <button type="button" onclick="window.editarInventarioVentaDirecta('${i.id || i.key}')" class="op-btn take">Editar</button>
+                            <button type="button" onclick="window.borrarInventarioVentaDirecta('${i.id || i.key}')" class="op-btn" style="background:#fee2e2;color:#991b1b;" title="Borrar del inventario">×</button>
                         </div>
                     </div>
                 `).join('');
@@ -2419,7 +2452,10 @@ class="admin-menu-btn solo-admin relative">
                             <td class="p-4 text-center">
                                 <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
                             </td>
-                            <td class="p-4 text-right">${btns}</td>
+                            <td class="p-4 text-right">
+                                ${btns}
+                                <button onclick="window.borrarRecarga('${id}')" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black ml-2" title="Borrar recarga">×</button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -2427,6 +2463,16 @@ class="admin-menu-btn solo-admin relative">
                 window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
             });
         }
+
+        window.borrarRecarga = async (docId) => {
+            if (miSesion.role !== 'admin') return;
+            if (!confirm('¿Borrar esta recarga del panel? Esta acción solo elimina la notificación de pago.')) return;
+            try {
+                await deleteDoc(doc(db, 'notificaciones_pago', docId));
+            } catch (e) {
+                alert(e.message || 'No se pudo borrar la recarga');
+            }
+        };
 
         window.validarRecarga = async (docId, uid, monto, est) => {
             if (miSesion.role !== 'admin') return;
