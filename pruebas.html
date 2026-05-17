@@ -492,10 +492,6 @@
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="operacion" onclick="window.mostrarModuloAdmin('operacion')">🏭 Operación</button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')">🧲 Leads <span class="notif-dot" data-notif-dot="leads"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="avisos" onclick="window.mostrarModuloAdmin('avisos')">📢 Avisos</button>
-              <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="tramites" onclick="window.mostrarModuloAdmin('tramites')">
-    🧾 Trámites
-</button>
-
 <a href="admin/tramites"
 class="admin-menu-btn solo-admin relative">
     🗂️ Expedientes
@@ -825,6 +821,17 @@ class="admin-menu-btn solo-admin relative">
           <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Usuarios registrados</p><p id="tablaUsuariosAdmin" class="text-2xl font-black">0</p></div>
         </div>
         <div class="mb-4"><h3 class="font-black text-sm mb-2">Ventas diarias (últimos 14 días)</h3><div id="graficaVentas" class="flex items-end gap-2 h-48 bg-slate-50 p-3 rounded-xl border"></div></div>
+        <div class="mb-4 bg-slate-50 border rounded-2xl p-4">
+          <h3 class="font-black text-sm mb-3 uppercase text-slate-700">Conteo por trámite válido hoy</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-[10px]">
+              <thead class="bg-slate-900 text-white uppercase font-black">
+                <tr><th class="p-3">Trámite</th><th class="p-3 text-center">Cantidad</th><th class="p-3 text-right">Venta</th></tr>
+              </thead>
+              <tbody id="repTablaConteoTramites"></tbody>
+            </table>
+          </div>
+        </div>
         <div class="flex gap-2 items-center flex-wrap"><button onclick="window.descargarReporte('semanal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-black">PDF semanal</button><input id="mesReporte" type="month" class="border rounded-lg p-2 text-xs"><button onclick="window.descargarReporte('mensual')" class="bg-indigo-800 text-white px-4 py-2 rounded-lg text-xs font-black">PDF mensual</button></div>
       </div>
     </section>
@@ -836,13 +843,6 @@ class="admin-menu-btn solo-admin relative">
       </div>
     </section>
 
-    <section id="vistaTramitesAdmin" class="mb-8 solo-admin admin-vista admin-oculta" data-admin-view="tramites">
-      <div class="bg-white rounded-[2rem] p-6 shadow-xl border">
-        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-teal-700">Gestión de trámites</h2></div>
-        <div class="grid md:grid-cols-2 gap-3 mb-4"><input id="tramiteNombre" placeholder="Nombre" class="bg-slate-100 p-3 rounded-xl text-xs font-bold"><input id="tramitePrecio" type="number" placeholder="Precio" class="bg-slate-100 p-3 rounded-xl text-xs font-bold"><input id="tramiteCampos" placeholder="Campos solicitados (coma)" class="bg-slate-100 p-3 rounded-xl text-xs font-bold md:col-span-2"><textarea id="tramiteDesc" placeholder="Descripción" class="bg-slate-100 p-3 rounded-xl text-xs font-bold md:col-span-2"></textarea><button onclick="window.agregarTramiteAdmin()" class="bg-teal-600 text-white py-3 rounded-xl font-black text-xs md:col-span-2">Agregar trámite</button></div>
-        <div id="listaTramitesAdmin"></div>
-      </div>
-    </section>
     <div id="modalControlAdmin" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[172] flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-6xl rounded-[2rem] p-6 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-purple-700">Control administrativo</h2><button onclick="window.cerrarModales()" class="text-2xl">×</button></div>
@@ -963,19 +963,31 @@ class="admin-menu-btn solo-admin relative">
             { key: 'RFC_CLON', label: 'RFC Clon', aliases: ['rfc clon'] },
             { key: 'RFC_IDCIF', label: 'RFC con IDCIF', aliases: ['rfc con idcif','idcif','constancia fiscal'] },
             { key: 'TARJETA_NSS', label: 'Tarjeta NSS', aliases: ['tarjeta nss','numero de seguridad social','nss'] },
-            { key: 'VIGENCIA', label: 'Vigencia de derechos', aliases: ['vigencia'] },
+            { key: 'VIGENCIA', label: 'Vigencia de derechos', aliases: ['vigencia','vigencia de derechos'] },
+            { key: 'INCAPACIDAD', label: 'Incapacidad', aliases: ['incapacidad','incapacidades'] },
+            { key: 'RECETAS', label: 'Recetas', aliases: ['receta','recetas'] },
             { key: 'SEMANAS_COTIZADAS', label: 'Semanas Cotizadas', aliases: ['semanas cotizadas','semanas'] },
             { key: 'RFC_VERIFICABLE', label: 'RFC Verificable', aliases: ['rfc verificable'] },
-            { key: 'ACTA_NACIMIENTO', label: 'Acta de nacimiento', aliases: ['acta','actas'] }
+            { key: 'ACTA_NACIMIENTO', label: 'Acta de nacimiento', aliases: ['acta de nacimiento','acta','actas'] },
+            { key: 'BURO_DE_CREDITO', label: 'Buró de Crédito', aliases: ['buro de credito','buró de crédito'] },
+            { key: 'INFONAVIT', label: 'Infonavit', aliases: ['infonavit','mejoravit','cuentainfonavit'] },
+            { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensión','pensiones','analisis rapido','análisis rápido'] },
+            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore'] }
         ];
         const TARIFAS_DEFAULT_OPERADOR = {
-            RFC_CLON: 10,
-            RFC_IDCIF: 10,
-            TARJETA_NSS: 5,
-            VIGENCIA: 6,
-            SEMANAS_COTIZADAS: 0,
+            RFC_CLON: 5,
+            RFC_IDCIF: 5,
+            TARJETA_NSS: 3,
+            VIGENCIA: 3,
+            INCAPACIDAD: 5,
+            RECETAS: 5,
+            SEMANAS_COTIZADAS: 2,
             RFC_VERIFICABLE: 0,
-            ACTA_NACIMIENTO: 0
+            ACTA_NACIMIENTO: 0,
+            BURO_DE_CREDITO: 0,
+            INFONAVIT: 0,
+            PENSIONES: 0,
+            AFORE: 0
         };
         let tarifasPagoOperador = { ...TARIFAS_DEFAULT_OPERADOR };
         let staffTramitesPermitidos = Array.isArray(miSesion.tramitesPermitidos) ? miSesion.tramitesPermitidos : [];
@@ -1231,28 +1243,35 @@ class="admin-menu-btn solo-admin relative">
         onSnapshot(query(collection(db, 'solicitudes'), orderBy('fecha', 'desc'), limit(1500)), (snap) => {
             todasLasSoliCargadas = [];
             let ganancia = 0;
+            let pendientes = 0;
             const hoy = new Date();
 
             snap.forEach(d => {
                 const data = { id: d.id, ...d.data() };
                 todasLasSoliCargadas.push(data);
 
-                const fecha = data.fecha?.toDate?.();
-                if (fecha && esMismoDia(fecha, hoy) && data.estatus === 'Terminado') {
-                    ganancia += Number(data.costo || 0);
+                const estatus = String(data.estatus || '').trim().toLowerCase();
+                const fechaBase = fechaSolicitudTerminada(data) || data.fecha?.toDate?.();
+                const esVentaValida = (estatus === 'terminado' || estatus === 'finalizado' || data.finalizado === true) && !esDocumentoConError(data) && data.reembolsado !== true;
+
+                if (estatus === 'en proceso') pendientes++;
+                if (fechaBase && esMismoDia(fechaBase, hoy) && esVentaValida) {
+                    ganancia += Number(data.costo || data.precio || data.monto || 0);
                 }
             });
 
-            document.getElementById('contadorPendientes').innerText =
-                todasLasSoliCargadas.filter(s => s.estatus === 'En Proceso').length;
+            const elPend = document.getElementById('contadorPendientes');
+            if (elPend) elPend.innerText = pendientes;
 
             const gananciaText = `$${ganancia.toFixed(2)}`;
             if (document.getElementById('gananciaHoy')) document.getElementById('gananciaHoy').innerText = gananciaText;
             if (document.getElementById('gananciaHoyHeader')) document.getElementById('gananciaHoyHeader').innerText = gananciaText;
 
             cargarSolicitudes(currentPage);
-            renderOperacionDashboard();
-            renderCorteOperadores();
+            renderOperacionDashboard?.();
+            renderCorteOperadores?.();
+            renderVentaDirecta?.();
+            cargarReportesAdmin?.();
         });
 
 
@@ -1421,13 +1440,46 @@ class="admin-menu-btn solo-admin relative">
         };
 
         const INVENTARIO_VENTA_DIRECTA_DEFAULT = [
-            { key: 'RFC_CLON', nombre: 'RFC Clon', proveedor: 10, publico: 25 },
-            { key: 'RFC_IDCIF', nombre: 'RFC con IDCIF', proveedor: 10, publico: 35 },
-            { key: 'TARJETA_NSS', nombre: 'Tarjeta NSS', proveedor: 5, publico: 20 },
-            { key: 'VIGENCIA', nombre: 'Vigencia de derechos', proveedor: 6, publico: 25 },
-            { key: 'SEMANAS_COTIZADAS', nombre: 'Semanas Cotizadas', proveedor: 0, publico: 19 },
-            { key: 'RFC_VERIFICABLE', nombre: 'RFC Verificable', proveedor: 0, publico: 25 },
-            { key: 'ACTA_NACIMIENTO', nombre: 'Acta de nacimiento', proveedor: 0, publico: 11 }
+            { key: 'SEMANAS_COTIZADAS', nombre: 'SEMANAS COTIZADAS', proveedor: 0, publico: 18 },
+            { key: 'SEMANAS_DETALLADAS', nombre: 'SEMANAS DETALLADAS', proveedor: 0, publico: 29 },
+            { key: 'SINDO_ULTIMO_RETIRO', nombre: 'SINDO ULTIMO RETIRO', proveedor: 0, publico: 45 },
+            { key: 'SINDO_ALFANUMERICO', nombre: 'SINDO ALFANUMÉRICO', proveedor: 0, publico: 55 },
+            { key: 'SINDO_COMPLETO', nombre: 'SINDO COMPLETO', proveedor: 0, publico: 190 },
+            { key: 'SINDO_SALARIO_PROMEDIO', nombre: 'SINDO SALARIO PROMEDIO', proveedor: 0, publico: 95 },
+            { key: 'SINDO_VIGENCIA', nombre: 'SINDO VIGENCIA', proveedor: 0, publico: 95 },
+            { key: 'TARJETA_NSS', nombre: 'Tarjeta NSS', proveedor: 0, publico: 8 },
+            { key: 'VIGENCIA_DE_DERECHOS', nombre: 'Vigencia de Derechos', proveedor: 0, publico: 8 },
+            { key: 'INCAPACIDAD', nombre: 'Incapacidad', proveedor: 0, publico: 20 },
+            { key: 'RECETAS', nombre: 'Recetas', proveedor: 0, publico: 20 },
+            { key: 'INSCRIPCION_MODALIDAD_10', nombre: 'Inscripción Modalidad 10', proveedor: 0, publico: 200 },
+            { key: 'ALTA_MENSUAL', nombre: 'Alta Mensual', proveedor: 0, publico: 600 },
+            { key: 'ALTA_PARA_DESEMPLEO_CON_LINEA_DE_CAPTURA', nombre: 'Alta Para Desempleo con linea de captura', proveedor: 0, publico: 200 },
+            { key: 'ALTA_PARA_DESEMPLEO_CON_APORTACIONES', nombre: 'Alta para Desempleo con aportaciones', proveedor: 0, publico: 650 },
+            { key: 'RFC_CLON', nombre: 'RFC Clon', proveedor: 0, publico: 25 },
+            { key: 'RFC_VERIFICABLE', nombre: 'RFC Verificable', proveedor: 0, publico: 95 },
+            { key: 'RFC_CON_IDCIF', nombre: 'RFC con IDCIF', proveedor: 0, publico: 20 },
+            { key: 'RFC_ORIGINAL', nombre: 'RFC Original', proveedor: 0, publico: 180 },
+            { key: 'LOCALIZACION_DE_IDCIF', nombre: 'Localización de IDcif', proveedor: 0, publico: 60 },
+            { key: 'BURO_DE_CREDITO', nombre: 'Buró de Crédito', proveedor: 0, publico: 170 },
+            { key: 'CURP', nombre: 'CURP', proveedor: 0, publico: 4 },
+            { key: 'ACTA_DE_NACIMIENTO', nombre: 'Acta de Nacimiento', proveedor: 0, publico: 11 },
+            { key: 'ACTA_DE_MATRIMONIO', nombre: 'Acta de Matrimonio', proveedor: 0, publico: 11 },
+            { key: 'ACTA_DE_DIVORCIO', nombre: 'Acta de Divorcio', proveedor: 0, publico: 11 },
+            { key: 'ACTA_DE_DEFUNCION', nombre: 'Acta de Defunción', proveedor: 0, publico: 11 },
+            { key: 'CERTIFICADO_INEA', nombre: 'Certificado INEA', proveedor: 0, publico: 30 },
+            { key: 'CERTIFICADO_COVID', nombre: 'Certificado COVID', proveedor: 0, publico: 20 },
+            { key: 'LOCALIZACION_DE_CONTRASENA', nombre: 'Localización de Contraseña', proveedor: 0, publico: 150 },
+            { key: 'RESETEO_CUENTA', nombre: 'Reseteo Cuenta', proveedor: 0, publico: 150 },
+            { key: 'PRECALIFICACION_MEJORAVIT', nombre: 'Precalificación Mejoravit', proveedor: 0, publico: 100 },
+            { key: 'PRECALIFICACION_LINEA_II', nombre: 'Precalificación Linea II', proveedor: 0, publico: 100 },
+            { key: 'CREAR_CUENTA_EN_MI_CUENTAINFONAVIT', nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', proveedor: 0, publico: 150 },
+            { key: 'HISTORICO_INFONAVIT', nombre: 'Histórico Infonavit', proveedor: 0, publico: 150 },
+            { key: 'REGISTRO_A_DISTANCIA', nombre: 'Registro a Distancia', proveedor: 0, publico: 90 },
+            { key: 'RETIRO_DESEMPLEO_A_DISTANCIA', nombre: 'Retiro Desempleo a Distancia', proveedor: 0, publico: 60 },
+            { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', nombre: 'Cambiar Contraseña AFORE Web', proveedor: 0, publico: 30 },
+            { key: 'ESTADO_DE_CUENTA_AFORE', nombre: 'Estado de cuenta AFORE', proveedor: 0, publico: 500 },
+            { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'Análisis rápido de pensión', proveedor: 0, publico: 200 },
+            { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'Análisis Detallado de pensión', proveedor: 0, publico: 3000 }
         ];
         let inventarioVentaDirecta = [];
 
@@ -1450,9 +1502,16 @@ class="admin-menu-btn solo-admin relative">
         function ventasValidasDelDia() {
             const fechaInput = document.getElementById('fechaCorteOperadores')?.value;
             const objetivo = fechaInput ? new Date(fechaInput + 'T12:00:00') : new Date();
-            return todasLasSoliCargadas.filter(s => {
-                const f = fechaSolicitudTerminada(s) || s.fecha?.toDate?.();
-                return f && esMismoDia(f, objetivo) && String(s.estatus || '') === 'Terminado' && !esDocumentoConError(s);
+            const lista = Array.isArray(todasLasSoliCargadas) && todasLasSoliCargadas.length ? todasLasSoliCargadas : (Array.isArray(cacheSolicitudes) ? cacheSolicitudes : []);
+            return lista.filter(s => {
+                const estatus = String(s.estatus || '').trim().toLowerCase();
+                const cuentaComoVenta = estatus === 'terminado' || estatus === 'finalizado' || s.finalizado === true;
+                const f = fechaSolicitudTerminada(s) || s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
+                return f && !isNaN(f.getTime()) && esMismoDia(f, objetivo) && cuentaComoVenta && !esDocumentoConError(s) && s.reembolsado !== true;
+            }).sort((a, b) => {
+                const fa = fechaSolicitudTerminada(a) || a.fecha?.toDate?.() || new Date(0);
+                const fb = fechaSolicitudTerminada(b) || b.fecha?.toDate?.() || new Date(0);
+                return fb - fa;
             });
         }
 
@@ -2598,7 +2657,8 @@ class="admin-menu-btn solo-admin relative">
             snap => {
                 cacheSolicitudes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 metricasListas = true;
-                if (!document.getElementById('modalReportes')?.classList.contains('hidden')) cargarReportesAdmin();
+                cargarReportesAdmin?.();
+                renderVentaDirecta?.();
             },
             error => {
                 console.error('Error cargando solicitudes para métricas:', error);
@@ -2633,29 +2693,55 @@ class="admin-menu-btn solo-admin relative">
           let semanas = 0;
           let actas = 0;
           let ventasHoy = 0;
+          const conteo = {};
 
-          cacheSolicitudes.forEach(s => {
-            const fechaSolicitud = s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
+          const lista = Array.isArray(todasLasSoliCargadas) && todasLasSoliCargadas.length
+            ? todasLasSoliCargadas
+            : (Array.isArray(cacheSolicitudes) ? cacheSolicitudes : []);
+
+          lista.forEach(s => {
+            const fechaSolicitud = fechaSolicitudTerminada(s) || s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
             if (!fechaSolicitud || isNaN(fechaSolicitud.getTime())) return;
 
             const k = fechaKey(fechaSolicitud);
             const monto = Number(s.costo ?? s.precio ?? s.monto ?? 0);
-            const tipo = String(s.tipo || s.tramite || '').toLowerCase();
-            const estatus = String(s.estatus || '').toLowerCase();
-            const cuentaComoVenta = estatus === 'terminado' || estatus === 'finalizado';
+            const tipoRaw = String(s.tipo || s.tramite || s.servicio || '').trim();
+            const tipo = tipoRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const estatus = String(s.estatus || '').trim().toLowerCase();
+            const cuentaComoVenta = (estatus === 'terminado' || estatus === 'finalizado' || s.finalizado === true) && !esDocumentoConError(s) && s.reembolsado !== true;
 
             if (cuentaComoVenta && k in dias) dias[k] += monto;
 
-            if (k === hoy) {
-              if (cuentaComoVenta) ventasHoy += monto;
+            if (k === hoy && cuentaComoVenta) {
+              ventasHoy += monto;
               if (tipo.includes('semana')) semanas++;
               if (tipo.includes('acta')) actas++;
+
+              const nombre = tipoRaw || 'Trámite';
+              if (!conteo[nombre]) conteo[nombre] = { nombre, cantidad: 0, venta: 0 };
+              conteo[nombre].cantidad += 1;
+              conteo[nombre].venta += monto;
             }
           });
 
-          document.getElementById('repVentasHoy').textContent = `$${ventasHoy.toLocaleString('es-MX')}`;
-          document.getElementById('repSemanasHoy').textContent = semanas.toLocaleString('es-MX');
-          document.getElementById('repActasHoy').textContent = actas.toLocaleString('es-MX');
+          const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+
+          setText('repVentasHoy', money(ventasHoy));
+          setText('repSemanasHoy', semanas.toLocaleString('es-MX'));
+          setText('repActasHoy', actas.toLocaleString('es-MX'));
+
+          const tablaConteo = document.getElementById('repTablaConteoTramites');
+          if (tablaConteo) {
+            const filas = Object.values(conteo).sort((a,b) => b.cantidad - a.cantidad || b.venta - a.venta);
+            tablaConteo.innerHTML = filas.length ? filas.map(r => `
+              <tr class="border-b hover:bg-white">
+                <td class="p-3 font-black uppercase text-slate-700">${r.nombre}</td>
+                <td class="p-3 text-center font-black">${r.cantidad}</td>
+                <td class="p-3 text-right font-black text-emerald-700">${money(r.venta)}</td>
+              </tr>
+            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 font-bold uppercase">Sin ventas válidas hoy.</td></tr>';
+          }
 
           const g = document.getElementById('graficaVentas');
           if (!g) return;
@@ -2665,14 +2751,10 @@ class="admin-menu-btn solo-admin relative">
             const h = Math.max(8, Math.round((v / max) * 140));
             g.innerHTML += `
               <div class="flex-1 flex flex-col items-center justify-end min-w-[28px]">
-                <div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: $${Number(v).toLocaleString('es-MX')}"></div>
+                <div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: ${money(v)}"></div>
                 <span class="text-[9px] mt-1">${k.slice(5)}</span>
               </div>`;
           });
-
-          if (!metricasListas && g) {
-            g.innerHTML = '<p class="text-xs font-black text-amber-600 uppercase">Cargando métricas...</p>';
-          }
         }
         onSnapshot(
           query(collection(db,'asesores'), limit(1000)),
