@@ -31,7 +31,7 @@ jobs:
         // ==============================
         const VIP_SEMANAS_15 = [
             "leslymar.6807@gmail.com",
-            // "SEGUNDO_CORREO@gmail.com"
+            "consultoriadpr@gmail.com"
         ];
 
         function obtenerPrecioTramite(t) {
