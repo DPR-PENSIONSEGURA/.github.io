@@ -48,13 +48,19 @@ jobs:
 
           anchor = '        let saldoGlobal = 0, userUID = "", emailAsesor = "";'
           if 'const VIP_SEMANAS_15' not in text:
-              text = text.replace(anchor, anchor + vip_block)
+              if anchor not in text:
+                  raise SystemExit('No se encontró anchor saldoGlobal')
+              text = text.replace(anchor, anchor + vip_block, 1)
 
           old_span = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${t.precio}</span>'
           new_span = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${obtenerPrecioTramite(t)}</span>'
-          text = text.replace(old_span, new_span)
+          if old_span in text:
+              text = text.replace(old_span, new_span, 1)
 
-          text = text.replace('            let pFinal = t.precio;', '            let pFinal = obtenerPrecioTramite(t);')
+          old_modal = '            let pFinal = t.precio;'
+          new_modal = '            let pFinal = obtenerPrecioTramite(t);'
+          if old_modal in text:
+              text = text.replace(old_modal, new_modal, 1)
 
           path.write_text(text, encoding='utf-8')
           PY
@@ -70,3 +76,5 @@ jobs:
             git commit -m "Agregar precio VIP de semanas cotizadas"
             git push
           fi
+
+# re-run: 2026-05-20
