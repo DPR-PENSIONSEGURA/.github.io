@@ -68,6 +68,7 @@
             <nav class="space-y-2">
                 <button onclick="window.resetearPanel()" class="side-link active">🏠 <span>Dashboard</span></button>
                 <button onclick="window.abrirModal('modalSaldo')" class="side-link">💳 <span>Recargar saldo</span></button>
+                <button onclick="window.abrirApiB2B()" class="side-link">🔑 <span>API B2B</span></button>
                 <a href="finanzas.html" class="side-link">📊 <span>Finanzas</span></a>
                 <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})" class="side-link">📄 <span>Historial</span></button>
                 <button onclick="window.abrirAvisos()" class="side-link notify-wrap">📢 <span>Avisos</span><span class="notify-dot aviso-dot"></span></button>
@@ -96,6 +97,7 @@
                         </button>
                         <div class="flex items-center gap-2 flex-wrap justify-end quick-scroll">
                             <button onclick="window.abrirModal('modalSaldo')" class="quick-action">➕ Recargar</button>
+                            <button onclick="window.abrirApiB2B()" class="quick-action">🔑 API B2B</button>
                             <a href="finanzas.html" class="quick-action">📊 Finanzas</a>
                             <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})" class="quick-action">📄 Historial</button>
                             <button onclick="window.abrirAvisos()" class="quick-action notify-wrap">📢 Avisos<span class="notify-dot aviso-dot"></span></button>
@@ -192,6 +194,45 @@
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
                 <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modalApiB2B" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-[2.5rem] p-8 relative border shadow-2xl">
+            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl font-black">×</button>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-2">DPR || Pensión Segura</p>
+            <h2 class="text-2xl font-black text-slate-900 mb-3">API B2B</h2>
+            <p class="text-sm font-bold text-slate-500 mb-5 leading-relaxed">
+                Genera una API Key para integrar tus solicitudes desde sistemas externos. Por seguridad, la clave completa solo se muestra una vez.
+            </p>
+
+            <div id="apiB2BStatus" class="bg-slate-50 border border-slate-200 rounded-3xl p-5 mb-4">
+                <p class="text-xs font-black text-slate-500 uppercase">Cargando estado de API Key...</p>
+            </div>
+
+            <div id="apiB2BKeyBox" class="hidden bg-emerald-50 border border-emerald-200 rounded-3xl p-5 mb-4">
+                <p class="text-[10px] font-black uppercase text-emerald-700 mb-2">API Key generada</p>
+                <textarea id="apiB2BKeyValue" readonly class="input-light text-[11px] font-mono h-28"></textarea>
+                <p class="text-[10px] font-bold text-red-600 mt-2 uppercase">
+                    Guarda esta API Key ahora. No se volverá a mostrar completa.
+                </p>
+                <button onclick="window.copiarApiKeyB2B()" class="mt-3 w-full bg-slate-900 text-white py-3 rounded-2xl text-[10px] font-black uppercase">
+                    Copiar API Key
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button id="btnGenerarApiB2B" onclick="window.generarApiB2B(false)" class="green-gradient text-white py-4 rounded-2xl text-[10px] font-black uppercase shadow-lg">
+                    Generar API Key
+                </button>
+                <button id="btnRotarApiB2B" onclick="window.generarApiB2B(true)" class="bg-amber-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase shadow-lg">
+                    Rotar API Key
+                </button>
+            </div>
+
+            <p class="text-[10px] text-slate-400 font-bold mt-4 leading-relaxed">
+                Permisos incluidos: crear solicitudes, consultar solicitudes y consultar saldo. No compartas esta clave en frontend público ni repositorios.
+            </p>
         </div>
     </div>
 
@@ -441,6 +482,165 @@ const TRAMITES = {
             escucharChat();
             window.actualizarPuntoAvisos?.();
         });
+
+        const DPR_API_BASE_URL = "https://us-central1-pensionsegura-9c817.cloudfunctions.net/api";
+        let apiB2BUltimaKey = "";
+
+        async function requestApiB2B(path, options = {}) {
+            const user = auth.currentUser;
+
+            if (!user) {
+                throw new Error("Sesión no disponible. Inicia sesión otra vez.");
+            }
+
+            const idToken = await user.getIdToken(true);
+
+            const headers = {
+                "Authorization": `Bearer ${idToken}`,
+                ...(options.headers || {})
+            };
+
+            const res = await fetch(`${DPR_API_BASE_URL}${path}`, {
+                ...options,
+                headers
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                const error = new Error(data.message || "Error al comunicarse con la API.");
+                error.statusCode = res.status;
+                error.data = data;
+                throw error;
+            }
+
+            return data;
+        }
+
+        function setApiB2BLoading(isLoading) {
+            const btnGenerar = document.getElementById("btnGenerarApiB2B");
+            const btnRotar = document.getElementById("btnRotarApiB2B");
+
+            [btnGenerar, btnRotar].forEach((btn) => {
+                if (!btn) return;
+                btn.disabled = isLoading;
+                btn.style.opacity = isLoading ? "0.65" : "1";
+                btn.style.cursor = isLoading ? "not-allowed" : "pointer";
+            });
+        }
+
+        async function cargarEstadoApiB2B() {
+            const statusBox = document.getElementById("apiB2BStatus");
+            const keyBox = document.getElementById("apiB2BKeyBox");
+
+            if (keyBox) keyBox.classList.add("hidden");
+
+            if (statusBox) {
+                statusBox.innerHTML = '<p class="text-xs font-black text-slate-500 uppercase">Consultando API Key activa...</p>';
+            }
+
+            try {
+                const data = await requestApiB2B("/api/v1/me/api-key", {
+                    method: "GET"
+                });
+
+                if (!data.has_api_key) {
+                    statusBox.innerHTML = `
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Estado</p>
+                        <p class="text-lg font-black text-slate-900">No tienes API Key activa</p>
+                        <p class="text-xs font-bold text-slate-500 mt-2">Puedes generar una nueva API Key para usar la API B2B.</p>
+                    `;
+                    return;
+                }
+
+                statusBox.innerHTML = `
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">API Key activa</p>
+                    <p class="text-lg font-black text-slate-900">Prefijo: ${data.key_prefix || "N/A"}</p>
+                    <p class="text-xs font-bold text-slate-500 mt-2">Por seguridad, la clave completa no se puede volver a mostrar. Puedes rotarla si necesitas una nueva.</p>
+                `;
+            } catch (error) {
+                console.error(error);
+                statusBox.innerHTML = `
+                    <p class="text-[10px] font-black uppercase text-red-600 mb-1">Error</p>
+                    <p class="text-sm font-black text-slate-900">${error.message || "No se pudo consultar la API Key."}</p>
+                `;
+            }
+        }
+
+        window.abrirApiB2B = async () => {
+            window.abrirModal("modalApiB2B");
+            await cargarEstadoApiB2B();
+        };
+
+        window.generarApiB2B = async (rotate = false) => {
+            if (rotate) {
+                const confirmar = confirm("Esto desactivará tu API Key anterior y generará una nueva. ¿Deseas continuar?");
+                if (!confirmar) return;
+            }
+
+            setApiB2BLoading(true);
+
+            try {
+                const data = await requestApiB2B("/api/v1/me/api-key", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ rotate })
+                });
+
+                apiB2BUltimaKey = data.api_key || "";
+
+                const keyBox = document.getElementById("apiB2BKeyBox");
+                const keyValue = document.getElementById("apiB2BKeyValue");
+                const statusBox = document.getElementById("apiB2BStatus");
+
+                if (keyValue) keyValue.value = apiB2BUltimaKey;
+                if (keyBox) keyBox.classList.remove("hidden");
+
+                if (statusBox) {
+                    statusBox.innerHTML = `
+                        <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">API Key creada</p>
+                        <p class="text-lg font-black text-slate-900">Prefijo: ${data.key_prefix || "N/A"}</p>
+                        <p class="text-xs font-bold text-slate-500 mt-2">Guarda la API Key completa antes de cerrar este modal.</p>
+                    `;
+                }
+
+                alert("API Key generada correctamente. Guárdala ahora.");
+            } catch (error) {
+                console.error(error);
+
+                if (error.statusCode === 409 && error.data?.key_prefix) {
+                    const statusBox = document.getElementById("apiB2BStatus");
+                    statusBox.innerHTML = `
+                        <p class="text-[10px] font-black uppercase text-amber-600 mb-1">Ya existe API Key activa</p>
+                        <p class="text-lg font-black text-slate-900">Prefijo: ${error.data.key_prefix}</p>
+                        <p class="text-xs font-bold text-slate-500 mt-2">Si necesitas una nueva, usa la opción de rotar API Key.</p>
+                    `;
+                    alert("Ya tienes una API Key activa. Usa Rotar API Key si necesitas una nueva.");
+                } else {
+                    alert(error.message || "No se pudo generar la API Key.");
+                }
+            } finally {
+                setApiB2BLoading(false);
+            }
+        };
+
+        window.copiarApiKeyB2B = async () => {
+            const value = document.getElementById("apiB2BKeyValue")?.value || apiB2BUltimaKey;
+
+            if (!value) {
+                alert("No hay API Key para copiar.");
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(value);
+                alert("API Key copiada.");
+            } catch (error) {
+                alert("No se pudo copiar automáticamente. Selecciona el texto y cópialo manualmente.");
+            }
+        };
 
         window.toggleChat = () => {
             const w = document.getElementById('chat-window');

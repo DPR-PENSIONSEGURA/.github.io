@@ -222,6 +222,50 @@ async function authenticateApiKey(req, requiredPermission) {
   };
 }
 
+async function authenticateFirebaseUser(req) {
+  const authHeader = req.headers["authorization"] || "";
+  const idToken = authHeader.replace(/^Bearer\s+/i, "");
+
+  if (!idToken) {
+    const error = new Error("Falta token de sesión.");
+    error.statusCode = 401;
+    error.errorCode = "FIREBASE_TOKEN_REQUIRED";
+    throw error;
+  }
+
+  let decoded = null;
+
+  try {
+    decoded = await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    const authError = new Error("Token de sesión inválido.");
+    authError.statusCode = 401;
+    authError.errorCode = "INVALID_FIREBASE_TOKEN";
+    throw authError;
+  }
+
+  const asesorUid = decoded.uid;
+  const asesorRef = db.collection("asesores").doc(asesorUid);
+  const asesorSnap = await asesorRef.get();
+
+  if (!asesorSnap.exists) {
+    const error = new Error("No existe el asesor autenticado.");
+    error.statusCode = 404;
+    error.errorCode = "ASESOR_NOT_FOUND";
+    throw error;
+  }
+
+  return {
+    uid: asesorUid,
+    email: decoded.email || "",
+    asesorRef,
+    asesor: {
+      id: asesorSnap.id,
+      ...asesorSnap.data()
+    }
+  };
+}
+
 async function findInventoryByServiceCode(serviceCode) {
   const normalizedCode = normalizeString(serviceCode).toUpperCase();
   const inventoryName = SERVICE_MAP[normalizedCode];
@@ -467,6 +511,137 @@ app.get("/health", (req, res) => {
     service: "DPR API",
     status: "ok"
   });
+});
+
+app.get("/api/v1/me/api-key", async (req, res) => {
+  try {
+    const auth = await authenticateFirebaseUser(req);
+
+    const snap = await db
+      .collection("api_keys")
+      .where("asesor_uid", "==", auth.uid)
+      .where("estatus", "==", "activa")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      return res.json({
+        success: true,
+        has_api_key: false,
+        api_key_id: null,
+        key_prefix: null,
+        message: "No tienes una API Key activa."
+      });
+    }
+
+    const doc = snap.docs[0];
+    const data = doc.data();
+
+    res.json({
+      success: true,
+      has_api_key: true,
+      api_key_id: doc.id,
+      key_prefix: data.key_prefix || "",
+      permisos: Array.isArray(data.permisos) ? data.permisos : [],
+      created_at: data.created_at || null,
+      last_used_at: data.last_used_at || null,
+      message: "Ya tienes una API Key activa. Por seguridad no se puede volver a mostrar completa."
+    });
+  } catch (error) {
+    console.error(error);
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/me/api-key", async (req, res) => {
+  try {
+    const auth = await authenticateFirebaseUser(req);
+    const rotate = req.body?.rotate === true;
+
+    const activeSnap = await db
+      .collection("api_keys")
+      .where("asesor_uid", "==", auth.uid)
+      .where("estatus", "==", "activa")
+      .get();
+
+    if (!activeSnap.empty && !rotate) {
+      const activeDoc = activeSnap.docs[0];
+      const activeData = activeDoc.data();
+
+      return res.status(409).json({
+        success: false,
+        error_code: "ACTIVE_API_KEY_EXISTS",
+        message: "Ya tienes una API Key activa. Si necesitas una nueva, usa la opción de rotar.",
+        api_key_id: activeDoc.id,
+        key_prefix: activeData.key_prefix || ""
+      });
+    }
+
+    const apiKey = createApiKey();
+    const apiKeyPrefix = getKeyPrefix(apiKey);
+
+    const batch = db.batch();
+
+    if (!activeSnap.empty && rotate) {
+      activeSnap.docs.forEach((docSnap) => {
+        batch.update(docSnap.ref, {
+          estatus: "inactiva",
+          updated_at: FieldValue.serverTimestamp(),
+          revoked_at: FieldValue.serverTimestamp(),
+          revoked_reason: "Rotada por asesor desde dashboard"
+        });
+      });
+    }
+
+    const apiKeyRef = db.collection("api_keys").doc();
+
+    batch.set(apiKeyRef, {
+      asesor_uid: auth.uid,
+      asesor_email: auth.asesor.email || auth.email || "",
+      nombre: auth.asesor.nombre || "",
+      key_prefix: apiKeyPrefix,
+      key_hash: sha256(apiKey),
+      estatus: "activa",
+      permisos: ["requests:create", "requests:read", "balance:read"],
+      created_at: FieldValue.serverTimestamp(),
+      updated_at: FieldValue.serverTimestamp(),
+      last_used_at: null,
+      revoked_at: null,
+      revoked_reason: null,
+      created_by: "advisor_dashboard",
+      notes: req.body?.notes || "API Key generada por asesor desde dashboard"
+    });
+
+    await batch.commit();
+
+    await writeUsageLog({
+      asesor_uid: auth.uid,
+      asesor_email: auth.asesor.email || auth.email || "",
+      api_key_id: apiKeyRef.id,
+      key_prefix: apiKeyPrefix,
+      endpoint: "/api/v1/me/api-key",
+      method: "POST",
+      status_code: 201,
+      success: true,
+      action: rotate ? "rotate_api_key" : "create_api_key",
+      ip: getRequestIp(req),
+      user_agent: req.headers["user-agent"] || null
+    });
+
+    res.status(201).json({
+      success: true,
+      api_key_id: apiKeyRef.id,
+      api_key: apiKey,
+      key_prefix: apiKeyPrefix,
+      asesor_uid: auth.uid,
+      asesor_email: auth.asesor.email || auth.email || "",
+      permisos: ["requests:create", "requests:read", "balance:read"],
+      message: "Guarda esta API Key ahora. No se volverá a mostrar completa."
+    });
+  } catch (error) {
+    console.error(error);
+    sendError(res, error);
+  }
 });
 
 app.post("/api/v1/admin/api-keys", async (req, res) => {
