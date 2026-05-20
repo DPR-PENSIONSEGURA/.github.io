@@ -57,26 +57,80 @@ Consulta el estado de una solicitud.
 GET /api/v1/requests/{id}/result
 Consulta el resultado final cuando ya este disponible.
 
-## 5. Servicios disponibles
+## Servicios disponibles
 
-SEMANAS_COTIZADAS - SEMANAS - 35
-RFC_VERIFICABLE - RFC VER - 160
-RFC_ORIGINAL - RFC ORIGINAL - 230
-RFC_IDCIF - RFC IDCIF - 90
-RFC_CLON - CLON RFC - 60
-TARJETA_NSS - TARJETA NSS - 15
-VIGENCIA - VIGENCIA - 15
-CURP - CURP - 15
-ACTA_NACIMIENTO - ACTA - 27
-BURO_CREDITO - DPR BURO DE CREDITO - 200
-RESETEO_INFONAVIT - RESETEO INFONAVIT - 210
-ALTA_DESEMPLEO - ALTA DESEMPLEO - 600
-SINDO_ULTIMO_RETIRO - SINDO ULT RET - 40
-RETIRO - RETIRO - 80
-RETIRO_50 - RETIRO 50 - 50
-CONTRASENA - CONTRASENA - 30
-REGISTRO - REGISTRO - 100
-ANTECEDENTES - ANTECEDENTES - 50
+### IMSS / TRÁMITES
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| SEMANAS_COTIZADAS | Semanas cotizadas | 18 |
+| SEMANAS_DETALLADAS | Semanas detalladas | 35 |
+| SINDO_ULTIMO_RETIRO | SINDO último retiro | 45 |
+| SINDO_ALFANUMERICO | SINDO alfanumérico | 55 |
+| SINDO_SALARIO_PROMEDIO | SINDO salario promedio | 95 |
+| SINDO_VIGENCIA | SINDO vigencia | 95 |
+| SINDO_COMPLETO | SINDO completo | 190 |
+| TARJETA_NSS | Tarjeta NSS | 20 |
+| INSCRIPCION_MODALIDAD_10 | Inscripción Modalidad 10 | 200 |
+| ALTA_MENSUAL | Alta mensual | 600 |
+| ALTA_DESEMPLEO_LINEA_CAPTURA | Alta desempleo con línea de captura | 200 |
+| ALTA_DESEMPLEO_APORTACIONES | Alta desempleo con aportaciones | 650 |
+
+### SAT / RFC
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| RFC_CLON | RFC Clon | 25 |
+| RFC_VERIFICABLE | RFC Verificable | 110 |
+| RFC_IDCIF | RFC con IDCIF | 20 |
+| RFC_ORIGINAL | RFC Original | 180 |
+| LOCALIZACION_IDCIF | Localización de IDCIF | 60 |
+
+### DOCUMENTOS OFICIALES
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| BURO_CREDITO | Buró de Crédito | 170 |
+| CURP | CURP Certificada | 4 |
+| ACTA_NACIMIENTO | Acta de nacimiento | 11 |
+| ACTA_MATRIMONIO | Acta de matrimonio | 11 |
+| ACTA_DIVORCIO | Acta de divorcio | 11 |
+| ACTA_DEFUNCION | Acta de defunción | 11 |
+| VIGENCIA_DERECHOS | Vigencia de derechos | 24 |
+
+### INFONAVIT
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| LOCALIZACION_CONTRASENA_INFONAVIT | Localización de contraseña | 150 |
+| RESETEO_INFONAVIT | Reseteo de cuenta | 150 |
+| PRECALIFICACION_MEJORAVIT | Precalificación Mejoravit | 100 |
+| PRECALIFICACION_LINEA_II | Precalificación Línea II | 100 |
+| CREAR_CUENTA_INFONAVIT | Crear cuenta Infonavit | 150 |
+| HISTORICO_INFONAVIT | Histórico Infonavit | 150 |
+
+### AFORE
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| REGISTRO_AFORE_DISTANCIA | Registro a distancia | 90 |
+| RETIRO_DESEMPLEO_AFORE | Retiro por desempleo | 60 |
+| CAMBIO_CONTRASENA_AFORE | Cambio de contraseña AFORE | 30 |
+| ESTADO_CUENTA_AFORE_AZTECA | Estado de cuenta Afore Azteca | 500 |
+| ESTADO_CUENTA_AFORE_COPPEL | Estado de cuenta Afore Coppel | 500 |
+| ESTADO_CUENTA_AFORE_PROFUTURO | Estado de cuenta Afore Profuturo | 500 |
+| ESTADO_CUENTA_AFORE_INVERCAP | Estado de cuenta Afore Invercap | 1400 |
+| ESTADO_CUENTA_AFORE_SURA | Estado de cuenta Afore SURA | 800 |
+| ESTADO_CUENTA_AFORE_BANORTE | Estado de cuenta Afore Banorte | 500 |
+| ESTADO_CUENTA_AFORE_PRINCIPAL | Estado de cuenta Afore Principal | 500 |
+| ESTADO_CUENTA_AFORE_BANAMEX | Estado de cuenta Afore Banamex | 1200 |
+
+### PENSIONES
+
+| service_code | Servicio | Precio |
+|---|---|---:|
+| ANALISIS_RAPIDO_PENSION | Análisis rápido | 200 |
+| ANALISIS_DETALLADO_PENSION | Análisis detallado | 3000 |
 
 ## 6. Health Check
 
