@@ -240,6 +240,19 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
+        const VIP_SEMANAS_15 = [    "leslymar.6807@gmail.com",    "consultoriadpr@gmail.com"
+                               ];
+
+function obtenerPrecioTramite(t) {
+    const email = String(emailAsesor || "").trim().toLowerCase();
+    const nombre = String(t?.nombre || "").trim().toUpperCase();
+
+    if (nombre === "SEMANAS COTIZADAS" && VIP_SEMANAS_15.map(e => e.toLowerCase()).includes(email)) {
+        return 15;
+    }
+
+    return Number(t.precio || 0);
+}
         let historialSolicitudesCache = [];
         let ultimoAvisoAdminTS = 0;
 
@@ -457,7 +470,7 @@ const TRAMITES = {
             TRAMITES[cat].forEach(t => {
                 const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
                 html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">Solicitud rápida y segura</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${t.precio}</span></div>
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">Solicitud rápida y segura</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${obtenerPrecioTramite(t)}</span></div>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center">→</span></div>
                 </div>`;
             });
@@ -550,7 +563,7 @@ const TRAMITES = {
 
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
-            let pFinal = t.precio;
+            let pFinal = obtenerPrecioTramite(t);
 
             let fields = '';
 
