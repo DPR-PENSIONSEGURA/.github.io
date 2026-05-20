@@ -13,6 +13,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "busboy": "^1.6.0",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",

@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
+const Busboy = require("busboy");
 const crypto = require("crypto");
 const cloudinary = require("cloudinary").v2;
 
@@ -269,18 +270,123 @@ async function uploadBufferToCloudinary(file, folder) {
   });
 }
 
-function getMultipartJsonField(req, name, fallback) {
-  const raw = req.body?.[name];
+function parseJsonValue(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
 
-  if (raw === undefined || raw === null || raw === "") return fallback;
-
-  if (typeof raw === "object") return raw;
+  if (typeof value === "object") return value;
 
   try {
-    return JSON.parse(raw);
+    return JSON.parse(value);
   } catch {
     return fallback;
   }
+}
+
+function getMultipartJsonField(req, name, fallback) {
+  const raw = req.body?.[name];
+  return parseJsonValue(raw, fallback);
+}
+
+function parseMultipartRequest(req) {
+  return new Promise((resolve, reject) => {
+    const contentType = req.headers["content-type"] || "";
+
+    if (!contentType.toLowerCase().includes("multipart/form-data")) {
+      const error = new Error("Content-Type debe ser multipart/form-data.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_CONTENT_TYPE";
+      reject(error);
+      return;
+    }
+
+    if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
+      const error = new Error("No se recibió rawBody para procesar multipart/form-data.");
+      error.statusCode = 400;
+      error.errorCode = "RAW_BODY_REQUIRED";
+      reject(error);
+      return;
+    }
+
+    const fields = {};
+    const files = {};
+
+    let busboy;
+
+    try {
+      busboy = Busboy({
+        headers: req.headers,
+        limits: {
+          files: 10,
+          fileSize: 15 * 1024 * 1024
+        }
+      });
+    } catch (error) {
+      error.statusCode = 400;
+      error.errorCode = "BUSBOY_INIT_ERROR";
+      reject(error);
+      return;
+    }
+
+    busboy.on("field", (fieldname, value) => {
+      fields[fieldname] = value;
+    });
+
+    busboy.on("file", (fieldname, file, info) => {
+      let filename = "archivo";
+      let mimeType = "application/octet-stream";
+
+      if (info && typeof info === "object") {
+        filename = info.filename || filename;
+        mimeType = info.mimeType || mimeType;
+      }
+
+      const chunks = [];
+      let size = 0;
+      let fileLimitReached = false;
+
+      file.on("data", (data) => {
+        chunks.push(data);
+        size += data.length;
+      });
+
+      file.on("limit", () => {
+        fileLimitReached = true;
+      });
+
+      file.on("end", () => {
+        if (fileLimitReached) {
+          const error = new Error(`El archivo ${filename} excede el tamaño permitido.`);
+          error.statusCode = 413;
+          error.errorCode = "FILE_TOO_LARGE";
+          reject(error);
+          return;
+        }
+
+        const uploadedFile = {
+          fieldname,
+          originalname: filename,
+          mimetype: mimeType,
+          size,
+          buffer: Buffer.concat(chunks)
+        };
+
+        if (!files[fieldname]) files[fieldname] = [];
+        files[fieldname].push(uploadedFile);
+      });
+    });
+
+    busboy.on("error", (error) => {
+      error.statusCode = 400;
+      error.errorCode = "MULTIPART_PARSE_ERROR";
+      reject(error);
+    });
+
+    busboy.on("finish", () => {
+      resolve({ fields, files });
+    });
+
+    busboy.end(req.rawBody);
+  });
 }
 
 async function notifyN8n(payload) {
@@ -668,6 +774,210 @@ app.post(
     }
   }
 );
+
+app.post("/api/v1/requests-with-files", async (req, res) => {
+  let auth = null;
+  let inventory = null;
+  let externalReference = null;
+  let body = {};
+  let files = {};
+
+  try {
+    auth = await authenticateApiKey(req, "requests:create");
+
+    const parsed = await parseMultipartRequest(req);
+    body = parsed.fields || {};
+    files = parsed.files || {};
+
+    const serviceCode = normalizeString(body.service_code).toUpperCase();
+    externalReference = normalizeString(body.external_reference) || "N/A";
+
+    if (!serviceCode) {
+      const error = new Error("service_code es obligatorio.");
+      error.statusCode = 400;
+      error.errorCode = "SERVICE_CODE_REQUIRED";
+      throw error;
+    }
+
+    inventory = await findInventoryByServiceCode(serviceCode);
+
+    const curp = normalizeString(body.curp || "N/A").toUpperCase() || "N/A";
+    const nss = normalizeString(body.nss || "N/A") || "N/A";
+
+    const detailsFromBody = parseJsonValue(body.details, {});
+
+    const details = {
+      ...EXTRA_DEFAULTS,
+      ...detailsFromBody,
+      referencia_externa: externalReference
+    };
+
+    const questionnaire = parseJsonValue(body.cuestionario, "N/A");
+
+    const folder = `dpr_api/${auth.asesor.id}/${Date.now()}`;
+
+    const file_ine_f = await uploadBufferToCloudinary(files?.file_ine_f?.[0], folder);
+    const file_ine_r = await uploadBufferToCloudinary(files?.file_ine_r?.[0], folder);
+    const file_selfie = await uploadBufferToCloudinary(files?.file_selfie?.[0], folder);
+    const file_comp_domicilio = await uploadBufferToCloudinary(files?.file_comp_domicilio?.[0], folder);
+    const file_edocta = await uploadBufferToCloudinary(files?.file_edocta?.[0], folder);
+
+    let solicitudId = null;
+    let balanceBefore = 0;
+    let balanceAfter = 0;
+
+    await db.runTransaction(async (tx) => {
+      const asesorSnap = await tx.get(auth.asesorRef);
+
+      if (!asesorSnap.exists) {
+        const error = new Error("El asesor no existe.");
+        error.statusCode = 404;
+        error.errorCode = "ASESOR_NOT_FOUND";
+        throw error;
+      }
+
+      const asesorData = asesorSnap.data();
+      balanceBefore = Number(asesorData.saldo || 0);
+      balanceAfter = balanceBefore - inventory.precioVenta;
+
+      if (balanceBefore < inventory.precioVenta) {
+        const error = new Error("Saldo insuficiente.");
+        error.statusCode = 402;
+        error.errorCode = "INSUFFICIENT_BALANCE";
+        throw error;
+      }
+
+      const solicitudRef = db.collection("solicitudes").doc();
+      solicitudId = solicitudRef.id;
+
+      tx.update(auth.asesorRef, {
+        saldo: balanceAfter
+      });
+
+      tx.set(solicitudRef, {
+        asesor_uid: auth.asesor.id,
+        nombre_asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
+
+        tipo: inventory.serviceName,
+        service_code: inventory.serviceCode,
+        inventario_id: inventory.id,
+
+        costo: inventory.precioVenta,
+        costoPropio: inventory.costoPropio,
+
+        estatus: "En Proceso",
+        finalizado: false,
+        fecha: FieldValue.serverTimestamp(),
+
+        curp,
+        nss,
+
+        origen: "API",
+        created_via: "api",
+        api_key_id: auth.apiKeyId,
+        api_key_prefix: auth.apiKeyPrefix,
+        referencia_externa: externalReference,
+
+        detalles_extra: details,
+        cuestionario: questionnaire,
+
+        file_ine_f,
+        file_ine_r,
+        file_selfie,
+        file_comp_domicilio,
+        file_edocta
+      });
+    });
+
+    const n8nResult = await notifyN8n({
+      id_solicitud: solicitudId,
+      asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
+      tramite: inventory.serviceName,
+      curp,
+      nss,
+      extra: details,
+      quest: questionnaire,
+      file_ine_f,
+      file_ine_r,
+      file_selfie,
+      file_comp_domicilio,
+      file_edocta,
+      origen: "API",
+      referencia_externa: externalReference
+    });
+
+    await writeUsageLog({
+      asesor_uid: auth.asesor.id,
+      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
+      api_key_id: auth.apiKeyId,
+      key_prefix: auth.apiKeyPrefix,
+      endpoint: "/api/v1/requests-with-files",
+      method: "POST",
+      status_code: 201,
+      success: true,
+      service_code: inventory.serviceCode,
+      service_name: inventory.serviceName,
+      solicitud_id: solicitudId,
+      external_reference: externalReference,
+      precio_venta: inventory.precioVenta,
+      costo_propio: inventory.costoPropio,
+      balance_before: balanceBefore,
+      balance_after: balanceAfter,
+      n8n_ok: n8nResult.ok,
+      n8n_status: n8nResult.status,
+      files_received: Object.keys(files),
+      ip: getRequestIp(req),
+      user_agent: req.headers["user-agent"] || null
+    });
+
+    res.status(201).json({
+      success: true,
+      solicitud_id: solicitudId,
+      external_reference: externalReference,
+      service_code: inventory.serviceCode,
+      service_name: inventory.serviceName,
+      estatus: "En Proceso",
+      costo: inventory.precioVenta,
+      balance_before: balanceBefore,
+      balance_after: balanceAfter,
+      files: {
+        file_ine_f,
+        file_ine_r,
+        file_selfie,
+        file_comp_domicilio,
+        file_edocta
+      }
+    });
+  } catch (error) {
+    console.error(error);
+
+    if (auth) {
+      await writeUsageLog({
+        asesor_uid: auth.asesor?.id || auth.apiKeyData?.asesor_uid || null,
+        asesor_email: auth.asesor?.email || auth.apiKeyData?.asesor_email || "",
+        api_key_id: auth.apiKeyId,
+        key_prefix: auth.apiKeyPrefix,
+        endpoint: "/api/v1/requests-with-files",
+        method: "POST",
+        status_code: error.statusCode || 500,
+        success: false,
+        service_code: inventory?.serviceCode || normalizeString(body?.service_code).toUpperCase() || null,
+        service_name: inventory?.serviceName || null,
+        solicitud_id: null,
+        external_reference: externalReference,
+        precio_venta: inventory?.precioVenta || null,
+        costo_propio: inventory?.costoPropio || null,
+        error_code: error.errorCode || "INTERNAL_ERROR",
+        error_message: error.message || "Error interno.",
+        files_received: Object.keys(files || {}),
+        ip: getRequestIp(req),
+        user_agent: req.headers["user-agent"] || null
+      });
+    }
+
+    sendError(res, error);
+  }
+});
 
 app.get("/api/v1/requests/:id", async (req, res) => {
   try {
