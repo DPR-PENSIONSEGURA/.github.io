@@ -314,8 +314,8 @@ const TRAMITES = {
         { nombre: 'SINDO COMPLETO', precio: 190, nss: true },
         { nombre: 'SINDO SALARIO PROMEDIO', precio: 95, nss: true },
         { nombre: 'SINDO VIGENCIA', precio: 95, nss: true },
-        { nombre: 'Tarjeta NSS', precio: 8, nss: true, curp: true },
-        { nombre: 'Vigencia de Derechos', precio: 8, curp: true, nss: true },
+        { nombre: 'Tarjeta NSS', precio: 15, nss: true, curp: true },
+        { nombre: 'Vigencia de Derechos', precio: 15, curp: true, nss: true },
         { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
         { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
         { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
@@ -393,7 +393,7 @@ const TRAMITES = {
 
         const FLUJO_AYUDA = {
             "inicio": { texto: "Hola, ¿en qué puedo ayudarte?", opciones: ["💰 Pagos", "📋 Trámites"] },
-            "💰 Pagos": { texto: "Transfiere a Banorte y sube captura en el botón de saldo.", opciones: ["¿Cuánto tarda?", "Volver al inicio"] },
+            "💰 Pagos": { texto: "Transfiere a Banorte y sube captura en el botón derecargar.", opciones: ["¿Cuánto tarda?", "Volver al inicio"] },
             "¿Cuánto tarda?": { texto: "Máximo 10 minutos.", opciones: ["Volver al inicio"] },
             "📋 Trámites": { texto: "Semanas: 10min. RFC: 1h-3h. Altas: 2-3 días.", opciones: ["Volver al inicio"] }
         };
@@ -745,7 +745,7 @@ const TRAMITES = {
         const OPCIONES_ESTADO_CUENTA_AFORE = [
             { nombre: 'Azteca', precio: 500 },
             { nombre: 'Coppel', precio: 500 },
-            { nombre: 'Profuturo', precio: 500 },
+   
             { nombre: 'Invercap', precio: 1400 },
             { nombre: 'SURA', precio: 800 },
             { nombre: 'BANORTE', precio: 500 },
