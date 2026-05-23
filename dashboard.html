@@ -289,7 +289,7 @@ function obtenerPrecioTramite(t) {
     const nombre = String(t?.nombre || "").trim().toUpperCase();
 
     if (nombre === "SEMANAS COTIZADAS" && VIP_SEMANAS_15.map(e => e.toLowerCase()).includes(email)) {
-        return 40;
+        return 15;
     }
 
     return Number(t.precio || 0);
@@ -307,7 +307,7 @@ function obtenerPrecioTramite(t) {
 
 const TRAMITES = {
     'IMSS': [
-        { nombre: 'SEMANAS COTIZADAS', precio: 45, nss: true, curp: true },
+        { nombre: 'SEMANAS COTIZADAS', precio: 17, nss: true, curp: true },
        
         { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
         { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true, curp: true },
