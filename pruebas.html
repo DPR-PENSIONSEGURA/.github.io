@@ -412,6 +412,24 @@
             color:white; border-radius:1.5rem; padding:1rem;
         }
 
+
+        .credenciales-trabajo-box {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            border-radius: 1rem;
+            padding: .65rem;
+            margin-top: .45rem;
+            font-size: 9px;
+            font-weight: 900;
+            text-align: left;
+            overflow-wrap: anywhere;
+        }
+        .correo-import-box textarea {
+            min-height: 180px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -585,6 +603,28 @@ class="admin-menu-btn solo-admin relative">
                         </div>
                     </div>
                 </div>
+            
+
+                <div class="mt-6 bg-white rounded-[2rem] shadow-xl border p-6 correo-import-box">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-blue-600">Bolsa de correos para trámites</p>
+                            <h3 class="text-lg font-black uppercase italic text-slate-800">Importar correos manualmente</h3>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Pega un correo por línea usando: correo@outlook.com, contraseña. El sistema omite duplicados y solo asigna correos disponibles.</p>
+                        </div>
+                        <div class="pay-total text-right">
+                            <p class="text-[9px] font-black uppercase text-white/60">Correos disponibles</p>
+                            <p id="contadorCorreosDisponibles" class="text-3xl font-black">0</p>
+                        </div>
+                    </div>
+                    <textarea id="listaCorreosTrabajo" class="w-full bg-slate-100 p-4 rounded-2xl outline-none text-xs font-bold" placeholder="correo1@outlook.com, contraseña123&#10;correo2@outlook.com, contraseña456"></textarea>
+                    <div class="flex flex-col md:flex-row gap-2 mt-3">
+                        <button onclick="window.importarCorreosTrabajoManual()" class="bg-emerald-600 text-white px-5 py-4 rounded-xl text-[10px] font-black uppercase">Importar correos</button>
+                        <button onclick="window.contarCorreosTrabajoDisponibles()" class="bg-slate-900 text-white px-5 py-4 rounded-xl text-[10px] font-black uppercase">Actualizar contador</button>
+                    </div>
+                    <p id="resumenImportacionCorreos" class="text-[10px] font-black uppercase text-slate-500 mt-3"></p>
+                </div>
+
             </div>
         </section>
 
@@ -958,7 +998,7 @@ class="admin-menu-btn solo-admin relative">
         // ==============================
         // DPR · PERMISOS Y CORTE DIARIO
         // ==============================
-        const PAUSAR_CORREOS_SEMANAS = true; // Correos/alias desactivados: TOMAR solo bloquea/asigna la solicitud.
+        const PAUSAR_CORREOS_SEMANAS = false; // Activo: al TOMAR se asigna un correo único desde correos_trabajo.
         const TRAMITES_CRM = [
             { key: 'RFC_CLON', label: 'RFC Clon', aliases: ['rfc clon'] },
             { key: 'RFC_IDCIF', label: 'RFC con IDCIF', aliases: ['rfc con idcif','idcif','constancia fiscal'] },
@@ -981,7 +1021,7 @@ class="admin-menu-btn solo-admin relative">
             VIGENCIA: 3,
             INCAPACIDAD: 5,
             RECETAS: 5,
-            SEMANAS_COTIZADAS: 2,
+            SEMANAS_COTIZADAS: 3,
             RFC_VERIFICABLE: 0,
             ACTA_NACIMIENTO: 0,
             BURO_DE_CREDITO: 0,
@@ -1203,7 +1243,7 @@ class="admin-menu-btn solo-admin relative">
                 password,
                 role: rolEmpleado,
                 area: rolEmpleado,
-                tramitesPermitidos: rolEmpleado === 'admin' ? TRAMITES_CRM.map(t => t.key) : tramitesPermitidos,
+                tramitesPermitidos: rolEmpleado === 'admin' ? ['TODO'] : tramitesPermitidos,
                 sueldo_base_diario: 0,
                 activo: true,
                 creado: serverTimestamp()
@@ -1229,7 +1269,7 @@ class="admin-menu-btn solo-admin relative">
                 actuales.join(',')
             );
             if (texto === null) return;
-            const nuevos = texto.split(',').map(x => normalizarClaveTramite(x)).filter(Boolean);
+            const nuevos = texto.toUpperCase().includes('TODO') ? ['TODO'] : texto.split(',').map(x => normalizarClaveTramite(x)).filter(Boolean);
             await updateDoc(ref, { tramitesPermitidos: nuevos, actualizado: serverTimestamp() });
             alert('Permisos actualizados');
         };
@@ -1323,6 +1363,7 @@ class="admin-menu-btn solo-admin relative">
         function usuarioPuedeVerTramite(s) {
             if (miSesion.role === 'admin') return true;
             if (!staffTramitesPermitidos.length) return true;
+            if (staffTramitesPermitidos.includes('TODO')) return true;
             return staffTramitesPermitidos.includes(claveTramiteSolicitud(s));
         }
 
@@ -1330,7 +1371,13 @@ class="admin-menu-btn solo-admin relative">
             const box = document.getElementById(containerId);
             if (!box) return;
             const set = new Set(seleccionados);
-            box.innerHTML = TRAMITES_CRM.map(t => `
+            const todoChecked = set.has('TODO');
+            box.innerHTML = `
+                <label class="dpr-check" style="grid-column: 1 / -1; background:#ecfdf5; border-color:#10b981; color:#065f46;">
+                    <input type="checkbox" value="TODO" ${todoChecked ? 'checked' : ''}>
+                    TODO · Ver y tomar todos los trámites
+                </label>
+            ` + TRAMITES_CRM.map(t => `
                 <label class="dpr-check">
                     <input type="checkbox" value="${t.key}" ${set.has(t.key) ? 'checked' : ''}>
                     ${t.label}
@@ -1339,7 +1386,8 @@ class="admin-menu-btn solo-admin relative">
         }
 
         function leerCheckboxTramites(containerId) {
-            return [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map(i => i.value);
+            const valores = [...document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)].map(i => i.value);
+            return valores.includes('TODO') ? ['TODO'] : valores;
         }
 
         function fechaKeyLocal(dt) {
@@ -1380,6 +1428,85 @@ class="admin-menu-btn solo-admin relative">
                 s?.duplicado === true;
         }
 
+
+        function correoDocId(correo) {
+            return String(correo || '').toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/^_+|_+$/g, '').slice(0, 140);
+        }
+
+        function puedeUsarCorreoTrabajo(s) {
+            const clave = claveTramiteSolicitud(s);
+            return ['SEMANAS_COTIZADAS', 'TARJETA_NSS', 'VIGENCIA', 'INCAPACIDAD', 'RECETAS'].includes(clave) || String(s.tipo || '').toLowerCase().includes('imss');
+        }
+
+        function puedeVerCredencialesTrabajo(s) {
+            return miSesion.role === 'admin' || String(s.tomado_uid || '') === staffUid;
+        }
+
+        async function obtenerCorreoTrabajoDisponibleTx(tx) {
+            const qCorreos = query(collection(db, 'correos_trabajo'), where('usado', '==', false), limit(10));
+            const snapCorreos = await getDocs(qCorreos);
+            if (snapCorreos.empty) throw new Error('No hay correos disponibles. Importa más correos en Control Administrativo.');
+
+            for (const candidato of snapCorreos.docs) {
+                const refCorreo = doc(db, 'correos_trabajo', candidato.id);
+                const correoSnap = await tx.get(refCorreo);
+                if (correoSnap.exists() && correoSnap.data().usado !== true) {
+                    return { ref: refCorreo, id: candidato.id, data: correoSnap.data() };
+                }
+            }
+            throw new Error('Los correos disponibles fueron tomados por otro usuario. Intenta nuevamente.');
+        }
+
+        window.contarCorreosTrabajoDisponibles = async function () {
+            if (miSesion.role !== 'admin') return;
+            const qCorreos = query(collection(db, 'correos_trabajo'), where('usado', '==', false), limit(1000));
+            const snap = await getDocs(qCorreos);
+            const el = document.getElementById('contadorCorreosDisponibles');
+            if (el) el.textContent = snap.size;
+        };
+
+        window.importarCorreosTrabajoManual = async function () {
+            if (miSesion.role !== 'admin') return;
+            const textarea = document.getElementById('listaCorreosTrabajo');
+            const resumen = document.getElementById('resumenImportacionCorreos');
+            const texto = String(textarea?.value || '').trim();
+            if (!texto) return alert('Pega la lista de correos primero.');
+
+            const lineas = texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            let importados = 0, duplicados = 0, errores = 0;
+
+            for (const linea of lineas) {
+                const partes = linea.split(',');
+                if (partes.length < 2) { errores++; continue; }
+                const correo = String(partes.shift() || '').trim().toLowerCase();
+                const password = partes.join(',').trim();
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) || !password) { errores++; continue; }
+
+                const refCorreo = doc(db, 'correos_trabajo', correoDocId(correo));
+                const existe = await getDoc(refCorreo);
+                if (existe.exists()) { duplicados++; continue; }
+
+                await setDoc(refCorreo, {
+                    correo,
+                    password,
+                    usado: false,
+                    asignadoA: null,
+                    asignadoNombre: null,
+                    solicitudId: null,
+                    fechaImportado: serverTimestamp(),
+                    fechaAsignado: null,
+                    importadoPor: staffNombre,
+                    origen: 'manual_admin'
+                });
+                importados++;
+            }
+
+            if (resumen) resumen.textContent = `Importados: ${importados} · Duplicados omitidos: ${duplicados} · Líneas con error: ${errores}`;
+            if (textarea) textarea.value = '';
+            await window.contarCorreosTrabajoDisponibles?.();
+            alert(`Importación finalizada.\nAgregados: ${importados}\nDuplicados: ${duplicados}\nErrores: ${errores}`);
+        };
+
         function actualizarSolicitudLocalRapida(id, cambios = {}) {
             todasLasSoliCargadas = todasLasSoliCargadas.map(item => {
                 if (String(item.id) !== String(id)) return item;
@@ -1413,7 +1540,7 @@ class="admin-menu-btn solo-admin relative">
                         throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
                     }
 
-                    tx.update(ref, {
+                    const payloadSolicitud = {
                         tomado_uid: staffUid,
                         tomado_nombre: staffNombre,
                         tomado_role: staffRol,
@@ -1421,10 +1548,33 @@ class="admin-menu-btn solo-admin relative">
                         ultima_actividad: serverTimestamp(),
                         lock_activo: true,
                         estatus_operativo: 'Tomada',
-                        correo_pausado: true,
-                        nota_correo_pausado: 'Correos automáticos desactivados desde CRM. Solicitud tomada sin generar alias.'
-                    });
+                        correo_pausado: false
+                    };
+
+                    if (!s.correoTrabajo && !s.correo_trabajo && puedeUsarCorreoTrabajo(s)) {
+                        const correoAsignado = await obtenerCorreoTrabajoDisponibleTx(tx);
+                        const c = correoAsignado.data;
+
+                        tx.update(correoAsignado.ref, {
+                            usado: true,
+                            asignadoA: staffUid,
+                            asignadoNombre: staffNombre,
+                            solicitudId: id,
+                            fechaAsignado: serverTimestamp()
+                        });
+
+                        Object.assign(payloadSolicitud, {
+                            correoTrabajo: c.correo,
+                            passwordTrabajo: c.password,
+                            correo_trabajo: c.correo,
+                            password_trabajo: c.password,
+                            correoId: correoAsignado.id
+                        });
+                    }
+
+                    tx.update(ref, payloadSolicitud);
                 });
+                await window.contarCorreosTrabajoDisponibles?.();
             } catch (e) {
                 if (respaldoLocal) actualizarSolicitudLocalRapida(id, respaldoLocal);
                 alert(e.message || 'No se pudo tomar la solicitud');
@@ -1768,7 +1918,15 @@ class="admin-menu-btn solo-admin relative">
                                     return `<div class="space-y-1"><span class="op-pill amber">🔒 ${s.tomado_nombre || 'Tomada'}</span><br><button class="op-btn disabled" disabled>Bloqueada</button></div>`;
                                 }
                                 if (vigente && (mio || miSesion.role === 'admin')) {
-                                    return `<div class="space-y-1"><span class="op-pill green">👤 ${s.tomado_nombre || 'Tomada'}</span><br><button onclick="window.liberarSolicitud('${s.id}')" class="op-btn release">Liberar</button></div>`;
+                                    const correo = s.correoTrabajo || s.correo_trabajo || '';
+                                    const pass = s.passwordTrabajo || s.password_trabajo || '';
+                                    const credenciales = (puedeVerCredencialesTrabajo(s) && (correo || pass)) ? `
+                                        <div class="credenciales-trabajo-box">
+                                            <div>📧 ${correo || 'Sin correo'}</div>
+                                            <div>🔑 ${pass || 'Sin contraseña'}</div>
+                                        </div>
+                                    ` : '';
+                                    return `<div class="space-y-1"><span class="op-pill green">👤 ${s.tomado_nombre || 'Tomada'}</span><br>${credenciales}<button onclick="window.liberarSolicitud('${s.id}')" class="op-btn release">Liberar</button></div>`;
                                 }
                                 return `<button onclick="window.tomarSolicitud('${s.id}')" class="op-btn take">Tomar</button>`;
                             })()}
@@ -2586,6 +2744,7 @@ class="admin-menu-btn solo-admin relative">
             if (fechaInput && !fechaInput.value) fechaInput.value = fechaKeyLocal(new Date());
             renderTarifasOperadores();
             renderCorteOperadores();
+            window.contarCorreosTrabajoDisponibles?.();
         }
 
         function renderTarifasOperadores() {
@@ -2638,11 +2797,15 @@ class="admin-menu-btn solo-admin relative">
                 const clave = claveTramiteSolicitud(s);
                 const tarifa = Number(tarifasPagoOperador[clave] || 0);
                 if (!resumen.has(op.uid)) {
-                    resumen.set(op.uid, { uid: op.uid, nombre: op.nombre, totalTramites: 0, totalPago: 0, detalle: {} });
+                    resumen.set(op.uid, { uid: op.uid, nombre: op.nombre, totalTramites: 0, semanasHoy: 0, totalPago: 0, totalMinutos: 0, conTiempo: 0, detalle: {} });
                 }
                 const r = resumen.get(op.uid);
                 r.totalTramites += 1;
                 r.totalPago += tarifa;
+                if (clave === 'SEMANAS_COTIZADAS') r.semanasHoy += 1;
+                const tInicio = fechaMsCampo(s.fecha_tomado);
+                const tFin = fechaMsCampo(s.fecha_terminado || s.fecha_finalizado || s.fechaTerminado);
+                if (tInicio && tFin && tFin > tInicio) { r.totalMinutos += ((tFin - tInicio) / 60000); r.conTiempo += 1; }
                 if (!r.detalle[clave]) r.detalle[clave] = { label: labelTramite(clave), cantidad: 0, tarifa, subtotal: 0 };
                 r.detalle[clave].cantidad += 1;
                 r.detalle[clave].subtotal += tarifa;
@@ -2667,7 +2830,7 @@ class="admin-menu-btn solo-admin relative">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
                                 <p class="text-sm font-black uppercase text-slate-800">${r.nombre}</p>
-                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} trámites completados</p>
+                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} trámites completados · Semanas hoy: ${r.semanasHoy || 0} · Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
                             </div>
                             <div class="pay-total text-right">
                                 <p class="text-[9px] font-black uppercase text-white/60">Total a pagar</p>
