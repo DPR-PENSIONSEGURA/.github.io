@@ -281,7 +281,7 @@
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
-        const VIP_SEMANAS_15 = [    "leslymar.6807@gmail.com",    "consultoriadpr@gmail.com"
+        const VIP_SEMANAS_15 = [     "consultoriadpr@gmail.com"
                                ];
 
 function obtenerPrecioTramite(t) {
@@ -308,6 +308,7 @@ function obtenerPrecioTramite(t) {
 const TRAMITES = {
     'IMSS': [
         { nombre: 'SEMANAS COTIZADAS', precio: 17, nss: true, curp: true },
+{ nombre: 'SEMANAS DETALLADAS', precio: 25, nss: true, curp: true },
        
         { nombre: 'SINDO ULTIMO RETIRO', precio: 45, nss: true },
         { nombre: 'SINDO ALFANUMÉRICO', precio: 55, nss: true, pideNombre: true, curp: true },
@@ -319,7 +320,7 @@ const TRAMITES = {
         { nombre: 'Incapacidad', precio: 20, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
         { nombre: 'Recetas', precio: 20, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
         { nombre: 'Inscripción Modalidad 10', precio: 200, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
-        { nombre: 'Alta Mensual', precio: 600, nss: true, curp: true, pideNombre: true },
+        { nombre: 'Alta Mensual', precio: 670, nss: true, curp: true, pideNombre: true },
         { nombre: 'Alta Para Desempleo con linea de captura', precio: 200, nss: true, curp: true, pideNombre: true },
         { nombre: 'Alta para Desempleo con aportaciones', precio: 650, nss: true, curp: true, pideNombre: true }
     ],
@@ -366,7 +367,6 @@ const TRAMITES = {
             curp: true,
             pideVacunaCovid: true
         }
-
     ],
 
     'INF': [
