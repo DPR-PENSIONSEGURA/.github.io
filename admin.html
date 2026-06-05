@@ -449,7 +449,7 @@
                     <p id="txtVisitas" class="text-xl font-black">0</p>
                 </div>
 
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px] solo-admin">
+                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px]">
                     <p class="text-[8px] font-black uppercase">Pendientes</p>
                     <p id="contadorPendientes" class="text-xl font-black">0</p>
                 </div>
@@ -459,8 +459,8 @@
                     <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
                 </div>
 
-                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[10px] font-black uppercase">Pendientes de hoy</p>
+                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px]">
+                    <p class="text-[10px] font-black uppercase">Ver solo pendientes</p>
                 </button>
 
                 <button onclick="window.verErroresSinDevolucion()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px] solo-admin">
@@ -1059,6 +1059,20 @@ class="admin-menu-btn solo-admin relative">
                    fechaA.getDate() === fechaB.getDate();
         }
 
+        function inicioSemanaLocal(fecha) {
+            const d = new Date(fecha);
+            d.setHours(0, 0, 0, 0);
+            const dia = d.getDay();
+            const diferencia = dia === 0 ? -6 : 1 - dia; // Semana laboral/lunes a domingo
+            d.setDate(d.getDate() + diferencia);
+            return d;
+        }
+
+        function esMismaSemana(fechaA, fechaB) {
+            if (!fechaA || !fechaB) return false;
+            return inicioSemanaLocal(fechaA).getTime() === inicioSemanaLocal(fechaB).getTime();
+        }
+
         function actualizarFiltroLabel(texto = '') {
             document.getElementById('estadoFiltro').textContent = texto;
         }
@@ -1068,7 +1082,8 @@ class="admin-menu-btn solo-admin relative">
             const hoy = new Date();
             return todasLasSoliCargadas.filter(s => {
                 const fecha = s.fecha?.toDate?.();
-                return fecha && esMismoDia(fecha, hoy) && s.estatus === 'En Proceso';
+                const estatus = String(s.estatus || '').trim().toLowerCase();
+                return fecha && esMismaSemana(fecha, hoy) && estatus === 'en proceso';
             });
         }
 
@@ -1080,7 +1095,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.filtrarPendientesHoy = () => {
             filtroPendientesHoyActivo = true;
-            actualizarFiltroLabel('Pendientes del día');
+            actualizarFiltroLabel('Pendientes de la semana');
             currentPage = 1;
             selector.value = 1;
             cargarSolicitudes(1);
@@ -1253,7 +1268,7 @@ class="admin-menu-btn solo-admin relative">
                 const fechaBase = fechaSolicitudTerminada(data) || data.fecha?.toDate?.();
                 const esVentaValida = (estatus === 'terminado' || estatus === 'finalizado' || data.finalizado === true) && !esDocumentoConError(data) && data.reembolsado !== true;
 
-                if (estatus === 'en proceso') pendientes++;
+                if (estatus === 'en proceso' && usuarioPuedeVerTramite(data)) pendientes++;
                 if (fechaBase && esMismoDia(fechaBase, hoy) && esVentaValida) {
                     ganancia += Number(data.costo || data.precio || data.monto || 0);
                 }
@@ -2490,17 +2505,37 @@ class="admin-menu-btn solo-admin relative">
         };
 
         window.buscarGlobal = () => {
-            const bus = document.getElementById('buscador').value.toUpperCase();
-            if (bus.length < 1) return cargarSolicitudes(currentPage);
+            const bus = document.getElementById('buscador').value.trim().toUpperCase();
+            if (bus.length < 1) { actualizarFiltroLabel(filtroPendientesHoyActivo ? 'Pendientes de la semana' : ''); return cargarSolicitudes(currentPage); }
 
-            const base = obtenerSolicitudesFiltradas();
-            const filtrados = base.filter(s =>
-                (s.curp && s.curp.includes(bus)) ||
-                (s.nss && s.nss.includes(bus)) ||
-                (s.nombre_asesor && s.nombre_asesor.toUpperCase().includes(bus))
-            );
+            const hoy = new Date();
+            const baseSemana = todasLasSoliCargadas.filter(s => {
+                const fecha = s.fecha?.toDate?.();
+                return fecha && esMismaSemana(fecha, hoy);
+            });
+
+            const base = aplicarFiltroPermisosSolicitudes(baseSemana.length ? baseSemana : todasLasSoliCargadas);
+            const filtrados = base.filter(s => {
+                const extra = obtenerBolsaVariablesExtra(s);
+                const campos = [
+                    s.curp,
+                    s.nss,
+                    s.nombre_asesor,
+                    s.tipo,
+                    s.estatus,
+                    extra.curp,
+                    extra.nss,
+                    extra.nombre_completo,
+                    extra.nombre_cliente,
+                    extra.rfc,
+                    extra.idcif
+                ];
+
+                return campos.some(v => String(v || '').toUpperCase().includes(bus));
+            });
 
             renderizarTablaPersonalizada(filtrados);
+            actualizarFiltroLabel(`Búsqueda semanal: ${filtrados.length} resultado(s)`);
         };
 
         onSnapshot(query(collection(db, 'chat_soporte'), orderBy('timestamp', 'desc'), limit(200)), (snap) => {
