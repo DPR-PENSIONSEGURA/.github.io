@@ -1390,19 +1390,31 @@ vacuna_covid: val('vacuna_covid_p'),
                 if (d.exists()) {
                     saldoGlobal = d.data().saldo || 0;
                     document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`;
+                } else {
+                    console.warn("No existe el documento de saldo para este asesor:", userUID);
                 }
+            }, (error) => {
+                console.error("saldo", error);
             });
         }
 
         function escucharHistorial() {
-            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), orderBy("fecha", "desc"), limit(200)), (snap) => {
+            onSnapshot(query(collection(db, "solicitudes"), where("asesor_uid", "==", userUID), limit(200)), (snap) => {
                 historialSolicitudesCache = [];
 
                 snap.forEach(d => {
                     historialSolicitudesCache.push({ id: d.id, ...d.data() });
                 });
 
+                historialSolicitudesCache.sort((a, b) => {
+                    const fa = a.fecha?.toDate?.().getTime?.() || 0;
+                    const fb = b.fecha?.toDate?.().getTime?.() || 0;
+                    return fb - fa;
+                });
+
                 window.buscarHistorialGlobal();
+            }, (error) => {
+                console.error("historial", error);
             });
         }
 
@@ -1518,12 +1530,19 @@ vacuna_covid: val('vacuna_covid_p'),
         }
 
         function escucharChat() {
-            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID), orderBy("timestamp", "asc")), (snap) => {
+            onSnapshot(query(collection(db, "chat_soporte"), where("asesor_uid", "==", userUID)), (snap) => {
                 const box = document.getElementById('chat-messages');
                 box.innerHTML = "";
 
-                snap.forEach(d => {
-                    const m = d.data();
+                const mensajes = [];
+                snap.forEach(d => mensajes.push(d.data()));
+                mensajes.sort((a, b) => {
+                    const fa = a.timestamp?.toDate?.().getTime?.() || 0;
+                    const fb = b.timestamp?.toDate?.().getTime?.() || 0;
+                    return fa - fb;
+                });
+
+                mensajes.forEach(m => {
                     const div = document.createElement('div');
                     div.className = (m.remitente === emailAsesor) ? "msg-user" : "msg-support";
                     div.innerText = m.texto;
@@ -1531,6 +1550,8 @@ vacuna_covid: val('vacuna_covid_p'),
                 });
 
                 box.scrollTop = box.scrollHeight;
+            }, (error) => {
+                console.error("chat", error);
             });
         }
 
