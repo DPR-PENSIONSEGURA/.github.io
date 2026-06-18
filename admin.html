@@ -1282,10 +1282,10 @@ class="admin-menu-btn solo-admin relative">
             if (document.getElementById('gananciaHoyHeader')) document.getElementById('gananciaHoyHeader').innerText = gananciaText;
 
             cargarSolicitudes(currentPage);
-            renderOperacionDashboard?.();
-            renderCorteOperadores?.();
-            renderVentaDirecta?.();
-            cargarReportesAdmin?.();
+            window.renderOperacionDashboard?.();
+            window.renderCorteOperadores?.();
+            window.renderVentaDirecta?.();
+            window.cargarReportesAdmin?.();
         });
 
 
@@ -1533,7 +1533,7 @@ class="admin-menu-btn solo-admin relative">
         }
 
         function obtenerInventarioParaSolicitud(s) {
-            const key = obtenerKeyTramite(s);
+            const key = claveTramiteSolicitud(s);
             const nombre = String(s.tipo || s.tramite || s.servicio || key || 'Trámite').trim();
             return inventarioVentaDirecta.find(i => i.key === key) ||
                    inventarioVentaDirecta.find(i => normalizarKeyInventario(i.nombre) === normalizarKeyInventario(nombre)) ||
