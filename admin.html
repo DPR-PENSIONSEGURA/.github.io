@@ -1752,7 +1752,7 @@ class="admin-menu-btn solo-admin relative">
                 const nssTabla = s.nss || extraTabla.nss;
                 const nombreTabla = extraTabla.nombre_completo || extraTabla.nombre_cliente || '';
 
-                let info = `<div class="font-black text-slate-800 uppercase break-all max-w-[260px]" title="${s.nombre_asesor || 'S/N'}">${s.nombre_asesor || 'S/N'}</div>`;
+                let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if (nombreTabla && nombreTabla !== 'N/A') info += `<div class="text-[9px] text-emerald-600 font-bold uppercase truncate w-48">CLIENTE: ${nombreTabla}</div>`;
                 if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
                 if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
@@ -1823,63 +1823,6 @@ class="admin-menu-btn solo-admin relative">
             });
         }
 
-        async function resolverRefAsesorSolicitud(s) {
-            const uidCandidatos = [
-                s.asesor_uid,
-                s.uid_asesor,
-                s.asesorId,
-                s.asesor_id
-            ].map(v => String(v || '').trim()).filter(Boolean);
-
-            for (const uid of uidCandidatos) {
-                const ref = doc(db, 'asesores', uid);
-                const snap = await getDoc(ref);
-                if (snap.exists()) return ref;
-            }
-
-            const emailsBase = [
-                s.email_asesor,
-                s.asesorEmail,
-                s.asesor_email,
-                s.correo_asesor,
-                s.email,
-                s.nombre_asesor
-            ].map(v => String(v || '').trim()).filter(v => v && v.includes('@'));
-            const emails = [...new Set(emailsBase.flatMap(email => [email, email.toLowerCase(), email.toUpperCase()]))];
-
-            for (const email of emails) {
-                const qEmail = query(collection(db, 'asesores'), where('email', '==', email));
-                const resEmail = await getDocs(qEmail);
-                if (!resEmail.empty) return doc(db, 'asesores', resEmail.docs[0].id);
-
-                const qCorreo = query(collection(db, 'asesores'), where('correo', '==', email));
-                const resCorreo = await getDocs(qCorreo);
-                if (!resCorreo.empty) return doc(db, 'asesores', resCorreo.docs[0].id);
-            }
-
-            const nombres = [
-                s.nombre_asesor,
-                s.asesorNombre,
-                s.nombreAsesor,
-                s.asesor,
-                s.username_asesor
-            ].map(v => String(v || '').trim()).filter(v => v && !v.includes('@'));
-
-            const camposNombre = ['nombre', 'nombreCompleto', 'username', 'displayName'];
-            for (const nombre of nombres) {
-                for (const campo of camposNombre) {
-                    const qNombre = query(collection(db, 'asesores'), where(campo, '==', nombre));
-                    const resNombre = await getDocs(qNombre);
-                    if (!resNombre.empty) return doc(db, 'asesores', resNombre.docs[0].id);
-                }
-            }
-
-            return null;
-        }
-
-        function montoReembolsoSolicitud(s) {
-            return Number(s.costo ?? s.monto ?? s.precio ?? s.total ?? 0);
-        }
         window.cambiarEstatus = async (id, val) => {
             const docRef = doc(db, 'solicitudes', id);
 
@@ -1925,7 +1868,20 @@ class="admin-menu-btn solo-admin relative">
                     return;
                 }
 
-                const refAsesor = await resolverRefAsesorSolicitud(s);
+                let refAsesor = null;
+
+                if (s.asesor_uid) {
+                    refAsesor = doc(db, 'asesores', s.asesor_uid);
+                } else {
+                    const emailAsesor = String(s.nombre_asesor || '').trim();
+                    if (emailAsesor) {
+                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
+                        const res = await getDocs(q);
+                        if (!res.empty) {
+                            refAsesor = doc(db, 'asesores', res.docs[0].id);
+                        }
+                    }
+                }
 
                 if (!refAsesor) {
                     await updateDoc(docRef, {
@@ -1934,11 +1890,11 @@ class="admin-menu-btn solo-admin relative">
                         bloqueado: true,
                         nota_admin: 'No se pudo devolver saldo automáticamente'
                     });
-                    alert(⚠️ Se marcó el error, pero no se encontró al asesor para devolver saldo. Identificador recibido: );
+                    alert('⚠️ Se marcó el error, pero no se encontró al asesor para devolver saldo.');
                     return;
                 }
 
-                const monto = montoReembolsoSolicitud(s);
+                const monto = Number(s.costo || 0);
 
                 await updateDoc(refAsesor, {
                     saldo: increment(monto)
@@ -1984,14 +1940,27 @@ class="admin-menu-btn solo-admin relative">
                     return;
                 }
 
-                const refAsesor = await resolverRefAsesorSolicitud(s);
+                let refAsesor = null;
+
+                if (s.asesor_uid) {
+                    refAsesor = doc(db, 'asesores', s.asesor_uid);
+                } else {
+                    const emailAsesor = String(s.nombre_asesor || '').trim();
+                    if (emailAsesor) {
+                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
+                        const res = await getDocs(q);
+                        if (!res.empty) {
+                            refAsesor = doc(db, 'asesores', res.docs[0].id);
+                        }
+                    }
+                }
 
                 if (!refAsesor) {
-                    alert(No se encontró el asesor para devolver saldo. Identificador recibido: );
+                    alert('No se encontró el asesor para devolver saldo.');
                     return;
                 }
 
-                const monto = montoReembolsoSolicitud(s);
+                const monto = Number(s.costo || 0);
 
                 await updateDoc(refAsesor, {
                     saldo: increment(monto)
@@ -2482,87 +2451,36 @@ class="admin-menu-btn solo-admin relative">
             });
         }
 
-        function textoRecarga(v, fallback = '') {
-            return String(v ?? fallback).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
-        }
-
-        function dineroRecarga(v) {
-            const n = Number(v || 0);
-            return `$${n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        }
-
-        function claseEstatusRecarga(estatus = '') {
-            const e = String(estatus || 'pendiente').toLowerCase();
-            if (e === 'aprobado' || e === 'pagado') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            if (e === 'rechazado' || e.includes('rechaz')) return 'bg-red-50 text-red-700 border-red-200';
-            if (e.includes('duplic')) return 'bg-purple-50 text-purple-700 border-purple-200';
-            if (e === 'pendiente') return 'bg-amber-50 text-amber-700 border-amber-200';
-            return 'bg-slate-100 text-slate-700 border-slate-200';
-        }
-
-        function detalleEstatusRecarga(r) {
-            const partes = [];
-            if (r.motivo_rechazo) partes.push(textoRecarga(r.motivo_rechazo));
-            if (r.montoBanco !== undefined) partes.push(`Banco: ${dineroRecarga(r.montoBanco)}`);
-            if (r.montoSolicitado !== undefined) partes.push(`Solicitado: ${dineroRecarga(r.montoSolicitado)}`);
-            if (r.diferenciaMonto !== undefined && Number(r.diferenciaMonto) !== 0) partes.push(`Dif.: ${dineroRecarga(r.diferenciaMonto)}`);
-            if (r.fecha_validacion) {
-                const fv = r.fecha_validacion?.toDate?.() || new Date(r.fecha_validacion);
-                if (!isNaN(fv.getTime())) partes.push(`Validado: ${fv.toLocaleString('es-MX')}`);
-            }
-            return partes.join(' | ');
-        }
-
         if (miSesion.role === 'admin') {
-            onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(50)), (snap) => {
+            onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
                 const t = document.getElementById('tablaRecargas');
                 t.innerHTML = '';
                 let pendientesRecarga = 0;
 
                 snap.forEach(d => {
                     const r = d.data(), id = d.id;
-                    const estatus = String(r.estatus || 'pendiente').toLowerCase();
-                    const estaAprobada = estatus === 'aprobado' || estatus === 'pagado';
-                    if (estatus === 'pendiente') pendientesRecarga++;
-
-                    const detalleEstatus = detalleEstatusRecarga(r);
-                    const statusBadge = `
-                        <div class="inline-flex items-center px-3 py-1 rounded-full border text-[9px] font-black uppercase ${claseEstatusRecarga(estatus)}">
-                            ${textoRecarga(estatus || 'pendiente')}
-                        </div>
-                        ${detalleEstatus ? `<p class="mt-2 text-[9px] leading-snug font-bold text-slate-500 max-w-[260px]">${detalleEstatus}</p>` : ''}
-                    `;
-
-                    const btns = estaAprobada
-                        ? `<span class="text-[9px] font-black uppercase text-emerald-600">Saldo aplicado</span>`
-                        : `<button onclick="window.validarRecarga('${id}', '${textoRecarga(r.uid)}', ${Number(r.monto || 0)}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR MANUAL</button>`;
+                    if (r.estatus === 'pendiente') pendientesRecarga++;
+                    let btns = (r.estatus === 'pendiente')
+                        ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
+                        : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
 
                     t.innerHTML += `
-                        <tr class="border-b align-top">
+                        <tr class="border-b">
                             <td class="p-4">
-                                <b>${textoRecarga(r.asesorEmail || 'Sin correo')}</b><br>
-                                <small class="text-blue-600 font-black">RASTREO: ${textoRecarga(r.rastreo || 'N/A')}</small>
-                                ${r.rastreo_validado ? `<br><small class="text-emerald-600 font-black">VALIDADO: ${textoRecarga(r.rastreo_validado)}</small>` : ''}
+                                <b>${r.asesorEmail}</b><br>
+                                <small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small>
                             </td>
+                            <td class="p-4 text-center"><b>$${r.monto}</b></td>
                             <td class="p-4 text-center">
-                                <b>${dineroRecarga(r.monto)}</b>
-                                ${r.montoBanco !== undefined ? `<br><small class="text-slate-500 font-black">Banco: ${dineroRecarga(r.montoBanco)}</small>` : ''}
-                            </td>
-                            <td class="p-4 text-center">${statusBadge}</td>
-                            <td class="p-4 text-center">
-                                ${r.comprobante ? `<button onclick="window.open('${textoRecarga(r.comprobante)}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>` : '<span class="text-[9px] font-black text-slate-300">SIN COMPROBANTE</span>'}
+                                <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
                             </td>
                             <td class="p-4 text-right">
                                 ${btns}
-                                <button onclick="window.borrarRecarga('${id}')" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black ml-2" title="Borrar recarga">&times;</button>
+                                <button onclick="window.borrarRecarga('${id}')" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black ml-2" title="Borrar recarga">×</button>
                             </td>
                         </tr>
                     `;
                 });
-
-                if (!t.innerHTML) {
-                    t.innerHTML = '<tr><td class="p-6 text-center text-[10px] font-black uppercase text-slate-400">Sin recargas registradas</td></tr>';
-                }
 
                 window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
             });
@@ -2993,6 +2911,3 @@ class="admin-menu-btn solo-admin relative">
     </script>
 </body>
 </html>
-
-
-
