@@ -1823,6 +1823,45 @@ class="admin-menu-btn solo-admin relative">
             });
         }
 
+        async function resolverRefAsesorSolicitud(s) {
+            const uidCandidatos = [
+                s.asesor_uid,
+                s.uid_asesor,
+                s.asesorId,
+                s.asesor_id
+            ].map(v => String(v || '').trim()).filter(Boolean);
+
+            for (const uid of uidCandidatos) {
+                const ref = doc(db, 'asesores', uid);
+                const snap = await getDoc(ref);
+                if (snap.exists()) return ref;
+            }
+
+            const emails = [
+                s.email_asesor,
+                s.asesorEmail,
+                s.asesor_email,
+                s.correo_asesor,
+                s.email,
+                s.nombre_asesor
+            ].map(v => String(v || '').trim()).filter(v => v && v.includes('@'));
+
+            for (const email of emails) {
+                const qEmail = query(collection(db, 'asesores'), where('email', '==', email));
+                const resEmail = await getDocs(qEmail);
+                if (!resEmail.empty) return doc(db, 'asesores', resEmail.docs[0].id);
+
+                const qCorreo = query(collection(db, 'asesores'), where('correo', '==', email));
+                const resCorreo = await getDocs(qCorreo);
+                if (!resCorreo.empty) return doc(db, 'asesores', resCorreo.docs[0].id);
+            }
+
+            return null;
+        }
+
+        function montoReembolsoSolicitud(s) {
+            return Number(s.costo ?? s.monto ?? s.precio ?? s.total ?? 0);
+        }
         window.cambiarEstatus = async (id, val) => {
             const docRef = doc(db, 'solicitudes', id);
 
@@ -1868,20 +1907,7 @@ class="admin-menu-btn solo-admin relative">
                     return;
                 }
 
-                let refAsesor = null;
-
-                if (s.asesor_uid) {
-                    refAsesor = doc(db, 'asesores', s.asesor_uid);
-                } else {
-                    const emailAsesor = String(s.nombre_asesor || '').trim();
-                    if (emailAsesor) {
-                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
-                        const res = await getDocs(q);
-                        if (!res.empty) {
-                            refAsesor = doc(db, 'asesores', res.docs[0].id);
-                        }
-                    }
-                }
+                const refAsesor = await resolverRefAsesorSolicitud(s);
 
                 if (!refAsesor) {
                     await updateDoc(docRef, {
@@ -1894,7 +1920,7 @@ class="admin-menu-btn solo-admin relative">
                     return;
                 }
 
-                const monto = Number(s.costo || 0);
+                const monto = montoReembolsoSolicitud(s);
 
                 await updateDoc(refAsesor, {
                     saldo: increment(monto)
@@ -1940,27 +1966,14 @@ class="admin-menu-btn solo-admin relative">
                     return;
                 }
 
-                let refAsesor = null;
-
-                if (s.asesor_uid) {
-                    refAsesor = doc(db, 'asesores', s.asesor_uid);
-                } else {
-                    const emailAsesor = String(s.nombre_asesor || '').trim();
-                    if (emailAsesor) {
-                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
-                        const res = await getDocs(q);
-                        if (!res.empty) {
-                            refAsesor = doc(db, 'asesores', res.docs[0].id);
-                        }
-                    }
-                }
+                const refAsesor = await resolverRefAsesorSolicitud(s);
 
                 if (!refAsesor) {
                     alert('No se encontró el asesor para devolver saldo.');
                     return;
                 }
 
-                const monto = Number(s.costo || 0);
+                const monto = montoReembolsoSolicitud(s);
 
                 await updateDoc(refAsesor, {
                     saldo: increment(monto)
@@ -2962,5 +2975,6 @@ class="admin-menu-btn solo-admin relative">
     </script>
 </body>
 </html>
+
 
 
