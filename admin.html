@@ -1752,7 +1752,7 @@ class="admin-menu-btn solo-admin relative">
                 const nssTabla = s.nss || extraTabla.nss;
                 const nombreTabla = extraTabla.nombre_completo || extraTabla.nombre_cliente || '';
 
-                let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
+                let info = `<div class="font-black text-slate-800 uppercase break-all max-w-[260px]" title="${s.nombre_asesor || 'S/N'}">${s.nombre_asesor || 'S/N'}</div>`;
                 if (nombreTabla && nombreTabla !== 'N/A') info += `<div class="text-[9px] text-emerald-600 font-bold uppercase truncate w-48">CLIENTE: ${nombreTabla}</div>`;
                 if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
                 if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
@@ -1837,7 +1837,7 @@ class="admin-menu-btn solo-admin relative">
                 if (snap.exists()) return ref;
             }
 
-            const emails = [
+            const emailsBase = [
                 s.email_asesor,
                 s.asesorEmail,
                 s.asesor_email,
@@ -1845,6 +1845,7 @@ class="admin-menu-btn solo-admin relative">
                 s.email,
                 s.nombre_asesor
             ].map(v => String(v || '').trim()).filter(v => v && v.includes('@'));
+            const emails = [...new Set(emailsBase.flatMap(email => [email, email.toLowerCase(), email.toUpperCase()]))];
 
             for (const email of emails) {
                 const qEmail = query(collection(db, 'asesores'), where('email', '==', email));
@@ -1854,6 +1855,23 @@ class="admin-menu-btn solo-admin relative">
                 const qCorreo = query(collection(db, 'asesores'), where('correo', '==', email));
                 const resCorreo = await getDocs(qCorreo);
                 if (!resCorreo.empty) return doc(db, 'asesores', resCorreo.docs[0].id);
+            }
+
+            const nombres = [
+                s.nombre_asesor,
+                s.asesorNombre,
+                s.nombreAsesor,
+                s.asesor,
+                s.username_asesor
+            ].map(v => String(v || '').trim()).filter(v => v && !v.includes('@'));
+
+            const camposNombre = ['nombre', 'nombreCompleto', 'username', 'displayName'];
+            for (const nombre of nombres) {
+                for (const campo of camposNombre) {
+                    const qNombre = query(collection(db, 'asesores'), where(campo, '==', nombre));
+                    const resNombre = await getDocs(qNombre);
+                    if (!resNombre.empty) return doc(db, 'asesores', resNombre.docs[0].id);
+                }
             }
 
             return null;
@@ -1916,7 +1934,7 @@ class="admin-menu-btn solo-admin relative">
                         bloqueado: true,
                         nota_admin: 'No se pudo devolver saldo automáticamente'
                     });
-                    alert('⚠️ Se marcó el error, pero no se encontró al asesor para devolver saldo.');
+                    alert(⚠️ Se marcó el error, pero no se encontró al asesor para devolver saldo. Identificador recibido: );
                     return;
                 }
 
@@ -1969,7 +1987,7 @@ class="admin-menu-btn solo-admin relative">
                 const refAsesor = await resolverRefAsesorSolicitud(s);
 
                 if (!refAsesor) {
-                    alert('No se encontró el asesor para devolver saldo.');
+                    alert(No se encontró el asesor para devolver saldo. Identificador recibido: );
                     return;
                 }
 
