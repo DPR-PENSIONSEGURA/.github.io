@@ -246,6 +246,8 @@
   import {
     getFirestore,
     doc,
+    getDoc,
+    serverTimestamp,
     setDoc
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -261,6 +263,24 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  async function asegurarDocumentoAsesor(user, nombreFallback = "") {
+    const ref = doc(db, "asesores", user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const nombre = nombreFallback || user.displayName || (user.email || "").split("@")[0] || "Usuario";
+    const campos = {
+      email: data.email || user.email || "",
+      nombre: data.nombre || nombre,
+      role: data.role || "user"
+    };
+
+    if (data.saldo === undefined) campos.saldo = 0;
+    if (!data.fechaRegistro) campos.fechaRegistro = serverTimestamp();
+    if (data.activo === undefined) campos.activo = true;
+
+    await setDoc(ref, campos, { merge: true });
+  }
 
   window.toggleForms = () => {
     const loginF = document.getElementById('login-form');
@@ -299,14 +319,7 @@
 
       await updateProfile(user, { displayName: name });
 
-      await setDoc(doc(db, "asesores", user.uid), {
-        nombre: name,
-        email: email,
-        saldo: 0.00,
-        fechaRegistro: new Date()
-      });
-
-      window.location.href = "../dashboard.html";
+      window.location.href = "/dashboard/";
 
     } catch (error) {
       errorMsg.innerText = "Error: " + error.message;
@@ -328,7 +341,9 @@
     }
 
     signInWithEmailAndPassword(auth, email, password)
-      .then(() => window.location.href = "../dashboard.html")
+      .then(async ({ user }) => {
+        window.location.href = "/dashboard/";
+      })
       .catch(() => errorMsg.innerText = "Credenciales incorrectas.");
   };
 
