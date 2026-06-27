@@ -1,379 +1,835 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso | Novyra Services</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOVYRA SERVICES | Asesoría clara para tu pensión IMSS</title>
+  <meta name="description" content="Te ayudamos a revisar tu pensión IMSS, semanas cotizadas, Modalidad 40, análisis de inversión para retiro y errores en tu trámite. Atención clara, humana y personalizada." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root { --azul: #003366; --dorado: #C5A059; --oscuro: #1a1a1a; }
+    :root {
+      --azul: #123a67;
+      --azul-2: #1d4f86;
+      --verde: #178a55;
+      --verde-2: #22a565;
+      --dorado: #d9b24c;
+      --texto: #163047;
+      --texto-suave: #5f7387;
+      --fondo: #f6f8fb;
+      --blanco: #ffffff;
+      --borde: #d9e3ee;
+      --sombra: 0 20px 45px rgba(18, 58, 103, 0.10);
+      --radio: 24px;
+    }
 
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
       margin: 0;
-      color: #333;
+      font-family: 'Inter', Arial, sans-serif;
+      color: var(--texto);
+      background: var(--fondo);
+      line-height: 1.5;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    .container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
     }
 
-    .main-container {
+    .topbar {
+      background: var(--azul);
+      color: #fff;
+      font-size: 14px;
+    }
+    .topbar .container {
       display: flex;
-      width: 900px;
-      height: 600px;
-      background: white;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+      flex-wrap: wrap;
     }
 
-    .side-art {
-      flex: 1;
-      background: linear-gradient(135deg, rgba(0,51,102,0.8), rgba(0,0,0,0.8)),
-      url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80');
-      background-size: cover;
-      background-position: center;
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+    .nav {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 40px;
-      color: white;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 14px 0;
     }
-
-    .side-art h1 { font-size: 2.5rem; margin: 0; }
-    .side-art p { font-size: 1.1rem; opacity: 0.8; margin-top: 10px; }
-
-    .form-container {
-      flex: 1.2;
-      padding: 50px;
+    .brand {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .logo-text {
-      font-size: 1.2rem;
-      font-weight: bold;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      font-weight: 900;
       color: var(--azul);
-      margin-bottom: 20px;
+    }
+    .brand-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--azul), var(--azul-2));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      box-shadow: var(--sombra);
+    }
+    .brand small {
+      display: block;
+      color: var(--texto-suave);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--texto);
+      font-size: 15px;
+    }
+    .btn, .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 24px;
+      border-radius: 999px;
+      font-weight: 800;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: .2s ease;
+    }
+    .btn {
+      background: linear-gradient(135deg, var(--verde), var(--verde-2));
+      color: white;
+      box-shadow: 0 12px 30px rgba(23,138,85,.24);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-outline {
+      background: white;
+      color: var(--azul);
+      border: 2px solid var(--borde);
     }
 
-    h2 { margin: 0 0 10px 0; font-size: 1.8rem; }
-
-    p.subtitle {
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 0.9rem;
+    .hero {
+      padding: 56px 0 32px;
+      background:
+        radial-gradient(circle at top right, rgba(217,178,76,.18), transparent 22%),
+        radial-gradient(circle at top left, rgba(29,79,134,.10), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f6f8fb 100%);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .9fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .hero-copy h1 {
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.05;
+      margin: 0 0 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    .hero-copy p {
+      font-size: 20px;
+      color: var(--texto-suave);
+      margin: 0 0 22px;
+      max-width: 700px;
+    }
+    .trust-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin: 26px 0;
+    }
+    .trust-item {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: var(--sombra);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .hero-card {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 30px;
+      box-shadow: var(--sombra);
+      padding: 22px;
+    }
+    .hero-card h2 {
+      margin-top: 0;
+      font-size: 26px;
+      line-height: 1.15;
+    }
+    .mini-list {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
+    .mini-list div {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #f8fbff;
+      border: 1px solid var(--borde);
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 15px;
     }
 
-    .input-group { margin-bottom: 15px; }
+    section { padding: 34px 0; }
+    .section-title {
+      max-width: 760px;
+      margin-bottom: 26px;
+    }
+    .eyebrow {
+      color: var(--verde);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .section-title h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      margin: 0 0 12px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+    .section-title p {
+      margin: 0;
+      color: var(--texto-suave);
+      font-size: 18px;
+    }
 
+    .grid-3, .grid-4, .steps, .faq-grid {
+      display: grid;
+      gap: 18px;
+    }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .steps { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .faq-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+
+    .card {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: var(--sombra);
+    }
+    .card h3 {
+      margin: 12px 0 10px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+    .card p {
+      margin: 0;
+      color: var(--texto-suave);
+      font-size: 16px;
+    }
+    .icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: #eef5fc;
+      color: var(--azul);
+      font-size: 22px;
+    }
+
+    .problem-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 16px;
+    }
+    .problem {
+      background: white;
+      border: 1px solid var(--borde);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: var(--sombra);
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .problem i { color: #d9534f; margin-top: 3px; }
+
+    .step {
+      position: relative;
+      padding-top: 8px;
+    }
+    .step-number {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: linear-gradient(135deg, var(--azul), var(--azul-2));
+      font-weight: 900;
+      box-shadow: var(--sombra);
+      margin-bottom: 16px;
+    }
+    .step h3 { margin: 0 0 8px; font-size: 21px; }
+    .step p { margin: 0; color: var(--texto-suave); font-size: 16px; }
+
+    .testi {
+      position: relative;
+      overflow: hidden;
+    }
+    .stars {
+      color: #ffb400;
+      letter-spacing: .1em;
+      margin-bottom: 14px;
+    }
+    .testi p {
+      font-size: 17px;
+      font-style: italic;
+      color: var(--texto);
+    }
+    .author {
+      margin-top: 16px;
+      font-weight: 800;
+      color: var(--azul);
+      font-size: 15px;
+    }
+
+    .form-wrap {
+      display: grid;
+      grid-template-columns: 1fr .9fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .contact-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid var(--borde);
+      border-radius: 28px;
+      box-shadow: var(--sombra);
+      padding: 26px;
+    }
+    .contact-info {
+      background: linear-gradient(135deg, var(--azul), var(--azul-2));
+      color: white;
+      border-radius: 28px;
+      box-shadow: var(--sombra);
+      padding: 28px;
+    }
+    .contact-info h3 { margin-top: 0; font-size: 28px; }
+    .info-list { display: grid; gap: 14px; margin-top: 20px; }
+    .info-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 14px;
+    }
+    form {
+      display: grid;
+      gap: 14px;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
     label {
       display: block;
-      font-size: 0.8rem;
-      font-weight: bold;
-      margin-bottom: 5px;
-      color: #555;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 8px;
     }
-
-    input {
+    input, select, textarea {
       width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 1rem;
-      transition: 0.3s;
+      border: 2px solid var(--borde);
+      border-radius: 18px;
+      min-height: 56px;
+      padding: 14px 16px;
+      font: inherit;
+      color: var(--texto);
+      background: white;
     }
-
-    input:focus {
-      border-color: var(--azul);
+    textarea { min-height: 120px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+      border-color: var(--verde);
+      box-shadow: 0 0 0 4px rgba(23,138,85,.10);
+    }
+    .form-note {
+      font-size: 14px;
+      color: var(--texto-suave);
+      margin: 4px 0 0;
+    }
+    .success {
+      display: none;
+      margin-top: 14px;
+      background: #e8f8ef;
+      color: #145f3f;
+      border: 1px solid #b9e6cb;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-weight: 700;
     }
 
-    button {
-      background: var(--oscuro);
+    .faq-item h3 { font-size: 20px; margin: 0 0 10px; }
+    .faq-item p { margin: 0; color: var(--texto-suave); }
+
+    .final-cta {
+      background: linear-gradient(135deg, var(--azul), #0f2c4d);
       color: white;
-      border: none;
-      padding: 14px;
-      width: 100%;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1rem;
-      margin-top: 10px;
-      transition: 0.3s;
+      border-radius: 32px;
+      padding: 34px;
+      display: flex;
+      justify-content: space-between;
+      gap: 22px;
+      align-items: center;
+      box-shadow: var(--sombra);
+    }
+    .final-cta h2 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.08;
+    }
+    .final-cta p { margin: 0; color: rgba(255,255,255,.86); font-size: 18px; }
+
+    footer {
+      padding: 34px 0 50px;
+      color: var(--texto-suave);
+      font-size: 15px;
+    }
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--borde);
+      padding-top: 24px;
     }
 
-    button:hover {
-      background: #333;
-      transform: translateY(-1px);
+    @media (max-width: 980px) {
+      .hero-grid,
+      .form-wrap,
+      .grid-3,
+      .grid-4,
+      .steps,
+      .faq-grid,
+      .problem-list {
+        grid-template-columns: 1fr;
+      }
+      .trust-row { grid-template-columns: 1fr; }
+      .nav { flex-direction: column; align-items: stretch; }
+      .nav-links { justify-content: center; }
+      .field-grid { grid-template-columns: 1fr; }
+      .final-cta { flex-direction: column; align-items: flex-start; }
     }
 
-    .btn-password {
-      background: transparent;
-      color: var(--azul);
-      border: 1px solid #d1d5db;
-      margin-top: 8px;
-    }
-
-    .btn-password:hover {
-      background: #f3f4f6;
-      color: var(--azul);
-    }
-
-    .toggle-link {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .toggle-link span {
-      color: var(--azul);
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #error-msg {
-      color: #dc3545;
-      font-size: 0.85rem;
-      margin-top: 15px;
-      text-align: center;
-      min-height: 1.2rem;
-    }
-
-    #success-msg {
-      color: #16a34a;
-      font-size: 0.85rem;
-      margin-top: 10px;
-      text-align: center;
-      min-height: 1.2rem;
-    }
-
-    @media (max-width: 800px) {
-      .side-art { display: none; }
-      .main-container { width: 95%; height: auto; }
-      .form-container { padding: 35px 25px; }
+    @media (max-width: 640px) {
+      .hero-copy p, .section-title p, .final-cta p { font-size: 17px; }
+      .nav-links { display: none; }
+      .btn, .btn-outline { width: 100%; }
+      .hero-actions { display: grid; gap: 12px; }
+      .topbar .container { font-size: 13px; }
     }
   </style>
 </head>
-
 <body>
-
-<div class="main-container">
-
-  <div class="side-art">
-    <h1>Novyra Services</h1>
-    <p>Tu futuro financiero, diseñado por expertos.</p>
+  <div class="topbar">
+    <div class="container">
+      <div><i class="fa-solid fa-phone"></i> Atención por WhatsApp: <strong>81 3198 3700</strong></div>
+      <div><i class="fa-solid fa-location-dot"></i> García, Nuevo León · Atención personalizada</div>
+    </div>
   </div>
 
-  <div class="form-container">
+  <header>
+    <div class="container nav">
+      <a href="#inicio" class="brand">
+        <span class="brand-badge">PS</span>
+        <span>
+          Novyra Services
+          <small>Asesoría especializada IMSS</small>
+        </span>
+      </a>
 
-    <div class="logo-text">NOVYRA SERVICES</div>
+      <nav class="nav-links">
+        <a href="#servicios">Servicios</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#testimonios">Testimonios</a>
+        <a href="#contacto">Contacto</a>
+        <a href="/login" class="btn-outline"><i class="fa-solid fa-user-tie"></i> Soy asesor</a>
+      </nav>
+    </div>
+  </header>
 
-    <div id="login-form">
-      <h2>Bienvenida</h2>
-      <p class="subtitle">Ingresa para gestionar tu cuenta.</p>
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Atención clara, humana y segura</span>
+          <h1>Te ayudamos a entender y mejorar tu pensión IMSS sin complicaciones.</h1>
+          <p>Si no sabes cuánto podrías recibir, si tienes dudas sobre tus semanas cotizadas o si tu trámite tiene errores, nosotros te explicamos todo paso a paso y te acompañamos en el proceso.</p>
+          <div class="hero-actions" style="display:flex; gap:14px; flex-wrap:wrap;">
+            <a class="btn" href="#contacto"><i class="fa-solid fa-file-signature"></i> Solicitar asesoría</a>
+            <a class="btn-outline" href="https://wa.me/528131983700" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Hablar por WhatsApp</a>
+          </div>
 
-      <div class="input-group">
-        <label>CORREO ELECTRÓNICO</label>
-        <input type="email" id="email" placeholder="ejemplo@correo.com">
+          <div class="trust-row">
+            <div class="trust-item"><i class="fa-solid fa-shield-heart"></i> Lenguaje sencillo, sin tecnicismos innecesarios.</div>
+            <div class="trust-item"><i class="fa-solid fa-user-group"></i> Atención personalizada para cada caso.</div>
+            <div class="trust-item"><i class="fa-solid fa-file-circle-check"></i> Apoyo en trámites, revisión y seguimiento.</div>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <h2>¿En qué te podemos ayudar?</h2>
+          <p style="margin:0; color:var(--texto-suave); font-size:17px;">Elige el tipo de ayuda que necesitas y te contactamos de forma sencilla.</p>
+          <div class="mini-list">
+            <div><i class="fa-solid fa-calculator" style="color:var(--verde);"></i> Saber cuánto podrías recibir de pensión.</div>
+            <div><i class="fa-solid fa-file-circle-exclamation" style="color:var(--verde);"></i> Revisar errores con CURP, NSS o semanas cotizadas.</div>
+            <div><i class="fa-solid fa-chart-line" style="color:var(--verde);"></i> Entender si te conviene Modalidad 40.</div>
+            <div><i class="fa-solid fa-piggy-bank" style="color:var(--verde);"></i> Revisar opciones de inversión para retiro y patrimonio.</div>
+          </div>
+          <a href="#contacto" class="btn" style="width:100%;">Quiero que revisen mi caso</a>
+        </aside>
       </div>
+    </section>
 
-      <div class="input-group">
-        <label>CONTRASEÑA</label>
-        <input type="password" id="password" placeholder="••••••••">
+    <section>
+      <div class="container">
+        <div class="section-title">
+          <span class="eyebrow">Pensado para personas que quieren claridad</span>
+          <h2>Sabemos que estos trámites pueden ser confusos. Por eso te lo explicamos fácil.</h2>
+          <p>No necesitas entender palabras complicadas ni hacer trámites solo. Nosotros te orientamos con paciencia y con un plan claro.</p>
+        </div>
+
+        <div class="problem-list">
+          <div class="problem"><i class="fa-solid fa-circle-xmark"></i><span>No sabes si tus semanas cotizadas están bien registradas.</span></div>
+          <div class="problem"><i class="fa-solid fa-circle-xmark"></i><span>No tienes claro cuánto podrías recibir al pensionarte.</span></div>
+          <div class="problem"><i class="fa-solid fa-circle-xmark"></i><span>Tu trámite tiene errores y no sabes por qué no avanza.</span></div>
+          <div class="problem"><i class="fa-solid fa-circle-xmark"></i><span>Te hablaron de Modalidad 40, pero no sabes si te conviene.</span></div>
+        </div>
       </div>
+    </section>
 
-      <button onclick="login()">Entrar al Sistema</button>
+    <section id="servicios">
+      <div class="container">
+        <div class="section-title">
+          <span class="eyebrow">Servicios principales</span>
+          <h2>Te ofrecemos ayuda práctica para que tomes mejores decisiones sobre tu pensión.</h2>
+          <p>Cada servicio está explicado de forma sencilla para que sepas exactamente qué estás contratando.</p>
+        </div>
 
-      <button class="btn-password" onclick="cambiarPassword()">
-        Cambiar contraseña
-      </button>
+        <div class="grid-4">
+          <article class="card">
+            <div class="icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+            <h3>Revisión inicial de tu caso</h3>
+            <p>Analizamos tu situación actual, resolvemos tus dudas principales y te decimos cuál es el siguiente paso más conveniente.</p>
+          </article>
 
-      <div class="toggle-link">
-        ¿No tienes cuenta? <span onclick="toggleForms()">Regístrate aquí</span>
+          <article class="card">
+            <div class="icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <h3>Proyección de pensión</h3>
+            <p>Te ayudamos a entender cuánto podrías recibir y qué factores pueden mejorar tu resultado final.</p>
+          </article>
+
+          <article class="card">
+            <div class="icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <h3>Orientación sobre Modalidad 40</h3>
+            <p>Revisamos si esta opción realmente te conviene y te explicamos cuánto podrías invertir y recuperar.</p>
+          </article>
+
+          <article class="card">
+            <div class="icon"><i class="fa-solid fa-piggy-bank"></i></div>
+            <h3>Análisis de inversión para retiro</h3>
+            <p>Te orientamos para revisar opciones de inversión enfocadas en retiro, ahorro patrimonial y planeación financiera a mediano y largo plazo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona">
+      <div class="container">
+        <div class="section-title">
+          <span class="eyebrow">Proceso simple</span>
+          <h2>Así trabajamos contigo, paso a paso.</h2>
+          <p>Queremos que desde el inicio sepas qué sigue y qué información necesitamos.</p>
+        </div>
+
+        <div class="steps">
+          <div class="card step">
+            <div class="step-number">1</div>
+            <h3>Nos dejas tus datos</h3>
+            <p>Llenas un formulario corto directamente en nuestra página.</p>
+          </div>
+          <div class="card step">
+            <div class="step-number">2</div>
+            <h3>Revisamos tu caso</h3>
+            <p>Identificamos el tipo de apoyo que necesitas según tu situación.</p>
+          </div>
+          <div class="card step">
+            <div class="step-number">3</div>
+            <h3>Te explicamos tu opción</h3>
+            <p>Te hablamos de forma clara, sin palabras complicadas.</p>
+          </div>
+          <div class="card step">
+            <div class="step-number">4</div>
+            <h3>Te acompañamos</h3>
+            <p>Seguimos contigo en el trámite o análisis que decidas hacer.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="testimonios">
+      <div class="container">
+        <div class="section-title">
+          <span class="eyebrow">Confianza y resultados</span>
+          <h2>Personas que ya recibieron ayuda y entendieron mejor su pensión.</h2>
+          <p>Lo más importante para nosotros es que nuestros clientes se sientan orientados y tranquilos.</p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card testi">
+            <div class="stars">★★★★★</div>
+            <p>“Yo estaba muy confundido con mis semanas cotizadas. Me explicaron todo con paciencia y ahora ya sé qué me conviene hacer.”</p>
+            <div class="author">Ricardo M. · Monterrey</div>
+          </article>
+          <article class="card testi">
+            <div class="stars">★★★★★</div>
+            <p>“Pensé que todo era muy complicado, pero me orientaron paso a paso. Me gustó que hablaran claro y sin enredarme.”</p>
+            <div class="author">Elena G. · García, N.L.</div>
+          </article>
+          <article class="card testi">
+            <div class="stars">★★★★★</div>
+            <p>“Me ayudaron a detectar errores y a entender mejor mi pensión. Sentí confianza desde la primera llamada.”</p>
+            <div class="author">Javier S. · Usuario IMSS</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-title">
+          <span class="eyebrow">Preguntas comunes</span>
+          <h2>Respuestas rápidas para tus dudas más frecuentes.</h2>
+        </div>
+
+        <div class="faq-grid">
+          <article class="card faq-item">
+            <h3>¿Necesito saber de pensiones para pedir asesoría?</h3>
+            <p>No. Nosotros te explicamos todo con palabras sencillas para que puedas entender tu caso sin complicaciones.</p>
+          </article>
+          <article class="card faq-item">
+            <h3>¿Pueden revisar si tengo errores en mis datos?</h3>
+            <p>Sí. Podemos orientarte sobre inconsistencias comunes como CURP, NSS, semanas cotizadas y otros puntos importantes.</p>
+          </article>
+          <article class="card faq-item">
+            <h3>¿Atienden por WhatsApp?</h3>
+            <p>Sí, pero también puedes dejar tu solicitud directamente en la página para que nuestro equipo la revise internamente.</p>
+          </article>
+          <article class="card faq-item">
+            <h3>¿También hacen análisis de inversión?</h3>
+            <p>Sí. Podemos orientarte sobre opciones de inversión enfocadas en retiro, ahorro y planeación patrimonial.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto">
+      <div class="container form-wrap">
+        <div class="contact-card">
+          <span class="eyebrow">Formulario sencillo</span>
+          <h2 style="margin:0 0 10px; font-size:34px; line-height:1.1;">Déjanos tus datos y te contactamos.</h2>
+          <p style="margin:0 0 22px; color:var(--texto-suave); font-size:18px;">Solo te pedimos lo necesario para orientarte mejor. Tu información se enviará directamente a nuestro sistema para ser revisada por un asesor.</p>
+
+          <form id="leadForm">
+            <div class="field-grid">
+              <div>
+                <label for="nombre">Nombre completo</label>
+                <input id="nombre" name="nombre" type="text" placeholder="Ej. María González" required>
+              </div>
+              <div>
+                <label for="telefono">Teléfono o WhatsApp</label>
+                <input id="telefono" name="telefono" type="tel" placeholder="Ej. 81 1234 5678" required>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <div>
+                <label for="edad">Rango de edad</label>
+                <select id="edad" name="edad" required>
+                  <option value="">Selecciona una opción</option>
+                  <option>45 a 50 años</option>
+                  <option>51 a 55 años</option>
+                  <option>56 a 60 años</option>
+                  <option>61 años o más</option>
+                </select>
+              </div>
+              <div>
+                <label for="tema">¿Qué necesitas revisar?</label>
+                <select id="tema" name="tema" required>
+                  <option value="">Selecciona una opción</option>
+                  <option>Quiero calcular mi pensión</option>
+                  <option>Quiero revisar semanas cotizadas</option>
+                  <option>Tengo dudas de Modalidad 40</option>
+                  <option>Quiero análisis de inversión para retiro</option>
+                  <option>Tengo errores en mi trámite</option>
+                  <option>Quiero una asesoría general</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="mensaje">Cuéntanos brevemente tu duda</label>
+              <textarea id="mensaje" name="mensaje" placeholder="Ej. Quiero saber cuántas semanas tengo, si Modalidad 40 me conviene o si puedo revisar una opción de inversión para retiro."></textarea>
+            </div>
+
+            <button type="submit" class="btn"><i class="fa-solid fa-paper-plane"></i> Enviar solicitud</button>
+            <p class="form-note">Tu información se guardará directamente en nuestro sistema para ser revisada por un asesor.</p>
+            <div class="success" id="successBox">Gracias. Recibimos tu información correctamente. Un asesor revisará tu caso y te contactará pronto.</div>
+          </form>
+        </div>
+
+        <aside class="contact-info">
+          <h3>Atención cercana y confiable</h3>
+          <p style="margin:0; color:rgba(255,255,255,.88); font-size:18px;">Sabemos que hablar de pensión, retiro e inversión puede generar muchas dudas. Estamos para explicarte con calma y ayudarte a tomar la mejor decisión.</p>
+
+          <div class="info-list">
+            <div class="info-row">
+              <i class="fa-brands fa-whatsapp" style="font-size:22px;"></i>
+              <div>
+                <strong>WhatsApp directo</strong><br>
+                81 3198 3700
+              </div>
+            </div>
+            <div class="info-row">
+              <i class="fa-solid fa-location-dot" style="font-size:22px;"></i>
+              <div>
+                <strong>Ubicación</strong><br>
+                García, Nuevo León
+              </div>
+            </div>
+            <div class="info-row">
+              <i class="fa-solid fa-clock" style="font-size:22px;"></i>
+              <div>
+                <strong>Atención</strong><br>
+                Respuesta rápida y trato personalizado
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="final-cta">
+          <div>
+            <h2>No dejes tu pensión o tu retiro a la suerte.</h2>
+            <p>Una buena orientación hoy puede ayudarte a tomar mejores decisiones para tu futuro.</p>
+          </div>
+          <a class="btn" href="#contacto"><i class="fa-solid fa-phone-volume"></i> Quiero que me contacten</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <strong>Novyra Services</strong><br>
+        Asesoría especializada en pensión IMSS y retiro
+      </div>
+      <div>
+        WhatsApp: 81 3198 3700<br>
+        García, Nuevo León
       </div>
     </div>
+  </footer>
 
-    <div id="register-form" style="display: none;">
-      <h2>Crear Cuenta</h2>
-      <p class="subtitle">Únete a nuestra plataforma de asesoría.</p>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-      <div class="input-group">
-        <label>NOMBRE COMPLETO</label>
-        <input type="text" id="reg-name" placeholder="Tu nombre">
-      </div>
-
-      <div class="input-group">
-        <label>CORREO ELECTRÓNICO</label>
-        <input type="email" id="reg-email" placeholder="ejemplo@correo.com">
-      </div>
-
-      <div class="input-group">
-        <label>CONTRASEÑA</label>
-        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
-      </div>
-
-      <button onclick="registrar()">Crear cuenta</button>
-
-      <div class="toggle-link">
-        ¿Ya tienes cuenta? <span onclick="toggleForms()">Inicia sesión</span>
-      </div>
-    </div>
-
-    <div id="success-msg"></div>
-    <div id="error-msg"></div>
-
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    sendPasswordResetEmail
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    serverTimestamp,
-    setDoc
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-    authDomain: "pensionsegura-9c817.firebaseapp.com",
-    projectId: "pensionsegura-9c817",
-    storageBucket: "pensionsegura-9c817.firebasestorage.app",
-    messagingSenderId: "169500313261",
-    appId: "1:169500313261:web:15e2b662571df505d36824"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  async function asegurarDocumentoAsesor(user, nombreFallback = "") {
-    const ref = doc(db, "asesores", user.uid);
-    const snap = await getDoc(ref);
-    const data = snap.exists() ? snap.data() : {};
-    const nombre = nombreFallback || user.displayName || (user.email || "").split("@")[0] || "Usuario";
-    const campos = {
-      email: data.email || user.email || "",
-      nombre: data.nombre || nombre,
-      role: data.role || "user"
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+      authDomain: "pensionsegura-9c817.firebaseapp.com",
+      projectId: "pensionsegura-9c817"
     };
 
-    if (data.saldo === undefined) campos.saldo = 0;
-    if (!data.fechaRegistro) campos.fechaRegistro = serverTimestamp();
-    if (data.activo === undefined) campos.activo = true;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    await setDoc(ref, campos, { merge: true });
-  }
+    const form = document.getElementById('leadForm');
+    const successBox = document.getElementById('successBox');
 
-  window.toggleForms = () => {
-    const loginF = document.getElementById('login-form');
-    const registerF = document.getElementById('register-form');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
 
-    document.getElementById('error-msg').innerText = "";
-    document.getElementById('success-msg').innerText = "";
+      const nombre = document.getElementById('nombre').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const edad = document.getElementById('edad').value.trim();
+      const tema = document.getElementById('tema').value.trim();
+      const mensaje = document.getElementById('mensaje').value.trim();
 
-    if (loginF.style.display === "none") {
-      loginF.style.display = "block";
-      registerF.style.display = "none";
-    } else {
-      loginF.style.display = "none";
-      registerF.style.display = "block";
-    }
-  };
-
-  window.registrar = async () => {
-    const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    const errorMsg = document.getElementById('error-msg');
-    const successMsg = document.getElementById('success-msg');
-
-    errorMsg.innerText = "";
-    successMsg.innerText = "";
-
-    if (!name || !email || !password) {
-      errorMsg.innerText = "Todos los campos son obligatorios.";
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await updateProfile(user, { displayName: name });
-
-      window.location.href = "/dashboard.html/";
-
-    } catch (error) {
-      errorMsg.innerText = "Error: " + error.message;
-    }
-  };
-
-  window.login = () => {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errorMsg = document.getElementById('error-msg');
-    const successMsg = document.getElementById('success-msg');
-
-    errorMsg.innerText = "";
-    successMsg.innerText = "";
-
-    if (!email || !password) {
-      errorMsg.innerText = "Ingresa tu correo y contraseña.";
-      return;
-    }
-
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async ({ user }) => {
-        window.location.href = "/dashboard.html/";
-      })
-      .catch(() => errorMsg.innerText = "Credenciales incorrectas.");
-  };
-
-  window.cambiarPassword = async () => {
-    const email = document.getElementById('email').value.trim();
-    const errorMsg = document.getElementById('error-msg');
-    const successMsg = document.getElementById('success-msg');
-
-    errorMsg.innerText = "";
-    successMsg.innerText = "";
-
-    if (!email) {
-      errorMsg.innerText = "Ingresa tu correo electrónico para cambiar tu contraseña.";
-      return;
-    }
-
-    try {
-      await sendPasswordResetEmail(auth, email);
-      successMsg.innerText = "Te enviamos un correo para cambiar tu contraseña.";
-    } catch (error) {
-      if (error.code === "auth/invalid-email") {
-        errorMsg.innerText = "El correo no es válido.";
-      } else if (error.code === "auth/user-not-found") {
-        errorMsg.innerText = "No existe una cuenta con ese correo.";
-      } else {
-        errorMsg.innerText = "No se pudo enviar el correo. Intenta nuevamente.";
+      if (!nombre || !telefono || !edad || !tema) {
+        alert("Por favor completa los campos obligatorios.");
+        return;
       }
-    }
-  };
-</script>
 
+      try {
+        await addDoc(collection(db, "leads_web"), {
+          nombre,
+          telefono,
+          edad,
+          tema,
+          mensaje: mensaje || "",
+          fecha: serverTimestamp(),
+          origen: "index",
+          estatus: "Nuevo"
+        });
+
+        form.reset();
+        successBox.style.display = 'block';
+        successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      } catch (error) {
+        console.error("Error al guardar solicitud:", error);
+        alert("Hubo un problema al enviar tu solicitud. Intenta de nuevo.");
+      }
+    });
+  </script>
 </body>
 </html>
