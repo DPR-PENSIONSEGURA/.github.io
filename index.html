@@ -3,119 +3,377 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso interno DPR</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>body { font-family: Inter, Arial, sans-serif; }</style>
+  <title>Acceso | Novyra Services</title>
+
+  <style>
+    :root { --azul: #003366; --dorado: #C5A059; --oscuro: #1a1a1a; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+
+    .main-container {
+      display: flex;
+      width: 900px;
+      height: 600px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+
+    .side-art {
+      flex: 1;
+      background: linear-gradient(135deg, rgba(0,51,102,0.8), rgba(0,0,0,0.8)),
+      url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px;
+      color: white;
+    }
+
+    .side-art h1 { font-size: 2.5rem; margin: 0; }
+    .side-art p { font-size: 1.1rem; opacity: 0.8; margin-top: 10px; }
+
+    .form-container {
+      flex: 1.2;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .logo-text {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--azul);
+      margin-bottom: 20px;
+    }
+
+    h2 { margin: 0 0 10px 0; font-size: 1.8rem; }
+
+    p.subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.9rem;
+    }
+
+    .input-group { margin-bottom: 15px; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--azul);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+    }
+
+    button {
+      background: var(--oscuro);
+      color: white;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #333;
+      transform: translateY(-1px);
+    }
+
+    .btn-password {
+      background: transparent;
+      color: var(--azul);
+      border: 1px solid #d1d5db;
+      margin-top: 8px;
+    }
+
+    .btn-password:hover {
+      background: #f3f4f6;
+      color: var(--azul);
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .toggle-link span {
+      color: var(--azul);
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #error-msg {
+      color: #dc3545;
+      font-size: 0.85rem;
+      margin-top: 15px;
+      text-align: center;
+      min-height: 1.2rem;
+    }
+
+    #success-msg {
+      color: #16a34a;
+      font-size: 0.85rem;
+      margin-top: 10px;
+      text-align: center;
+      min-height: 1.2rem;
+    }
+
+    @media (max-width: 800px) {
+      .side-art { display: none; }
+      .main-container { width: 95%; height: auto; }
+      .form-container { padding: 35px 25px; }
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 border border-slate-200">
-    <div class="text-center mb-8">
-      <div class="bg-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-2xl mx-auto mb-4">DP</div>
-      <h1 class="text-2xl font-black uppercase italic text-slate-800 tracking-tighter">Acceso interno</h1>
-      <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">NOVYRA SERVICES Executive</p>
-    </div>
 
-    <div class="space-y-4">
-      <div>
-        <label class="block text-[11px] font-black uppercase text-slate-500 mb-2">Usuario</label>
-        <input id="staffUser" type="text" placeholder="admin o usuario del asesor"
-          class="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:border-blue-600 font-bold">
-      </div>
+<body>
 
-      <div>
-        <label class="block text-[11px] font-black uppercase text-slate-500 mb-2">Contraseña</label>
-        <input id="staffPass" type="password" placeholder="Tu contraseña"
-          class="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:border-blue-600 font-bold">
-      </div>
+<div class="main-container">
 
-      <button id="btnLogin"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black uppercase italic shadow-lg transition">
-        Entrar
-      </button>
-
-      <p id="staffError" class="text-red-600 text-sm font-bold text-center hidden"></p>
-    </div>
+  <div class="side-art">
+    <h1>Novyra Services</h1>
+    <p>Tu futuro financiero, diseñado por expertos.</p>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  <div class="form-container">
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
-      authDomain: "pensionsegura-9c817.firebaseapp.com",
-      projectId: "pensionsegura-9c817"
+    <div class="logo-text">NOVYRA SERVICES</div>
+
+    <div id="login-form">
+      <h2>Bienvenida</h2>
+      <p class="subtitle">Ingresa para gestionar tu cuenta.</p>
+
+      <div class="input-group">
+        <label>CORREO ELECTRÓNICO</label>
+        <input type="email" id="email" placeholder="ejemplo@correo.com">
+      </div>
+
+      <div class="input-group">
+        <label>CONTRASEÑA</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+
+      <button onclick="login()">Entrar al Sistema</button>
+
+      <button class="btn-password" onclick="cambiarPassword()">
+        Cambiar contraseña
+      </button>
+
+      <div class="toggle-link">
+        ¿No tienes cuenta? <span onclick="toggleForms()">Regístrate aquí</span>
+      </div>
+    </div>
+
+    <div id="register-form" style="display: none;">
+      <h2>Crear Cuenta</h2>
+      <p class="subtitle">Únete a nuestra plataforma de asesoría.</p>
+
+      <div class="input-group">
+        <label>NOMBRE COMPLETO</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre">
+      </div>
+
+      <div class="input-group">
+        <label>CORREO ELECTRÓNICO</label>
+        <input type="email" id="reg-email" placeholder="ejemplo@correo.com">
+      </div>
+
+      <div class="input-group">
+        <label>CONTRASEÑA</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+      </div>
+
+      <button onclick="registrar()">Crear cuenta</button>
+
+      <div class="toggle-link">
+        ¿Ya tienes cuenta? <span onclick="toggleForms()">Inicia sesión</span>
+      </div>
+    </div>
+
+    <div id="success-msg"></div>
+    <div id="error-msg"></div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    updateProfile,
+    sendPasswordResetEmail
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    serverTimestamp,
+    setDoc
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
+    authDomain: "pensionsegura-9c817.firebaseapp.com",
+    projectId: "pensionsegura-9c817",
+    storageBucket: "pensionsegura-9c817.firebasestorage.app",
+    messagingSenderId: "169500313261",
+    appId: "1:169500313261:web:15e2b662571df505d36824"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  async function asegurarDocumentoAsesor(user, nombreFallback = "") {
+    const ref = doc(db, "asesores", user.uid);
+    const snap = await getDoc(ref);
+    const data = snap.exists() ? snap.data() : {};
+    const nombre = nombreFallback || user.displayName || (user.email || "").split("@")[0] || "Usuario";
+    const campos = {
+      email: data.email || user.email || "",
+      nombre: data.nombre || nombre,
+      role: data.role || "user"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    if (data.saldo === undefined) campos.saldo = 0;
+    if (!data.fechaRegistro) campos.fechaRegistro = serverTimestamp();
+    if (data.activo === undefined) campos.activo = true;
 
-    const ADMIN_USER = {
-      username: "admin",
-      password: "Admin2026*",
-      role: "admin",
-      name: "Administrador DPR"
-    };
+    await setDoc(ref, campos, { merge: true });
+  }
 
-    const userInput = document.getElementById('staffUser');
-    const passInput = document.getElementById('staffPass');
-    const btnLogin = document.getElementById('btnLogin');
-    const errorBox = document.getElementById('staffError');
+  window.toggleForms = () => {
+    const loginF = document.getElementById('login-form');
+    const registerF = document.getElementById('register-form');
 
-    function mostrarError(msg) {
-      errorBox.textContent = msg;
-      errorBox.classList.remove('hidden');
+    document.getElementById('error-msg').innerText = "";
+    document.getElementById('success-msg').innerText = "";
+
+    if (loginF.style.display === "none") {
+      loginF.style.display = "block";
+      registerF.style.display = "none";
+    } else {
+      loginF.style.display = "none";
+      registerF.style.display = "block";
+    }
+  };
+
+  window.registrar = async () => {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    errorMsg.innerText = "";
+    successMsg.innerText = "";
+
+    if (!name || !email || !password) {
+      errorMsg.innerText = "Todos los campos son obligatorios.";
+      return;
     }
 
-    async function loginInterno() {
-      const username = userInput.value.trim();
-      const password = passInput.value.trim();
-      errorBox.classList.add('hidden');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      if (!username || !password) {
-        mostrarError('Escribe usuario y contraseña.');
-        return;
-      }
+      await updateProfile(user, { displayName: name });
 
-      if (username === ADMIN_USER.username && password === ADMIN_USER.password) {
-        localStorage.setItem('staffSession', JSON.stringify({
-          username: ADMIN_USER.username,
-          role: ADMIN_USER.role,
-          name: ADMIN_USER.name,
-          loginAt: new Date().toISOString()
-        }));
-        window.location.href = 'admin.html';
-        return;
-      }
+      window.location.href = "/dashboard/";
 
-      const snap = await getDocs(collection(db, 'accesos_crm'));
-      let asesorEncontrado = null;
-      snap.forEach(d => {
-        const a = d.data();
-        if (a.username === username && a.password === password) {
-          asesorEncontrado = a;
-        }
-      });
+    } catch (error) {
+      errorMsg.innerText = "Error: " + error.message;
+    }
+  };
 
-      if (!asesorEncontrado) {
-        mostrarError('Usuario o contraseña incorrectos.');
-        return;
-      }
+  window.login = () => {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
 
-      localStorage.setItem('staffSession', JSON.stringify({
-        username: asesorEncontrado.username,
-        role: 'asesor',
-        name: asesorEncontrado.nombre || asesorEncontrado.username,
-        loginAt: new Date().toISOString()
-      }));
+    errorMsg.innerText = "";
+    successMsg.innerText = "";
 
-      window.location.href = 'admin.html';
+    if (!email || !password) {
+      errorMsg.innerText = "Ingresa tu correo y contraseña.";
+      return;
     }
 
-    btnLogin.addEventListener('click', loginInterno);
-    passInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') loginInterno();
-    });
-  </script>
+    signInWithEmailAndPassword(auth, email, password)
+      .then(async ({ user }) => {
+        window.location.href = "/dashboard/";
+      })
+      .catch(() => errorMsg.innerText = "Credenciales incorrectas.");
+  };
+
+  window.cambiarPassword = async () => {
+    const email = document.getElementById('email').value.trim();
+    const errorMsg = document.getElementById('error-msg');
+    const successMsg = document.getElementById('success-msg');
+
+    errorMsg.innerText = "";
+    successMsg.innerText = "";
+
+    if (!email) {
+      errorMsg.innerText = "Ingresa tu correo electrónico para cambiar tu contraseña.";
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      successMsg.innerText = "Te enviamos un correo para cambiar tu contraseña.";
+    } catch (error) {
+      if (error.code === "auth/invalid-email") {
+        errorMsg.innerText = "El correo no es válido.";
+      } else if (error.code === "auth/user-not-found") {
+        errorMsg.innerText = "No existe una cuenta con ese correo.";
+      } else {
+        errorMsg.innerText = "No se pudo enviar el correo. Intenta nuevamente.";
+      }
+    }
+  };
+</script>
+
 </body>
 </html>
