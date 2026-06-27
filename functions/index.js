@@ -158,7 +158,7 @@ const SERVICE_MAP = {
   SEMANAS_DETALLADAS: "SEMANAS DETALLADAS",
 
   SINDO_ULTIMO_RETIRO: "SINDO ULTIMO RETIRO",
-  SINDO_ALFANUMERICO: "SINDO ALFANUMÉRICO",
+  SINDO_ALFANUMERICO: "SINDO ALFANUMÃ‰RICO",
   SINDO_SALARIO_PROMEDIO: "SINDO SALARIO PROMEDIO",
   SINDO_VIGENCIA: "SINDO VIGENCIA",
   SINDO_COMPLETO: "SINDO COMPLETO",
@@ -167,7 +167,7 @@ const SERVICE_MAP = {
   VIGENCIA_DERECHOS: "Vigencia de Derechos",
   INCAPACIDAD: "Incapacidad",
   RECETAS: "Recetas",
-  INSCRIPCION_MODALIDAD_10: "Inscripción Modalidad 10",
+  INSCRIPCION_MODALIDAD_10: "InscripciÃ³n Modalidad 10",
   ALTA_MENSUAL: "Alta Mensual",
   ALTA_DESEMPLEO_LINEA_CAPTURA: "Alta Para Desempleo con linea de captura",
   ALTA_DESEMPLEO_APORTACIONES: "Alta para Desempleo con aportaciones",
@@ -176,26 +176,26 @@ const SERVICE_MAP = {
   RFC_VERIFICABLE: "RFC Verificable",
   RFC_IDCIF: "RFC con IDCIF",
   RFC_ORIGINAL: "RFC Original",
-  LOCALIZACION_IDCIF: "Localización de IDcif",
+  LOCALIZACION_IDCIF: "LocalizaciÃ³n de IDcif",
 
-  BURO_CREDITO: "Buró de Crédito",
+  BURO_CREDITO: "BurÃ³ de CrÃ©dito",
   CURP: "CURP",
   RECIBO_CFE: "Recibo CFE",
   ACTA_NACIMIENTO: "Acta de Nacimiento",
   ACTA_MATRIMONIO: "Acta de Matrimonio",
   ACTA_DIVORCIO: "Acta de Divorcio",
-  ACTA_DEFUNCION: "Acta de Defunción",
+  ACTA_DEFUNCION: "Acta de DefunciÃ³n",
 
-  LOCALIZACION_CONTRASENA_INFONAVIT: "Localización de Contraseña",
+  LOCALIZACION_CONTRASENA_INFONAVIT: "LocalizaciÃ³n de ContraseÃ±a",
   RESETEO_INFONAVIT: "Reseteo Cuenta",
-  PRECALIFICACION_MEJORAVIT: "Precalificación Mejoravit",
-  PRECALIFICACION_LINEA_II: "Precalificación Linea II",
+  PRECALIFICACION_MEJORAVIT: "PrecalificaciÃ³n Mejoravit",
+  PRECALIFICACION_LINEA_II: "PrecalificaciÃ³n Linea II",
   CREAR_CUENTA_INFONAVIT: "CREAR CUENTA EN MI CUENTAINFONAVIT",
-  HISTORICO_INFONAVIT: "Histórico Infonavit",
+  HISTORICO_INFONAVIT: "HistÃ³rico Infonavit",
 
   REGISTRO_AFORE_DISTANCIA: "Registro a Distancia",
   RETIRO_DESEMPLEO_AFORE: "Retiro Desempleo a Distancia",
-  CAMBIO_CONTRASENA_AFORE: "Cambiar Contraseña AFORE Web",
+  CAMBIO_CONTRASENA_AFORE: "Cambiar ContraseÃ±a AFORE Web",
   ESTADO_CUENTA_AFORE_AZTECA: "Estado de cuenta AFORE - Azteca",
   ESTADO_CUENTA_AFORE_COPPEL: "Estado de cuenta AFORE - Coppel",
   ESTADO_CUENTA_AFORE_PROFUTURO: "Estado de cuenta AFORE - Profuturo",
@@ -205,14 +205,14 @@ const SERVICE_MAP = {
   ESTADO_CUENTA_AFORE_PRINCIPAL: "Estado de cuenta AFORE - Principal",
   ESTADO_CUENTA_AFORE_BANAMEX: "Estado de cuenta AFORE - Banamex",
 
-  ANALISIS_RAPIDO_PENSION: "Análisis rápido de pensión",
-  ANALISIS_DETALLADO_PENSION: "Análisis Detallado de pensión",
+  ANALISIS_RAPIDO_PENSION: "AnÃ¡lisis rÃ¡pido de pensiÃ³n",
+  ANALISIS_DETALLADO_PENSION: "AnÃ¡lisis Detallado de pensiÃ³n",
 
   // Alias legacy temporales para no romper integraciones anteriores.
   VIGENCIA: "Vigencia de Derechos",
   ALTA_DESEMPLEO: "Alta para Desempleo con aportaciones",
   RETIRO: "Retiro Desempleo a Distancia",
-  CONTRASENA: "Cambiar Contraseña AFORE Web",
+  CONTRASENA: "Cambiar ContraseÃ±a AFORE Web",
   REGISTRO: "Registro a Distancia"
 };
 
@@ -231,7 +231,7 @@ const LEGACY_SERVICE_NAMES = {
   RFC_IDCIF: ["RFC IDCIF"],
   RFC_ORIGINAL: ["RFC ORIGINAL"],
   LOCALIZACION_IDCIF: ["LOCALIZACION IDCIF"],
-  BURO_CREDITO: ["DPR BURÓ DE CREDITO"],
+  BURO_CREDITO: ["DPR BURÃ“ DE CREDITO"],
   ACTA_NACIMIENTO: ["ACTA"],
   ACTA_MATRIMONIO: ["ACTA MATRIMONIO"],
   ACTA_DIVORCIO: ["ACTA DIVORCIO"],
@@ -339,19 +339,6 @@ function normalizeString(value) {
   return String(value || "").trim();
 }
 
-function sha256(value) {
-  return crypto.createHash("sha256").update(value).digest("hex");
-}
-
-function createApiKey() {
-  const raw = crypto.randomBytes(32).toString("base64url");
-  return `dpr_live_${raw}`;
-}
-
-function getKeyPrefix(apiKey) {
-  return String(apiKey || "").slice(0, 18);
-}
-
 function getRequestIp(req) {
   return (
     req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
@@ -360,111 +347,12 @@ function getRequestIp(req) {
   );
 }
 
-async function writeUsageLog(data) {
-  try {
-    await db.collection("api_usage_logs").add({
-      ...data,
-      created_at: FieldValue.serverTimestamp()
-    });
-  } catch (error) {
-    console.error("api_usage_logs error:", error);
-  }
-}
-
-async function authenticateApiKey(req, requiredPermission) {
-  if (process.env.DPR_B2B_ENABLED !== "true") {
-    const error = new Error("API B2B deshabilitada temporalmente por seguridad.");
-    error.statusCode = 503;
-    error.errorCode = "B2B_DISABLED";
-    throw error;
-  }
-
-  const apiKey =
-    req.headers["x-api-key"] ||
-    req.headers["authorization"]?.replace(/^Bearer\s+/i, "");
-
-  if (!apiKey) {
-    const error = new Error("Falta API Key.");
-    error.statusCode = 401;
-    error.errorCode = "API_KEY_REQUIRED";
-    throw error;
-  }
-
-  const keyHash = sha256(apiKey);
-
-  const snap = await db
-    .collection("api_keys")
-    .where("key_hash", "==", keyHash)
-    .limit(1)
-    .get();
-
-  if (snap.empty) {
-    const error = new Error("API Key inválida o inactiva.");
-    error.statusCode = 401;
-    error.errorCode = "INVALID_API_KEY";
-    throw error;
-  }
-
-  const apiKeyDoc = snap.docs[0];
-  const apiKeyData = apiKeyDoc.data();
-
-  if (apiKeyData.estatus !== "activa") {
-    const error = new Error("API Key inválida o inactiva.");
-    error.statusCode = 401;
-    error.errorCode = "INACTIVE_API_KEY";
-    throw error;
-  }
-
-  const permisos = Array.isArray(apiKeyData.permisos) ? apiKeyData.permisos : [];
-
-  if (requiredPermission && !permisos.includes(requiredPermission)) {
-    const error = new Error("La API Key no tiene permiso para esta operación.");
-    error.statusCode = 403;
-    error.errorCode = "PERMISSION_DENIED";
-    throw error;
-  }
-
-  const asesorUid = apiKeyData.asesor_uid;
-
-  if (!asesorUid) {
-    const error = new Error("La API Key no tiene asesor_uid asociado.");
-    error.statusCode = 500;
-    error.errorCode = "API_KEY_WITHOUT_ASESOR";
-    throw error;
-  }
-
-  const asesorRef = db.collection("asesores").doc(asesorUid);
-  const asesorSnap = await asesorRef.get();
-
-  if (!asesorSnap.exists) {
-    const error = new Error("El asesor asociado a la API Key no existe.");
-    error.statusCode = 404;
-    error.errorCode = "ASESOR_NOT_FOUND";
-    throw error;
-  }
-
-  await apiKeyDoc.ref.update({
-    last_used_at: FieldValue.serverTimestamp()
-  });
-
-  return {
-    apiKeyId: apiKeyDoc.id,
-    apiKeyPrefix: apiKeyData.key_prefix || getKeyPrefix(apiKey),
-    apiKeyData,
-    asesorRef,
-    asesor: {
-      id: asesorSnap.id,
-      ...asesorSnap.data()
-    }
-  };
-}
-
 async function authenticateFirebaseUser(req) {
   const authHeader = req.headers["authorization"] || "";
   const idToken = authHeader.replace(/^Bearer\s+/i, "");
 
   if (!idToken) {
-    const error = new Error("Falta token de sesión.");
+    const error = new Error("Falta token de sesiÃ³n.");
     error.statusCode = 401;
     error.errorCode = "FIREBASE_TOKEN_REQUIRED";
     throw error;
@@ -475,7 +363,7 @@ async function authenticateFirebaseUser(req) {
   try {
     decoded = await admin.auth().verifyIdToken(idToken);
   } catch (error) {
-    const authError = new Error("Token de sesión inválido.");
+    const authError = new Error("Token de sesiÃ³n invÃ¡lido.");
     authError.statusCode = 401;
     authError.errorCode = "INVALID_FIREBASE_TOKEN";
     throw authError;
@@ -609,7 +497,7 @@ async function findInventoryByServiceCode(serviceCode) {
   const costoPropio = Number(data.costoPropio || 0);
 
   if (!Number.isFinite(precioVenta) || precioVenta < 0) {
-    const error = new Error("El servicio no tiene precioVenta válido.");
+    const error = new Error("El servicio no tiene precioVenta vÃ¡lido.");
     error.statusCode = 500;
     error.errorCode = "INVALID_SERVICE_PRICE";
     throw error;
@@ -631,7 +519,7 @@ function configureCloudinary() {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    const error = new Error("Cloudinary no está configurado en secretos de Functions.");
+    const error = new Error("Cloudinary no estÃ¡ configurado en secretos de Functions.");
     error.statusCode = 500;
     error.errorCode = "CLOUDINARY_NOT_CONFIGURED";
     throw error;
@@ -695,7 +583,7 @@ function parseMultipartRequest(req) {
     }
 
     if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
-      const error = new Error("No se recibió rawBody para procesar multipart/form-data.");
+      const error = new Error("No se recibiÃ³ rawBody para procesar multipart/form-data.");
       error.statusCode = 400;
       error.errorCode = "RAW_BODY_REQUIRED";
       reject(error);
@@ -750,7 +638,7 @@ function parseMultipartRequest(req) {
 
       file.on("end", () => {
         if (fileLimitReached) {
-          const error = new Error(`El archivo ${filename} excede el tamaño permitido.`);
+          const error = new Error(`El archivo ${filename} excede el tamaÃ±o permitido.`);
           error.statusCode = 413;
           error.errorCode = "FILE_TOO_LARGE";
           reject(error);
@@ -1567,205 +1455,6 @@ app.post("/api/v1/dashboard/requests/:id/downloaded", async (req, res) => {
   }
 });
 
-app.get("/api/v1/me/api-key", async (req, res) => {
-  try {
-    const auth = await authenticateFirebaseUser(req);
-
-    const snap = await db
-      .collection("api_keys")
-      .where("asesor_uid", "==", auth.uid)
-      .where("estatus", "==", "activa")
-      .limit(1)
-      .get();
-
-    if (snap.empty) {
-      return res.json({
-        success: true,
-        has_api_key: false,
-        api_key_id: null,
-        key_prefix: null,
-        message: "No tienes una API Key activa."
-      });
-    }
-
-    const doc = snap.docs[0];
-    const data = doc.data();
-
-    res.json({
-      success: true,
-      has_api_key: true,
-      api_key_id: doc.id,
-      key_prefix: data.key_prefix || "",
-      permisos: Array.isArray(data.permisos) ? data.permisos : [],
-      created_at: data.created_at || null,
-      last_used_at: data.last_used_at || null,
-      message: "Ya tienes una API Key activa. Por seguridad no se puede volver a mostrar completa."
-    });
-  } catch (error) {
-    console.error(error);
-    sendError(res, error);
-  }
-});
-
-app.post("/api/v1/me/api-key", async (req, res) => {
-  try {
-    const auth = await authenticateFirebaseUser(req);
-    const rotate = req.body?.rotate === true;
-
-    const activeSnap = await db
-      .collection("api_keys")
-      .where("asesor_uid", "==", auth.uid)
-      .where("estatus", "==", "activa")
-      .get();
-
-    if (!activeSnap.empty && !rotate) {
-      const activeDoc = activeSnap.docs[0];
-      const activeData = activeDoc.data();
-
-      return res.status(409).json({
-        success: false,
-        error_code: "ACTIVE_API_KEY_EXISTS",
-        message: "Ya tienes una API Key activa. Si necesitas una nueva, usa la opción de rotar.",
-        api_key_id: activeDoc.id,
-        key_prefix: activeData.key_prefix || ""
-      });
-    }
-
-    const apiKey = createApiKey();
-    const apiKeyPrefix = getKeyPrefix(apiKey);
-
-    const batch = db.batch();
-
-    if (!activeSnap.empty && rotate) {
-      activeSnap.docs.forEach((docSnap) => {
-        batch.update(docSnap.ref, {
-          estatus: "inactiva",
-          updated_at: FieldValue.serverTimestamp(),
-          revoked_at: FieldValue.serverTimestamp(),
-          revoked_reason: "Rotada por asesor desde dashboard"
-        });
-      });
-    }
-
-    const apiKeyRef = db.collection("api_keys").doc();
-
-    batch.set(apiKeyRef, {
-      asesor_uid: auth.uid,
-      asesor_email: auth.asesor.email || auth.email || "",
-      nombre: auth.asesor.nombre || "",
-      key_prefix: apiKeyPrefix,
-      key_hash: sha256(apiKey),
-      estatus: "activa",
-      permisos: ["requests:create", "requests:read", "balance:read"],
-      created_at: FieldValue.serverTimestamp(),
-      updated_at: FieldValue.serverTimestamp(),
-      last_used_at: null,
-      revoked_at: null,
-      revoked_reason: null,
-      created_by: "advisor_dashboard",
-      notes: req.body?.notes || "API Key generada por asesor desde dashboard"
-    });
-
-    await batch.commit();
-
-    await writeUsageLog({
-      asesor_uid: auth.uid,
-      asesor_email: auth.asesor.email || auth.email || "",
-      api_key_id: apiKeyRef.id,
-      key_prefix: apiKeyPrefix,
-      endpoint: "/api/v1/me/api-key",
-      method: "POST",
-      status_code: 201,
-      success: true,
-      action: rotate ? "rotate_api_key" : "create_api_key",
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.status(201).json({
-      success: true,
-      api_key_id: apiKeyRef.id,
-      api_key: apiKey,
-      key_prefix: apiKeyPrefix,
-      asesor_uid: auth.uid,
-      asesor_email: auth.asesor.email || auth.email || "",
-      permisos: ["requests:create", "requests:read", "balance:read"],
-      message: "Guarda esta API Key ahora. No se volverá a mostrar completa."
-    });
-  } catch (error) {
-    console.error(error);
-    sendError(res, error);
-  }
-});
-
-app.post("/api/v1/admin/api-keys", async (req, res) => {
-  try {
-    const adminToken = req.headers["x-admin-token"];
-
-    if (!process.env.DPR_ADMIN_TOKEN || adminToken !== process.env.DPR_ADMIN_TOKEN) {
-      return res.status(401).json({
-        success: false,
-        error_code: "INVALID_ADMIN_TOKEN",
-        message: "Token admin inválido."
-      });
-    }
-
-    const asesorUid = normalizeString(req.body.asesor_uid);
-
-    if (!asesorUid) {
-      return res.status(400).json({
-        success: false,
-        error_code: "ASESOR_UID_REQUIRED",
-        message: "asesor_uid es obligatorio."
-      });
-    }
-
-    const asesorRef = db.collection("asesores").doc(asesorUid);
-    const asesorSnap = await asesorRef.get();
-
-    if (!asesorSnap.exists) {
-      return res.status(404).json({
-        success: false,
-        error_code: "ASESOR_NOT_FOUND",
-        message: "No existe el asesor indicado."
-      });
-    }
-
-    const asesor = asesorSnap.data();
-    const apiKey = createApiKey();
-
-    const apiKeyDoc = await db.collection("api_keys").add({
-      asesor_uid: asesorUid,
-      asesor_email: asesor.email || "",
-      nombre: asesor.nombre || "",
-      key_prefix: getKeyPrefix(apiKey),
-      key_hash: sha256(apiKey),
-      estatus: "activa",
-      permisos: ["requests:create", "requests:read", "balance:read"],
-      created_at: FieldValue.serverTimestamp(),
-      updated_at: FieldValue.serverTimestamp(),
-      last_used_at: null,
-      revoked_at: null,
-      revoked_reason: null,
-      created_by: "admin_api",
-      notes: req.body.notes || "API Key generada desde endpoint admin"
-    });
-
-    res.status(201).json({
-      success: true,
-      api_key_id: apiKeyDoc.id,
-      api_key: apiKey,
-      key_prefix: getKeyPrefix(apiKey),
-      asesor_uid: asesorUid,
-      asesor_email: asesor.email || "",
-      message: "Guarda esta API Key ahora. No se volverá a mostrar."
-    });
-  } catch (error) {
-    console.error(error);
-    sendError(res, error);
-  }
-});
-
 app.post("/api/v1/admin/rebuild-asesores-from-auth", async (req, res) => {
   try {
     validateAdminToken(req);
@@ -2153,617 +1842,6 @@ app.post("/api/v1/admin/apply-saldos", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    sendError(res, error);
-  }
-});
-
-app.get("/api/v1/balance", async (req, res) => {
-  try {
-    const auth = await authenticateApiKey(req, "balance:read");
-
-    await writeUsageLog({
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      api_key_id: auth.apiKeyId,
-      key_prefix: auth.apiKeyPrefix,
-      endpoint: "/api/v1/balance",
-      method: "GET",
-      status_code: 200,
-      success: true,
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.json({
-      success: true,
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || "",
-      nombre: auth.asesor.nombre || "",
-      saldo: Number(auth.asesor.saldo || 0)
-    });
-  } catch (error) {
-    sendError(res, error);
-  }
-});
-
-app.get("/api/v1/services", async (req, res) => {
-  try {
-    const auth = await authenticateApiKey(req, "requests:create");
-
-    const services = [];
-
-    for (const [serviceCode, inventoryName] of Object.entries(SERVICE_MAP)) {
-      let snap = null;
-      const candidateNames = [
-        inventoryName,
-        ...(LEGACY_SERVICE_NAMES[serviceCode] || [])
-      ].filter(Boolean);
-
-      for (const candidateName of candidateNames) {
-        snap = await db
-          .collection("inventario_dpr")
-          .where("nombre", "==", candidateName)
-          .limit(1)
-          .get();
-
-        if (!snap.empty) break;
-      }
-
-      if (snap && !snap.empty) {
-        const doc = snap.docs[0];
-        const item = doc.data();
-
-        services.push({
-          service_code: serviceCode,
-          service_name: inventoryName,
-          inventario_nombre: item.nombre,
-          inventario_id: doc.id,
-          precio_venta: Number(item.precioVenta || 0),
-          costo_propio: Number(item.costoPropio || 0)
-        });
-      }
-    }
-
-    await writeUsageLog({
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      api_key_id: auth.apiKeyId,
-      key_prefix: auth.apiKeyPrefix,
-      endpoint: "/api/v1/services",
-      method: "GET",
-      status_code: 200,
-      success: true,
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.json({
-      success: true,
-      services
-    });
-  } catch (error) {
-    sendError(res, error);
-  }
-});
-
-app.post(
-  "/api/v1/requests",
-  upload.fields([
-    { name: "file_ine_f", maxCount: 1 },
-    { name: "file_ine_r", maxCount: 1 },
-    { name: "file_selfie", maxCount: 1 },
-    { name: "file_comp_domicilio", maxCount: 1 },
-    { name: "file_edocta", maxCount: 1 }
-  ]),
-  async (req, res) => {
-    let auth = null;
-    let inventory = null;
-    let externalReference = null;
-
-    try {
-      auth = await authenticateApiKey(req, "requests:create");
-
-      const serviceCode = normalizeString(req.body.service_code).toUpperCase();
-      externalReference = normalizeString(req.body.external_reference) || "N/A";
-
-      if (!serviceCode) {
-        const error = new Error("service_code es obligatorio.");
-        error.statusCode = 400;
-        error.errorCode = "SERVICE_CODE_REQUIRED";
-        throw error;
-      }
-
-      inventory = await findInventoryByServiceCode(serviceCode);
-
-      const curp = normalizeString(req.body.curp || "N/A").toUpperCase() || "N/A";
-      const nss = normalizeString(req.body.nss || "N/A") || "N/A";
-
-      const detailsFromBody = getMultipartJsonField(req, "details", {});
-
-      const details = {
-        ...EXTRA_DEFAULTS,
-        ...detailsFromBody,
-        referencia_externa: externalReference
-      };
-
-      const questionnaire = getMultipartJsonField(req, "cuestionario", "N/A");
-
-      const folder = `dpr_api/${auth.asesor.id}/${Date.now()}`;
-
-      const file_ine_f = await uploadBufferToCloudinary(req.files?.file_ine_f?.[0], folder);
-      const file_ine_r = await uploadBufferToCloudinary(req.files?.file_ine_r?.[0], folder);
-      const file_selfie = await uploadBufferToCloudinary(req.files?.file_selfie?.[0], folder);
-      const file_comp_domicilio = await uploadBufferToCloudinary(req.files?.file_comp_domicilio?.[0], folder);
-      const file_edocta = await uploadBufferToCloudinary(req.files?.file_edocta?.[0], folder);
-
-      let solicitudId = null;
-      let balanceBefore = 0;
-      let balanceAfter = 0;
-
-      await db.runTransaction(async (tx) => {
-        const asesorSnap = await tx.get(auth.asesorRef);
-
-        if (!asesorSnap.exists) {
-          const error = new Error("El asesor no existe.");
-          error.statusCode = 404;
-          error.errorCode = "ASESOR_NOT_FOUND";
-          throw error;
-        }
-
-        const asesorData = asesorSnap.data();
-        balanceBefore = Number(asesorData.saldo || 0);
-        balanceAfter = balanceBefore - inventory.precioVenta;
-
-        if (balanceBefore < inventory.precioVenta) {
-          const error = new Error("Saldo insuficiente.");
-          error.statusCode = 402;
-          error.errorCode = "INSUFFICIENT_BALANCE";
-          throw error;
-        }
-
-        const solicitudRef = db.collection("solicitudes").doc();
-        solicitudId = solicitudRef.id;
-
-        tx.update(auth.asesorRef, {
-          saldo: balanceAfter
-        });
-
-        tx.set(solicitudRef, {
-          asesor_uid: auth.asesor.id,
-          nombre_asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-
-          tipo: inventory.serviceName,
-          service_code: inventory.serviceCode,
-          inventario_id: inventory.id,
-
-          costo: inventory.precioVenta,
-          costoPropio: inventory.costoPropio,
-
-          estatus: "En Proceso",
-          finalizado: false,
-          fecha: FieldValue.serverTimestamp(),
-
-          curp,
-          nss,
-
-          origen: "API",
-          created_via: "api",
-          api_key_id: auth.apiKeyId,
-          api_key_prefix: auth.apiKeyPrefix,
-          referencia_externa: externalReference,
-
-          detalles_extra: details,
-          cuestionario: questionnaire,
-
-          file_ine_f,
-          file_ine_r,
-          file_selfie,
-          file_comp_domicilio,
-          file_edocta
-        });
-      });
-
-      const n8nResult = await notifyN8n({
-        id_solicitud: solicitudId,
-        asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-        tramite: inventory.serviceName,
-        curp,
-        nss,
-        extra: details,
-        quest: questionnaire,
-        file_ine_f,
-        file_ine_r,
-        file_selfie,
-        file_comp_domicilio,
-        file_edocta,
-        origen: "API",
-        referencia_externa: externalReference
-      });
-
-      await writeUsageLog({
-        asesor_uid: auth.asesor.id,
-        asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-        api_key_id: auth.apiKeyId,
-        key_prefix: auth.apiKeyPrefix,
-        endpoint: "/api/v1/requests",
-        method: "POST",
-        status_code: 201,
-        success: true,
-        service_code: inventory.serviceCode,
-        service_name: inventory.serviceName,
-        solicitud_id: solicitudId,
-        external_reference: externalReference,
-        precio_venta: inventory.precioVenta,
-        costo_propio: inventory.costoPropio,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter,
-        n8n_ok: n8nResult.ok,
-        n8n_status: n8nResult.status,
-        ip: getRequestIp(req),
-        user_agent: req.headers["user-agent"] || null
-      });
-
-      res.status(201).json({
-        success: true,
-        solicitud_id: solicitudId,
-        external_reference: externalReference,
-        service_code: inventory.serviceCode,
-        service_name: inventory.serviceName,
-        estatus: "En Proceso",
-        costo: inventory.precioVenta,
-        balance_before: balanceBefore,
-        balance_after: balanceAfter
-      });
-    } catch (error) {
-      console.error(error);
-
-      if (auth) {
-        await writeUsageLog({
-          asesor_uid: auth.asesor?.id || auth.apiKeyData?.asesor_uid || null,
-          asesor_email: auth.asesor?.email || auth.apiKeyData?.asesor_email || "",
-          api_key_id: auth.apiKeyId,
-          key_prefix: auth.apiKeyPrefix,
-          endpoint: "/api/v1/requests",
-          method: "POST",
-          status_code: error.statusCode || 500,
-          success: false,
-          service_code: inventory?.serviceCode || normalizeString(req.body?.service_code).toUpperCase() || null,
-          service_name: inventory?.serviceName || null,
-          solicitud_id: null,
-          external_reference: externalReference,
-          precio_venta: inventory?.precioVenta || null,
-          costo_propio: inventory?.costoPropio || null,
-          error_code: error.errorCode || "INTERNAL_ERROR",
-          error_message: error.message || "Error interno.",
-          ip: getRequestIp(req),
-          user_agent: req.headers["user-agent"] || null
-        });
-      }
-
-      sendError(res, error);
-    }
-  }
-);
-
-app.post("/api/v1/requests-with-files", async (req, res) => {
-  let auth = null;
-  let inventory = null;
-  let externalReference = null;
-  let body = {};
-  let files = {};
-
-  try {
-    auth = await authenticateApiKey(req, "requests:create");
-
-    const parsed = await parseMultipartRequest(req);
-    body = parsed.fields || {};
-    files = parsed.files || {};
-
-    const serviceCode = normalizeString(body.service_code).toUpperCase();
-    externalReference = normalizeString(body.external_reference) || "N/A";
-
-    if (!serviceCode) {
-      const error = new Error("service_code es obligatorio.");
-      error.statusCode = 400;
-      error.errorCode = "SERVICE_CODE_REQUIRED";
-      throw error;
-    }
-
-    inventory = await findInventoryByServiceCode(serviceCode);
-
-    const curp = normalizeString(body.curp || "N/A").toUpperCase() || "N/A";
-    const nss = normalizeString(body.nss || "N/A") || "N/A";
-
-    const detailsFromBody = parseJsonValue(body.details, {});
-
-    const details = {
-      ...EXTRA_DEFAULTS,
-      ...detailsFromBody,
-      referencia_externa: externalReference
-    };
-
-    const questionnaire = parseJsonValue(body.cuestionario, "N/A");
-
-    const folder = `dpr_api/${auth.asesor.id}/${Date.now()}`;
-
-    const file_ine_f = await uploadBufferToCloudinary(files?.file_ine_f?.[0], folder);
-    const file_ine_r = await uploadBufferToCloudinary(files?.file_ine_r?.[0], folder);
-    const file_selfie = await uploadBufferToCloudinary(files?.file_selfie?.[0], folder);
-    const file_comp_domicilio = await uploadBufferToCloudinary(files?.file_comp_domicilio?.[0], folder);
-    const file_edocta = await uploadBufferToCloudinary(files?.file_edocta?.[0], folder);
-
-    let solicitudId = null;
-    let balanceBefore = 0;
-    let balanceAfter = 0;
-
-    await db.runTransaction(async (tx) => {
-      const asesorSnap = await tx.get(auth.asesorRef);
-
-      if (!asesorSnap.exists) {
-        const error = new Error("El asesor no existe.");
-        error.statusCode = 404;
-        error.errorCode = "ASESOR_NOT_FOUND";
-        throw error;
-      }
-
-      const asesorData = asesorSnap.data();
-      balanceBefore = Number(asesorData.saldo || 0);
-      balanceAfter = balanceBefore - inventory.precioVenta;
-
-      if (balanceBefore < inventory.precioVenta) {
-        const error = new Error("Saldo insuficiente.");
-        error.statusCode = 402;
-        error.errorCode = "INSUFFICIENT_BALANCE";
-        throw error;
-      }
-
-      const solicitudRef = db.collection("solicitudes").doc();
-      solicitudId = solicitudRef.id;
-
-      tx.update(auth.asesorRef, {
-        saldo: balanceAfter
-      });
-
-      tx.set(solicitudRef, {
-        asesor_uid: auth.asesor.id,
-        nombre_asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-
-        tipo: inventory.serviceName,
-        service_code: inventory.serviceCode,
-        inventario_id: inventory.id,
-
-        costo: inventory.precioVenta,
-        costoPropio: inventory.costoPropio,
-
-        estatus: "En Proceso",
-        finalizado: false,
-        fecha: FieldValue.serverTimestamp(),
-
-        curp,
-        nss,
-
-        origen: "API",
-        created_via: "api",
-        api_key_id: auth.apiKeyId,
-        api_key_prefix: auth.apiKeyPrefix,
-        referencia_externa: externalReference,
-
-        detalles_extra: details,
-        cuestionario: questionnaire,
-
-        file_ine_f,
-        file_ine_r,
-        file_selfie,
-        file_comp_domicilio,
-        file_edocta
-      });
-    });
-
-    const n8nResult = await notifyN8n({
-      id_solicitud: solicitudId,
-      asesor: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      tramite: inventory.serviceName,
-      curp,
-      nss,
-      extra: details,
-      quest: questionnaire,
-      file_ine_f,
-      file_ine_r,
-      file_selfie,
-      file_comp_domicilio,
-      file_edocta,
-      origen: "API",
-      referencia_externa: externalReference
-    });
-
-    await writeUsageLog({
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      api_key_id: auth.apiKeyId,
-      key_prefix: auth.apiKeyPrefix,
-      endpoint: "/api/v1/requests-with-files",
-      method: "POST",
-      status_code: 201,
-      success: true,
-      service_code: inventory.serviceCode,
-      service_name: inventory.serviceName,
-      solicitud_id: solicitudId,
-      external_reference: externalReference,
-      precio_venta: inventory.precioVenta,
-      costo_propio: inventory.costoPropio,
-      balance_before: balanceBefore,
-      balance_after: balanceAfter,
-      n8n_ok: n8nResult.ok,
-      n8n_status: n8nResult.status,
-      files_received: Object.keys(files),
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.status(201).json({
-      success: true,
-      solicitud_id: solicitudId,
-      external_reference: externalReference,
-      service_code: inventory.serviceCode,
-      service_name: inventory.serviceName,
-      estatus: "En Proceso",
-      costo: inventory.precioVenta,
-      balance_before: balanceBefore,
-      balance_after: balanceAfter,
-      files: {
-        file_ine_f,
-        file_ine_r,
-        file_selfie,
-        file_comp_domicilio,
-        file_edocta
-      }
-    });
-  } catch (error) {
-    console.error(error);
-
-    if (auth) {
-      await writeUsageLog({
-        asesor_uid: auth.asesor?.id || auth.apiKeyData?.asesor_uid || null,
-        asesor_email: auth.asesor?.email || auth.apiKeyData?.asesor_email || "",
-        api_key_id: auth.apiKeyId,
-        key_prefix: auth.apiKeyPrefix,
-        endpoint: "/api/v1/requests-with-files",
-        method: "POST",
-        status_code: error.statusCode || 500,
-        success: false,
-        service_code: inventory?.serviceCode || normalizeString(body?.service_code).toUpperCase() || null,
-        service_name: inventory?.serviceName || null,
-        solicitud_id: null,
-        external_reference: externalReference,
-        precio_venta: inventory?.precioVenta || null,
-        costo_propio: inventory?.costoPropio || null,
-        error_code: error.errorCode || "INTERNAL_ERROR",
-        error_message: error.message || "Error interno.",
-        files_received: Object.keys(files || {}),
-        ip: getRequestIp(req),
-        user_agent: req.headers["user-agent"] || null
-      });
-    }
-
-    sendError(res, error);
-  }
-});
-
-app.get("/api/v1/requests/:id", async (req, res) => {
-  try {
-    const auth = await authenticateApiKey(req, "requests:read");
-
-    const solicitudId = normalizeString(req.params.id);
-    const snap = await db.collection("solicitudes").doc(solicitudId).get();
-
-    if (!snap.exists) {
-      return res.status(404).json({
-        success: false,
-        error_code: "REQUEST_NOT_FOUND",
-        message: "Solicitud no encontrada."
-      });
-    }
-
-    const solicitud = snap.data();
-
-    if (solicitud.asesor_uid !== auth.asesor.id) {
-      return res.status(403).json({
-        success: false,
-        error_code: "REQUEST_FORBIDDEN",
-        message: "Esta solicitud no pertenece al asesor de la API Key."
-      });
-    }
-
-    await writeUsageLog({
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      api_key_id: auth.apiKeyId,
-      key_prefix: auth.apiKeyPrefix,
-      endpoint: "/api/v1/requests/:id",
-      method: "GET",
-      status_code: 200,
-      success: true,
-      solicitud_id: solicitudId,
-      external_reference: solicitud.referencia_externa || null,
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.json({
-      success: true,
-      solicitud_id: solicitudId,
-      external_reference: solicitud.referencia_externa || null,
-      service_code: solicitud.service_code || null,
-      service_name: solicitud.tipo || null,
-      estatus: solicitud.estatus || null,
-      finalizado: solicitud.finalizado === true,
-      archivoFinal: solicitud.archivoFinal || null,
-      error: solicitud.error || null,
-      created_via: solicitud.created_via || null,
-      origen: solicitud.origen || null
-    });
-  } catch (error) {
-    sendError(res, error);
-  }
-});
-
-app.get("/api/v1/requests/:id/result", async (req, res) => {
-  try {
-    const auth = await authenticateApiKey(req, "requests:read");
-
-    const solicitudId = normalizeString(req.params.id);
-    const snap = await db.collection("solicitudes").doc(solicitudId).get();
-
-    if (!snap.exists) {
-      return res.status(404).json({
-        success: false,
-        error_code: "REQUEST_NOT_FOUND",
-        message: "Solicitud no encontrada."
-      });
-    }
-
-    const solicitud = snap.data();
-
-    if (solicitud.asesor_uid !== auth.asesor.id) {
-      return res.status(403).json({
-        success: false,
-        error_code: "REQUEST_FORBIDDEN",
-        message: "Esta solicitud no pertenece al asesor de la API Key."
-      });
-    }
-
-    if (!solicitud.archivoFinal) {
-      return res.status(404).json({
-        success: false,
-        error_code: "RESULT_NOT_READY",
-        message: "El resultado todavía no está disponible."
-      });
-    }
-
-    await writeUsageLog({
-      asesor_uid: auth.asesor.id,
-      asesor_email: auth.asesor.email || auth.apiKeyData.asesor_email || "",
-      api_key_id: auth.apiKeyId,
-      key_prefix: auth.apiKeyPrefix,
-      endpoint: "/api/v1/requests/:id/result",
-      method: "GET",
-      status_code: 200,
-      success: true,
-      solicitud_id: solicitudId,
-      external_reference: solicitud.referencia_externa || null,
-      ip: getRequestIp(req),
-      user_agent: req.headers["user-agent"] || null
-    });
-
-    res.json({
-      success: true,
-      solicitud_id: solicitudId,
-      external_reference: solicitud.referencia_externa || null,
-      estatus: solicitud.estatus || null,
-      finalizado: solicitud.finalizado === true,
-      archivoFinal: solicitud.archivoFinal
-    });
-  } catch (error) {
     sendError(res, error);
   }
 });
