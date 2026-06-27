@@ -634,6 +634,12 @@ const TRAMITES = {
             return data;
         }
 
+        window.novyraDebugData = async () => {
+            const data = await requestDashboardApi("/api/v1/dashboard/debug-data");
+            console.table(data);
+            return data;
+        };
+
         window.toggleChat = () => {
             const w = document.getElementById('chat-window');
             w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
