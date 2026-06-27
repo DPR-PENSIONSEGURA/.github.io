@@ -565,9 +565,9 @@ class="admin-menu-btn solo-admin relative">
                             <p class="text-xs font-bold text-slate-500 mt-1">Configura cuánto pagas por trámite y el sistema calcula automáticamente cuánto debe cobrarse por día.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
-                            <input id="fechaCorteOperadores" type="date" class="bg-slate-100 p-3 rounded-xl text-xs font-black">
+                            <input id="fechaCorteOperadores" type="date" onchange="window.renderCorteOperadores()" class="bg-slate-100 p-3 rounded-xl text-xs font-black">
                             <button onclick="window.guardarTarifasOperadores()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Guardar tarifas</button>
-                            <button onclick="window.renderCorteOperadores()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar corte</button>
+                            <button onclick="window.actualizarCorteOperadores()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar corte</button>
                         </div>
                     </div>
                     <div class="grid lg:grid-cols-3 gap-5">
@@ -954,6 +954,37 @@ class="admin-menu-btn solo-admin relative">
         const staffNombre = String(miSesion.name || miSesion.nombre || miSesion.username || 'Empleado').trim();
         const staffRol = String(miSesion.role || 'asesor').toLowerCase();
         const LOCK_MINUTOS = 20;
+        const ADMIN_API_BASE = "https://api-326bly7kmq-uc.a.run.app";
+
+        function obtenerAdminToken() {
+            let token = sessionStorage.getItem('dpr_admin_token') || '';
+            if (!token && miSesion.role === 'admin') {
+                token = prompt('Token de administrador para acciones protegidas:') || '';
+                if (token) sessionStorage.setItem('dpr_admin_token', token);
+            }
+            return token;
+        }
+
+        async function adminApi(path, options = {}) {
+            const token = obtenerAdminToken();
+            if (!token) throw new Error('Falta token admin.');
+
+            const res = await fetch(`${ADMIN_API_BASE}${path}`, {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-admin-token": token,
+                    ...(options.headers || {})
+                }
+            });
+
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || data.success === false) {
+                if (data.error_code === 'INVALID_ADMIN_TOKEN') sessionStorage.removeItem('dpr_admin_token');
+                throw new Error(data.message || `Error ${res.status}`);
+            }
+            return data;
+        }
 
         // ==============================
         // DPR · PERMISOS Y CORTE DIARIO
@@ -1006,6 +1037,9 @@ class="admin-menu-btn solo-admin relative">
         const PAGE_SIZE = 30;
         let idTramiteActual = "";
         let todasLasSoliCargadas = [];
+        let solicitudesCorteOperadores = [];
+        let fechaCorteOperadoresCargada = '';
+        let promesaCorteOperadores = null;
         let filtroPendientesHoyActivo = false;
         let unsubscribeChatHistory = null;
 
@@ -1254,7 +1288,7 @@ class="admin-menu-btn solo-admin relative">
             await deleteDoc(doc(db, 'accesos_crm', id));
         };
 
-        onSnapshot(query(collection(db, 'solicitudes'), orderBy('fecha', 'desc'), limit(1500)), (snap) => {
+        onSnapshot(query(collection(db, 'solicitudes'), orderBy('fecha', 'desc'), limit(3500)), (snap) => {
             todasLasSoliCargadas = [];
             let ganancia = 0;
             let pendientes = 0;
@@ -1824,95 +1858,62 @@ class="admin-menu-btn solo-admin relative">
         }
 
         window.cambiarEstatus = async (id, val) => {
-            const docRef = doc(db, 'solicitudes', id);
-
             try {
-                const snap = await getDoc(docRef);
-                if (!snap.exists()) {
-                    alert('La solicitud no existe');
-                    return;
-                }
-
-                const s = snap.data();
+                const s = todasLasSoliCargadas.find(x => x.id === id) || {};
                 const est = LISTA_ERRORES_DPR[val] || val;
 
                 if (!val.startsWith('ERR_')) {
-                    const payload = { estatus: est, ultima_actividad: serverTimestamp() };
-                    if (est === 'Terminado') {
-                        Object.assign(payload, {
-                            finalizado: true,
-                            lock_activo: false,
-                            estatus_operativo: 'Terminada',
-                            terminado_por_uid: staffUid,
-                            terminado_por_nombre: staffNombre,
-                            terminado_por_role: staffRol,
-                            fecha_finalizado: serverTimestamp(),
-                            fecha_terminado: serverTimestamp(),
-                            pago_tramite_clave: claveTramiteSolicitud(s),
-                            pago_tramite_label: labelTramite(claveTramiteSolicitud(s)),
-                            pago_tarifa_operador: Number(tarifasPagoOperador[claveTramiteSolicitud(s)] || 0),
-                            cuenta_productividad: true
-                        });
-                    }
-                    await updateDoc(docRef, payload);
+                    await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            estatus: est,
+                            finalizado: est === 'Terminado',
+                            raw_data: {
+                                lock_activo: false,
+                                estatus_operativo: est === 'Terminado' ? 'Terminada' : est,
+                                terminado_por_uid: staffUid,
+                                terminado_por_nombre: staffNombre,
+                                terminado_por_role: staffRol,
+                                pago_tramite_clave: claveTramiteSolicitud(s),
+                                pago_tramite_label: labelTramite(claveTramiteSolicitud(s)),
+                                pago_tarifa_operador: Number(tarifasPagoOperador[claveTramiteSolicitud(s)] || 0),
+                                cuenta_productividad: est === 'Terminado'
+                            }
+                        })
+                    });
+                    alert('Estatus actualizado');
                     return;
                 }
 
                 if (s.reembolsado === true) {
-                    await updateDoc(docRef, {
-                        estatus: est,
-                        finalizado: true,
-                        bloqueado: true
+                    await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            estatus: est,
+                            finalizado: true,
+                            raw_data: { bloqueado: true }
+                        })
                     });
                     alert('⚠️ Ya estaba reembolsado');
                     return;
                 }
 
-                let refAsesor = null;
-
-                if (s.asesor_uid) {
-                    refAsesor = doc(db, 'asesores', s.asesor_uid);
-                } else {
-                    const emailAsesor = String(s.nombre_asesor || '').trim();
-                    if (emailAsesor) {
-                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
-                        const res = await getDocs(q);
-                        if (!res.empty) {
-                            refAsesor = doc(db, 'asesores', res.docs[0].id);
-                        }
-                    }
-                }
-
-                if (!refAsesor) {
-                    await updateDoc(docRef, {
+                await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                    method: "POST",
+                    body: JSON.stringify({
                         estatus: est,
                         finalizado: true,
-                        bloqueado: true,
-                        nota_admin: 'No se pudo devolver saldo automáticamente'
-                    });
-                    alert('⚠️ Se marcó el error, pero no se encontró al asesor para devolver saldo.');
-                    return;
-                }
-
-                const monto = Number(s.costo || 0);
-
-                await updateDoc(refAsesor, {
-                    saldo: increment(monto)
+                        raw_data: { bloqueado: true }
+                    })
+                });
+                const result = await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/refund`, {
+                    method: "POST"
                 });
 
-                await updateDoc(docRef, {
-                    estatus: est,
-                    reembolsado: true,
-                    finalizado: true,
-                    bloqueado: true,
-                    monto_reembolsado: monto,
-                    fecha_reembolso: serverTimestamp()
-                });
-
-                alert(`✅ DEVOLUCIÓN AUTOMÁTICA APLICADA: $${monto.toFixed(2)}`);
+                alert(`✅ DEVOLUCIÓN AUTOMÁTICA APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
             } catch (e) {
                 console.error(e);
-                alert('Error al procesar estatus/devolución');
+                alert(e.message || 'Error al procesar estatus/devolución');
             }
         };
 
@@ -1924,61 +1925,22 @@ class="admin-menu-btn solo-admin relative">
 
             if (!confirm('¿Aplicar devolución manual de saldo a esta solicitud?')) return;
 
-            const docRef = doc(db, 'solicitudes', id);
-
             try {
-                const snap = await getDoc(docRef);
-                if (!snap.exists()) {
-                    alert('La solicitud no existe');
-                    return;
-                }
-
-                const s = snap.data();
+                const s = todasLasSoliCargadas.find(x => x.id === id) || {};
 
                 if (s.reembolsado === true) {
                     alert('Esta solicitud ya fue reembolsada.');
                     return;
                 }
 
-                let refAsesor = null;
-
-                if (s.asesor_uid) {
-                    refAsesor = doc(db, 'asesores', s.asesor_uid);
-                } else {
-                    const emailAsesor = String(s.nombre_asesor || '').trim();
-                    if (emailAsesor) {
-                        const q = query(collection(db, 'asesores'), where('email', '==', emailAsesor));
-                        const res = await getDocs(q);
-                        if (!res.empty) {
-                            refAsesor = doc(db, 'asesores', res.docs[0].id);
-                        }
-                    }
-                }
-
-                if (!refAsesor) {
-                    alert('No se encontró el asesor para devolver saldo.');
-                    return;
-                }
-
-                const monto = Number(s.costo || 0);
-
-                await updateDoc(refAsesor, {
-                    saldo: increment(monto)
+                const result = await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/refund`, {
+                    method: "POST"
                 });
 
-                await updateDoc(docRef, {
-                    reembolsado: true,
-                    finalizado: true,
-                    bloqueado: true,
-                    monto_reembolsado: monto,
-                    fecha_reembolso: serverTimestamp(),
-                    nota_admin: 'Devolución manual desde panel'
-                });
-
-                alert(`✅ DEVOLUCIÓN MANUAL APLICADA: $${monto.toFixed(2)}`);
+                alert(`✅ DEVOLUCIÓN MANUAL APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
             } catch (e) {
                 console.error(e);
-                alert('Error en devolución manual');
+                alert(e.message || 'Error en devolución manual');
             }
         };
 
@@ -2347,14 +2309,15 @@ class="admin-menu-btn solo-admin relative">
             }
 
             try {
-                await addDoc(collection(db, 'avisos'), {
+                await adminApi('/api/v1/admin/panel/notices', {
+                    method: "POST",
+                    body: JSON.stringify({
                     titulo,
                     mensaje,
                     tipo,
-                    activo: true,
                     fijado,
-                    creado: serverTimestamp(),
                     creado_por: miSesion.name || miSesion.username || 'admin'
+                    })
                 });
 
                 tituloEl.value = '';
@@ -2363,9 +2326,10 @@ class="admin-menu-btn solo-admin relative">
                 fijadoEl.checked = false;
 
                 alert('✅ Aviso publicado');
+                cargarAvisosAdmin();
             } catch (e) {
                 console.error(e);
-                alert('Error al publicar aviso. Revisa permisos de Firestore.');
+                alert(e.message || 'Error al publicar aviso.');
             }
         };
 
@@ -2373,44 +2337,51 @@ class="admin-menu-btn solo-admin relative">
             if (miSesion.role !== 'admin') return alert('No autorizado');
             if (!confirm('¿Desactivar este aviso?')) return;
 
-            await updateDoc(doc(db, 'avisos', id), {
-                activo: false,
-                desactivado: serverTimestamp()
+            await adminApi(`/api/v1/admin/panel/notices/${encodeURIComponent(id)}`, {
+                method: "PATCH",
+                body: JSON.stringify({ activo: false })
             });
+            cargarAvisosAdmin();
         };
 
         window.reactivarAviso = async (id) => {
             if (miSesion.role !== 'admin') return alert('No autorizado');
 
-            await updateDoc(doc(db, 'avisos', id), {
-                activo: true,
-                reactivado: serverTimestamp()
+            await adminApi(`/api/v1/admin/panel/notices/${encodeURIComponent(id)}`, {
+                method: "PATCH",
+                body: JSON.stringify({ activo: true })
             });
+            cargarAvisosAdmin();
         };
 
         window.eliminarAviso = async (id) => {
             if (miSesion.role !== 'admin') return alert('No autorizado');
             if (!confirm('¿Eliminar aviso definitivamente?')) return;
 
-            await deleteDoc(doc(db, 'avisos', id));
+            await adminApi(`/api/v1/admin/panel/notices/${encodeURIComponent(id)}`, {
+                method: "DELETE"
+            });
+            cargarAvisosAdmin();
         };
 
-        if (miSesion.role === 'admin') {
-            onSnapshot(query(collection(db, 'avisos'), orderBy('creado', 'desc'), limit(50)), (snap) => {
+        async function cargarAvisosAdmin() {
+            if (miSesion.role !== 'admin') return;
+            try {
+                const data = await adminApi('/api/v1/admin/panel/notices');
                 const cont = document.getElementById('listaAvisosAdmin');
                 if (!cont) return;
 
                 cont.innerHTML = '';
 
-                snap.forEach(d => {
-                    const a = d.data();
-                    const id = d.id;
-                    const fecha = a.creado?.toDate?.().toLocaleString('es-MX', {
+                (data.rows || []).forEach(a => {
+                    const id = a.id;
+                    const fechaBase = a.creado ? new Date(a.creado) : null;
+                    const fecha = fechaBase && !Number.isNaN(fechaBase.getTime()) ? fechaBase.toLocaleString('es-MX', {
                         day: '2-digit',
                         month: '2-digit',
                         hour: '2-digit',
                         minute: '2-digit'
-                    }) || 'Sin fecha';
+                    }) : 'Sin fecha';
 
                     const tipoColor = {
                         info: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -2448,17 +2419,23 @@ class="admin-menu-btn solo-admin relative">
                 if (!cont.innerHTML) {
                     cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin avisos publicados</p>';
                 }
-            });
+            } catch (e) {
+                console.error(e);
+            }
         }
+        cargarAvisosAdmin();
+        setInterval(cargarAvisosAdmin, 30000);
 
-        if (miSesion.role === 'admin') {
-            onSnapshot(query(collection(db, 'notificaciones_pago'), orderBy('fecha', 'desc'), limit(20)), (snap) => {
+        async function cargarRecargasAdmin() {
+            if (miSesion.role !== 'admin') return;
+            try {
+                const data = await adminApi('/api/v1/admin/panel/recharges?limit=50');
                 const t = document.getElementById('tablaRecargas');
                 t.innerHTML = '';
                 let pendientesRecarga = 0;
 
-                snap.forEach(d => {
-                    const r = d.data(), id = d.id;
+                (data.rows || []).forEach(r => {
+                    const id = r.id;
                     if (r.estatus === 'pendiente') pendientesRecarga++;
                     let btns = (r.estatus === 'pendiente')
                         ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
@@ -2472,7 +2449,7 @@ class="admin-menu-btn solo-admin relative">
                             </td>
                             <td class="p-4 text-center"><b>$${r.monto}</b></td>
                             <td class="p-4 text-center">
-                                <button onclick="window.open('${r.comprobante}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
+                                <button onclick="window.open('${r.comprobante || ''}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
                             </td>
                             <td class="p-4 text-right">
                                 ${btns}
@@ -2483,14 +2460,21 @@ class="admin-menu-btn solo-admin relative">
                 });
 
                 window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
-            });
+            } catch (e) {
+                console.error(e);
+            }
         }
+        cargarRecargasAdmin();
+        setInterval(cargarRecargasAdmin, 30000);
 
         window.borrarRecarga = async (docId) => {
             if (miSesion.role !== 'admin') return;
             if (!confirm('¿Borrar esta recarga del panel? Esta acción solo elimina la notificación de pago.')) return;
             try {
-                await deleteDoc(doc(db, 'notificaciones_pago', docId));
+                await adminApi(`/api/v1/admin/panel/recharges/${encodeURIComponent(docId)}`, {
+                    method: "DELETE"
+                });
+                cargarRecargasAdmin();
             } catch (e) {
                 alert(e.message || 'No se pudo borrar la recarga');
             }
@@ -2499,8 +2483,15 @@ class="admin-menu-btn solo-admin relative">
         window.validarRecarga = async (docId, uid, monto, est) => {
             if (miSesion.role !== 'admin') return;
             if (confirm('¿Confirmar aprobación de saldo?')) {
-                await updateDoc(doc(db, 'asesores', uid), { saldo: increment(Number(monto)) });
-                await updateDoc(doc(db, 'notificaciones_pago', docId), { estatus: est });
+                try {
+                    await adminApi(`/api/v1/admin/panel/recharges/${encodeURIComponent(docId)}/approve`, {
+                        method: "POST"
+                    });
+                    cargarRecargasAdmin();
+                    alert('Recarga aprobada');
+                } catch (e) {
+                    alert(e.message || 'No se pudo aprobar la recarga');
+                }
             }
         };
 
@@ -2538,14 +2529,15 @@ class="admin-menu-btn solo-admin relative">
             actualizarFiltroLabel(`Búsqueda semanal: ${filtrados.length} resultado(s)`);
         };
 
-        onSnapshot(query(collection(db, 'chat_soporte'), orderBy('timestamp', 'desc'), limit(200)), (snap) => {
+        async function cargarChatAdmin() {
+            try {
+                const data = await adminApi('/api/v1/admin/panel/chat');
             const cont = document.getElementById('listaChat');
             cont.innerHTML = '';
             let uniqueChats = {};
             let chatsSinResponder = 0;
 
-            snap.forEach(d => {
-                const m = d.data();
+            (data.rows || []).forEach(m => {
                 if (!m.asesor_uid || uniqueChats[m.asesor_uid]) return;
                 uniqueChats[m.asesor_uid] = true;
                 if (m.respondido !== true) chatsSinResponder++;
@@ -2571,9 +2563,14 @@ class="admin-menu-btn solo-admin relative">
             if (!cont.innerHTML) {
                 cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin mensajes todavía</p>';
             }
-        });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        cargarChatAdmin();
+        setInterval(cargarChatAdmin, 15000);
 
-        window.abrirChat = (uid, email) => {
+        window.abrirChat = async (uid, email) => {
             if (!uid) {
                 alert('No se encontró el ID del chat. Revisa que el mensaje tenga asesor_uid.');
                 return;
@@ -2583,42 +2580,42 @@ class="admin-menu-btn solo-admin relative">
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            if (unsubscribeChatHistory) unsubscribeChatHistory();
+            if (unsubscribeChatHistory) clearInterval(unsubscribeChatHistory);
 
-            unsubscribeChatHistory = onSnapshot(
-                query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid), orderBy('timestamp', 'asc')),
-                (snap) => {
+            async function cargarHistorialChatAdmin() {
+                try {
+                    const data = await adminApi(`/api/v1/admin/panel/chat/${encodeURIComponent(uid)}`);
                     const box = document.getElementById('chatHistory');
                     box.innerHTML = '';
 
-                    snap.forEach(d => {
-                        const m = d.data();
+                    (data.rows || []).forEach(m => {
                         const align = m.remitente === email ? 'self-start bg-white' : 'self-end bg-blue-600 text-white';
                         box.innerHTML += `<div class="p-2 rounded-xl text-[10px] font-bold shadow-sm max-w-[80%] ${align}">${m.texto}</div>`;
                     });
 
                     box.scrollTop = box.scrollHeight;
+                } catch (e) {
+                    console.error(e);
                 }
-            );
+            }
+            await cargarHistorialChatAdmin();
+            unsubscribeChatHistory = setInterval(cargarHistorialChatAdmin, 15000);
 
             document.getElementById('btnEnviarRespuesta').onclick = async () => {
                 const txt = document.getElementById('inputRespuesta').value.trim();
                 if (!txt) return;
 
-                await addDoc(collection(db, 'chat_soporte'), {
-                    asesor_uid: uid,
-                    remitente: 'Soporte DPR',
-                    texto: txt,
-                    timestamp: serverTimestamp(),
-                    respondido: true
-                });
-
-                const qMsg = await getDocs(query(collection(db, 'chat_soporte'), where('asesor_uid', '==', uid)));
-                qMsg.forEach(async (docChat) => {
-                    await updateDoc(doc(db, 'chat_soporte', docChat.id), { respondido: true });
+                await adminApi(`/api/v1/admin/panel/chat/${encodeURIComponent(uid)}/reply`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        texto: txt,
+                        email
+                    })
                 });
 
                 document.getElementById('inputRespuesta').value = '';
+                await cargarHistorialChatAdmin();
+                cargarChatAdmin();
             };
         };
 
@@ -2664,13 +2661,60 @@ class="admin-menu-btn solo-admin relative">
             alert('Tarifas guardadas');
         };
 
-        window.renderCorteOperadores = function () {
+        async function cargarSolicitudesCorteOperadoresDia(fechaSeleccionada) {
+            if (!fechaSeleccionada) return [];
+            if (fechaCorteOperadoresCargada === fechaSeleccionada) return solicitudesCorteOperadores;
+            if (promesaCorteOperadores?.fecha === fechaSeleccionada) return promesaCorteOperadores;
+
+            promesaCorteOperadores = (async () => {
+                try {
+                const inicio = new Date(`${fechaSeleccionada}T00:00:00`);
+                const fin = new Date(inicio);
+                fin.setDate(fin.getDate() + 1);
+                const camposFecha = ['fecha_terminado', 'fecha_finalizado', 'fechaTerminado', 'fecha'];
+                const unicos = new Map();
+
+                for (const campo of camposFecha) {
+                    const snap = await getDocs(query(
+                        collection(db, 'solicitudes'),
+                        where(campo, '>=', inicio),
+                        where(campo, '<', fin)
+                    ));
+                    snap.forEach(d => {
+                        if (!unicos.has(d.id)) unicos.set(d.id, { id: d.id, ...d.data() });
+                    });
+                }
+                    solicitudesCorteOperadores = [...unicos.values()];
+                    fechaCorteOperadoresCargada = fechaSeleccionada;
+                    return solicitudesCorteOperadores;
+                } finally {
+                    promesaCorteOperadores = null;
+                }
+            })();
+            promesaCorteOperadores.fecha = fechaSeleccionada;
+            return promesaCorteOperadores;
+        }
+
+        window.renderCorteOperadores = async function () {
             const cont = document.getElementById('tablaCorteOperadores');
             if (!cont) return;
             const fechaSeleccionada = document.getElementById('fechaCorteOperadores')?.value || fechaKeyLocal(new Date());
             const resumen = new Map();
+            const totalBadge = document.getElementById('totalCorteOperadores');
 
-            todasLasSoliCargadas.forEach(s => {
+            if (fechaCorteOperadoresCargada !== fechaSeleccionada) {
+                if (totalBadge) totalBadge.textContent = 'Cargando corte...';
+                cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-slate-400 bg-slate-50 border rounded-2xl p-6">Cargando trÃ¡mites del dÃ­a seleccionado...</div>`;
+                try {
+                    await cargarSolicitudesCorteOperadoresDia(fechaSeleccionada);
+                } catch (error) {
+                    console.error('Error cargando corte por fecha:', error);
+                    cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-red-500 bg-red-50 border border-red-100 rounded-2xl p-6">No se pudo cargar el corte de este dÃ­a.</div>`;
+                    return;
+                }
+            }
+
+            solicitudesCorteOperadores.forEach(s => {
                 const estatus = String(s.estatus || '').toLowerCase();
                 if (estatus !== 'terminado' && estatus !== 'finalizado') return;
                 const fecha = fechaSolicitudTerminada(s);
@@ -2696,7 +2740,6 @@ class="admin-menu-btn solo-admin relative">
 
             const filas = [...resumen.values()].sort((a,b) => b.totalPago - a.totalPago);
             const totalGeneral = filas.reduce((acc, r) => acc + r.totalPago, 0);
-            const totalBadge = document.getElementById('totalCorteOperadores');
             if (totalBadge) totalBadge.textContent = `Total a pagar: $${totalGeneral.toFixed(2)}`;
 
             if (!filas.length) {
@@ -2726,6 +2769,12 @@ class="admin-menu-btn solo-admin relative">
             }).join('');
         };
 
+        window.actualizarCorteOperadores = function () {
+            fechaCorteOperadoresCargada = '';
+            solicitudesCorteOperadores = [];
+            return window.renderCorteOperadores();
+        };
+
         try {
             const tarifasLocales = JSON.parse(localStorage.getItem('tarifasPagoOperadorDPR') || 'null');
             if (tarifasLocales && typeof tarifasLocales === 'object') tarifasPagoOperador = { ...tarifasPagoOperador, ...tarifasLocales };
@@ -2745,7 +2794,7 @@ class="admin-menu-btn solo-admin relative">
         let cacheSolicitudes = [];
         let metricasListas = false;
         onSnapshot(
-            query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(1500)),
+            query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(3500)),
             snap => {
                 cacheSolicitudes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 metricasListas = true;
