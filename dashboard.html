@@ -569,7 +569,10 @@ const TRAMITES = {
             window.actualizarPuntoAvisos?.();
         });
 
-        const DPR_API_BASE_URL = "https://api-326bly7kmq-uc.a.run.app";
+        const DPR_API_BASE_URLS = [
+            "https://api-326bly7kmq-uc.a.run.app",
+            "https://us-central1-pensionsegura-9c817.cloudfunctions.net/api"
+        ];
 
         async function requestDashboardApi(path, options = {}) {
             if (!auth.currentUser) {
@@ -586,23 +589,32 @@ const TRAMITES = {
                 headers["Content-Type"] = "application/json";
             }
 
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 18000);
             let response;
+            let lastNetworkError = null;
 
-            try {
-                response = await fetch(`${DPR_API_BASE_URL}${path}`, {
-                    ...options,
-                    headers,
-                    signal: controller.signal
-                });
-            } catch (error) {
-                if (error.name === "AbortError") {
+            for (const baseUrl of DPR_API_BASE_URLS) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 35000);
+
+                try {
+                    response = await fetch(`${baseUrl}${path}`, {
+                        ...options,
+                        headers,
+                        signal: controller.signal
+                    });
+                    break;
+                } catch (error) {
+                    lastNetworkError = error;
+                } finally {
+                    clearTimeout(timeout);
+                }
+            }
+
+            if (!response) {
+                if (lastNetworkError?.name === "AbortError") {
                     throw new Error("El servidor tardó demasiado en responder. Revisa el despliegue de Functions.");
                 }
-                throw new Error("No se pudo conectar con el backend. Revisa que Functions esté desplegado.");
-            } finally {
-                clearTimeout(timeout);
+                throw new Error("No se pudo conectar con el backend. Revisa conexión, VPN o Functions.");
             }
 
             const text = await response.text();
