@@ -289,13 +289,20 @@ function aplicarPreciosBackend() {
 }
 
 async function cargarPreciosBackend() {
-    const data = await requestDashboardApi("/api/v1/dashboard/services", {
-        method: "GET"
-    });
+    try {
+        const data = await requestDashboardApi("/api/v1/dashboard/services", {
+            method: "GET"
+        });
 
-    preciosBackend = data.prices || {};
-    aplicarPreciosBackend();
-    preciosBackendListos = true;
+        preciosBackend = data.prices || {};
+        aplicarPreciosBackend();
+    } catch (error) {
+        console.error("catalogo precios", error);
+        // No bloqueamos el panel si el catalogo tarda o falla: se usan los precios
+        // locales como respaldo mientras se corrige la conexion del backend.
+    } finally {
+        preciosBackendListos = true;
+    }
 }
         let historialSolicitudesCache = [];
         let ultimoAvisoAdminTS = 0;
@@ -480,19 +487,28 @@ const TRAMITES = {
             userUID = user.uid;
             emailAsesor = user.email;
 
-            await requestDashboardApi("/api/v1/dashboard/bootstrap", {
-                method: "POST"
-            });
+            try {
+                await requestDashboardApi("/api/v1/dashboard/bootstrap", {
+                    method: "POST"
+                });
+            } catch (error) {
+                console.error("bootstrap dashboard", error);
+            }
+
             await cargarPreciosBackend();
 
-            const asesorSnap = await getDoc(doc(db, "asesores", userUID));
-            const asesorData = asesorSnap.exists() ? asesorSnap.data() : null;
-            if (asesorData && (asesorData.activo === false || asesorData.inhabilitado === true)) {
-                limpiarSesionLocalDPR();
-                alert("Tu cuenta se encuentra inhabilitada. Contacta a soporte.");
-                await signOut(auth).catch(() => {});
-                window.location.replace(LOGIN_URL);
-                return;
+            try {
+                const asesorSnap = await getDoc(doc(db, "asesores", userUID));
+                const asesorData = asesorSnap.exists() ? asesorSnap.data() : null;
+                if (asesorData && (asesorData.activo === false || asesorData.inhabilitado === true)) {
+                    limpiarSesionLocalDPR();
+                    alert("Tu cuenta se encuentra inhabilitada. Contacta a soporte.");
+                    await signOut(auth).catch(() => {});
+                    window.location.replace(LOGIN_URL);
+                    return;
+                }
+            } catch (error) {
+                console.error("validacion firebase asesor", error);
             }
 
             escucharSaldo();
