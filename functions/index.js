@@ -1076,6 +1076,31 @@ app.get("/api/v1/dashboard/balance", async (req, res) => {
   }
 });
 
+app.get("/api/v1/dashboard/debug-data", async (req, res) => {
+  try {
+    const auth = await authenticateDashboardUser(req);
+    const asesor = await getSupabaseAsesorByUid(auth.uid);
+    const solicitudes = await supabaseRequest(
+      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id&limit=500`
+    );
+
+    res.json({
+      success: true,
+      uid: auth.uid,
+      email_token: auth.email || "",
+      supabase_schema: SUPABASE_SCHEMA,
+      supabase_configurada: Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY),
+      asesor_encontrado: Boolean(asesor),
+      asesor_email: asesor?.email || "",
+      asesor_nombre: asesor?.nombre || "",
+      saldo_actual: asesor ? Number(asesor.saldo_actual || 0) : null,
+      solicitudes_encontradas: Array.isArray(solicitudes) ? solicitudes.length : 0
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.get("/api/v1/dashboard/finance", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
