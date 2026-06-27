@@ -217,7 +217,7 @@
                 <button onclick="window.enviarMensajeManual()" class="bg-emerald-500 text-white p-2 rounded-xl">➤</button>
             </div>
         </div>
-        <button onclick="window.toggleChat()" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl"></button>
+        <button onclick="window.toggleChat()" aria-label="Abrir ayuda" title="Ayuda" class="green-gradient w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white text-2xl font-black">🎧</button>
     </div>
 
     <script type="module">
@@ -576,7 +576,7 @@ const TRAMITES = {
                 throw new Error("Sesion no iniciada");
             }
 
-            const token = await getIdToken(auth.currentUser, true);
+            const token = await getIdToken(auth.currentUser);
             const headers = {
                 ...(options.headers || {}),
                 "Authorization": `Bearer ${token}`
@@ -586,10 +586,24 @@ const TRAMITES = {
                 headers["Content-Type"] = "application/json";
             }
 
-            const response = await fetch(`${DPR_API_BASE_URL}${path}`, {
-                ...options,
-                headers
-            });
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 18000);
+            let response;
+
+            try {
+                response = await fetch(`${DPR_API_BASE_URL}${path}`, {
+                    ...options,
+                    headers,
+                    signal: controller.signal
+                });
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    throw new Error("El servidor tardó demasiado en responder. Revisa el despliegue de Functions.");
+                }
+                throw new Error("No se pudo conectar con el backend. Revisa que Functions esté desplegado.");
+            } finally {
+                clearTimeout(timeout);
+            }
 
             const text = await response.text();
             let data = {};
@@ -602,7 +616,7 @@ const TRAMITES = {
             }
 
             if (!response.ok) {
-                throw new Error(data.error || data.message || `Error ${response.status}`);
+                throw new Error(data.error || data.message || data.raw || `Error ${response.status}`);
             }
 
             return data;
@@ -642,7 +656,7 @@ const TRAMITES = {
                 const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
                 html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
                     <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">Solicitud rápida y segura</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${obtenerPrecioTramite(t)}</span></div>
-                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center"></span></div>
+                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm">Ir</span></div>
                 </div>`;
             });
 
