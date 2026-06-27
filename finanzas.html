@@ -96,7 +96,7 @@
             <p id="txtSaldo" class="text-3xl font-black text-emerald-600 mt-2">$0.00</p>
           </div>
           <div class="summary-card rounded-[1.5rem] p-4">
-            <p class="text-[10px] font-black uppercase text-slate-400">Última actualización</p>
+            <p class="text-[10px] font-black uppercase text-slate-400">Ãšltima actualizaciÃ³n</p>
             <p id="txtActualizacion" class="text-sm font-black text-slate-800 mt-3">Sin cargar</p>
           </div>
           <div class="summary-card rounded-[1.5rem] p-4">
@@ -110,7 +110,7 @@
     <section class="grid md:grid-cols-3 gap-4 mb-6">
       <div class="summary-card rounded-[1.5rem] p-4">
         <p class="text-[10px] font-black uppercase text-slate-400">Cargos</p>
-        <p class="text-sm text-slate-700 mt-2">Los trámites aparecen como salida de saldo.</p>
+        <p class="text-sm text-slate-700 mt-2">Los trÃ¡mites aparecen como salida de saldo.</p>
       </div>
       <div class="summary-card rounded-[1.5rem] p-4">
         <p class="text-[10px] font-black uppercase text-slate-400">Recargas</p>
@@ -151,7 +151,10 @@
       projectId: "pensionsegura-9c817"
     };
 
-    const DPR_API_BASE_URL = "https://api-326bly7kmq-uc.a.run.app";
+    const DPR_API_BASE_URLS = [
+      "https://api-326bly7kmq-uc.a.run.app",
+      "https://us-central1-pensionsegura-9c817.cloudfunctions.net/api"
+    ];
     const LOGIN_URL = "https://novyraservices.org/login";
 
     const app = initializeApp(firebaseConfig);
@@ -181,26 +184,35 @@
       if (!auth.currentUser) throw new Error("Sesión no iniciada");
 
       const token = await getIdToken(auth.currentUser);
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 18000);
       let response;
+      let lastNetworkError = null;
 
-      try {
-        response = await fetch(`${DPR_API_BASE_URL}${path}`, {
-          ...options,
-          signal: controller.signal,
-          headers: {
-            ...(options.headers || {}),
-            Authorization: `Bearer ${token}`
-          }
-        });
-      } catch (error) {
-        if (error.name === "AbortError") {
+      for (const baseUrl of DPR_API_BASE_URLS) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 35000);
+
+        try {
+          response = await fetch(`${baseUrl}${path}`, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+              ...(options.headers || {}),
+              Authorization: `Bearer ${token}`
+            }
+          });
+          break;
+        } catch (error) {
+          lastNetworkError = error;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      if (!response) {
+        if (lastNetworkError?.name === "AbortError") {
           throw new Error("El servidor tardó demasiado en responder. Revisa el despliegue de Functions.");
         }
-        throw new Error("No se pudo conectar con el backend. Revisa que Functions esté desplegado.");
-      } finally {
-        clearTimeout(timeout);
+        throw new Error("No se pudo conectar con el backend. Revisa conexión, VPN o Functions.");
       }
 
       const text = await response.text();
@@ -238,7 +250,7 @@
         const titulo = String(m.titulo || "Movimiento").toUpperCase();
         const detalle = m.detalle ? `<p class="text-[11px] font-bold text-slate-500 mt-1 break-words">${m.detalle}</p>` : "";
         const saldo = m.saldo_despues !== null && m.saldo_despues !== undefined
-          ? `<p class="text-[10px] font-black text-slate-400 uppercase mt-1">Saldo después: ${money(m.saldo_despues)}</p>`
+          ? `<p class="text-[10px] font-black text-slate-400 uppercase mt-1">Saldo despuÃ©s: ${money(m.saldo_despues)}</p>`
           : "";
 
         return `
@@ -275,7 +287,7 @@
         renderMovimientos(data.movimientos || []);
       } catch (error) {
         console.error("finanzas", error);
-        estado.innerText = "Error de conexión";
+        estado.innerText = "Error de conexiÃ³n";
         document.getElementById("contenedorMovimientos").innerHTML = `
           <div class="rounded-2xl bg-red-50 border border-red-200 p-5 text-red-700">
             <p class="font-black uppercase text-sm">No se pudieron cargar tus finanzas</p>
