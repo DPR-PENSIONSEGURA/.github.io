@@ -241,8 +241,59 @@
         const UPLOAD_PRESET = "dpr_uploads";
         const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
+        const CATALOGO_PRECIOS_SEGURO = {
+            "SEMANAS COTIZADAS": 15,
+            "SEMANAS DETALLADAS": 25,
+            "SINDO ULTIMO RETIRO": 45,
+            "SINDO ALFANUMERICO": 55,
+            "SINDO COMPLETO": 190,
+            "SINDO SALARIO PROMEDIO": 95,
+            "SINDO VIGENCIA": 95,
+            "TARJETA NSS": 15,
+            "VIGENCIA DE DERECHOS": 15,
+            "INCAPACIDAD": 20,
+            "RECETAS": 20,
+            "INSCRIPCION MODALIDAD 10": 200,
+            "ALTA MENSUAL": 670,
+            "ALTA PARA DESEMPLEO CON LINEA DE CAPTURA": 200,
+            "ALTA PARA DESEMPLEO CON APORTACIONES": 650,
+            "RFC CLON": 25,
+            "RFC VERIFICABLE": 95,
+            "RFC CON IDCIF": 20,
+            "RFC ORIGINAL": 180,
+            "LOCALIZACION DE IDCIF": 60,
+            "BURO DE CREDITO": 170,
+            "CURP": 4,
+            "RECIBO CFE": 10,
+            "ACTA DE NACIMIENTO": 11,
+            "ACTA DE MATRIMONIO": 11,
+            "ACTA DE DIVORCIO": 11,
+            "ACTA DE DEFUNCION": 11,
+            "CERTIFICADO INEA": 30,
+            "CERTIFICADO COVID": 20,
+            "LOCALIZACION DE CONTRASENA": 90,
+            "RESETEO CUENTA": 90,
+            "PRECALIFICACION MEJORAVIT": 50,
+            "PRECALIFICACION LINEA II": 80,
+            "CREAR CUENTA EN MI CUENTAINFONAVIT": 100,
+            "HISTORICO INFONAVIT": 100,
+            "REGISTRO A DISTANCIA": 90,
+            "RETIRO DESEMPLEO A DISTANCIA": 60,
+            "CAMBIAR CONTRASENA AFORE WEB": 30,
+            "ESTADO DE CUENTA AFORE": 500,
+            "ANALISIS RAPIDO DE PENSION": 200,
+            "ANALISIS DETALLADO DE PENSION": 3000,
+            "AZTECA": 500,
+            "COPPEL": 500,
+            "INVERCAP": 1400,
+            "SURA": 800,
+            "BANORTE": 500,
+            "PRINCIPAL": 500,
+            "BANAMEX": 1200
+        };
+
         let saldoGlobal = 0, userUID = "", emailAsesor = "";
-        let preciosBackend = {};
+        let preciosBackend = { ...CATALOGO_PRECIOS_SEGURO };
         let preciosBackendListos = false;
         const VIP_SEMANAS_15 = [     "consultoriadpr@gmail.com"
                                ];
@@ -294,7 +345,7 @@ async function cargarPreciosBackend() {
             method: "GET"
         });
 
-        preciosBackend = data.prices || {};
+        preciosBackend = { ...CATALOGO_PRECIOS_SEGURO, ...(data.prices || {}) };
         aplicarPreciosBackend();
     } catch (error) {
         console.error("catalogo precios", error);
@@ -1292,6 +1343,7 @@ vacuna_covid: val('vacuna_covid_p'),
                 document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`;
             } catch (error) {
                 console.error("saldo", error);
+                document.getElementById('txtSaldoHeader').innerText = "Error";
             }
         }
 
@@ -1307,6 +1359,19 @@ vacuna_covid: val('vacuna_covid_p'),
                 window.buscarHistorialGlobal();
             } catch (error) {
                 console.error("historial", error);
+                const tbody = document.getElementById('listaHistorial');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="py-10 text-center">
+                                <div class="inline-block bg-red-50 border border-red-200 text-red-700 rounded-2xl px-5 py-4 text-left max-w-xl">
+                                    <p class="font-black uppercase text-xs">No se pudo cargar el historial</p>
+                                    <p class="text-xs font-bold mt-2">${error.message || 'Revisa el despliegue del backend.'}</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
             }
         }
 
