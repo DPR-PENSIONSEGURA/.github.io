@@ -1076,6 +1076,102 @@ app.get("/api/v1/dashboard/balance", async (req, res) => {
   }
 });
 
+app.get("/api/v1/dashboard/finance", async (req, res) => {
+  try {
+    const auth = await authenticateDashboardUser(req);
+    const asesor = await getSupabaseAsesorByUid(auth.uid);
+
+    if (!asesor) {
+      const error = new Error("No existe el expediente del asesor.");
+      error.statusCode = 404;
+      error.errorCode = "ASESOR_NOT_FOUND";
+      throw error;
+    }
+
+    const uid = supabaseEq(auth.uid);
+    const [ledgerRows, solicitudRows, pagoRows] = await Promise.all([
+      supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=*&order=fecha_movimiento.desc&limit=80`),
+      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=*&order=fecha.desc&limit=80`),
+      supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=*&order=fecha.desc&limit=80`)
+    ]);
+
+    const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia_id || "")).filter(Boolean));
+
+    const ledgerMovements = (ledgerRows || []).map((row) => ({
+      id: row.id || row.referencia_id || crypto.randomUUID(),
+      tipo_movimiento: row.tipo || "movimiento",
+      titulo: row.descripcion || row.tipo || "Movimiento de saldo",
+      detalle: row.referencia_tipo || "",
+      monto: Number(row.monto || 0),
+      saldo_antes: row.saldo_antes === null || row.saldo_antes === undefined ? null : Number(row.saldo_antes || 0),
+      saldo_despues: row.saldo_despues === null || row.saldo_despues === undefined ? null : Number(row.saldo_despues || 0),
+      estatus: row.tipo || "",
+      fecha: row.fecha_movimiento || row.created_at || null,
+      origen: row.origen || "Sistema"
+    }));
+
+    const solicitudMovements = (solicitudRows || []).filter((row) => {
+      const ref = String(row.firebase_id || row.id || "");
+      return !ref || !ledgerRefs.has(ref);
+    }).map((row) => {
+      const costo = Number(row.costo || 0);
+      const reembolso = Number(row.monto_reembolsado || 0);
+      const esReembolso = row.reembolsado === true || reembolso > 0 || String(row.estatus || "").toLowerCase().includes("error");
+
+      return {
+        id: row.firebase_id || row.id,
+        tipo_movimiento: esReembolso ? "reembolso_tramite" : "cargo_tramite",
+        titulo: esReembolso ? `Reembolso: ${row.tipo || "tramite"}` : row.tipo || "Tramite",
+        detalle: [row.curp, row.nss ? `NSS: ${row.nss}` : ""].filter(Boolean).join(" | "),
+        monto: esReembolso ? Math.abs(reembolso || costo) : -Math.abs(costo),
+        saldo_antes: null,
+        saldo_despues: null,
+        estatus: row.estatus || "",
+        fecha: row.fecha || row.created_at || null,
+        origen: row.raw_data?.origen || "Dashboard"
+      };
+    });
+
+    const pagoMovements = (pagoRows || []).filter((row) => {
+      const ref = String(row.firebase_id || row.id || "");
+      return !ref || !ledgerRefs.has(ref);
+    }).map((row) => ({
+      id: row.firebase_id || row.id,
+      tipo_movimiento: "recarga",
+      titulo: `Recarga ${row.estatus || "reportada"}`,
+      detalle: row.rastreo ? `Rastreo: ${row.rastreo}` : "",
+      monto: Math.abs(Number(row.monto || 0)),
+      saldo_antes: null,
+      saldo_despues: null,
+      estatus: row.estatus || "pendiente",
+      fecha: row.fecha || row.created_at || null,
+      origen: "Recarga"
+    }));
+
+    const movimientos = [
+      ...ledgerMovements,
+      ...solicitudMovements,
+      ...pagoMovements
+    ]
+      .filter((m) => m.fecha)
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+      .slice(0, 100);
+
+    res.json({
+      success: true,
+      asesor: {
+        uid: auth.uid,
+        email: auth.email || asesor.email || "",
+        nombre: asesor.nombre || ""
+      },
+      saldo: Number(asesor.saldo_actual || 0),
+      movimientos
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.get("/api/v1/dashboard/services", async (req, res) => {
   try {
     await authenticateDashboardUser(req);
