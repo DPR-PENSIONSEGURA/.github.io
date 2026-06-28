@@ -873,6 +873,8 @@ class="admin-menu-btn solo-admin relative">
 
         window.logoutStaff = function () {
             localStorage.removeItem('staffSession');
+            sessionStorage.removeItem('dpr_staff_token');
+            sessionStorage.removeItem('dpr_admin_token');
             window.location.href = 'staff-login.html';
         };
 
@@ -966,14 +968,16 @@ class="admin-menu-btn solo-admin relative">
         }
 
         async function adminApi(path, options = {}) {
-            const token = obtenerAdminToken();
-            if (!token) throw new Error('Falta token admin.');
+            const staffToken = sessionStorage.getItem('dpr_staff_token') || '';
+            const token = sessionStorage.getItem('dpr_admin_token') || (miSesion.role === 'admin' ? obtenerAdminToken() : '');
+            if (!token && !staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
 
             const res = await fetch(`${ADMIN_API_BASE}${path}`, {
                 ...options,
                 headers: {
                     "Content-Type": "application/json",
-                    "x-admin-token": token,
+                    ...(token ? { "x-admin-token": token } : {}),
+                    ...(staffToken ? { "Authorization": `Bearer ${staffToken}` } : {}),
                     ...(options.headers || {})
                 }
             });
@@ -981,6 +985,10 @@ class="admin-menu-btn solo-admin relative">
             const data = await res.json().catch(() => ({}));
             if (!res.ok || data.success === false) {
                 if (data.error_code === 'INVALID_ADMIN_TOKEN') sessionStorage.removeItem('dpr_admin_token');
+                if (['INVALID_STAFF_TOKEN', 'STAFF_TOKEN_EXPIRED', 'STAFF_TOKEN_REQUIRED'].includes(data.error_code)) {
+                    sessionStorage.removeItem('dpr_staff_token');
+                    localStorage.removeItem('staffSession');
+                }
                 throw new Error(data.message || `Error ${res.status}`);
             }
             return data;
@@ -1848,11 +1856,15 @@ class="admin-menu-btn solo-admin relative">
                 const curpTabla = s.curp || extraTabla.curp;
                 const nssTabla = s.nss || extraTabla.nss;
                 const nombreTabla = extraTabla.nombre_completo || extraTabla.nombre_cliente || '';
+                const variablesExtraTabla = obtenerVariablesVisiblesSolicitud(s);
 
                 let info = `<div class="font-black text-slate-800 uppercase truncate w-48">${s.nombre_asesor || 'S/N'}</div>`;
                 if (nombreTabla && nombreTabla !== 'N/A') info += `<div class="text-[9px] text-emerald-600 font-bold uppercase truncate w-48">CLIENTE: ${nombreTabla}</div>`;
                 if (curpTabla && curpTabla !== 'N/A') info += `<div class="text-[9px] text-blue-600 font-bold uppercase">CURP: ${curpTabla}</div>`;
                 if (nssTabla && nssTabla !== 'N/A') info += `<div class="text-[9px] text-slate-500 font-bold uppercase">NSS: ${nssTabla}</div>`;
+                if (variablesExtraTabla.length) {
+                    info += `<button type="button" onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-1 text-[8px] font-black uppercase text-emerald-700">👁️ Ver datos (${variablesExtraTabla.length})</button>`;
+                }
 
                 const estatusActual = String(s.estatus || '');
                 const estatusUpper = estatusActual.toUpperCase();
@@ -2027,7 +2039,20 @@ class="admin-menu-btn solo-admin relative">
             consultorio: 'Consultorio',
             patron: 'Patrón',
             puesto: 'Puesto',
-            dias_incapacidad: 'Días de incapacidad'
+            dias_incapacidad: 'Días de incapacidad',
+            rfc: 'RFC',
+            idcif: 'IDCIF',
+            num_servicio: 'Número de servicio CFE',
+            numero_servicio: 'Número de servicio CFE',
+            servicio_cfe: 'Servicio CFE',
+            telefono: 'Teléfono',
+            correo: 'Correo',
+            pass: 'Contraseña actual',
+            pass_nueva: 'Contraseña nueva',
+            curp_beneficiario: 'CURP beneficiario',
+            nombre_beneficiario: 'Nombre beneficiario',
+            credito: 'Crédito',
+            nss_beneficiario: 'NSS beneficiario'
         };
 
         const ORDEN_VARIABLES_IMSS = [
@@ -2055,7 +2080,23 @@ class="admin-menu-btn solo-admin relative">
         function obtenerBolsaVariablesExtra(data) {
             const detalles = data.detalles_extra || {};
             const variables = data.variables_extra || data.variablesExtra || data.extra || {};
-            return { ...variables, ...detalles };
+            const camposDirectos = {};
+            Object.keys(LABELS_VARIABLES_EXTRA).forEach(key => {
+                if (data && data[key] !== undefined) camposDirectos[key] = data[key];
+            });
+            return { ...camposDirectos, ...variables, ...detalles };
+        }
+
+        function obtenerVariablesVisiblesSolicitud(data) {
+            const bolsa = obtenerBolsaVariablesExtra(data || {});
+            const ignoradas = new Set(['curp', 'nss', 'nombre_cliente', 'nombre_completo']);
+            return Object.entries(bolsa)
+                .filter(([key, value]) => {
+                    if (String(key).startsWith('file_')) return false;
+                    if (ignoradas.has(String(key))) return false;
+                    return Boolean(limpiarValorExtra(value));
+                })
+                .map(([key, valor]) => ({ key, valor: limpiarValorExtra(valor) }));
         }
 
 
