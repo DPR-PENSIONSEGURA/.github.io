@@ -1669,6 +1669,66 @@ app.post("/api/v1/admin/panel/requests/:id/refund", async (req, res) => {
   }
 });
 
+app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const id = req.params.id;
+    const solicitud = await getSupabaseSolicitudByPanelId(id);
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    const body = req.body || {};
+    const archivoFinal = normalizeString(
+      body.archivo_final ||
+      body.archivoFinal ||
+      body.document_url ||
+      body.url ||
+      body.link
+    );
+
+    if (!archivoFinal) {
+      const error = new Error("Falta la URL del documento final.");
+      error.statusCode = 400;
+      error.errorCode = "FINAL_DOCUMENT_URL_REQUIRED";
+      throw error;
+    }
+
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const estatus = normalizeString(body.estatus || "Terminado") || "Terminado";
+    const now = new Date().toISOString();
+
+    const updated = await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        archivo_final: archivoFinal,
+        estatus,
+        finalizado: true,
+        raw_data: {
+          ...currentRaw,
+          archivoFinal,
+          archivo_final: archivoFinal,
+          n8n_documento_subido: true,
+          n8n_fecha_documento: now,
+          n8n_origen: normalizeString(body.origen || "n8n")
+        }
+      })
+    });
+
+    res.json({
+      success: true,
+      request: mapSupabaseAdminSolicitud(updated?.[0] || solicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.get("/api/v1/dashboard/balance", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
