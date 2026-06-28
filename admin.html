@@ -1367,6 +1367,40 @@ class="admin-menu-btn solo-admin relative">
             return miSesion.role === 'admin' || !lockVigente(s) || tomadoPorMi(s);
         }
 
+        function tipoVisualEstatus(estatus) {
+            const e = String(estatus || '').toLowerCase();
+            if (e.includes('terminado') || e.includes('finalizado') || e.includes('terminada')) return 'ok';
+            if (
+                e.includes('err') ||
+                e.includes('incorrect') ||
+                e.includes('inconsist') ||
+                e.includes('ilegible') ||
+                e.includes('foto') ||
+                e.includes('no existe') ||
+                e.includes('no fue encontrada') ||
+                e.includes('soporte') ||
+                e.includes('contrase') ||
+                e.includes('limite') ||
+                e.includes('límite') ||
+                e.includes('imss')
+            ) return 'error';
+            return 'proceso';
+        }
+
+        function claseSelectEstatus(estatus) {
+            const tipo = tipoVisualEstatus(estatus);
+            if (tipo === 'ok') return 'bg-emerald-50 border-emerald-300 text-emerald-700';
+            if (tipo === 'error') return 'bg-red-50 border-red-300 text-red-700';
+            return 'bg-white border-slate-200 text-slate-800';
+        }
+
+        function iconoEstatus(estatus) {
+            const tipo = tipoVisualEstatus(estatus);
+            if (tipo === 'ok') return '<span title="Terminado" class="inline-flex w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></span>';
+            if (tipo === 'error') return '<span title="Error" class="inline-flex w-3 h-3 rounded-full bg-red-500 shadow-sm"></span>';
+            return '<span title="En proceso" class="inline-flex w-3 h-3 rounded-full bg-slate-200 shadow-sm"></span>';
+        }
+
         function esSemanasCotizadas(s) {
             const tipo = String(s.tipo || '').toLowerCase();
             return tipo.includes('semana');
@@ -1801,12 +1835,14 @@ class="admin-menu-btn solo-admin relative">
             tabla.innerHTML = '';
 
             docsArray.forEach(s => {
-                const fStr = s.fecha?.toDate?.().toLocaleString('es-MX', {
+                const fechaSolicitud = fechaDateCampo(s.fecha);
+                const fStr = fechaSolicitud?.toLocaleString('es-MX', {
                     day: '2-digit',
                     month: '2-digit',
+                    year: '2-digit',
                     hour: '2-digit',
                     minute: '2-digit'
-                }) || '...';
+                }) || 'Sin fecha';
 
                 const extraTabla = obtenerBolsaVariablesExtra(s);
                 const curpTabla = s.curp || extraTabla.curp;
@@ -1820,6 +1856,8 @@ class="admin-menu-btn solo-admin relative">
 
                 const estatusActual = String(s.estatus || '');
                 const estatusUpper = estatusActual.toUpperCase();
+                const claseEstatus = claseSelectEstatus(estatusActual);
+                const estadoVisual = iconoEstatus(estatusActual);
 
                 const esError = esDocumentoConError(s);
 
@@ -1858,18 +1896,21 @@ class="admin-menu-btn solo-admin relative">
                         </td>
 
                         <td class="p-4 text-center">
-                            <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase bg-white outline-none">
-                                <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}> EN PROCESO</option>
-                                <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}> TERMINADO</option>
-                                <option value="ERR_NSS_CURP" ${(estatusActual.includes('CURP') || estatusActual.includes('NSS')) ? 'selected' : ''}> CURP / NSS INCORRECTO</option>
-                                <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}> INCONSISTENCIAS EN DATOS</option>
-                                <option value="ERR_FOTOS" ${(estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles')) ? 'selected' : ''}> FOTOS ILEGIBLES</option>
-                                <option value="ERR_INEXISTENTE" ${(estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada')) ? 'selected' : ''}> DOCUMENTO NO ENCONTRADO</option>
-                                <option value="ERR_SOPORTE" ${estatusActual.toLowerCase().includes('soporte técnico') ? 'selected' : ''}> SOPORTE TECNICO</option>
-                                <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}> CONTRASEÑA INCORRECTA</option>
-                                <option value="ERR_LIMITE" ${(estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta')) ? 'selected' : ''}> LÍMITE DE CONSULTAS</option>
-                                <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}> FALLA DEL SISTEMA IMSS</option>
-                            </select>
+                            <div class="inline-flex items-center gap-2">
+                                ${estadoVisual}
+                                <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none ${claseEstatus}">
+                                    <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}> EN PROCESO</option>
+                                    <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}> TERMINADO</option>
+                                    <option value="ERR_NSS_CURP" ${(estatusActual.includes('CURP') || estatusActual.includes('NSS')) ? 'selected' : ''}> CURP / NSS INCORRECTO</option>
+                                    <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}> INCONSISTENCIAS EN DATOS</option>
+                                    <option value="ERR_FOTOS" ${(estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles')) ? 'selected' : ''}> FOTOS ILEGIBLES</option>
+                                    <option value="ERR_INEXISTENTE" ${(estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada')) ? 'selected' : ''}> DOCUMENTO NO ENCONTRADO</option>
+                                    <option value="ERR_SOPORTE" ${estatusActual.toLowerCase().includes('soporte técnico') ? 'selected' : ''}> SOPORTE TECNICO</option>
+                                    <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}> CONTRASEÑA INCORRECTA</option>
+                                    <option value="ERR_LIMITE" ${(estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta')) ? 'selected' : ''}> LÍMITE DE CONSULTAS</option>
+                                    <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}> FALLA DEL SISTEMA IMSS</option>
+                                </select>
+                            </div>
                         </td>
 
                         ${celdaReembolso}
@@ -1908,6 +1949,7 @@ class="admin-menu-btn solo-admin relative">
                             }
                         })
                     });
+                    await cargarSolicitudesAdminDesdeBackend();
                     alert('Estatus actualizado');
                     return;
                 }
@@ -1921,6 +1963,7 @@ class="admin-menu-btn solo-admin relative">
                             raw_data: { bloqueado: true }
                         })
                     });
+                    await cargarSolicitudesAdminDesdeBackend();
                     alert(' Ya estaba reembolsado');
                     return;
                 }
@@ -1938,6 +1981,7 @@ class="admin-menu-btn solo-admin relative">
                 });
 
                 alert(` DEVOLUCIÓN AUTOMÁTICA APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
+                await cargarSolicitudesAdminDesdeBackend();
             } catch (e) {
                 console.error(e);
                 alert(e.message || 'Error al procesar estatus/devolución');
