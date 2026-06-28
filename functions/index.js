@@ -1729,6 +1729,142 @@ app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
   }
 });
 
+function solicitudCoincideConDocumentoN8n(solicitud, body) {
+  const raw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+  const detalles = solicitud.detalles_extra && typeof solicitud.detalles_extra === "object" ? solicitud.detalles_extra : {};
+  const cuestionario = solicitud.cuestionario && typeof solicitud.cuestionario === "object" ? solicitud.cuestionario : {};
+  const bolsa = {
+    ...raw,
+    ...detalles,
+    ...cuestionario,
+    curp: solicitud.curp || raw.curp || detalles.curp || cuestionario.curp,
+    nss: solicitud.nss || raw.nss || detalles.nss || cuestionario.nss,
+    rfc: solicitud.rfc || raw.rfc || detalles.rfc || cuestionario.rfc
+  };
+
+  const curp = normalizeString(body.curp).toUpperCase();
+  const rfc = normalizeString(body.rfc).toUpperCase();
+  const nss = normalizeString(body.nss);
+  const valorDetectado = normalizeString(body.valorDetectado).toUpperCase();
+  const idCorto = normalizeString(body.idCorto).toUpperCase();
+
+  const valoresSolicitud = Object.values(bolsa)
+    .map((value) => normalizeString(value).toUpperCase())
+    .filter(Boolean);
+
+  if (curp && valoresSolicitud.includes(curp)) return true;
+  if (rfc && valoresSolicitud.includes(rfc)) return true;
+  if (nss && valoresSolicitud.includes(nss)) return true;
+  if (valorDetectado && valoresSolicitud.includes(valorDetectado)) return true;
+  if (idCorto && valoresSolicitud.some((value) => value.startsWith(idCorto) || value.includes(idCorto))) return true;
+  return false;
+}
+
+app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
+  try {
+    validateAdminToken(req);
+
+    const body = req.body || {};
+    const archivoFinal = normalizeString(
+      body.archivo_final ||
+      body.archivoFinal ||
+      body.document_url ||
+      body.url ||
+      body.link
+    );
+
+    if (!archivoFinal) {
+      const error = new Error("Falta la URL del documento final.");
+      error.statusCode = 400;
+      error.errorCode = "FINAL_DOCUMENT_URL_REQUIRED";
+      throw error;
+    }
+
+    const hasSearchKey = [
+      body.curp,
+      body.rfc,
+      body.nss,
+      body.valorDetectado,
+      body.idCorto
+    ].some((value) => Boolean(normalizeString(value)));
+
+    if (!hasSearchKey) {
+      const error = new Error("Falta CURP, RFC, NSS o idCorto para localizar la solicitud.");
+      error.statusCode = 400;
+      error.errorCode = "N8N_LOOKUP_KEY_REQUIRED";
+      throw error;
+    }
+
+    const rows = await supabaseRequest(
+      "solicitudes?select=*&order=fecha.desc&limit=1000"
+    );
+
+    const candidatos = (rows || [])
+      .filter(isMeaningfulAdminSolicitud)
+      .filter((row) => {
+        const estatus = normalizeForCompare(row.estatus || row.raw_data?.estatus || "");
+        const archivoActual = normalizeString(row.archivo_final || row.raw_data?.archivo_final || row.raw_data?.archivoFinal);
+        if (archivoActual) return false;
+        if (row.finalizado === true && estatus.includes("termin")) return false;
+        return solicitudCoincideConDocumentoN8n(row, body);
+      });
+
+    if (!candidatos.length) {
+      const error = new Error("No se encontro una solicitud pendiente que coincida con el documento.");
+      error.statusCode = 404;
+      error.errorCode = "N8N_REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    if (candidatos.length > 1) {
+      console.warn("n8n final-document resolve encontro multiples candidatos; se usara el mas reciente", {
+        total: candidatos.length,
+        ids: candidatos.slice(0, 5).map((row) => row.firebase_id || row.id)
+      });
+    }
+
+    const solicitud = candidatos[0];
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const estatus = normalizeString(body.estatus || "Terminado") || "Terminado";
+    const now = new Date().toISOString();
+    const id = solicitud.firebase_id || solicitud.id;
+
+    const updated = await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        archivo_final: archivoFinal,
+        estatus,
+        finalizado: true,
+        raw_data: {
+          ...currentRaw,
+          archivoFinal,
+          archivo_final: archivoFinal,
+          n8n_documento_subido: true,
+          n8n_fecha_documento: now,
+          n8n_origen: normalizeString(body.origen || "n8n"),
+          n8n_resuelto_por: {
+            curp: normalizeString(body.curp),
+            rfc: normalizeString(body.rfc),
+            nss: normalizeString(body.nss),
+            valorDetectado: normalizeString(body.valorDetectado),
+            idCorto: normalizeString(body.idCorto)
+          }
+        }
+      })
+    });
+
+    res.json({
+      success: true,
+      resolved_id: id,
+      matched_count: candidatos.length,
+      request: mapSupabaseAdminSolicitud(updated?.[0] || solicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.get("/api/v1/dashboard/balance", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
