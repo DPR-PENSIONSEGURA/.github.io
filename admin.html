@@ -1288,18 +1288,22 @@ class="admin-menu-btn solo-admin relative">
             await deleteDoc(doc(db, 'accesos_crm', id));
         };
 
-        onSnapshot(query(collection(db, 'solicitudes'), orderBy('fecha', 'desc'), limit(3500)), (snap) => {
+        async function cargarSolicitudesAdminDesdeBackend() {
+            try {
+                const data = await adminApi('/api/v1/admin/panel/requests?limit=3500');
+                const rows = Array.isArray(data.requests) ? data.requests : [];
+                cacheSolicitudes = rows;
+                metricasListas = true;
             todasLasSoliCargadas = [];
             let ganancia = 0;
             let pendientes = 0;
             const hoy = new Date();
 
-            snap.forEach(d => {
-                const data = { id: d.id, ...d.data() };
-                todasLasSoliCargadas.push(data);
+                rows.forEach(data => {
+                    todasLasSoliCargadas.push(data);
 
                 const estatus = String(data.estatus || '').trim().toLowerCase();
-                const fechaBase = fechaSolicitudTerminada(data) || data.fecha?.toDate?.();
+                    const fechaBase = fechaSolicitudTerminada(data) || fechaDateCampo(data.fecha);
                 const esVentaValida = (estatus === 'terminado' || estatus === 'finalizado' || data.finalizado === true) && !esDocumentoConError(data) && data.reembolsado !== true;
 
                 if (estatus === 'en proceso' && usuarioPuedeVerTramite(data)) pendientes++;
@@ -1320,7 +1324,17 @@ class="admin-menu-btn solo-admin relative">
             window.renderCorteOperadores?.();
             window.renderVentaDirecta?.();
             window.cargarReportesAdmin?.();
-        });
+            } catch (error) {
+                console.error('Error cargando solicitudes admin desde Supabase:', error);
+                const tabla = document.getElementById('tablaSolicitudes');
+                if (tabla) {
+                    tabla.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-600 font-black uppercase">No se pudieron cargar solicitudes: ${error.message || error}</td></tr>`;
+                }
+            }
+        }
+
+        cargarSolicitudesAdminDesdeBackend();
+        setInterval(cargarSolicitudesAdminDesdeBackend, 20000);
 
 
         function fechaMsCampo(campo) {
@@ -1328,6 +1342,14 @@ class="admin-menu-btn solo-admin relative">
             if (campo.toDate) return campo.toDate().getTime();
             const d = new Date(campo);
             return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+
+        function fechaDateCampo(campo) {
+            if (!campo) return null;
+            if (campo.toDate) return campo.toDate();
+            if (campo instanceof Date) return campo;
+            const d = new Date(campo);
+            return Number.isNaN(d.getTime()) ? null : d;
         }
 
         function lockVigente(s) {
@@ -1403,7 +1425,7 @@ class="admin-menu-btn solo-admin relative">
         }
 
         function fechaSolicitudTerminada(s) {
-            return s.fecha_terminado?.toDate?.() || s.fecha_finalizado?.toDate?.() || s.fechaTerminado?.toDate?.() || s.fecha?.toDate?.() || null;
+            return fechaDateCampo(s.fecha_terminado) || fechaDateCampo(s.fecha_finalizado) || fechaDateCampo(s.fechaTerminado) || fechaDateCampo(s.fecha) || null;
         }
 
         function operadorSolicitud(s) {
@@ -1445,7 +1467,6 @@ class="admin-menu-btn solo-admin relative">
         }
 
         window.tomarSolicitud = async (id) => {
-            const ref = doc(db, 'solicitudes', id);
             const respaldoLocal = todasLasSoliCargadas.find(item => String(item.id) === String(id));
             actualizarSolicitudLocalRapida(id, {
                 tomado_uid: staffUid,
@@ -1457,29 +1478,27 @@ class="admin-menu-btn solo-admin relative">
                 estatus_operativo: 'Tomada'
             });
             try {
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(ref);
-                    if (!snap.exists()) throw new Error('La solicitud no existe');
+                const s = respaldoLocal || {};
+                const base = fechaMsCampo(s.ultima_actividad || s.fecha_tomado);
+                const vigente = s.tomado_uid && (!base || (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000));
 
-                    const s = snap.data();
-                    const base = fechaMsCampo(s.ultima_actividad || s.fecha_tomado);
-                    const vigente = s.tomado_uid && (!base || (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000));
+                if (vigente && String(s.tomado_uid) !== staffUid && miSesion.role !== 'admin') {
+                    throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
+                }
 
-                    if (vigente && String(s.tomado_uid) !== staffUid && miSesion.role !== 'admin') {
-                        throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
-                    }
-
-                    const payloadSolicitud = {
+                await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        raw_data: {
                         tomado_uid: staffUid,
                         tomado_nombre: staffNombre,
                         tomado_role: staffRol,
-                        fecha_tomado: serverTimestamp(),
-                        ultima_actividad: serverTimestamp(),
+                            fecha_tomado: new Date().toISOString(),
+                            ultima_actividad: new Date().toISOString(),
                         lock_activo: true,
                         estatus_operativo: 'Tomada'
-                    };
-
-                    tx.update(ref, payloadSolicitud);
+                        }
+                    })
                 });
             } catch (e) {
                 if (respaldoLocal) actualizarSolicitudLocalRapida(id, respaldoLocal);
@@ -1488,26 +1507,34 @@ class="admin-menu-btn solo-admin relative">
         };
 
         window.liberarSolicitud = async (id) => {
-            const ref = doc(db, 'solicitudes', id);
             try {
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(ref);
-                    if (!snap.exists()) throw new Error('La solicitud no existe');
+                const s = todasLasSoliCargadas.find(item => String(item.id) === String(id)) || {};
+                if (miSesion.role !== 'admin' && String(s.tomado_uid || '') !== staffUid) {
+                    throw new Error('Solo puede liberar la solicitud quien la tomó o un admin.');
+                }
 
-                    const s = snap.data();
-                    if (miSesion.role !== 'admin' && String(s.tomado_uid || '') !== staffUid) {
-                        throw new Error('Solo puede liberar la solicitud quien la tomó o un admin.');
-                    }
-
-                    tx.update(ref, {
+                await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        raw_data: {
                         tomado_uid: '',
                         tomado_nombre: '',
                         tomado_role: '',
                         lock_activo: false,
                         estatus_operativo: 'Libre',
                         liberada_por: staffNombre,
-                        fecha_liberacion: serverTimestamp()
-                    });
+                            fecha_liberacion: new Date().toISOString()
+                        }
+                    })
+                });
+                actualizarSolicitudLocalRapida(id, {
+                    tomado_uid: '',
+                    tomado_nombre: '',
+                    tomado_role: '',
+                    lock_activo: false,
+                    estatus_operativo: 'Libre',
+                    liberada_por: staffNombre,
+                    fecha_liberacion: new Date()
                 });
             } catch (e) {
                 alert(e.message || 'No se pudo liberar la solicitud');
@@ -2222,10 +2249,8 @@ class="admin-menu-btn solo-admin relative">
         };
 
         window.abrirSubida = async (id) => {
-            const ref = doc(db, 'solicitudes', id);
-            const snap = await getDoc(ref);
-            if (!snap.exists()) return alert('La solicitud no existe');
-            const s = snap.data();
+            const s = todasLasSoliCargadas.find(item => String(item.id) === String(id));
+            if (!s) return alert('La solicitud no existe');
 
             if (!puedeOperarSolicitud(s)) {
                 return alert(`Esta solicitud ya está tomada por ${s.tomado_nombre || 'otro operador'}.`);
@@ -2234,7 +2259,12 @@ class="admin-menu-btn solo-admin relative">
             if (!s.tomado_uid) {
                 await window.tomarSolicitud(id);
             } else {
-                await updateDoc(ref, { ultima_actividad: serverTimestamp() });
+                await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        raw_data: { ultima_actividad: new Date().toISOString() }
+                    })
+                });
             }
 
             idTramiteActual = id;
@@ -2262,20 +2292,27 @@ class="admin-menu-btn solo-admin relative">
                 const data = await res.json();
 
                 if (data.secure_url) {
-                    await updateDoc(doc(db, 'solicitudes', idTramiteActual), {
-                        archivoFinal: data.secure_url,
+                    await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(idTramiteActual)}/status`, {
+                        method: "POST",
+                        body: JSON.stringify({
+                        archivo_final: data.secure_url,
                         estatus: 'Terminado',
                         finalizado: true,
-                        lock_activo: false,
-                        estatus_operativo: 'Terminada',
-                        terminado_por_uid: staffUid,
-                        terminado_por_nombre: staffNombre,
-                        terminado_por_role: staffRol,
-                        fecha_finalizado: serverTimestamp(),
-                        ultima_actividad: serverTimestamp(),
-                        cuenta_productividad: true
+                            raw_data: {
+                                archivoFinal: data.secure_url,
+                                lock_activo: false,
+                                estatus_operativo: 'Terminada',
+                                terminado_por_uid: staffUid,
+                                terminado_por_nombre: staffNombre,
+                                terminado_por_role: staffRol,
+                                fecha_finalizado: new Date().toISOString(),
+                                ultima_actividad: new Date().toISOString(),
+                                cuenta_productividad: true
+                            }
+                        })
                     });
                     window.cerrarModales();
+                    await cargarSolicitudesAdminDesdeBackend();
                     alert(' Trámite terminado.');
                 }
             } catch (e) {
@@ -2793,19 +2830,7 @@ class="admin-menu-btn solo-admin relative">
         configurarEncabezadoSolicitudes();
         let cacheSolicitudes = [];
         let metricasListas = false;
-        onSnapshot(
-            query(collection(db,'solicitudes'), orderBy('fecha','desc'), limit(3500)),
-            snap => {
-                cacheSolicitudes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                metricasListas = true;
-                cargarReportesAdmin?.();
-                renderVentaDirecta?.();
-            },
-            error => {
-                console.error('Error cargando solicitudes para métricas:', error);
-                metricasListas = false;
-            }
-        );
+        metricasListas = true;
         window.abrirModalReportes = () => {
             document.getElementById('modalReportes').classList.remove('hidden');
             cargarReportesAdmin();
