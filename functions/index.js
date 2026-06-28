@@ -113,6 +113,82 @@ function mapSupabaseSolicitud(row) {
   };
 }
 
+function mapSupabaseAdminSolicitud(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  return {
+    ...raw,
+    id: row.firebase_id || row.id,
+    supabase_id: row.id,
+    firebase_id: row.firebase_id || "",
+    asesor_uid: row.firebase_uid,
+    firebase_uid: row.firebase_uid,
+    nombre_asesor: row.email || raw.nombre_asesor || raw.email || "",
+    email: row.email || raw.email || "",
+    tipo: row.tipo || raw.tipo || "",
+    costo: Number(row.costo || raw.costo || 0),
+    estatus: row.estatus || raw.estatus || "",
+    finalizado: row.finalizado === true || raw.finalizado === true,
+    reembolsado: row.reembolsado === true || raw.reembolsado === true,
+    monto_reembolsado: Number(row.monto_reembolsado || raw.monto_reembolsado || 0),
+    curp: row.curp || raw.curp || "",
+    nss: row.nss || raw.nss || "",
+    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || "",
+    fecha: row.fecha || row.created_at || raw.fecha || null,
+    fecha_terminado: raw.fecha_terminado || raw.fechaTerminado || null,
+    fecha_finalizado: raw.fecha_finalizado || null,
+    detalles_extra: row.detalles_extra || raw.detalles_extra || {},
+    cuestionario: row.cuestionario || raw.cuestionario || {},
+    origen: raw.origen || "Portal"
+  };
+}
+
+function isMeaningfulAdminSolicitud(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const values = [
+    row.tipo,
+    row.email,
+    row.curp,
+    row.nss,
+    raw.tipo,
+    raw.email,
+    raw.nombre_asesor,
+    raw.nombre_cliente,
+    raw.curp,
+    raw.nss
+  ];
+  return values.some((value) => {
+    const text = normalizeString(value);
+    return text && text !== "N/A" && text !== "..." && text.toUpperCase() !== "S/N";
+  });
+}
+
+function mapSupabaseRecharge(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  return {
+    id: row.firebase_id || row.id,
+    uid: row.firebase_uid || raw.uid || raw.asesor_uid || "",
+    asesor_uid: row.firebase_uid || raw.asesor_uid || raw.uid || "",
+    asesorEmail: row.email || raw.asesorEmail || raw.email || "",
+    email: row.email || raw.email || raw.asesorEmail || "",
+    monto: Number(row.monto || 0),
+    rastreo: row.rastreo || raw.rastreo || "",
+    comprobante: row.comprobante_url || raw.comprobante || raw.comprobante_url || "",
+    estatus: row.estatus || raw.estatus || "pendiente",
+    fecha: row.fecha || row.created_at || raw.fecha || null
+  };
+}
+
+function isMeaningfulRecharge(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const monto = Number(row.monto || raw.monto || 0);
+  const rastreo = normalizeString(row.rastreo || raw.rastreo).toUpperCase();
+  const email = normalizeString(row.email || raw.email || raw.asesorEmail);
+  const comprobante = normalizeString(row.comprobante_url || raw.comprobante || raw.comprobante_url);
+  const hasReference = rastreo && rastreo !== "N/A" && rastreo !== "..." && rastreo !== "S/N";
+  const hasOwner = email && email !== "N/A" && email !== "..." && email.toUpperCase() !== "S/N";
+  return Number.isFinite(monto) && monto > 0 && (hasReference || hasOwner || comprobante);
+}
+
 function mapSupabaseChat(row) {
   return {
     id: row.firebase_id || row.id,
@@ -1074,6 +1150,364 @@ app.post("/api/v1/dashboard/bootstrap", async (req, res) => {
         nombre: auth.asesor.nombre || "",
         saldo: Number(auth.asesor.saldo_actual || 0)
       }
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+async function getSupabaseRechargeByPanelId(id) {
+  const encodedId = supabaseEq(id);
+  let rows = await supabaseRequest(
+    `notificaciones_pago?firebase_id=eq.${encodedId}&select=*&limit=1`
+  );
+  if (rows?.[0]) return rows[0];
+
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id))) {
+    rows = await supabaseRequest(
+      `notificaciones_pago?id=eq.${encodedId}&select=*&limit=1`
+    );
+  }
+  return rows?.[0] || null;
+}
+
+function supabaseRechargeFilterByPanelId(id) {
+  const encodedId = supabaseEq(id);
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id))) {
+    return `or=(firebase_id.eq.${encodedId},id.eq.${encodedId})`;
+  }
+  return `firebase_id=eq.${encodedId}`;
+}
+
+app.get("/api/v1/admin/panel/recharges", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const rows = await supabaseRequest(
+      `notificaciones_pago?select=*&order=fecha.desc&limit=${limitValue}`
+    );
+
+    res.json({
+      success: true,
+      rows: (rows || []).filter(isMeaningfulRecharge).map(mapSupabaseRecharge)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.delete("/api/v1/admin/panel/recharges/:id", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const id = req.params.id;
+    const recharge = await getSupabaseRechargeByPanelId(id);
+
+    if (!recharge) {
+      const error = new Error("Recarga no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "RECHARGE_NOT_FOUND";
+      throw error;
+    }
+
+    if (normalizeForCompare(recharge.estatus).includes("aprob")) {
+      const error = new Error("No se puede borrar una recarga aprobada.");
+      error.statusCode = 400;
+      error.errorCode = "APPROVED_RECHARGE_DELETE_BLOCKED";
+      throw error;
+    }
+
+    await supabaseRequest(`notificaciones_pago?${supabaseRechargeFilterByPanelId(id)}`, {
+      method: "DELETE",
+      headers: { Prefer: "return=minimal" }
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/recharges/:id/approve", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const id = req.params.id;
+    const recharge = await getSupabaseRechargeByPanelId(id);
+
+    if (!recharge) {
+      const error = new Error("Recarga no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "RECHARGE_NOT_FOUND";
+      throw error;
+    }
+
+    if (normalizeForCompare(recharge.estatus).includes("aprob")) {
+      res.json({
+        success: true,
+        already_approved: true,
+        monto: Number(recharge.monto || 0)
+      });
+      return;
+    }
+
+    const monto = Number(recharge.monto || 0);
+    if (!Number.isFinite(monto) || monto <= 0) {
+      const error = new Error("Monto de recarga invalido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_RECHARGE_AMOUNT";
+      throw error;
+    }
+
+    const rastreo = normalizeString(recharge.rastreo).toUpperCase();
+    if (rastreo) {
+      const aprobadasMismoRastreo = await supabaseRequest(
+        `notificaciones_pago?rastreo=eq.${supabaseEq(rastreo)}&estatus=ilike.*aprob*&select=id,firebase_id,email,monto&limit=5`
+      );
+      const duplicada = (aprobadasMismoRastreo || []).find((row) => {
+        return String(row.id) !== String(recharge.id) && String(row.firebase_id || "") !== String(recharge.firebase_id || "");
+      });
+      if (duplicada) {
+        const error = new Error(`Ya existe una recarga aprobada con ese rastreo (${rastreo}).`);
+        error.statusCode = 409;
+        error.errorCode = "DUPLICATE_APPROVED_TRACKING";
+        throw error;
+      }
+    }
+
+    const uid = recharge.firebase_uid || recharge.raw_data?.uid || recharge.raw_data?.asesor_uid || "";
+    if (!uid) {
+      const error = new Error("La recarga no tiene UID de asesor.");
+      error.statusCode = 400;
+      error.errorCode = "RECHARGE_UID_MISSING";
+      throw error;
+    }
+
+    const asesor = await getSupabaseAsesorByUid(uid);
+    if (!asesor) {
+      const error = new Error("No se encontro el asesor de la recarga.");
+      error.statusCode = 404;
+      error.errorCode = "ASESOR_NOT_FOUND";
+      throw error;
+    }
+
+    const saldoAntes = Number(asesor.saldo_actual || 0);
+    const saldoDespues = saldoAntes + monto;
+    const now = new Date().toISOString();
+    const raw = recharge.raw_data && typeof recharge.raw_data === "object" ? recharge.raw_data : {};
+
+    await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(uid)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ saldo_actual: saldoDespues })
+    });
+
+    await supabaseRequest(`notificaciones_pago?${supabaseRechargeFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        estatus: "aprobado",
+        raw_data: {
+          ...raw,
+          aprobado: true,
+          fecha_aprobacion: now,
+          aprobado_por: "admin_panel",
+          saldo_anterior: saldoAntes,
+          saldo_nuevo: saldoDespues
+        }
+      })
+    });
+
+    await insertSupabaseMovimientoSaldo({
+      firebase_uid: uid,
+      email: recharge.email || asesor.email || raw.asesorEmail || "",
+      tipo: "recarga",
+      monto,
+      saldo_antes: saldoAntes,
+      saldo_despues: saldoDespues,
+      descripcion: rastreo ? `Recarga aprobada: ${rastreo}` : "Recarga aprobada",
+      referencia_tipo: "notificacion_pago",
+      referencia_id: recharge.firebase_id || recharge.id,
+      origen: "admin_panel",
+      fecha_movimiento: now
+    });
+
+    res.json({
+      success: true,
+      monto,
+      saldo_anterior: saldoAntes,
+      saldo_nuevo: saldoDespues
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+async function getSupabaseSolicitudByPanelId(id) {
+  const encodedId = supabaseEq(id);
+  let rows = await supabaseRequest(
+    `solicitudes?firebase_id=eq.${encodedId}&select=*&limit=1`
+  );
+  if (rows?.[0]) return rows[0];
+
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id))) {
+    rows = await supabaseRequest(
+      `solicitudes?id=eq.${encodedId}&select=*&limit=1`
+    );
+  }
+  return rows?.[0] || null;
+}
+
+function supabaseSolicitudFilterByPanelId(id) {
+  const encodedId = supabaseEq(id);
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id))) {
+    return `or=(firebase_id.eq.${encodedId},id.eq.${encodedId})`;
+  }
+  return `firebase_id=eq.${encodedId}`;
+}
+
+app.get("/api/v1/admin/panel/requests", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 5000);
+    const rows = await supabaseRequest(
+      `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
+    );
+
+    res.json({
+      success: true,
+      requests: (rows || []).filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const id = req.params.id;
+    const solicitud = await getSupabaseSolicitudByPanelId(id);
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    const body = req.body || {};
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const incomingRaw = body.raw_data && typeof body.raw_data === "object" ? body.raw_data : {};
+    const now = new Date().toISOString();
+    const finalizado = body.finalizado === true;
+
+    const payload = {
+      raw_data: {
+        ...currentRaw,
+        ...incomingRaw,
+        actualizado_admin: now
+      }
+    };
+
+    if (body.estatus !== undefined) payload.estatus = normalizeString(body.estatus);
+    if (body.finalizado !== undefined) payload.finalizado = finalizado;
+    if (body.archivo_final !== undefined || body.archivoFinal !== undefined) {
+      payload.archivo_final = normalizeString(body.archivo_final || body.archivoFinal);
+    }
+    if (finalizado) {
+      payload.raw_data.fecha_terminado = payload.raw_data.fecha_terminado || now;
+      payload.raw_data.fecha_finalizado = payload.raw_data.fecha_finalizado || now;
+    }
+
+    await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify(payload)
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/requests/:id/refund", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const id = req.params.id;
+    const solicitud = await getSupabaseSolicitudByPanelId(id);
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    if (solicitud.reembolsado === true) {
+      res.json({
+        success: true,
+        already_refunded: true,
+        monto_reembolsado: Number(solicitud.monto_reembolsado || solicitud.costo || 0)
+      });
+      return;
+    }
+
+    const monto = Math.abs(Number(solicitud.costo || 0));
+    const asesor = await getSupabaseAsesorByUid(solicitud.firebase_uid);
+
+    if (!asesor) {
+      const error = new Error("No se encontró el asesor para reembolsar.");
+      error.statusCode = 404;
+      error.errorCode = "ASESOR_NOT_FOUND";
+      throw error;
+    }
+
+    const saldoAntes = Number(asesor.saldo_actual || 0);
+    const saldoDespues = saldoAntes + monto;
+    const now = new Date().toISOString();
+
+    await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(solicitud.firebase_uid)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ saldo_actual: saldoDespues })
+    });
+
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        reembolsado: true,
+        monto_reembolsado: monto,
+        raw_data: {
+          ...currentRaw,
+          reembolsado: true,
+          monto_reembolsado: monto,
+          fecha_reembolso: now,
+          reembolso_origen: "admin_panel"
+        }
+      })
+    });
+
+    await insertSupabaseMovimientoSaldo({
+      firebase_uid: solicitud.firebase_uid,
+      email: solicitud.email || asesor.email || "",
+      tipo: "reembolso",
+      monto,
+      saldo_antes: saldoAntes,
+      saldo_despues: saldoDespues,
+      descripcion: `Reembolso admin: ${solicitud.tipo || "tramite"}`,
+      referencia_tipo: "solicitud",
+      referencia_id: solicitud.firebase_id || solicitud.id,
+      origen: "admin_panel",
+      fecha_movimiento: now
+    });
+
+    res.json({
+      success: true,
+      monto_reembolsado: monto,
+      saldo_anterior: saldoAntes,
+      saldo_nuevo: saldoDespues
     });
   } catch (error) {
     sendError(res, error);
