@@ -822,6 +822,97 @@ function validateAdminToken(req) {
   }
 }
 
+function base64UrlEncode(value) {
+  return Buffer.from(JSON.stringify(value))
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function base64UrlDecode(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+  return JSON.parse(Buffer.from(padded, "base64").toString("utf8"));
+}
+
+function staffSessionSecret() {
+  const secret = process.env.DPR_ADMIN_TOKEN || SUPABASE_SERVICE_ROLE_KEY;
+  if (!secret) {
+    const error = new Error("No esta configurado el secreto de sesiones internas.");
+    error.statusCode = 500;
+    error.errorCode = "STAFF_SECRET_NOT_CONFIGURED";
+    throw error;
+  }
+  return secret;
+}
+
+function signStaffSession(payload) {
+  const header = base64UrlEncode({ alg: "HS256", typ: "JWT" });
+  const body = base64UrlEncode(payload);
+  const signature = crypto
+    .createHmac("sha256", staffSessionSecret())
+    .update(`${header}.${body}`)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  return `${header}.${body}.${signature}`;
+}
+
+function verifyStaffSessionToken(token) {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 3) {
+    const error = new Error("Sesion interna invalida.");
+    error.statusCode = 401;
+    error.errorCode = "INVALID_STAFF_TOKEN";
+    throw error;
+  }
+
+  const expected = crypto
+    .createHmac("sha256", staffSessionSecret())
+    .update(`${parts[0]}.${parts[1]}`)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(parts[2]);
+  if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+    const error = new Error("Sesion interna invalida.");
+    error.statusCode = 401;
+    error.errorCode = "INVALID_STAFF_TOKEN";
+    throw error;
+  }
+
+  const payload = base64UrlDecode(parts[1]);
+  if (!payload.exp || Date.now() > Number(payload.exp)) {
+    const error = new Error("Sesion interna expirada. Inicia sesion nuevamente.");
+    error.statusCode = 401;
+    error.errorCode = "STAFF_TOKEN_EXPIRED";
+    throw error;
+  }
+  return payload;
+}
+
+function validateStaffOrAdmin(req) {
+  const adminToken = req.headers["x-admin-token"];
+  if (process.env.DPR_ADMIN_TOKEN && adminToken === process.env.DPR_ADMIN_TOKEN) {
+    return { role: "admin", username: "admin", name: "Administrador" };
+  }
+
+  const authHeader = req.headers["authorization"] || "";
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  if (!token) {
+    const error = new Error("Falta token interno.");
+    error.statusCode = 401;
+    error.errorCode = "STAFF_TOKEN_REQUIRED";
+    throw error;
+  }
+  return verifyStaffSessionToken(token);
+}
+
 function normalizeForCompare(value) {
   return normalizeString(value)
     .toLowerCase()
@@ -1196,6 +1287,70 @@ app.get("/api/v1/admin/panel/recharges", async (req, res) => {
   }
 });
 
+app.post("/api/v1/admin/panel/staff-login", async (req, res) => {
+  try {
+    const username = normalizeString(req.body?.username);
+    const password = normalizeString(req.body?.password);
+
+    if (!username || !password) {
+      const error = new Error("Escribe usuario y contrasena.");
+      error.statusCode = 400;
+      error.errorCode = "STAFF_LOGIN_REQUIRED";
+      throw error;
+    }
+
+    let staff = null;
+
+    if (username === "admin" && password === "Admin2026*") {
+      staff = {
+        username: "admin",
+        role: "admin",
+        name: "Administrador DPR",
+        tramitesPermitidos: ["TODO"]
+      };
+    } else {
+      const snap = await db.collection("accesos_crm").where("username", "==", username).limit(1).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data() || {};
+        if (String(data.password || "") === password && data.activo !== false) {
+          staff = {
+            uid: snap.docs[0].id,
+            username: data.username || username,
+            role: data.role || data.area || "asesor",
+            name: data.nombre || data.name || data.username || username,
+            tramitesPermitidos: Array.isArray(data.tramitesPermitidos) ? data.tramitesPermitidos : []
+          };
+        }
+      }
+    }
+
+    if (!staff) {
+      const error = new Error("Usuario o contrasena incorrectos.");
+      error.statusCode = 401;
+      error.errorCode = "INVALID_STAFF_LOGIN";
+      throw error;
+    }
+
+    const expiresAt = Date.now() + (12 * 60 * 60 * 1000);
+    const token = signStaffSession({
+      ...staff,
+      exp: expiresAt,
+      iat: Date.now()
+    });
+
+    res.json({
+      success: true,
+      token,
+      staff: {
+        ...staff,
+        loginAt: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.delete("/api/v1/admin/panel/recharges/:id", async (req, res) => {
   try {
     validateAdminToken(req);
@@ -1366,7 +1521,7 @@ function supabaseSolicitudFilterByPanelId(id) {
 
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
-    validateAdminToken(req);
+    validateStaffOrAdmin(req);
     const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 5000);
     const rows = await supabaseRequest(
       `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
@@ -1383,7 +1538,7 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
 
 app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
   try {
-    validateAdminToken(req);
+    validateStaffOrAdmin(req);
     const id = req.params.id;
     const solicitud = await getSupabaseSolicitudByPanelId(id);
 
@@ -1432,7 +1587,7 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
 
 app.post("/api/v1/admin/panel/requests/:id/refund", async (req, res) => {
   try {
-    validateAdminToken(req);
+    validateStaffOrAdmin(req);
     const id = req.params.id;
     const solicitud = await getSupabaseSolicitudByPanelId(id);
 
