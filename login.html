@@ -319,7 +319,7 @@
 
       await updateProfile(user, { displayName: name });
 
-      window.location.href = "/dashboard/";
+      window.location.href = "/dashboard.html/";
 
     } catch (error) {
       errorMsg.innerText = "Error: " + error.message;
@@ -342,7 +342,7 @@
 
     signInWithEmailAndPassword(auth, email, password)
       .then(async ({ user }) => {
-        window.location.href = "/dashboard/";
+        window.location.href = "/dashboard.html/";
       })
       .catch(() => errorMsg.innerText = "Credenciales incorrectas.");
   };
