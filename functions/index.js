@@ -24,8 +24,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "2mb" }));
 
-const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const SUPABASE_URL = (process.env.SUPABASE_URL || "").trim().replace(/\/$/, "");
+const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 const SUPABASE_SCHEMA = process.env.SUPABASE_SCHEMA || "api";
 
 function assertSupabaseConfigured() {
@@ -40,17 +40,26 @@ function assertSupabaseConfigured() {
 async function supabaseRequest(path, options = {}) {
   assertSupabaseConfigured();
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      "Content-Type": "application/json",
-      "Accept-Profile": SUPABASE_SCHEMA,
-      "Content-Profile": SUPABASE_SCHEMA,
-      ...(options.headers || {})
-    }
-  });
+  let res = null;
+
+  try {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        "Accept-Profile": SUPABASE_SCHEMA,
+        "Content-Profile": SUPABASE_SCHEMA,
+        ...(options.headers || {})
+      }
+    });
+  } catch (error) {
+    const requestError = new Error(`No se pudo conectar a Supabase: ${error.message}`);
+    requestError.statusCode = 500;
+    requestError.errorCode = "SUPABASE_FETCH_FAILED";
+    throw requestError;
+  }
 
   const text = await res.text();
   let data = null;
@@ -389,6 +398,27 @@ async function authenticateFirebaseUser(req) {
       ...asesorSnap.data()
     }
   };
+}
+
+async function authenticateFirebaseUserToken(req) {
+  const authHeader = req.headers["authorization"] || "";
+  const idToken = authHeader.replace(/^Bearer\s+/i, "");
+
+  if (!idToken) {
+    const error = new Error("Falta token de sesion.");
+    error.statusCode = 401;
+    error.errorCode = "FIREBASE_TOKEN_REQUIRED";
+    throw error;
+  }
+
+  try {
+    return await admin.auth().verifyIdToken(idToken);
+  } catch (error) {
+    const authError = new Error("Token de sesion invalido.");
+    authError.statusCode = 401;
+    authError.errorCode = "INVALID_FIREBASE_TOKEN";
+    throw authError;
+  }
 }
 
 async function authenticateDashboardUser(req) {
@@ -1199,7 +1229,7 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
 
 app.get("/api/v1/dashboard/services", async (req, res) => {
   try {
-    await authenticateDashboardUser(req);
+    await authenticateFirebaseUserToken(req);
 
     res.json({
       success: true,
