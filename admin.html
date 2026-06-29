@@ -1121,21 +1121,11 @@ class="admin-menu-btn solo-admin relative">
 
         function obtenerSolicitudesFiltradas() {
             if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
-
             const hoy = new Date();
-
             return todasLasSoliCargadas.filter(s => {
-                // Antes solo funcionaba con Timestamp de Firebase:
-                // s.fecha?.toDate?.()
-                // Pero ahora el backend/Supabase manda la fecha como string.
-                const fecha = fechaDateCampo(s.fecha || s.created_at || s.fecha_creacion);
-                const estatus = String(s.estatus || s.status || '').trim().toLowerCase();
-
-                return fecha && esMismaSemana(fecha, hoy) && (
-                    estatus === 'en proceso' ||
-                    estatus === 'pendiente' ||
-                    estatus === 'procesando'
-                );
+                const fecha = s.fecha?.toDate?.();
+                const estatus = String(s.estatus || '').trim().toLowerCase();
+                return fecha && esMismaSemana(fecha, hoy) && estatus === 'en proceso';
             });
         }
 
