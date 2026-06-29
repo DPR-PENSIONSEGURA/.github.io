@@ -801,6 +801,25 @@ async function notifyN8n(payload) {
   }
 }
 
+function buildN8nSolicitudPayload(row, origen = "dashboard") {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  return {
+    id_solicitud: row?.firebase_id || row?.id || raw.id_solicitud || "",
+    asesor: row?.email || raw.email || raw.asesor || raw.nombre_asesor || "",
+    tramite: row?.tipo || raw.tipo || "",
+    curp: normalizeString(row?.curp || raw.curp || "N/A") || "N/A",
+    nss: normalizeString(row?.nss || raw.nss || "N/A") || "N/A",
+    extra: row?.detalles_extra || raw.detalles_extra || raw.extra || {},
+    quest: row?.cuestionario || raw.cuestionario || raw.quest || "N/A",
+    file_ine_f: normalizeString(raw.file_ine_f || "N/A") || "N/A",
+    file_ine_r: normalizeString(raw.file_ine_r || "N/A") || "N/A",
+    file_selfie: normalizeString(raw.file_selfie || "N/A") || "N/A",
+    file_comp_domicilio: normalizeString(raw.file_comp_domicilio || "N/A") || "N/A",
+    file_edocta: normalizeString(raw.file_edocta || "N/A") || "N/A",
+    origen
+  };
+}
+
 function sendError(res, error) {
   const statusCode = error.statusCode || 500;
 
@@ -1585,6 +1604,49 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
   }
 });
 
+app.post("/api/v1/admin/panel/requests/:id/resend-n8n", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+    const id = req.params.id;
+    const solicitud = await getSupabaseSolicitudByPanelId(id);
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    const now = new Date().toISOString();
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const n8nResult = await notifyN8n(buildN8nSolicitudPayload(solicitud, "admin_panel_resend"));
+
+    await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        raw_data: {
+          ...currentRaw,
+          n8n_ok: n8nResult.ok,
+          n8n_status: n8nResult.status,
+          n8n_error: n8nResult.error || null,
+          n8n_reenviado_admin: true,
+          n8n_ultimo_envio: now
+        }
+      })
+    });
+
+    res.json({
+      success: true,
+      n8n_ok: n8nResult.ok,
+      n8n_status: n8nResult.status,
+      n8n_error: n8nResult.error || null
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.post("/api/v1/admin/panel/requests/:id/refund", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
@@ -2120,6 +2182,15 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
     solicitudId = crypto.randomUUID();
     const now = new Date().toISOString();
     const asesorEmail = auth.email || asesor.email || "";
+    const rawSolicitud = {
+      origen: "dashboard",
+      created_via: "dashboard_backend",
+      file_ine_f: normalizeString(body.file_ine_f || "N/A") || "N/A",
+      file_ine_r: normalizeString(body.file_ine_r || "N/A") || "N/A",
+      file_selfie: normalizeString(body.file_selfie || "N/A") || "N/A",
+      file_comp_domicilio: normalizeString(body.file_comp_domicilio || "N/A") || "N/A",
+      file_edocta: normalizeString(body.file_edocta || "N/A") || "N/A"
+    };
 
     await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(auth.uid)}`, {
       method: "PATCH",
@@ -2152,15 +2223,7 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
           nss,
           detalles_extra: detallesExtra,
           cuestionario,
-          raw_data: {
-            origen: "dashboard",
-            created_via: "dashboard_backend",
-            file_ine_f: normalizeString(body.file_ine_f || "N/A") || "N/A",
-            file_ine_r: normalizeString(body.file_ine_r || "N/A") || "N/A",
-            file_selfie: normalizeString(body.file_selfie || "N/A") || "N/A",
-            file_comp_domicilio: normalizeString(body.file_comp_domicilio || "N/A") || "N/A",
-            file_edocta: normalizeString(body.file_edocta || "N/A") || "N/A"
-          }
+          raw_data: rawSolicitud
         }])
       });
     } catch (error) {
@@ -2193,21 +2256,35 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
       }
     });
 
-    const n8nResult = await notifyN8n({
-      id_solicitud: solicitudId,
-      asesor: auth.email || auth.asesor.email || "",
-      tramite: serviceDisplayName,
+    const n8nResult = await notifyN8n(buildN8nSolicitudPayload({
+      firebase_id: solicitudId,
+      firebase_uid: auth.uid,
+      email: asesorEmail,
+      tipo: serviceDisplayName,
       curp,
       nss,
-      extra: detallesExtra,
-      quest: cuestionario,
-      file_ine_f: normalizeString(body.file_ine_f || "N/A") || "N/A",
-      file_ine_r: normalizeString(body.file_ine_r || "N/A") || "N/A",
-      file_selfie: normalizeString(body.file_selfie || "N/A") || "N/A",
-      file_comp_domicilio: normalizeString(body.file_comp_domicilio || "N/A") || "N/A",
-      file_edocta: normalizeString(body.file_edocta || "N/A") || "N/A",
-      origen: "dashboard"
-    });
+      detalles_extra: detallesExtra,
+      cuestionario,
+      raw_data: rawSolicitud
+    }));
+
+    try {
+      await supabaseRequest(`solicitudes?firebase_id=eq.${supabaseEq(solicitudId)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          raw_data: {
+            ...rawSolicitud,
+            n8n_ok: n8nResult.ok,
+            n8n_status: n8nResult.status,
+            n8n_error: n8nResult.error || null,
+            n8n_ultimo_envio: new Date().toISOString()
+          }
+        })
+      });
+    } catch (n8nAuditError) {
+      console.error("n8n audit patch error", n8nAuditError);
+    }
 
     res.status(201).json({
       success: true,
