@@ -106,7 +106,7 @@ function mapSupabaseSolicitud(row) {
     monto_reembolsado: Number(row.monto_reembolsado || 0),
     curp: row.curp || "",
     nss: row.nss || "",
-    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || raw.archivoUrl || raw.document_url || raw.documentUrl || raw.url || raw.link || "",
+    archivoFinal: resolveArchivoFinal(row),
     fecha: row.fecha || row.created_at || null,
     detalles_extra: row.detalles_extra || {},
     cuestionario: row.cuestionario || {},
@@ -133,7 +133,7 @@ function mapSupabaseAdminSolicitud(row) {
     monto_reembolsado: Number(row.monto_reembolsado || raw.monto_reembolsado || 0),
     curp: row.curp || raw.curp || "",
     nss: row.nss || raw.nss || "",
-    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || raw.archivoUrl || raw.document_url || raw.documentUrl || raw.url || raw.link || "",
+    archivoFinal: resolveArchivoFinal(row),
     fecha: row.fecha || row.created_at || raw.fecha || null,
     fecha_terminado: raw.fecha_terminado || raw.fechaTerminado || null,
     fecha_finalizado: raw.fecha_finalizado || null,
@@ -1844,6 +1844,28 @@ function collectLookupValues(value, out = []) {
   return out;
 }
 
+function resolveArchivoFinal(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const candidatos = [
+    row?.archivo_final,
+    raw.archivoFinal,
+    raw.archivo_final,
+    raw.archivoUrl,
+    raw.document_url,
+    raw.documentUrl,
+    raw.url,
+    raw.link
+  ];
+
+  for (const candidato of candidatos) {
+    const url = normalizeString(candidato);
+    if (/^https?:\/\//i.test(url)) return url;
+    if (/^\/\//.test(url)) return `https:${url}`;
+  }
+
+  return "";
+}
+
 function getN8nBodyField(body, names) {
   const sources = [
     body,
@@ -2548,6 +2570,133 @@ app.post("/api/v1/dashboard/requests/:id/downloaded", async (req, res) => {
 
     res.json({
       success: true
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.get("/api/v1/dashboard/requests/:id/file", async (req, res) => {
+  try {
+    const auth = await authenticateDashboardUser(req);
+    const solicitudId = normalizeString(req.params.id);
+
+    if (!solicitudId) {
+      const error = new Error("Solicitud invalida.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_REQUEST_ID";
+      throw error;
+    }
+
+    const rows = await supabaseRequest(
+      `solicitudes?firebase_id=eq.${supabaseEq(solicitudId)}&select=*&limit=1`
+    );
+    const solicitud = rows?.[0] || null;
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    if (solicitud.firebase_uid !== auth.uid) {
+      const error = new Error("No tienes permiso para descargar esta solicitud.");
+      error.statusCode = 403;
+      error.errorCode = "REQUEST_FORBIDDEN";
+      throw error;
+    }
+
+    const archivoFinal = resolveArchivoFinal(solicitud);
+    if (!archivoFinal) {
+      const error = new Error("El documento final aun no tiene enlace de descarga.");
+      error.statusCode = 404;
+      error.errorCode = "FINAL_DOCUMENT_NOT_READY";
+      throw error;
+    }
+
+    await supabaseRequest(`solicitudes?firebase_id=eq.${supabaseEq(solicitudId)}`, {
+      method: "PATCH",
+      headers: {
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({
+        archivo_final: archivoFinal,
+        raw_data: {
+          ...(solicitud.raw_data || {}),
+          archivoFinal,
+          archivo_final: archivoFinal,
+          descargado_cliente: true,
+          fecha_descarga_cliente: new Date().toISOString()
+        }
+      })
+    });
+
+    res.redirect(302, archivoFinal);
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.get("/api/v1/dashboard/requests/:id/file-url", async (req, res) => {
+  try {
+    const auth = await authenticateDashboardUser(req);
+    const solicitudId = normalizeString(req.params.id);
+
+    if (!solicitudId) {
+      const error = new Error("Solicitud invalida.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_REQUEST_ID";
+      throw error;
+    }
+
+    const rows = await supabaseRequest(
+      `solicitudes?firebase_id=eq.${supabaseEq(solicitudId)}&select=*&limit=1`
+    );
+    const solicitud = rows?.[0] || null;
+
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+
+    if (solicitud.firebase_uid !== auth.uid) {
+      const error = new Error("No tienes permiso para descargar esta solicitud.");
+      error.statusCode = 403;
+      error.errorCode = "REQUEST_FORBIDDEN";
+      throw error;
+    }
+
+    const archivoFinal = resolveArchivoFinal(solicitud);
+    if (!archivoFinal) {
+      const error = new Error("El documento final aun no tiene enlace de descarga.");
+      error.statusCode = 404;
+      error.errorCode = "FINAL_DOCUMENT_NOT_READY";
+      throw error;
+    }
+
+    await supabaseRequest(`solicitudes?firebase_id=eq.${supabaseEq(solicitudId)}`, {
+      method: "PATCH",
+      headers: {
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({
+        archivo_final: archivoFinal,
+        raw_data: {
+          ...(solicitud.raw_data || {}),
+          archivoFinal,
+          archivo_final: archivoFinal,
+          descargado_cliente: true,
+          fecha_descarga_cliente: new Date().toISOString()
+        }
+      })
+    });
+
+    res.json({
+      success: true,
+      url: archivoFinal
     });
   } catch (error) {
     sendError(res, error);
