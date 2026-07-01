@@ -660,6 +660,63 @@ async function uploadBufferToCloudinary(file, folder) {
   });
 }
 
+async function uploadRemoteUrlToCloudinary(fileUrl, folder) {
+  const url = normalizeString(fileUrl);
+
+  if (!/^https?:\/\//i.test(url)) {
+    const error = new Error("La URL del documento no es valida.");
+    error.statusCode = 400;
+    error.errorCode = "INVALID_REMOTE_FILE_URL";
+    throw error;
+  }
+
+  let response = null;
+
+  try {
+    response = await fetch(url);
+  } catch (error) {
+    const requestError = new Error(`No se pudo descargar el documento remoto: ${error.message}`);
+    requestError.statusCode = 502;
+    requestError.errorCode = "REMOTE_FILE_FETCH_FAILED";
+    throw requestError;
+  }
+
+  if (!response.ok) {
+    const error = new Error(`No se pudo descargar el documento remoto: ${response.status}`);
+    error.statusCode = 502;
+    error.errorCode = "REMOTE_FILE_FETCH_FAILED";
+    throw error;
+  }
+
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  const maxBytes = 25 * 1024 * 1024;
+
+  if (contentLength > maxBytes) {
+    const error = new Error("El documento remoto excede el limite de 25 MB.");
+    error.statusCode = 413;
+    error.errorCode = "REMOTE_FILE_TOO_LARGE";
+    throw error;
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+
+  if (!buffer.length) {
+    const error = new Error("El documento remoto esta vacio.");
+    error.statusCode = 400;
+    error.errorCode = "REMOTE_FILE_EMPTY";
+    throw error;
+  }
+
+  if (buffer.length > maxBytes) {
+    const error = new Error("El documento remoto excede el limite de 25 MB.");
+    error.statusCode = 413;
+    error.errorCode = "REMOTE_FILE_TOO_LARGE";
+    throw error;
+  }
+
+  return uploadBufferToCloudinary({ buffer }, folder);
+}
+
 function parseJsonValue(value, fallback) {
   if (value === undefined || value === null || value === "") return fallback;
 
@@ -1914,6 +1971,130 @@ function solicitudCoincideConDocumentoN8n(solicitud, body) {
   if (idCorto && valoresSolicitud.some((value) => value.startsWith(idCorto) || value.includes(idCorto))) return true;
   return false;
 }
+
+app.post("/api/v1/n8n/final-document/import", async (req, res) => {
+  try {
+    validateAdminToken(req);
+
+    const body = req.body || {};
+    const archivoTemporal = normalizeString(
+      getN8nBodyField(body, [
+        "archivoUrl",
+        "archivo_url",
+        "downloadUrl",
+        "download_url",
+        "document_url",
+        "documentUrl",
+        "url",
+        "link"
+      ])
+    );
+
+    if (!archivoTemporal) {
+      const error = new Error("Falta la URL temporal del documento.");
+      error.statusCode = 400;
+      error.errorCode = "REMOTE_DOCUMENT_URL_REQUIRED";
+      throw error;
+    }
+
+    const hasSearchKey = [
+      getN8nBodyField(body, ["curp", "CURP"]),
+      getN8nBodyField(body, ["rfc", "RFC"]),
+      getN8nBodyField(body, ["nss", "NSS"]),
+      getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"]),
+      getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"])
+    ].some((value) => Boolean(normalizeString(value)));
+
+    if (!hasSearchKey) {
+      const error = new Error("Falta CURP, RFC, NSS o idCorto para localizar la solicitud.");
+      error.statusCode = 400;
+      error.errorCode = "N8N_LOOKUP_KEY_REQUIRED";
+      throw error;
+    }
+
+    const rows = await supabaseRequest(
+      "solicitudes?select=*&order=fecha.desc&limit=5000"
+    );
+
+    const candidatos = (rows || [])
+      .filter(isMeaningfulAdminSolicitud)
+      .filter((row) => {
+        const estatus = normalizeForCompare(row.estatus || row.raw_data?.estatus || "");
+        const archivoActual = normalizeString(row.archivo_final || row.raw_data?.archivo_final || row.raw_data?.archivoFinal);
+        if (archivoActual) return false;
+        if (row.finalizado === true && estatus.includes("termin")) return false;
+        return solicitudCoincideConDocumentoN8n(row, body);
+      });
+
+    if (!candidatos.length) {
+      const error = new Error("No se encontro una solicitud pendiente que coincida con el documento.");
+      error.statusCode = 404;
+      error.errorCode = "N8N_REQUEST_NOT_FOUND";
+      error.details = {
+        received: {
+          curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
+          rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
+          nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+          valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
+          idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
+        },
+        scanned: (rows || []).length
+      };
+      throw error;
+    }
+
+    if (candidatos.length > 1) {
+      console.warn("n8n final-document import encontro multiples candidatos; se usara el mas reciente", {
+        total: candidatos.length,
+        ids: candidatos.slice(0, 5).map((row) => row.firebase_id || row.id)
+      });
+    }
+
+    const archivoFinal = await uploadRemoteUrlToCloudinary(archivoTemporal, "novyra/documentos-finales");
+    const solicitud = candidatos[0];
+    const currentRaw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const estatus = normalizeString(body.estatus || "Terminado") || "Terminado";
+    const now = new Date().toISOString();
+    const id = solicitud.firebase_id || solicitud.id;
+
+    const updated = await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        archivo_final: archivoFinal,
+        estatus,
+        finalizado: true,
+        raw_data: {
+          ...currentRaw,
+          archivoFinal,
+          archivo_final: archivoFinal,
+          archivo_url_temporal: archivoTemporal,
+          n8n_documento_subido: true,
+          n8n_cloudinary_import: true,
+          n8n_fecha_documento: now,
+          n8n_origen: normalizeString(body.origen || "n8n"),
+          n8n_resuelto_por: {
+            curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
+            rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
+            nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+            valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
+            idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
+          }
+        }
+      })
+    });
+
+    res.json({
+      success: true,
+      resolved_id: id,
+      matched_count: candidatos.length,
+      archivo_final: archivoFinal,
+      request: mapSupabaseAdminSolicitud(updated?.[0] || solicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 
 app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
   try {
