@@ -1302,11 +1302,12 @@ vacuna_covid: val('vacuna_covid_p'),
                 if (estatusTexto.toUpperCase().includes('ERROR')) estatusColor = 'text-red-600 bg-red-50 border-red-100';
 
                 let accion = '--';
-                if (s.archivoFinal) {
+                const archivoFinalUrl = normalizarUrlArchivo(s.archivoFinal);
+                if (archivoFinalUrl) {
                     if (s.descargado_cliente === true) {
-                        accion = `<a href="${s.archivoFinal}" target="_blank" class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</a>`;
+                        accion = `<a href="${archivoFinalUrl}" target="_blank" rel="noopener noreferrer" class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</a>`;
                     } else {
-                        accion = `<button onclick="window.marcarDescargado('${s.id}', '${s.archivoFinal}')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase">Descargar</button>`;
+                        accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase">Descargar</button>`;
                     }
                 }
 
@@ -1355,8 +1356,22 @@ vacuna_covid: val('vacuna_covid_p'),
             renderizarHistorialSolicitudes(filtrados);
         };
 
+        function normalizarUrlArchivo(url) {
+            const valor = String(url || '').trim();
+            if (!valor) return '';
+            if (/^https?:\/\//i.test(valor)) return valor;
+            if (/^\/\//.test(valor)) return `https:${valor}`;
+            return '';
+        }
+
         window.marcarDescargado = async (id, url) => {
-            window.open(url, '_blank');
+            const archivoUrl = normalizarUrlArchivo(url);
+            if (!archivoUrl) {
+                alert('El enlace del documento no es válido. Contacta a soporte para reenviar el archivo.');
+                return;
+            }
+
+            window.open(archivoUrl, '_blank', 'noopener,noreferrer');
 
             try {
                 await requestDashboardApi(`/api/v1/dashboard/requests/${encodeURIComponent(id)}/downloaded`, {
