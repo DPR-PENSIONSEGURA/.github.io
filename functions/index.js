@@ -780,15 +780,23 @@ function parseMultipartRequest(req) {
 
 async function notifyN8n(payload) {
   try {
+    const payloadCompleto = {
+      ...payload,
+      body: payload,
+      source: "novyra-backend",
+      sent_at: new Date().toISOString()
+    };
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payloadCompleto)
     });
+    const responseText = await response.text().catch(() => "");
 
     return {
       ok: response.ok,
-      status: response.status
+      status: response.status,
+      response: responseText.slice(0, 1000)
     };
   } catch (error) {
     console.error("n8n webhook error:", error);
@@ -822,12 +830,14 @@ function buildN8nSolicitudPayload(row, origen = "dashboard") {
 
 function sendError(res, error) {
   const statusCode = error.statusCode || 500;
-
-  return res.status(statusCode).json({
+  const payload = {
     success: false,
     error_code: error.errorCode || "INTERNAL_ERROR",
     message: error.message || "Error interno."
-  });
+  };
+
+  if (error.details) payload.details = error.details;
+  return res.status(statusCode).json(payload);
 }
 
 function validateAdminToken(req) {
@@ -1625,15 +1635,16 @@ app.post("/api/v1/admin/panel/requests/:id/resend-n8n", async (req, res) => {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify({
-        raw_data: {
-          ...currentRaw,
-          n8n_ok: n8nResult.ok,
-          n8n_status: n8nResult.status,
-          n8n_error: n8nResult.error || null,
-          n8n_reenviado_admin: true,
-          n8n_ultimo_envio: now
-        }
-      })
+          raw_data: {
+            ...currentRaw,
+            n8n_ok: n8nResult.ok,
+            n8n_status: n8nResult.status,
+            n8n_error: n8nResult.error || null,
+            n8n_response: n8nResult.response || "",
+            n8n_reenviado_admin: true,
+            n8n_ultimo_envio: now
+          }
+        })
     });
 
     res.json({
@@ -1791,6 +1802,52 @@ app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
   }
 });
 
+function normalizeLookupValue(value) {
+  return normalizeString(value)
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function collectLookupValues(value, out = []) {
+  if (value === null || value === undefined) return out;
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectLookupValues(item, out));
+    return out;
+  }
+
+  if (typeof value === "object") {
+    Object.values(value).forEach((item) => collectLookupValues(item, out));
+    return out;
+  }
+
+  const normalized = normalizeLookupValue(value);
+  if (normalized && normalized !== "NA" && normalized !== "SN") out.push(normalized);
+  return out;
+}
+
+function getN8nBodyField(body, names) {
+  const sources = [
+    body,
+    body?.body,
+    body?.json,
+    body?.data,
+    body?.payload
+  ].filter((source) => source && typeof source === "object");
+
+  for (const source of sources) {
+    for (const name of names) {
+      if (source[name] !== undefined && source[name] !== null && normalizeString(source[name])) {
+        return source[name];
+      }
+    }
+  }
+
+  return "";
+}
+
 function solicitudCoincideConDocumentoN8n(solicitud, body) {
   const raw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
   const detalles = solicitud.detalles_extra && typeof solicitud.detalles_extra === "object" ? solicitud.detalles_extra : {};
@@ -1804,15 +1861,13 @@ function solicitudCoincideConDocumentoN8n(solicitud, body) {
     rfc: solicitud.rfc || raw.rfc || detalles.rfc || cuestionario.rfc
   };
 
-  const curp = normalizeString(body.curp).toUpperCase();
-  const rfc = normalizeString(body.rfc).toUpperCase();
-  const nss = normalizeString(body.nss);
-  const valorDetectado = normalizeString(body.valorDetectado).toUpperCase();
-  const idCorto = normalizeString(body.idCorto).toUpperCase();
+  const curp = normalizeLookupValue(getN8nBodyField(body, ["curp", "CURP"]));
+  const rfc = normalizeLookupValue(getN8nBodyField(body, ["rfc", "RFC"]));
+  const nss = normalizeLookupValue(getN8nBodyField(body, ["nss", "NSS"]));
+  const valorDetectado = normalizeLookupValue(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"]));
+  const idCorto = normalizeLookupValue(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]));
 
-  const valoresSolicitud = Object.values(bolsa)
-    .map((value) => normalizeString(value).toUpperCase())
-    .filter(Boolean);
+  const valoresSolicitud = collectLookupValues(bolsa);
 
   if (curp && valoresSolicitud.includes(curp)) return true;
   if (rfc && valoresSolicitud.includes(rfc)) return true;
@@ -1828,11 +1883,15 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
 
     const body = req.body || {};
     const archivoFinal = normalizeString(
-      body.archivo_final ||
-      body.archivoFinal ||
-      body.document_url ||
-      body.url ||
-      body.link
+      getN8nBodyField(body, [
+        "archivo_final",
+        "archivoFinal",
+        "archivoUrl",
+        "document_url",
+        "documentUrl",
+        "url",
+        "link"
+      ])
     );
 
     if (!archivoFinal) {
@@ -1843,11 +1902,11 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
     }
 
     const hasSearchKey = [
-      body.curp,
-      body.rfc,
-      body.nss,
-      body.valorDetectado,
-      body.idCorto
+      getN8nBodyField(body, ["curp", "CURP"]),
+      getN8nBodyField(body, ["rfc", "RFC"]),
+      getN8nBodyField(body, ["nss", "NSS"]),
+      getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"]),
+      getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"])
     ].some((value) => Boolean(normalizeString(value)));
 
     if (!hasSearchKey) {
@@ -1858,7 +1917,7 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
     }
 
     const rows = await supabaseRequest(
-      "solicitudes?select=*&order=fecha.desc&limit=1000"
+      "solicitudes?select=*&order=fecha.desc&limit=5000"
     );
 
     const candidatos = (rows || [])
@@ -1875,6 +1934,16 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
       const error = new Error("No se encontro una solicitud pendiente que coincida con el documento.");
       error.statusCode = 404;
       error.errorCode = "N8N_REQUEST_NOT_FOUND";
+      error.details = {
+        received: {
+          curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
+          rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
+          nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+          valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
+          idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
+        },
+        scanned: (rows || []).length
+      };
       throw error;
     }
 
@@ -1906,11 +1975,11 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
           n8n_fecha_documento: now,
           n8n_origen: normalizeString(body.origen || "n8n"),
           n8n_resuelto_por: {
-            curp: normalizeString(body.curp),
-            rfc: normalizeString(body.rfc),
-            nss: normalizeString(body.nss),
-            valorDetectado: normalizeString(body.valorDetectado),
-            idCorto: normalizeString(body.idCorto)
+            curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
+            rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
+            nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+            valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
+            idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
           }
         }
       })
@@ -2278,6 +2347,7 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
             n8n_ok: n8nResult.ok,
             n8n_status: n8nResult.status,
             n8n_error: n8nResult.error || null,
+            n8n_response: n8nResult.response || "",
             n8n_ultimo_envio: new Date().toISOString()
           }
         })
