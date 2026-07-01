@@ -1303,9 +1303,10 @@ vacuna_covid: val('vacuna_covid_p'),
 
                 let accion = '--';
                 const archivoFinalUrl = normalizarUrlArchivo(s.archivoFinal);
-                if (archivoFinalUrl) {
+                const puedeIntentarDescarga = archivoFinalUrl || String(s.estatus || '').toLowerCase().includes('termin');
+                if (puedeIntentarDescarga) {
                     if (s.descargado_cliente === true) {
-                        accion = `<a href="${archivoFinalUrl}" target="_blank" rel="noopener noreferrer" class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</a>`;
+                        accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</button>`;
                     } else {
                         accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase">Descargar</button>`;
                     }
@@ -1365,7 +1366,17 @@ vacuna_covid: val('vacuna_covid_p'),
         }
 
         window.marcarDescargado = async (id, url) => {
-            const archivoUrl = normalizarUrlArchivo(url);
+            let archivoUrl = normalizarUrlArchivo(url);
+            if (!archivoUrl) {
+                try {
+                    const data = await requestDashboardApi(`/api/v1/dashboard/requests/${encodeURIComponent(id)}/file-url`);
+                    archivoUrl = normalizarUrlArchivo(data.url);
+                } catch (error) {
+                    alert(error.message || 'El documento final aun no esta listo para descarga.');
+                    return;
+                }
+            }
+
             if (!archivoUrl) {
                 alert('El enlace del documento no es válido. Contacta a soporte para reenviar el archivo.');
                 return;
@@ -1374,9 +1385,11 @@ vacuna_covid: val('vacuna_covid_p'),
             window.open(archivoUrl, '_blank', 'noopener,noreferrer');
 
             try {
-                await requestDashboardApi(`/api/v1/dashboard/requests/${encodeURIComponent(id)}/downloaded`, {
-                    method: "POST"
-                });
+                if (url) {
+                    await requestDashboardApi(`/api/v1/dashboard/requests/${encodeURIComponent(id)}/downloaded`, {
+                        method: "POST"
+                    });
+                }
                 cargarHistorial();
             } catch (e) {
                 console.log("marcarDescargado", e);
