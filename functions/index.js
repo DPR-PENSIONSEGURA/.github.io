@@ -93,6 +93,7 @@ async function getSupabaseAsesorByUid(uid) {
 }
 
 function mapSupabaseSolicitud(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
   return {
     id: row.firebase_id || row.id,
     asesor_uid: row.firebase_uid,
@@ -105,11 +106,11 @@ function mapSupabaseSolicitud(row) {
     monto_reembolsado: Number(row.monto_reembolsado || 0),
     curp: row.curp || "",
     nss: row.nss || "",
-    archivoFinal: row.archivo_final || "",
+    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || raw.archivoUrl || raw.document_url || raw.documentUrl || raw.url || raw.link || "",
     fecha: row.fecha || row.created_at || null,
     detalles_extra: row.detalles_extra || {},
     cuestionario: row.cuestionario || {},
-    descargado_cliente: row.raw_data?.descargado_cliente === true
+    descargado_cliente: raw.descargado_cliente === true
   };
 }
 
@@ -132,7 +133,7 @@ function mapSupabaseAdminSolicitud(row) {
     monto_reembolsado: Number(row.monto_reembolsado || raw.monto_reembolsado || 0),
     curp: row.curp || raw.curp || "",
     nss: row.nss || raw.nss || "",
-    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || "",
+    archivoFinal: row.archivo_final || raw.archivoFinal || raw.archivo_final || raw.archivoUrl || raw.document_url || raw.documentUrl || raw.url || raw.link || "",
     fecha: row.fecha || row.created_at || raw.fecha || null,
     fecha_terminado: raw.fecha_terminado || raw.fechaTerminado || null,
     fecha_finalizado: raw.fecha_finalizado || null,
@@ -1594,8 +1595,19 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
 
     if (body.estatus !== undefined) payload.estatus = normalizeString(body.estatus);
     if (body.finalizado !== undefined) payload.finalizado = finalizado;
-    if (body.archivo_final !== undefined || body.archivoFinal !== undefined) {
-      payload.archivo_final = normalizeString(body.archivo_final || body.archivoFinal);
+    const archivoFinalAdmin = normalizeString(getN8nBodyField(body, [
+      "archivo_final",
+      "archivoFinal",
+      "archivoUrl",
+      "document_url",
+      "documentUrl",
+      "url",
+      "link"
+    ]));
+    if (archivoFinalAdmin) {
+      payload.archivo_final = archivoFinalAdmin;
+      payload.raw_data.archivoFinal = archivoFinalAdmin;
+      payload.raw_data.archivo_final = archivoFinalAdmin;
     }
     if (finalizado) {
       payload.raw_data.fecha_terminado = payload.raw_data.fecha_terminado || now;
@@ -1757,11 +1769,15 @@ app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
 
     const body = req.body || {};
     const archivoFinal = normalizeString(
-      body.archivo_final ||
-      body.archivoFinal ||
-      body.document_url ||
-      body.url ||
-      body.link
+      getN8nBodyField(body, [
+        "archivo_final",
+        "archivoFinal",
+        "archivoUrl",
+        "document_url",
+        "documentUrl",
+        "url",
+        "link"
+      ])
     );
 
     if (!archivoFinal) {
