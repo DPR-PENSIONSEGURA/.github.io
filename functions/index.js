@@ -379,6 +379,7 @@ const DASHBOARD_SERVICE_PRICES = {
   "SINDO SALARIO PROMEDIO": 95,
   "SINDO VIGENCIA": 95,
   "TARJETA NSS": 15,
+  "DESCARGA DE CARTILLA": 20,
   "VIGENCIA DE DERECHOS": 15,
   "INCAPACIDAD": 20,
   "RECETAS": 20,
@@ -410,6 +411,9 @@ const DASHBOARD_SERVICE_PRICES = {
   "RETIRO DESEMPLEO A DISTANCIA": 60,
   "CAMBIAR CONTRASENA AFORE WEB": 30,
   "ESTADO DE CUENTA AFORE": 500,
+  "LOCALIZAR CONTRASENA": 70,
+  "RESUMEN DE SALDOS": 170,
+  "LOCALIZA TU AFORE": 29,
   "ANALISIS RAPIDO DE PENSION": 200,
   "ANALISIS DETALLADO DE PENSION": 3000,
   "AZTECA": 500,
@@ -2090,6 +2094,152 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
       matched_count: candidatos.length,
       archivo_final: archivoFinal,
       request: mapSupabaseAdminSolicitud(updated?.[0] || solicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+function getRemoteFinalDocumentCandidate(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const candidatos = [
+    raw.archivo_url_temporal,
+    raw.archivoUrl,
+    raw.downloadUrl,
+    raw.download_url,
+    raw.document_url,
+    raw.documentUrl,
+    raw.url,
+    raw.link,
+    row?.archivo_final,
+    raw.archivoFinal,
+    raw.archivo_final
+  ];
+
+  for (const candidato of candidatos) {
+    const url = normalizeString(candidato);
+    if (/^https?:\/\//i.test(url) && !/res\.cloudinary\.com/i.test(url)) return url;
+  }
+
+  return "";
+}
+
+app.post("/api/v1/admin/backfill-cloudinary-final-documents", async (req, res) => {
+  try {
+    validateAdminToken(req);
+
+    const body = req.body || {};
+    const dryRun = body.dry_run !== false;
+    const limit = Math.min(Math.max(Number(body.limit || 25), 1), 100);
+    const startAfter = normalizeString(body.start_after || "");
+    const dateFrom = normalizeString(body.date_from || "");
+    const dateTo = normalizeString(body.date_to || "");
+    const filter = [
+      "select=*",
+      "order=fecha.asc",
+      `limit=${limit}`
+    ];
+
+    if (dateFrom) {
+      filter.push(`fecha=gte.${encodeURIComponent(dateFrom)}`);
+    }
+
+    if (dateTo) {
+      filter.push(`fecha=lt.${encodeURIComponent(dateTo)}`);
+    }
+
+    if (startAfter) {
+      filter.push(`fecha=gt.${encodeURIComponent(startAfter)}`);
+    }
+
+    const rows = await supabaseRequest(`solicitudes?${filter.join("&")}`);
+    const processed = [];
+    const skipped = [];
+    const errors = [];
+
+    for (const row of rows || []) {
+      const id = row.firebase_id || row.id;
+      const currentFinal = resolveArchivoFinal(row);
+      const remoteUrl = getRemoteFinalDocumentCandidate(row);
+      const isCloudinary = /res\.cloudinary\.com/i.test(currentFinal);
+
+      if (isCloudinary) {
+        skipped.push({ id, email: row.email || "", reason: "ya_cloudinary", archivo_final: currentFinal });
+        continue;
+      }
+
+      if (!remoteUrl) {
+        skipped.push({ id, email: row.email || "", reason: "sin_url_remota" });
+        continue;
+      }
+
+      if (dryRun) {
+        processed.push({
+          id,
+          email: row.email || "",
+          tipo: row.tipo || "",
+          archivo_actual: currentFinal || "",
+          archivo_remoto: remoteUrl,
+          archivo_nuevo: null
+        });
+        continue;
+      }
+
+      try {
+        const archivoFinal = await uploadRemoteUrlToCloudinary(remoteUrl, "novyra/documentos-finales");
+        const currentRaw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+        const now = new Date().toISOString();
+
+        await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({
+            archivo_final: archivoFinal,
+            raw_data: {
+              ...currentRaw,
+              archivoFinal,
+              archivo_final: archivoFinal,
+              archivo_url_temporal: remoteUrl,
+              cloudinary_backfill: true,
+              cloudinary_backfill_fecha: now
+            }
+          })
+        });
+
+        processed.push({
+          id,
+          email: row.email || "",
+          tipo: row.tipo || "",
+          archivo_actual: currentFinal || "",
+          archivo_remoto: remoteUrl,
+          archivo_nuevo: archivoFinal
+        });
+      } catch (error) {
+        errors.push({
+          id,
+          email: row.email || "",
+          tipo: row.tipo || "",
+          archivo_remoto: remoteUrl,
+          error: error.message,
+          error_code: error.errorCode || "BACKFILL_UPLOAD_FAILED"
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      dry_run: dryRun,
+      processed_count: processed.length,
+      skipped_count: skipped.length,
+      error_count: errors.length,
+      limit,
+      start_after: startAfter || null,
+      date_from: dateFrom || null,
+      date_to: dateTo || null,
+      next_start_after: rows?.length ? rows[rows.length - 1].fecha || null : null,
+      processed,
+      skipped,
+      errors
     });
   } catch (error) {
     sendError(res, error);
