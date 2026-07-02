@@ -568,6 +568,7 @@ class="admin-menu-btn solo-admin relative">
                             <input id="fechaCorteOperadores" type="date" onchange="window.renderCorteOperadores()" class="bg-slate-100 p-3 rounded-xl text-xs font-black">
                             <button onclick="window.guardarTarifasOperadores()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Guardar tarifas</button>
                             <button onclick="window.actualizarCorteOperadores()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar corte</button>
+                            <button onclick="window.renderCorteOperadoresUltimos15()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Ultimos 15 dias</button>
                         </div>
                     </div>
                     <div class="grid lg:grid-cols-3 gap-5">
@@ -1001,6 +1002,7 @@ class="admin-menu-btn solo-admin relative">
             { key: 'RFC_CLON', label: 'RFC Clon', aliases: ['rfc clon'] },
             { key: 'RFC_IDCIF', label: 'RFC con IDCIF', aliases: ['rfc con idcif','idcif','constancia fiscal'] },
             { key: 'TARJETA_NSS', label: 'Tarjeta NSS', aliases: ['tarjeta nss','numero de seguridad social','nss'] },
+            { key: 'DESCARGA_CARTILLA', label: 'Descarga de Cartilla', aliases: ['descarga de cartilla','cartilla'] },
             { key: 'VIGENCIA', label: 'Vigencia de derechos', aliases: ['vigencia','vigencia de derechos'] },
             { key: 'INCAPACIDAD', label: 'Incapacidad', aliases: ['incapacidad','incapacidades'] },
             { key: 'RECETAS', label: 'Recetas', aliases: ['receta','recetas'] },
@@ -1010,12 +1012,13 @@ class="admin-menu-btn solo-admin relative">
             { key: 'BURO_DE_CREDITO', label: 'Buró de Crédito', aliases: ['buro de credito','buró de crédito'] },
             { key: 'INFONAVIT', label: 'Infonavit', aliases: ['infonavit','mejoravit','cuentainfonavit'] },
             { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensión','pensiones','analisis rapido','análisis rápido'] },
-            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore'] }
+            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore','localizar contraseña','localizar contrasena','resumen de saldos','localiza tu afore'] }
         ];
         const TARIFAS_DEFAULT_OPERADOR = {
             RFC_CLON: 5,
             RFC_IDCIF: 5,
             TARJETA_NSS: 3,
+            DESCARGA_CARTILLA: 0,
             VIGENCIA: 3,
             INCAPACIDAD: 5,
             RECETAS: 5,
@@ -1599,6 +1602,7 @@ class="admin-menu-btn solo-admin relative">
             { key: 'SINDO_SALARIO_PROMEDIO', nombre: 'SINDO SALARIO PROMEDIO', proveedor: 0, publico: 95 },
             { key: 'SINDO_VIGENCIA', nombre: 'SINDO VIGENCIA', proveedor: 0, publico: 95 },
             { key: 'TARJETA_NSS', nombre: 'Tarjeta NSS', proveedor: 0, publico: 8 },
+            { key: 'DESCARGA_DE_CARTILLA', nombre: 'Descarga de Cartilla', proveedor: 0, publico: 20 },
             { key: 'VIGENCIA_DE_DERECHOS', nombre: 'Vigencia de Derechos', proveedor: 0, publico: 8 },
             { key: 'INCAPACIDAD', nombre: 'Incapacidad', proveedor: 0, publico: 20 },
             { key: 'RECETAS', nombre: 'Recetas', proveedor: 0, publico: 20 },
@@ -1629,6 +1633,9 @@ class="admin-menu-btn solo-admin relative">
             { key: 'RETIRO_DESEMPLEO_A_DISTANCIA', nombre: 'Retiro Desempleo a Distancia', proveedor: 0, publico: 60 },
             { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', nombre: 'Cambiar Contraseña AFORE Web', proveedor: 0, publico: 30 },
             { key: 'ESTADO_DE_CUENTA_AFORE', nombre: 'Estado de cuenta AFORE', proveedor: 0, publico: 500 },
+            { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contraseña', proveedor: 0, publico: 70 },
+            { key: 'RESUMEN_DE_SALDOS', nombre: 'Resumen de Saldos', proveedor: 0, publico: 170 },
+            { key: 'LOCALIZA_TU_AFORE', nombre: 'Localiza tu AFORE', proveedor: 0, publico: 29 },
             { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'Análisis rápido de pensión', proveedor: 0, publico: 200 },
             { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'Análisis Detallado de pensión', proveedor: 0, publico: 3000 }
         ];
@@ -2790,6 +2797,13 @@ class="admin-menu-btn solo-admin relative">
             alert('Tarifas guardadas');
         };
 
+        async function asegurarSolicitudesCorteOperadores() {
+            if ((cacheSolicitudes || []).length) return cacheSolicitudes;
+            if ((todasLasSoliCargadas || []).length) return todasLasSoliCargadas;
+            await cargarSolicitudesAdminDesdeBackend();
+            return (cacheSolicitudes || []).length ? cacheSolicitudes : todasLasSoliCargadas;
+        }
+
         async function cargarSolicitudesCorteOperadoresDia(fechaSeleccionada) {
             if (!fechaSeleccionada) return [];
             if (fechaCorteOperadoresCargada === fechaSeleccionada) return solicitudesCorteOperadores;
@@ -2797,23 +2811,11 @@ class="admin-menu-btn solo-admin relative">
 
             promesaCorteOperadores = (async () => {
                 try {
-                const inicio = new Date(`${fechaSeleccionada}T00:00:00`);
-                const fin = new Date(inicio);
-                fin.setDate(fin.getDate() + 1);
-                const camposFecha = ['fecha_terminado', 'fecha_finalizado', 'fechaTerminado', 'fecha'];
-                const unicos = new Map();
-
-                for (const campo of camposFecha) {
-                    const snap = await getDocs(query(
-                        collection(db, 'solicitudes'),
-                        where(campo, '>=', inicio),
-                        where(campo, '<', fin)
-                    ));
-                    snap.forEach(d => {
-                        if (!unicos.has(d.id)) unicos.set(d.id, { id: d.id, ...d.data() });
+                    const base = await asegurarSolicitudesCorteOperadores();
+                    solicitudesCorteOperadores = base.filter(s => {
+                        const fecha = fechaSolicitudTerminada(s);
+                        return fecha && fechaKeyLocal(fecha) === fechaSeleccionada;
                     });
-                }
-                    solicitudesCorteOperadores = [...unicos.values()];
                     fechaCorteOperadoresCargada = fechaSeleccionada;
                     return solicitudesCorteOperadores;
                 } finally {
@@ -2886,6 +2888,86 @@ class="admin-menu-btn solo-admin relative">
                             <div>
                                 <p class="text-sm font-black uppercase text-slate-800">${r.nombre}</p>
                                 <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} trámites completados · Semanas hoy: ${r.semanasHoy || 0} · Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
+                            </div>
+                            <div class="pay-total text-right">
+                                <p class="text-[9px] font-black uppercase text-white/60">Total a pagar</p>
+                                <p class="text-2xl font-black">$${r.totalPago.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-3">${detalle}</div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.renderCorteOperadoresUltimos15 = async function () {
+            const cont = document.getElementById('tablaCorteOperadores');
+            const totalBadge = document.getElementById('totalCorteOperadores');
+            if (!cont) return;
+
+            if (totalBadge) totalBadge.textContent = 'Cargando 15 dias...';
+            cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-slate-400 bg-slate-50 border rounded-2xl p-6">Cargando tramites terminados de los ultimos 15 dias...</div>`;
+
+            let base = [];
+            try {
+                base = await asegurarSolicitudesCorteOperadores();
+            } catch (error) {
+                console.error('Error cargando corte 15 dias:', error);
+                cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-red-500 bg-red-50 border border-red-100 rounded-2xl p-6">No se pudo cargar el corte de los ultimos 15 dias.</div>`;
+                return;
+            }
+
+            const hoy = new Date();
+            const inicio = new Date(hoy);
+            inicio.setHours(0, 0, 0, 0);
+            inicio.setDate(inicio.getDate() - 14);
+            const fin = new Date(hoy);
+            fin.setHours(23, 59, 59, 999);
+
+            const resumen = new Map();
+            base.forEach(s => {
+                const estatus = String(s.estatus || '').toLowerCase();
+                if (estatus !== 'terminado' && estatus !== 'finalizado' && s.finalizado !== true) return;
+                const fecha = fechaSolicitudTerminada(s);
+                if (!fecha || fecha < inicio || fecha > fin) return;
+
+                const op = operadorSolicitud(s);
+                const clave = claveTramiteSolicitud(s);
+                const tarifa = Number(tarifasPagoOperador[clave] || 0);
+                if (!resumen.has(op.uid)) {
+                    resumen.set(op.uid, { uid: op.uid, nombre: op.nombre, totalTramites: 0, semanasHoy: 0, totalPago: 0, totalMinutos: 0, conTiempo: 0, detalle: {} });
+                }
+                const r = resumen.get(op.uid);
+                r.totalTramites += 1;
+                r.totalPago += tarifa;
+                if (clave === 'SEMANAS_COTIZADAS') r.semanasHoy += 1;
+                const tInicio = fechaMsCampo(s.fecha_tomado);
+                const tFin = fechaMsCampo(s.fecha_terminado || s.fecha_finalizado || s.fechaTerminado);
+                if (tInicio && tFin && tFin > tInicio) { r.totalMinutos += ((tFin - tInicio) / 60000); r.conTiempo += 1; }
+                if (!r.detalle[clave]) r.detalle[clave] = { label: labelTramite(clave), cantidad: 0, tarifa, subtotal: 0 };
+                r.detalle[clave].cantidad += 1;
+                r.detalle[clave].subtotal += tarifa;
+            });
+
+            const filas = [...resumen.values()].sort((a,b) => b.totalPago - a.totalPago);
+            const totalGeneral = filas.reduce((acc, r) => acc + r.totalPago, 0);
+            if (totalBadge) totalBadge.textContent = `Ultimos 15 dias: $${totalGeneral.toFixed(2)}`;
+
+            if (!filas.length) {
+                cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-slate-400 bg-slate-50 border rounded-2xl p-6">No hay tramites terminados en los ultimos 15 dias.</div>`;
+                return;
+            }
+
+            cont.innerHTML = filas.map(r => {
+                const detalle = Object.values(r.detalle).map(d => `
+                    <span class="op-pill blue">${d.label}: ${d.cantidad} x $${d.tarifa.toFixed(2)} = $${d.subtotal.toFixed(2)}</span>
+                `).join(' ');
+                return `
+                    <div class="border rounded-2xl p-4 bg-white shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-black uppercase text-slate-800">${r.nombre}</p>
+                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} tramites completados en 15 dias · Semanas: ${r.semanasHoy || 0} · Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
                             </div>
                             <div class="pay-total text-right">
                                 <p class="text-[9px] font-black uppercase text-white/60">Total a pagar</p>
