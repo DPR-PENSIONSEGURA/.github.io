@@ -425,6 +425,76 @@ const DASHBOARD_SERVICE_PRICES = {
   "BANAMEX": 1200
 };
 
+const DASHBOARD_AFORE_OPTIONS = [
+  { nombre: "Azteca", precio: 0 },
+  { nombre: "Coppel", precio: 0 },
+  { nombre: "Invercap", precio: 0 },
+  { nombre: "SURA", precio: 0 },
+  { nombre: "BANORTE", precio: 0 },
+  { nombre: "Principal", precio: 0 },
+  { nombre: "Banamex", precio: 0 }
+];
+
+const DASHBOARD_SERVICE_CATALOG = {
+  IMSS: [
+    { nombre: "SEMANAS COTIZADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
+    { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
+    { nombre: "SINDO COMPLETO", precio: 0, nss: true },
+    { nombre: "SINDO SALARIO PROMEDIO", precio: 0, nss: true },
+    { nombre: "SINDO VIGENCIA", precio: 0, nss: true },
+    { nombre: "Tarjeta NSS", precio: 0, nss: true, curp: true },
+    { nombre: "Descarga de Cartilla", precio: 0, pideNombre: true, curp: true, nss: true },
+    { nombre: "Vigencia de Derechos", precio: 0, curp: true, nss: true },
+    { nombre: "Incapacidad", precio: 0, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
+    { nombre: "Recetas", precio: 0, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
+    { nombre: "Inscripcion Modalidad 10", precio: 0, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
+    { nombre: "Alta Mensual", precio: 0, nss: true, curp: true, pideNombre: true },
+    { nombre: "Alta Para Desempleo con linea de captura", precio: 0, nss: true, curp: true, pideNombre: true },
+    { nombre: "Alta para Desempleo con aportaciones", precio: 0, nss: true, curp: true, pideNombre: true }
+  ],
+  SAT: [
+    { nombre: "RFC Clon", precio: 0, curp: true },
+    { nombre: "RFC Verificable", precio: 0, curp: true },
+    { nombre: "RFC con IDCIF", precio: 0, rfc: true, idcif: true },
+    { nombre: "RFC Original", precio: 0, curp: true },
+    { nombre: "Localizacion de IDcif", precio: 0, rfc: true }
+  ],
+  DOC: [
+    { nombre: "Buro de Credito", precio: 0, curp: true, pideIneFrente: true },
+    { nombre: "CURP", precio: 0, curp: true },
+    { nombre: "Recibo CFE", precio: 0, pideNumServicio: true },
+    { nombre: "Acta de Nacimiento", precio: 0, curp: true },
+    { nombre: "Acta de Matrimonio", precio: 0, curp: true },
+    { nombre: "Acta de Divorcio", precio: 0, curp: true },
+    { nombre: "Acta de Defuncion", precio: 0, curp: true },
+    { nombre: "Certificado INEA", precio: 0, pideNombre: true, curp: true, pideDia: true, pideMes: true, pideAnio: true, pideNivelEducativo: true, pidePromedio: true, pideEstado: true },
+    { nombre: "Certificado COVID", precio: 0, pideNombre: true, curp: true, pideVacunaCovid: true }
+  ],
+  INF: [
+    { nombre: "Localizacion de Contrasena", precio: 0, nss: true, pideFecha: true },
+    { nombre: "Reseteo Cuenta", precio: 0, nss: true, pideFecha: true },
+    { nombre: "Precalificacion Mejoravit", precio: 0, nss: true, pideFecha: true },
+    { nombre: "Precalificacion Linea II", precio: 0, nss: true, pideFecha: true },
+    { nombre: "CREAR CUENTA EN MI CUENTAINFONAVIT", precio: 0, curp: true, nss: true, pideFecha: true, pideTelContacto: true, pideCorreo: true, pideNota: true, rfc: true },
+    { nombre: "Historico Infonavit", precio: 0, nss: true, pideFecha: true }
+  ],
+  AFORE: [
+    { nombre: "Registro a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+    { nombre: "Retiro Desempleo a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
+    { nombre: "Cambiar Contrasena AFORE Web", precio: 0, curp: true, pidePassNueva: true, pideFotoCli: true },
+    { nombre: "Estado de cuenta AFORE", precio: 0, pideNombre: true, nss: true, curp: true, pideAforeTipo: true },
+    { nombre: "Localizar Contrasena", precio: 0, curp: true, extraMsg: "El usuario debe estar registrado en AFORE Movil o AFORE Web." },
+    { nombre: "Resumen de Saldos", precio: 0, curp: true, extraMsg: "Si el cliente no cuenta con registro en AFORE Movil o AFORE Web, se dara una contrasena generica." },
+    { nombre: "Localiza tu AFORE", precio: 0, curp: true }
+  ],
+  PENSIONES: [
+    { nombre: "Analisis rapido de pension", precio: 0, curp: true, nss: true },
+    { nombre: "Analisis Detallado de pension", precio: 0, pideCuestionarioPension: true }
+  ]
+};
+
 function normalizeString(value) {
   return String(value || "").trim();
 }
@@ -2518,7 +2588,9 @@ app.get("/api/v1/dashboard/services", async (req, res) => {
 
     res.json({
       success: true,
-      prices: DASHBOARD_SERVICE_PRICES
+      prices: DASHBOARD_SERVICE_PRICES,
+      catalog: DASHBOARD_SERVICE_CATALOG,
+      aforeOptions: DASHBOARD_AFORE_OPTIONS
     });
   } catch (error) {
     sendError(res, error);
