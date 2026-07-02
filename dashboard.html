@@ -272,6 +272,10 @@
             "CERTIFICADO INEA": 30,
             "CERTIFICADO COVID": 20,
             "LOCALIZACION DE CONTRASENA": 90,
+            "LOCALIZAR CONTRASENA": 70,
+            "RESUMEN DE SALDOS": 170,
+            "LOCALIZA TU AFORE": 29,
+            "DESCARGA DE CARTILLA": 20,
             "RESETEO CUENTA": 90,
             "PRECALIFICACION MEJORAVIT": 50,
             "PRECALIFICACION LINEA II": 80,
@@ -377,6 +381,7 @@ const TRAMITES = {
         { nombre: 'SINDO SALARIO PROMEDIO', precio: 0, nss: true },
         { nombre: 'SINDO VIGENCIA', precio: 0, nss: true },
         { nombre: 'Tarjeta NSS', precio: 0, nss: true, curp: true },
+        { nombre: 'Descarga de Cartilla', precio: 0, pideNombre: true, curp: true, nss: true },
         { nombre: 'Vigencia de Derechos', precio: 0, curp: true, nss: true },
         { nombre: 'Incapacidad', precio: 0, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
         { nombre: 'Recetas', precio: 0, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
@@ -444,7 +449,10 @@ const TRAMITES = {
         { nombre: 'Registro a Distancia', precio: 0, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
         { nombre: 'Retiro Desempleo a Distancia', precio: 0, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
         { nombre: 'Cambiar Contraseña AFORE Web', precio: 0, curp: true, pidePassNueva: true, pideFotoCli: true },
-        { nombre: 'Estado de cuenta AFORE', precio: 0, pideNombre: true, nss: true, curp: true, pideAforeTipo: true }
+        { nombre: 'Estado de cuenta AFORE', precio: 0, pideNombre: true, nss: true, curp: true, pideAforeTipo: true },
+        { nombre: 'Localizar Contraseña', precio: 0, curp: true, extraMsg: 'El usuario debe estar registrado en AFORE Movil o AFORE Web.' },
+        { nombre: 'Resumen de Saldos', precio: 0, curp: true, extraMsg: 'Si el cliente no cuenta con registro en AFORE Movil o AFORE Web, se dara una contraseña generica.' },
+        { nombre: 'Localiza tu AFORE', precio: 0, curp: true }
     ],
 
     'PENSIONES': [
@@ -1303,13 +1311,14 @@ vacuna_covid: val('vacuna_covid_p'),
 
                 let accion = '--';
                 const archivoFinalUrl = normalizarUrlArchivo(s.archivoFinal);
-                const puedeIntentarDescarga = archivoFinalUrl || String(s.estatus || '').toLowerCase().includes('termin');
-                if (puedeIntentarDescarga) {
+                if (archivoFinalUrl) {
                     if (s.descargado_cliente === true) {
                         accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</button>`;
                     } else {
                         accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase">Descargar</button>`;
                     }
+                } else if (String(s.estatus || '').toLowerCase().includes('termin')) {
+                    accion = `<span class="inline-block bg-amber-50 text-amber-700 border border-amber-100 px-3 py-2 rounded-xl text-[9px] font-black uppercase">Sin archivo</span>`;
                 }
 
                 tbody.innerHTML += `
