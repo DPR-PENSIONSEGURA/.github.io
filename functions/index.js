@@ -1683,33 +1683,43 @@ function supabaseSolicitudFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 10000);
-    const batchSize = 1000;
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 6000);
+    const batchSize = 750;
     const rows = [];
 
     for (let from = 0; from < limitValue; from += batchSize) {
-      const to = Math.min(from + batchSize - 1, limitValue - 1);
+      const batchLimit = Math.min(batchSize, limitValue - from);
       const batch = await supabaseRequest(
-        "solicitudes?select=*&order=fecha.desc",
-        {
-          headers: {
-            Range: `${from}-${to}`,
-            Prefer: "count=exact"
-          }
-        }
+        `solicitudes?select=*&order=fecha.desc&limit=${batchLimit}&offset=${from}`
       );
 
       const batchRows = Array.isArray(batch) ? batch : [];
       rows.push(...batchRows);
 
-      if (batchRows.length < (to - from + 1)) break;
+      if (batchRows.length < batchLimit) break;
     }
+
+    const pendingRows = await supabaseRequest(
+      "solicitudes?select=*&or=(estatus.ilike.en%20proceso,estatus.ilike.pendiente,estatus.ilike.procesando)&order=fecha.desc&limit=3000"
+    );
+
+    const byId = new Map();
+    [...rows, ...(Array.isArray(pendingRows) ? pendingRows : [])].forEach((row) => {
+      const key = String(row.firebase_id || row.id || "");
+      if (key) byId.set(key, row);
+    });
+
+    const mergedRows = Array.from(byId.values()).sort((a, b) => {
+      const dateA = new Date(a.fecha || a.created_at || a.fecha_creacion || 0).getTime();
+      const dateB = new Date(b.fecha || b.created_at || b.fecha_creacion || 0).getTime();
+      return dateB - dateA;
+    });
 
     res.json({
       success: true,
       requested_limit: limitValue,
-      loaded_count: rows.length,
-      requests: (rows || []).filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
+      loaded_count: mergedRows.length,
+      requests: mergedRows.filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
     });
   } catch (error) {
     sendError(res, error);
