@@ -458,7 +458,7 @@ async function cargarPreciosBackend() {
 
             for (const baseUrl of DPR_API_BASE_URLS) {
                 const controller = new AbortController();
-                const timeout = setTimeout(() => controller.abort(), 35000);
+                const timeout = setTimeout(() => controller.abort(), 10000);
 
                 try {
                     response = await fetch(`${baseUrl}${path}`, {
@@ -466,7 +466,8 @@ async function cargarPreciosBackend() {
                         headers,
                         signal: controller.signal
                     });
-                    break;
+                    if (response.ok) break;
+                    lastNetworkError = new Error(`Backend ${baseUrl} respondio ${response.status}`);
                 } catch (error) {
                     lastNetworkError = error;
                 } finally {
