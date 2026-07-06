@@ -980,9 +980,12 @@ class="admin-menu-btn solo-admin relative">
             let data = {};
 
             for (const baseUrl of ADMIN_API_BASES) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
                 try {
                     res = await fetch(`${baseUrl}${path}`, {
                         ...options,
+                        signal: controller.signal,
                         headers: {
                             "Content-Type": "application/json",
                             ...(token ? { "x-admin-token": token } : {}),
@@ -993,7 +996,9 @@ class="admin-menu-btn solo-admin relative">
                     data = await res.json().catch(() => ({}));
                     if (res.ok && data.success !== false) break;
                 } catch (error) {
-                    data = { message: error.message || String(error) };
+                    data = { message: error.name === 'AbortError' ? 'El backend tardó demasiado en responder.' : (error.message || String(error)) };
+                } finally {
+                    clearTimeout(timeout);
                 }
             }
 
@@ -1334,7 +1339,7 @@ class="admin-menu-btn solo-admin relative">
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const data = await adminApi('/api/v1/admin/panel/requests?limit=1000');
+                const data = await adminApi('/api/v1/admin/panel/requests?limit=500');
                 const rows = Array.isArray(data.requests) ? data.requests : [];
                 cacheSolicitudes = rows;
                 metricasListas = true;
@@ -1378,7 +1383,7 @@ class="admin-menu-btn solo-admin relative">
         }
 
         cargarSolicitudesAdminDesdeBackend();
-        setInterval(cargarSolicitudesAdminDesdeBackend, 20000);
+        setInterval(cargarSolicitudesAdminDesdeBackend, 60000);
 
 
         function fechaMsCampo(campo) {
@@ -2588,7 +2593,7 @@ class="admin-menu-btn solo-admin relative">
             }
         }
         cargarAvisosAdmin();
-        setInterval(cargarAvisosAdmin, 30000);
+        setInterval(cargarAvisosAdmin, 60000);
 
         async function cargarRecargasAdmin() {
             if (miSesion.role !== 'admin') return;
@@ -2629,7 +2634,7 @@ class="admin-menu-btn solo-admin relative">
             }
         }
         cargarRecargasAdmin();
-        setInterval(cargarRecargasAdmin, 30000);
+        setInterval(cargarRecargasAdmin, 60000);
 
         window.borrarRecarga = async (docId) => {
             if (miSesion.role !== 'admin') return;
@@ -2732,7 +2737,7 @@ class="admin-menu-btn solo-admin relative">
             }
         }
         cargarChatAdmin();
-        setInterval(cargarChatAdmin, 15000);
+        setInterval(cargarChatAdmin, 45000);
 
         window.abrirChat = async (uid, email) => {
             if (!uid) {
