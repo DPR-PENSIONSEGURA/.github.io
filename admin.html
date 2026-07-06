@@ -1055,7 +1055,22 @@ class="admin-menu-btn solo-admin relative">
         let unsubscribeChatHistory = null;
 
         const selector = document.getElementById('selectorPagina');
-        for (let i = 1; i <= 50; i++) selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+        function totalPaginasSolicitudes() {
+            const total = aplicarFiltroPermisosSolicitudes(obtenerSolicitudesFiltradas()).length;
+            return Math.max(1, Math.ceil(total / PAGE_SIZE));
+        }
+
+        function actualizarSelectorPaginas() {
+            if (!selector) return;
+            const totalPaginas = totalPaginasSolicitudes();
+            const paginaActual = Math.min(Math.max(Number(currentPage || 1), 1), totalPaginas);
+            currentPage = paginaActual;
+            selector.innerHTML = '';
+            for (let i = 1; i <= totalPaginas; i++) {
+                selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+            }
+            selector.value = String(paginaActual);
+        }
 
         function configurarEncabezadoSolicitudes() {
             const thead = document.getElementById('theadSolicitudes');
@@ -1081,7 +1096,8 @@ class="admin-menu-btn solo-admin relative">
 
         window.cambiarPaginaPag = (dir) => {
             let p = currentPage + dir;
-            if (p > 0 && p <= 50) {
+            const totalPaginas = totalPaginasSolicitudes();
+            if (p > 0 && p <= totalPaginas) {
                 currentPage = p;
                 selector.value = p;
                 cargarSolicitudes(p);
@@ -1125,13 +1141,10 @@ class="admin-menu-btn solo-admin relative">
         function obtenerSolicitudesFiltradas() {
             if (!filtroPendientesHoyActivo) return todasLasSoliCargadas;
 
-            const hoy = new Date();
-
             return todasLasSoliCargadas.filter(s => {
-                const fecha = fechaDateCampo(s.fecha || s.created_at || s.fecha_creacion);
                 const estatus = String(s.estatus || s.status || '').trim().toLowerCase();
 
-                return fecha && esMismaSemana(fecha, hoy) && (
+                return (
                     estatus === 'en proceso' ||
                     estatus === 'pendiente' ||
                     estatus === 'procesando'
@@ -1147,7 +1160,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.filtrarPendientesHoy = () => {
             filtroPendientesHoyActivo = true;
-            actualizarFiltroLabel('Pendientes de la semana');
+            actualizarFiltroLabel('Todos los pendientes');
             currentPage = 1;
             selector.value = 1;
             cargarSolicitudes(1);
@@ -1308,7 +1321,7 @@ class="admin-menu-btn solo-admin relative">
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const data = await adminApi('/api/v1/admin/panel/requests?limit=3500');
+                const data = await adminApi('/api/v1/admin/panel/requests?limit=10000');
                 const rows = Array.isArray(data.requests) ? data.requests : [];
                 cacheSolicitudes = rows;
                 metricasListas = true;
@@ -1848,6 +1861,8 @@ class="admin-menu-btn solo-admin relative">
 
         window.cargarSolicitudes = (pagina = 1) => {
             const fuente = aplicarFiltroPermisosSolicitudes(obtenerSolicitudesFiltradas());
+            actualizarSelectorPaginas();
+            pagina = currentPage;
             const inicio = (pagina - 1) * PAGE_SIZE;
             renderizarTablaPersonalizada(fuente.slice(inicio, inicio + PAGE_SIZE));
         };
@@ -2633,7 +2648,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.buscarGlobal = () => {
             const bus = document.getElementById('buscador').value.trim().toUpperCase();
-            if (bus.length < 1) { actualizarFiltroLabel(filtroPendientesHoyActivo ? 'Pendientes de la semana' : ''); return cargarSolicitudes(currentPage); }
+            if (bus.length < 1) { actualizarFiltroLabel(filtroPendientesHoyActivo ? 'Todos los pendientes' : ''); return cargarSolicitudes(currentPage); }
 
             const hoy = new Date();
             const baseSemana = todasLasSoliCargadas.filter(s => {
