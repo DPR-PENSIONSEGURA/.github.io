@@ -1434,7 +1434,7 @@ function supabaseRechargeFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/recharges", async (req, res) => {
   try {
     validateAdminToken(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 100);
     const rows = await supabaseRequest(
       `notificaciones_pago?select=*&order=fecha.desc&limit=${limitValue}`
     );
