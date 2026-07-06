@@ -1321,7 +1321,7 @@ class="admin-menu-btn solo-admin relative">
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const data = await adminApi('/api/v1/admin/panel/requests?limit=6000');
+                const data = await adminApi('/api/v1/admin/panel/requests?limit=100');
                 const rows = Array.isArray(data.requests) ? data.requests : [];
                 cacheSolicitudes = rows;
                 metricasListas = true;
