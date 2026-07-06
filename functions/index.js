@@ -1683,13 +1683,32 @@ function supabaseSolicitudFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 5000);
-    const rows = await supabaseRequest(
-      `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
-    );
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 10000);
+    const batchSize = 1000;
+    const rows = [];
+
+    for (let from = 0; from < limitValue; from += batchSize) {
+      const to = Math.min(from + batchSize - 1, limitValue - 1);
+      const batch = await supabaseRequest(
+        "solicitudes?select=*&order=fecha.desc",
+        {
+          headers: {
+            Range: `${from}-${to}`,
+            Prefer: "count=exact"
+          }
+        }
+      );
+
+      const batchRows = Array.isArray(batch) ? batch : [];
+      rows.push(...batchRows);
+
+      if (batchRows.length < (to - from + 1)) break;
+    }
 
     res.json({
       success: true,
+      requested_limit: limitValue,
+      loaded_count: rows.length,
       requests: (rows || []).filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
     });
   } catch (error) {
