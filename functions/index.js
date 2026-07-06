@@ -1434,7 +1434,7 @@ function supabaseRechargeFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/recharges", async (req, res) => {
   try {
     validateAdminToken(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 100);
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
     const rows = await supabaseRequest(
       `notificaciones_pago?select=*&order=fecha.desc&limit=${limitValue}`
     );
@@ -1683,25 +1683,19 @@ function supabaseSolicitudFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 3500), 1), 6000);
-    const batchSize = 750;
-    const rows = [];
-
-    for (let from = 0; from < limitValue; from += batchSize) {
-      const batchLimit = Math.min(batchSize, limitValue - from);
-      const batch = await supabaseRequest(
-        `solicitudes?select=*&order=fecha.desc&limit=${batchLimit}&offset=${from}`
-      );
-
-      const batchRows = Array.isArray(batch) ? batch : [];
-      rows.push(...batchRows);
-
-      if (batchRows.length < batchLimit) break;
-    }
-
-    const pendingRows = await supabaseRequest(
-      "solicitudes?select=*&or=(estatus.ilike.en%20proceso,estatus.ilike.pendiente,estatus.ilike.procesando)&order=fecha.desc&limit=3000"
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 1000), 1), 1000);
+    const rows = await supabaseRequest(
+      `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
     );
+
+    let pendingRows = [];
+    try {
+      pendingRows = await supabaseRequest(
+        "solicitudes?select=*&or=(estatus.eq.En%20Proceso,estatus.eq.en%20proceso,estatus.eq.Pendiente,estatus.eq.pendiente,estatus.eq.Procesando,estatus.eq.procesando)&order=fecha.desc&limit=100"
+      );
+    } catch (pendingError) {
+      console.error("No se pudieron cargar pendientes extra:", pendingError.message || pendingError);
+    }
 
     const byId = new Map();
     [...rows, ...(Array.isArray(pendingRows) ? pendingRows : [])].forEach((row) => {
@@ -1718,6 +1712,7 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
     res.json({
       success: true,
       requested_limit: limitValue,
+      pending_loaded_count: Array.isArray(pendingRows) ? pendingRows.length : 0,
       loaded_count: mergedRows.length,
       requests: mergedRows.filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
     });
