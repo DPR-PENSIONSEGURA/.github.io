@@ -957,7 +957,10 @@ class="admin-menu-btn solo-admin relative">
         const staffNombre = String(miSesion.name || miSesion.nombre || miSesion.username || 'Empleado').trim();
         const staffRol = String(miSesion.role || 'asesor').toLowerCase();
         const LOCK_MINUTOS = 20;
-        const ADMIN_API_BASE = "https://api-326bly7kmq-uc.a.run.app";
+        const ADMIN_API_BASES = [
+            "https://api-326bly7kmq-uc.a.run.app",
+            "https://us-central1-pensionsegura-9c817.cloudfunctions.net/api"
+        ];
 
         function obtenerAdminToken() {
             let token = sessionStorage.getItem('dpr_admin_token') || '';
@@ -973,24 +976,34 @@ class="admin-menu-btn solo-admin relative">
             const token = sessionStorage.getItem('dpr_admin_token') || (miSesion.role === 'admin' ? obtenerAdminToken() : '');
             if (!token && !staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
 
-            const res = await fetch(`${ADMIN_API_BASE}${path}`, {
-                ...options,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(token ? { "x-admin-token": token } : {}),
-                    ...(staffToken ? { "Authorization": `Bearer ${staffToken}` } : {}),
-                    ...(options.headers || {})
-                }
-            });
+            let res = null;
+            let data = {};
 
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok || data.success === false) {
+            for (const baseUrl of ADMIN_API_BASES) {
+                try {
+                    res = await fetch(`${baseUrl}${path}`, {
+                        ...options,
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...(token ? { "x-admin-token": token } : {}),
+                            ...(staffToken ? { "Authorization": `Bearer ${staffToken}` } : {}),
+                            ...(options.headers || {})
+                        }
+                    });
+                    data = await res.json().catch(() => ({}));
+                    if (res.ok && data.success !== false) break;
+                } catch (error) {
+                    data = { message: error.message || String(error) };
+                }
+            }
+
+            if (!res || !res.ok || data.success === false) {
                 if (data.error_code === 'INVALID_ADMIN_TOKEN') sessionStorage.removeItem('dpr_admin_token');
                 if (['INVALID_STAFF_TOKEN', 'STAFF_TOKEN_EXPIRED', 'STAFF_TOKEN_REQUIRED'].includes(data.error_code)) {
                     sessionStorage.removeItem('dpr_staff_token');
                     localStorage.removeItem('staffSession');
                 }
-                throw new Error(data.message || `Error ${res.status}`);
+                throw new Error(data.message || `Error ${res?.status || 'backend'}`);
             }
             return data;
         }
@@ -1321,7 +1334,7 @@ class="admin-menu-btn solo-admin relative">
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const data = await adminApi('/api/v1/admin/panel/requests?limit=100');
+                const data = await adminApi('/api/v1/admin/panel/requests?limit=1000');
                 const rows = Array.isArray(data.requests) ? data.requests : [];
                 cacheSolicitudes = rows;
                 metricasListas = true;
