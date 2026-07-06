@@ -1688,33 +1688,11 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
       `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
     );
 
-    let pendingRows = [];
-    try {
-      pendingRows = await supabaseRequest(
-        "solicitudes?select=*&or=(estatus.eq.En%20Proceso,estatus.eq.en%20proceso,estatus.eq.Pendiente,estatus.eq.pendiente,estatus.eq.Procesando,estatus.eq.procesando)&order=fecha.desc&limit=100"
-      );
-    } catch (pendingError) {
-      console.error("No se pudieron cargar pendientes extra:", pendingError.message || pendingError);
-    }
-
-    const byId = new Map();
-    [...rows, ...(Array.isArray(pendingRows) ? pendingRows : [])].forEach((row) => {
-      const key = String(row.firebase_id || row.id || "");
-      if (key) byId.set(key, row);
-    });
-
-    const mergedRows = Array.from(byId.values()).sort((a, b) => {
-      const dateA = new Date(a.fecha || a.created_at || a.fecha_creacion || 0).getTime();
-      const dateB = new Date(b.fecha || b.created_at || b.fecha_creacion || 0).getTime();
-      return dateB - dateA;
-    });
-
     res.json({
       success: true,
       requested_limit: limitValue,
-      pending_loaded_count: Array.isArray(pendingRows) ? pendingRows.length : 0,
-      loaded_count: mergedRows.length,
-      requests: mergedRows.filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
+      loaded_count: Array.isArray(rows) ? rows.length : 0,
+      requests: (rows || []).filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
     });
   } catch (error) {
     sendError(res, error);
