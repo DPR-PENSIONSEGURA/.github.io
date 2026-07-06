@@ -41,24 +41,35 @@ async function supabaseRequest(path, options = {}) {
   assertSupabaseConfigured();
 
   let res = null;
+  const timeoutMs = Number(options.timeoutMs || 12000);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const requestOptions = { ...options };
+  delete requestOptions.timeoutMs;
 
   try {
     res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-      ...options,
+      ...requestOptions,
+      signal: requestOptions.signal || controller.signal,
       headers: {
         apikey: SUPABASE_SERVICE_ROLE_KEY,
         Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         "Content-Type": "application/json",
         "Accept-Profile": SUPABASE_SCHEMA,
         "Content-Profile": SUPABASE_SCHEMA,
-        ...(options.headers || {})
+        ...(requestOptions.headers || {})
       }
     });
   } catch (error) {
-    const requestError = new Error(`No se pudo conectar a Supabase: ${error.message}`);
+    const mensaje = error.name === "AbortError"
+      ? `Supabase tardo mas de ${Math.round(timeoutMs / 1000)} segundos en responder`
+      : error.message;
+    const requestError = new Error(`No se pudo conectar a Supabase: ${mensaje}`);
     requestError.statusCode = 500;
     requestError.errorCode = "SUPABASE_FETCH_FAILED";
     throw requestError;
+  } finally {
+    clearTimeout(timeout);
   }
 
   const text = await res.text();
