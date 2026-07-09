@@ -1,13 +1,12 @@
-const { setGlobalOptions } = require("firebase-functions");
+const { setGlobalOptions } = require("firebase-functions/v2/options");
 const { onRequest } = require("firebase-functions/https");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
 const Busboy = require("busboy");
 const crypto = require("crypto");
-const cloudinary = require("cloudinary").v2;
+let cloudinaryClient = null;
 
 setGlobalOptions({ maxInstances: 10 });
 
@@ -19,7 +18,6 @@ const FieldValue = admin.firestore.FieldValue;
 const FieldPath = admin.firestore.FieldPath;
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "2mb" }));
@@ -255,7 +253,7 @@ const SERVICE_MAP = {
   SEMANAS_DETALLADAS: "SEMANAS DETALLADAS",
 
   SINDO_ULTIMO_RETIRO: "SINDO ULTIMO RETIRO",
-  SINDO_ALFANUMERICO: "SINDO ALFANUMÃ‰RICO",
+  SINDO_ALFANUMERICO: "SINDO ALFANUMÉRICO",
   SINDO_SALARIO_PROMEDIO: "SINDO SALARIO PROMEDIO",
   SINDO_VIGENCIA: "SINDO VIGENCIA",
   SINDO_COMPLETO: "SINDO COMPLETO",
@@ -264,7 +262,7 @@ const SERVICE_MAP = {
   VIGENCIA_DERECHOS: "Vigencia de Derechos",
   INCAPACIDAD: "Incapacidad",
   RECETAS: "Recetas",
-  INSCRIPCION_MODALIDAD_10: "InscripciÃ³n Modalidad 10",
+  INSCRIPCION_MODALIDAD_10: "Inscripción Modalidad 10",
   ALTA_MENSUAL: "Alta Mensual",
   ALTA_DESEMPLEO_LINEA_CAPTURA: "Alta Para Desempleo con linea de captura",
   ALTA_DESEMPLEO_APORTACIONES: "Alta para Desempleo con aportaciones",
@@ -273,26 +271,26 @@ const SERVICE_MAP = {
   RFC_VERIFICABLE: "RFC Verificable",
   RFC_IDCIF: "RFC con IDCIF",
   RFC_ORIGINAL: "RFC Original",
-  LOCALIZACION_IDCIF: "LocalizaciÃ³n de IDcif",
+  LOCALIZACION_IDCIF: "Localización de IDcif",
 
-  BURO_CREDITO: "BurÃ³ de CrÃ©dito",
+  BURO_CREDITO: "Buró de Crédito",
   CURP: "CURP",
   RECIBO_CFE: "Recibo CFE",
   ACTA_NACIMIENTO: "Acta de Nacimiento",
   ACTA_MATRIMONIO: "Acta de Matrimonio",
   ACTA_DIVORCIO: "Acta de Divorcio",
-  ACTA_DEFUNCION: "Acta de DefunciÃ³n",
+  ACTA_DEFUNCION: "Acta de Defunción",
 
-  LOCALIZACION_CONTRASENA_INFONAVIT: "LocalizaciÃ³n de ContraseÃ±a",
+  LOCALIZACION_CONTRASENA_INFONAVIT: "Localización de Contraseña",
   RESETEO_INFONAVIT: "Reseteo Cuenta",
-  PRECALIFICACION_MEJORAVIT: "PrecalificaciÃ³n Mejoravit",
-  PRECALIFICACION_LINEA_II: "PrecalificaciÃ³n Linea II",
+  PRECALIFICACION_MEJORAVIT: "Precalificación Mejoravit",
+  PRECALIFICACION_LINEA_II: "Precalificación Linea II",
   CREAR_CUENTA_INFONAVIT: "CREAR CUENTA EN MI CUENTAINFONAVIT",
-  HISTORICO_INFONAVIT: "HistÃ³rico Infonavit",
+  HISTORICO_INFONAVIT: "Histórico Infonavit",
 
   REGISTRO_AFORE_DISTANCIA: "Registro a Distancia",
   RETIRO_DESEMPLEO_AFORE: "Retiro Desempleo a Distancia",
-  CAMBIO_CONTRASENA_AFORE: "Cambiar ContraseÃ±a AFORE Web",
+  CAMBIO_CONTRASENA_AFORE: "Cambiar Contraseña AFORE Web",
   ESTADO_CUENTA_AFORE_AZTECA: "Estado de cuenta AFORE - Azteca",
   ESTADO_CUENTA_AFORE_COPPEL: "Estado de cuenta AFORE - Coppel",
   ESTADO_CUENTA_AFORE_PROFUTURO: "Estado de cuenta AFORE - Profuturo",
@@ -302,14 +300,14 @@ const SERVICE_MAP = {
   ESTADO_CUENTA_AFORE_PRINCIPAL: "Estado de cuenta AFORE - Principal",
   ESTADO_CUENTA_AFORE_BANAMEX: "Estado de cuenta AFORE - Banamex",
 
-  ANALISIS_RAPIDO_PENSION: "AnÃ¡lisis rÃ¡pido de pensiÃ³n",
-  ANALISIS_DETALLADO_PENSION: "AnÃ¡lisis Detallado de pensiÃ³n",
+  ANALISIS_RAPIDO_PENSION: "Análisis rápido de pensión",
+  ANALISIS_DETALLADO_PENSION: "Análisis Detallado de pensión",
 
   // Alias legacy temporales para no romper integraciones anteriores.
   VIGENCIA: "Vigencia de Derechos",
   ALTA_DESEMPLEO: "Alta para Desempleo con aportaciones",
   RETIRO: "Retiro Desempleo a Distancia",
-  CONTRASENA: "Cambiar ContraseÃ±a AFORE Web",
+  CONTRASENA: "Cambiar Contraseña AFORE Web",
   REGISTRO: "Registro a Distancia"
 };
 
@@ -328,7 +326,7 @@ const LEGACY_SERVICE_NAMES = {
   RFC_IDCIF: ["RFC IDCIF"],
   RFC_ORIGINAL: ["RFC ORIGINAL"],
   LOCALIZACION_IDCIF: ["LOCALIZACION IDCIF"],
-  BURO_CREDITO: ["DPR BURÃ“ DE CREDITO"],
+  BURO_CREDITO: ["DPR BURÓ DE CREDITO"],
   ACTA_NACIMIENTO: ["ACTA"],
   ACTA_MATRIMONIO: ["ACTA MATRIMONIO"],
   ACTA_DIVORCIO: ["ACTA DIVORCIO"],
@@ -523,7 +521,7 @@ async function authenticateFirebaseUser(req) {
   const idToken = authHeader.replace(/^Bearer\s+/i, "");
 
   if (!idToken) {
-    const error = new Error("Falta token de sesiÃ³n.");
+    const error = new Error("Falta token de sesión.");
     error.statusCode = 401;
     error.errorCode = "FIREBASE_TOKEN_REQUIRED";
     throw error;
@@ -534,7 +532,7 @@ async function authenticateFirebaseUser(req) {
   try {
     decoded = await admin.auth().verifyIdToken(idToken);
   } catch (error) {
-    const authError = new Error("Token de sesiÃ³n invÃ¡lido.");
+    const authError = new Error("Token de sesión inválido.");
     authError.statusCode = 401;
     authError.errorCode = "INVALID_FIREBASE_TOKEN";
     throw authError;
@@ -689,7 +687,7 @@ async function findInventoryByServiceCode(serviceCode) {
   const costoPropio = Number(data.costoPropio || 0);
 
   if (!Number.isFinite(precioVenta) || precioVenta < 0) {
-    const error = new Error("El servicio no tiene precioVenta vÃ¡lido.");
+    const error = new Error("El servicio no tiene precioVenta válido.");
     error.statusCode = 500;
     error.errorCode = "INVALID_SERVICE_PRICE";
     throw error;
@@ -711,23 +709,28 @@ function configureCloudinary() {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    const error = new Error("Cloudinary no estÃ¡ configurado en secretos de Functions.");
+    const error = new Error("Cloudinary no está configurado en secretos de Functions.");
     error.statusCode = 500;
     error.errorCode = "CLOUDINARY_NOT_CONFIGURED";
     throw error;
   }
 
-  cloudinary.config({
+  if (!cloudinaryClient) {
+    cloudinaryClient = require("cloudinary").v2;
+  }
+
+  cloudinaryClient.config({
     cloud_name: cloudName,
     api_key: apiKey,
     api_secret: apiSecret
   });
+  return cloudinaryClient;
 }
 
 async function uploadBufferToCloudinary(file, folder) {
   if (!file) return "N/A";
 
-  configureCloudinary();
+  const cloudinary = configureCloudinary();
 
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -832,7 +835,7 @@ function parseMultipartRequest(req) {
     }
 
     if (!req.rawBody || !Buffer.isBuffer(req.rawBody)) {
-      const error = new Error("No se recibiÃ³ rawBody para procesar multipart/form-data.");
+      const error = new Error("No se recibió rawBody para procesar multipart/form-data.");
       error.statusCode = 400;
       error.errorCode = "RAW_BODY_REQUIRED";
       reject(error);
@@ -845,7 +848,7 @@ function parseMultipartRequest(req) {
     let busboy;
 
     try {
-      busboy = Busboy({
+      busboy = require(busboy)({
         headers: req.headers,
         limits: {
           files: 10,
@@ -887,7 +890,7 @@ function parseMultipartRequest(req) {
 
       file.on("end", () => {
         if (fileLimitReached) {
-          const error = new Error(`El archivo ${filename} excede el tamaÃ±o permitido.`);
+          const error = new Error(`El archivo ${filename} excede el tamaño permitido.`);
           error.statusCode = 413;
           error.errorCode = "FILE_TOO_LARGE";
           reject(error);
@@ -1973,7 +1976,7 @@ app.post("/api/v1/admin/panel/requests/:id/refund", async (req, res) => {
     const asesor = await getSupabaseAsesorByUid(solicitud.firebase_uid);
 
     if (!asesor) {
-      const error = new Error("No se encontró el asesor para reembolsar.");
+      const error = new Error("No se encontr� el asesor para reembolsar.");
       error.statusCode = 404;
       error.errorCode = "ASESOR_NOT_FOUND";
       throw error;
