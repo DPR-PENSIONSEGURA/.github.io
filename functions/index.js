@@ -1,4 +1,4 @@
-const { setGlobalOptions } = require("firebase-functions/v2/options");
+  const { setGlobalOptions } = require("firebase-functions/v2/options");
 const { onRequest } = require("firebase-functions/https");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
@@ -116,7 +116,6 @@ function mapSupabaseSolicitud(row) {
     curp: row.curp || "",
     nss: row.nss || "",
     archivoFinal: resolveArchivoFinal(row),
-    fecha: row.fecha || row.created_at || null,
     detalles_extra: row.detalles_extra || {},
     cuestionario: row.cuestionario || {},
     descargado_cliente: raw.descargado_cliente === true
@@ -143,7 +142,6 @@ function mapSupabaseAdminSolicitud(row) {
     curp: row.curp || raw.curp || "",
     nss: row.nss || raw.nss || "",
     archivoFinal: resolveArchivoFinal(row),
-    fecha: row.fecha || row.created_at || raw.fecha || null,
     fecha_terminado: raw.fecha_terminado || raw.fechaTerminado || null,
     fecha_finalizado: raw.fecha_finalizado || null,
     detalles_extra: row.detalles_extra || raw.detalles_extra || {},
@@ -184,7 +182,6 @@ function mapSupabaseRecharge(row) {
     rastreo: row.rastreo || raw.rastreo || "",
     comprobante: row.comprobante_url || raw.comprobante || raw.comprobante_url || "",
     estatus: row.estatus || raw.estatus || "pendiente",
-    fecha: row.fecha || row.created_at || raw.fecha || null
   };
 }
 
@@ -206,7 +203,6 @@ function mapSupabaseChat(row) {
     remitente: row.remitente || row.email || "",
     texto: row.texto || "",
     respondido: row.respondido === true,
-    timestamp: row.fecha || row.created_at || null
   };
 }
 
@@ -1739,7 +1735,6 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
       "nss",
       "archivo_final",
       "fecha",
-      "created_at",
       "detalles_extra",
       "cuestionario",
       "raw_data"
@@ -2649,9 +2644,7 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
 
     const uid = supabaseEq(auth.uid);
     const [ledgerRows, solicitudRows, pagoRows] = await Promise.all([
-      supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=id,referencia_id,tipo,descripcion,referencia_tipo,monto,saldo_antes,saldo_despues,fecha_movimiento,created_at,origen&order=fecha_movimiento.desc&limit=50`),
-      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,created_at,raw_data&order=fecha.desc&limit=50`),
-      supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=id,firebase_id,monto,estatus,rastreo,fecha,created_at&order=fecha.desc&limit=50`)
+      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,raw_data&order=fecha.desc&limit=50`),
     ]);
 
     const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia_id || "")).filter(Boolean));
@@ -2665,7 +2658,6 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
       saldo_antes: row.saldo_antes === null || row.saldo_antes === undefined ? null : Number(row.saldo_antes || 0),
       saldo_despues: row.saldo_despues === null || row.saldo_despues === undefined ? null : Number(row.saldo_despues || 0),
       estatus: row.tipo || "",
-      fecha: row.fecha_movimiento || row.created_at || null,
       origen: row.origen || "Sistema"
     }));
 
@@ -2686,7 +2678,6 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
         saldo_antes: null,
         saldo_despues: null,
         estatus: row.estatus || "",
-        fecha: row.fecha || row.created_at || null,
         origen: row.raw_data?.origen || "Dashboard"
       };
     });
@@ -2703,7 +2694,6 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
       saldo_antes: null,
       saldo_despues: null,
       estatus: row.estatus || "pendiente",
-      fecha: row.fecha || row.created_at || null,
       origen: "Recarga"
     }));
 
@@ -2750,7 +2740,7 @@ app.get("/api/v1/dashboard/requests", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
     const rows = await supabaseRequest(
-      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,created_at,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
+      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
     );
 
     res.json({
