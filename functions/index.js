@@ -97,7 +97,7 @@ function supabaseEq(value) {
 
 async function getSupabaseAsesorByUid(uid) {
   const rows = await supabaseRequest(
-    `asesores?firebase_uid=eq.${supabaseEq(uid)}&select=*&limit=1`
+    `asesores?firebase_uid=eq.${supabaseEq(uid)}&select=id,firebase_uid,email,nombre,saldo_actual,activo,raw_data&limit=1`
   );
 
   return rows?.[0] || null;
@@ -1124,6 +1124,20 @@ function isChargeableSolicitud(data) {
   return true;
 }
 
+function isCompletedSaleSolicitud(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const estatus = normalizeForCompare(row?.estatus || raw.estatus || row?.status || raw.status || "");
+  const excluded = ["error", "rechaz", "cancel", "reembol", "devuelt"];
+  if (excluded.some((item) => estatus.includes(item))) return false;
+  if (row?.reembolsado === true || raw.reembolsado === true) return false;
+  if (Number(row?.monto_reembolsado || raw.monto_reembolsado || 0) > 0) return false;
+
+  return row?.finalizado === true ||
+    raw.finalizado === true ||
+    estatus.includes("termin") ||
+    estatus.includes("finaliz");
+}
+
 async function collectBalanceForAsesor(uid, asesor) {
   const email = normalizeForCompare(asesor.email || "");
   const rechargeDocs = new Map();
@@ -1421,14 +1435,15 @@ app.post("/api/v1/dashboard/bootstrap", async (req, res) => {
 
 async function getSupabaseRechargeByPanelId(id) {
   const encodedId = supabaseEq(id);
+  const selectFields = "id,firebase_id,firebase_uid,email,monto,rastreo,estatus,comprobante_url,fecha,raw_data";
   let rows = await supabaseRequest(
-    `notificaciones_pago?firebase_id=eq.${encodedId}&select=*&limit=1`
+    `notificaciones_pago?firebase_id=eq.${encodedId}&select=${selectFields}&limit=1`
   );
   if (rows?.[0]) return rows[0];
 
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id))) {
     rows = await supabaseRequest(
-      `notificaciones_pago?id=eq.${encodedId}&select=*&limit=1`
+      `notificaciones_pago?id=eq.${encodedId}&select=${selectFields}&limit=1`
     );
   }
   return rows?.[0] || null;
@@ -1446,8 +1461,10 @@ app.get("/api/v1/admin/panel/recharges", async (req, res) => {
   try {
     validateAdminToken(req);
     const limitValue = Math.min(Math.max(Number(req.query.limit || 50), 1), 500);
+    const selectFields = "id,firebase_id,firebase_uid,email,monto,rastreo,estatus,comprobante_url,fecha,raw_data";
     const rows = await supabaseRequest(
-      `notificaciones_pago?select=*&order=fecha.desc&limit=${limitValue}`
+      `notificaciones_pago?select=${selectFields}&order=fecha.desc&limit=${limitValue}`,
+      { timeoutMs: 18000 }
     );
 
     res.json({
@@ -1694,9 +1711,54 @@ function supabaseSolicitudFilterByPanelId(id) {
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
-    const limitValue = Math.min(Math.max(Number(req.query.limit || 1000), 1), 1000);
+    const limitValue = Math.min(Math.max(Number(req.query.limit || 1000), 1), 5000);
+    const statusFilter = normalizeForCompare(req.query.status || "");
+    const dateFrom = req.query.date_from ? new Date(String(req.query.date_from)) : null;
+    const dateTo = req.query.date_to ? new Date(String(req.query.date_to)) : null;
+    if ((dateFrom && Number.isNaN(dateFrom.getTime())) || (dateTo && Number.isNaN(dateTo.getTime()))) {
+      const error = new Error("Rango de fechas invalido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_DATE_RANGE";
+      throw error;
+    }
+    const selectFields = [
+      "id",
+      "firebase_id",
+      "firebase_uid",
+      "email",
+      "tipo",
+      "costo",
+      "estatus",
+      "finalizado",
+      "reembolsado",
+      "monto_reembolsado",
+      "curp",
+      "nss",
+      "archivo_final",
+      "fecha",
+      "created_at",
+      "detalles_extra",
+      "cuestionario",
+      "raw_data"
+    ].join(",");
+    const queryParts = [
+      `select=${selectFields}`,
+      "order=fecha.desc",
+      `limit=${limitValue}`
+    ];
+
+    if (dateFrom) queryParts.push(`fecha=gte.${encodeURIComponent(dateFrom.toISOString())}`);
+    if (dateTo) queryParts.push(`fecha=lt.${encodeURIComponent(dateTo.toISOString())}`);
+    if (["pending", "pendientes", "pendiente"].includes(statusFilter)) {
+      queryParts.push("or=(estatus.ilike.*proceso*,estatus.ilike.*pendiente*,estatus.ilike.*procesando*)");
+    }
+    if (["completed", "terminadas", "terminado", "finalizadas", "finalizado"].includes(statusFilter)) {
+      queryParts.push("or=(estatus.ilike.*termin*,estatus.ilike.*finaliz*,finalizado.eq.true)");
+    }
+
     const rows = await supabaseRequest(
-      `solicitudes?select=*&order=fecha.desc&limit=${limitValue}`
+      `solicitudes?${queryParts.join("&")}`,
+      { timeoutMs: 18000 }
     );
 
     res.json({
@@ -1704,6 +1766,77 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
       requested_limit: limitValue,
       loaded_count: Array.isArray(rows) ? rows.length : 0,
       requests: (rows || []).filter(isMeaningfulAdminSolicitud).map(mapSupabaseAdminSolicitud)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.get("/api/v1/admin/panel/summary", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+
+    const now = new Date();
+    const dateFrom = req.query.date_from ? new Date(String(req.query.date_from)) : new Date(now);
+    if (!req.query.date_from) dateFrom.setHours(0, 0, 0, 0);
+
+    const dateTo = req.query.date_to ? new Date(String(req.query.date_to)) : new Date(dateFrom);
+    if (!req.query.date_to) dateTo.setDate(dateTo.getDate() + 1);
+
+    if (Number.isNaN(dateFrom.getTime()) || Number.isNaN(dateTo.getTime())) {
+      const error = new Error("Rango de fechas invalido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_DATE_RANGE";
+      throw error;
+    }
+
+    const selectFields = [
+      "id",
+      "costo",
+      "estatus",
+      "finalizado",
+      "reembolsado",
+      "monto_reembolsado",
+      "fecha",
+      "raw_data"
+    ].join(",");
+
+    const summaryLimit = Math.min(Math.max(Number(req.query.limit || 5000), 1), 10000);
+    const rows = await supabaseRequest(
+      `solicitudes?select=${selectFields}&fecha=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha.desc&limit=${summaryLimit}`,
+      { timeoutMs: 22000 }
+    );
+
+    let totalVendido = 0;
+    let terminadas = 0;
+    let pendientes = 0;
+    let errores = 0;
+
+    for (const row of rows || []) {
+      const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+      const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
+
+      if (isCompletedSaleSolicitud(row)) {
+        terminadas += 1;
+        totalVendido += Number(row.costo || row.precio || row.monto || raw.costo || raw.precio || raw.monto || 0);
+      } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
+        errores += 1;
+      } else {
+        pendientes += 1;
+      }
+    }
+
+    res.json({
+      success: true,
+      date_from: dateFrom.toISOString(),
+      date_to: dateTo.toISOString(),
+      limit: summaryLimit,
+      loaded_count: Array.isArray(rows) ? rows.length : 0,
+      possibly_truncated: Array.isArray(rows) && rows.length >= summaryLimit,
+      total_vendido: Number(totalVendido.toFixed(2)),
+      terminadas,
+      pendientes,
+      errores
     });
   } catch (error) {
     sendError(res, error);
@@ -2513,9 +2646,9 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
 
     const uid = supabaseEq(auth.uid);
     const [ledgerRows, solicitudRows, pagoRows] = await Promise.all([
-      supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=*&order=fecha_movimiento.desc&limit=80`),
-      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=*&order=fecha.desc&limit=80`),
-      supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=*&order=fecha.desc&limit=80`)
+      supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=id,referencia_id,tipo,descripcion,referencia_tipo,monto,saldo_antes,saldo_despues,fecha_movimiento,created_at,origen&order=fecha_movimiento.desc&limit=50`),
+      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,created_at,raw_data&order=fecha.desc&limit=50`),
+      supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=id,firebase_id,monto,estatus,rastreo,fecha,created_at&order=fecha.desc&limit=50`)
     ]);
 
     const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia_id || "")).filter(Boolean));
@@ -2614,7 +2747,7 @@ app.get("/api/v1/dashboard/requests", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
     const rows = await supabaseRequest(
-      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=*&order=fecha.desc&limit=200`
+      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,created_at,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
     );
 
     res.json({
