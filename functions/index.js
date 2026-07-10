@@ -1,4 +1,4 @@
-  const { setGlobalOptions } = require("firebase-functions/v2/options");
+const { setGlobalOptions } = require("firebase-functions/v2/options");
 const { onRequest } = require("firebase-functions/https");
 const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
@@ -124,6 +124,18 @@ function mapSupabaseSolicitud(row) {
 
 function mapSupabaseAdminSolicitud(row) {
   const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const fechaSolicitud = firstValidDateValue(
+    row.fecha,
+    raw.fecha,
+    raw.fechaSolicitud,
+    raw.fecha_solicitud,
+    raw.fechaRegistro,
+    raw.fecha_registro,
+    raw.fechaCreacion,
+    raw.fecha_creacion,
+    raw.ultima_actividad,
+    raw.fecha_tomado
+  );
   return {
     ...raw,
     id: row.firebase_id || row.id,
@@ -142,8 +154,9 @@ function mapSupabaseAdminSolicitud(row) {
     curp: row.curp || raw.curp || "",
     nss: row.nss || raw.nss || "",
     archivoFinal: resolveArchivoFinal(row),
-    fecha_terminado: raw.fecha_terminado || raw.fechaTerminado || null,
-    fecha_finalizado: raw.fecha_finalizado || null,
+    fecha: fechaSolicitud,
+    fecha_terminado: firstValidDateValue(raw.fecha_terminado, raw.fechaTerminado, raw.fecha_finalizado),
+    fecha_finalizado: firstValidDateValue(raw.fecha_finalizado, raw.fecha_terminado, raw.fechaTerminado),
     detalles_extra: row.detalles_extra || raw.detalles_extra || {},
     cuestionario: row.cuestionario || raw.cuestionario || {},
     origen: raw.origen || "Portal"
@@ -500,6 +513,45 @@ const DASHBOARD_SERVICE_CATALOG = {
   ]
 };
 
+function normalizeDateValue(value) {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "number") {
+    const d = new Date(value > 9999999999 ? value : value * 1000);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.toUpperCase() === "N/A") return null;
+    const d = new Date(trimmed);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
+  if (typeof value === "object") {
+    if (typeof value.toDate === "function") {
+      const d = value.toDate();
+      return Number.isNaN(d.getTime()) ? null : d.toISOString();
+    }
+    const seconds = value.seconds ?? value._seconds;
+    if (seconds !== undefined) {
+      const nanos = value.nanoseconds ?? value._nanoseconds ?? 0;
+      const d = new Date((Number(seconds) * 1000) + Math.floor(Number(nanos) / 1000000));
+      return Number.isNaN(d.getTime()) ? null : d.toISOString();
+    }
+    for (const key of ["date", "iso", "value"]) {
+      const normalized = normalizeDateValue(value[key]);
+      if (normalized) return normalized;
+    }
+  }
+  return null;
+}
+
+function firstValidDateValue(...values) {
+  for (const value of values) {
+    const normalized = normalizeDateValue(value);
+    if (normalized) return normalized;
+  }
+  return null;
+}
 function normalizeString(value) {
   return String(value || "").trim();
 }
