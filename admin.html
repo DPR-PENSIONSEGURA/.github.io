@@ -1463,6 +1463,18 @@ class="admin-menu-btn solo-admin relative">
             if (!campo) return null;
             if (campo.toDate) return campo.toDate();
             if (campo instanceof Date) return campo;
+            if (typeof campo === 'object') {
+                const seconds = campo.seconds ?? campo._seconds;
+                const nanos = campo.nanoseconds ?? campo._nanoseconds ?? 0;
+                if (seconds !== undefined) {
+                    const d = new Date((Number(seconds) * 1000) + Math.floor(Number(nanos) / 1000000));
+                    return Number.isNaN(d.getTime()) ? null : d;
+                }
+                for (const key of ['date', 'iso', 'value']) {
+                    const d = fechaDateCampo(campo[key]);
+                    if (d) return d;
+                }
+            }
             const d = new Date(campo);
             return Number.isNaN(d.getTime()) ? null : d;
         }
@@ -1956,7 +1968,16 @@ class="admin-menu-btn solo-admin relative">
             tabla.innerHTML = '';
 
             docsArray.forEach(s => {
-                const fechaSolicitud = fechaDateCampo(s.fecha);
+                const fechaSolicitud =
+                    fechaDateCampo(s.fecha) ||
+                    fechaDateCampo(s.fechaSolicitud) ||
+                    fechaDateCampo(s.fecha_solicitud) ||
+                    fechaDateCampo(s.fechaRegistro) ||
+                    fechaDateCampo(s.fecha_registro) ||
+                    fechaDateCampo(s.fechaCreacion) ||
+                    fechaDateCampo(s.fecha_creacion) ||
+                    fechaDateCampo(s.ultima_actividad) ||
+                    fechaDateCampo(s.fecha_tomado);
                 const fStr = fechaSolicitud?.toLocaleString('es-MX', {
                     day: '2-digit',
                     month: '2-digit',
