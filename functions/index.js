@@ -1626,116 +1626,28 @@ app.post("/api/v1/admin/panel/recharges/:id/approve", async (req, res) => {
   try {
     validateAdminToken(req);
     const id = req.params.id;
-    const recharge = await getSupabaseRechargeByPanelId(id);
 
-    if (!recharge) {
-      const error = new Error("Recarga no encontrada.");
-      error.statusCode = 404;
-      error.errorCode = "RECHARGE_NOT_FOUND";
-      throw error;
-    }
-
-    if (normalizeForCompare(recharge.estatus).includes("aprob")) {
-      res.json({
-        success: true,
-        already_approved: true,
-        monto: Number(recharge.monto || 0)
-      });
-      return;
-    }
-
-    const monto = Number(recharge.monto || 0);
-    if (!Number.isFinite(monto) || monto <= 0) {
-      const error = new Error("Monto de recarga invalido.");
-      error.statusCode = 400;
-      error.errorCode = "INVALID_RECHARGE_AMOUNT";
-      throw error;
-    }
-
-    const rastreo = normalizeString(recharge.rastreo).toUpperCase();
-    if (rastreo) {
-      const aprobadasMismoRastreo = await supabaseRequest(
-        `notificaciones_pago?rastreo=eq.${supabaseEq(rastreo)}&estatus=ilike.*aprob*&select=id,firebase_id,email,monto&limit=5`
-      );
-      const duplicada = (aprobadasMismoRastreo || []).find((row) => {
-        return String(row.id) !== String(recharge.id) && String(row.firebase_id || "") !== String(recharge.firebase_id || "");
-      });
-      if (duplicada) {
-        const error = new Error(`Ya existe una recarga aprobada con ese rastreo (${rastreo}).`);
-        error.statusCode = 409;
-        error.errorCode = "DUPLICATE_APPROVED_TRACKING";
-        throw error;
-      }
-    }
-
-    const uid = recharge.firebase_uid || recharge.raw_data?.uid || recharge.raw_data?.asesor_uid || "";
-    if (!uid) {
-      const error = new Error("La recarga no tiene UID de asesor.");
-      error.statusCode = 400;
-      error.errorCode = "RECHARGE_UID_MISSING";
-      throw error;
-    }
-
-    const asesor = await getSupabaseAsesorByUid(uid);
-    if (!asesor) {
-      const error = new Error("No se encontro el asesor de la recarga.");
-      error.statusCode = 404;
-      error.errorCode = "ASESOR_NOT_FOUND";
-      throw error;
-    }
-
-    const saldoAntes = Number(asesor.saldo_actual || 0);
-    const saldoDespues = saldoAntes + monto;
-    const now = new Date().toISOString();
-    const raw = recharge.raw_data && typeof recharge.raw_data === "object" ? recharge.raw_data : {};
-
-    await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(uid)}`, {
-      method: "PATCH",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ saldo_actual: saldoDespues })
-    });
-
-    await supabaseRequest(`notificaciones_pago?${supabaseRechargeFilterByPanelId(id)}`, {
-      method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+    const result = await supabaseRequest("rpc/aprobar_recarga_segura", {
+      method: "POST",
+      timeoutMs: 20000,
       body: JSON.stringify({
-        estatus: "aprobado",
-        raw_data: {
-          ...raw,
-          aprobado: true,
-          fecha_aprobacion: now,
-          aprobado_por: "admin_panel",
-          saldo_anterior: saldoAntes,
-          saldo_nuevo: saldoDespues
-        }
+        p_panel_id: String(id),
+        p_aprobado_por: "admin_panel"
       })
     });
 
-    await insertSupabaseMovimientoSaldo({
-      firebase_uid: uid,
-      email: recharge.email || asesor.email || raw.asesorEmail || "",
-      tipo: "recarga",
-      monto,
-      saldo_antes: saldoAntes,
-      saldo_despues: saldoDespues,
-      descripcion: rastreo ? `Recarga aprobada: ${rastreo}` : "Recarga aprobada",
-      referencia_tipo: "notificacion_pago",
-      referencia_id: recharge.firebase_id || recharge.id,
-      origen: "admin_panel",
-      fecha_movimiento: now
-    });
+    if (!result || result.success === false) {
+      const error = new Error(result?.message || "No se pudo aprobar la recarga.");
+      error.statusCode = result?.error_code === "DUPLICATE_APPROVED_TRACKING" ? 409 : 400;
+      error.errorCode = result?.error_code || "RECHARGE_APPROVAL_FAILED";
+      throw error;
+    }
 
-    res.json({
-      success: true,
-      monto,
-      saldo_anterior: saldoAntes,
-      saldo_nuevo: saldoDespues
-    });
+    res.json(result);
   } catch (error) {
     sendError(res, error);
   }
 });
-
 async function getSupabaseSolicitudByPanelId(id) {
   const encodedId = supabaseEq(id);
   let rows = await supabaseRequest(
