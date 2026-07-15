@@ -210,12 +210,23 @@ function isMeaningfulRecharge(row) {
 }
 
 function mapSupabaseChat(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
   return {
     id: row.firebase_id || row.id,
     asesor_uid: row.firebase_uid,
+    firebase_uid: row.firebase_uid,
+    email: row.email || raw.email || "",
     remitente: row.remitente || row.email || "",
     texto: row.texto || "",
     respondido: row.respondido === true,
+    fecha: row.fecha || raw.fecha || null,
+    tipo: raw.tipo || "mensaje",
+    servicio: raw.servicio || "",
+    datos_servicio: raw.datos_servicio || "",
+    nota_usuario: raw.nota_usuario || "",
+    estado_aclaracion: raw.estado_aclaracion || (row.respondido === true ? "atendida" : "en_revision"),
+    nota_admin: raw.nota_admin || "",
+    fecha_respuesta: raw.fecha_respuesta || null,
   };
 }
 
@@ -1469,6 +1480,27 @@ app.get("/health", (req, res) => {
 app.post("/api/v1/dashboard/bootstrap", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
+    const now = new Date().toISOString();
+
+    try {
+      const raw = auth.asesor.raw_data && typeof auth.asesor.raw_data === "object" ? auth.asesor.raw_data : {};
+      await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(auth.uid)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        timeoutMs: 8000,
+        body: JSON.stringify({
+          fecha_actualizacion: now,
+          raw_data: {
+            ...raw,
+            ultima_conexion_panel: now,
+            ultima_actividad: now,
+            terminos_version_vigente: "2026-07-14"
+          }
+        })
+      });
+    } catch (activityError) {
+      console.warn("No se pudo actualizar ultima conexion", activityError.message);
+    }
 
     res.json({
       success: true,
@@ -2664,6 +2696,228 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
   }
 });
 
+async function getInactiveBalanceCandidates(days = 29, limit = 1000) {
+  const safeDays = Math.min(Math.max(Number(days || 29), 1), 365);
+  const safeLimit = Math.min(Math.max(Number(limit || 1000), 1), 5000);
+  const cutoffMs = Date.now() - (safeDays * 24 * 60 * 60 * 1000);
+  const rows = await supabaseRequest(
+    `asesores?select=id,firebase_uid,email,nombre,saldo_actual,activo,fecha_actualizacion,fecha_registro,raw_data&saldo_actual=gt.0&limit=${safeLimit}`,
+    { timeoutMs: 22000 }
+  );
+
+  return (rows || []).map((row) => {
+    const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+    const lastValue = raw.ultima_conexion_panel || raw.ultima_actividad || row.fecha_actualizacion || row.fecha_registro || raw.fechaRegistro || raw.fecha_registro;
+    const lastDate = lastValue ? new Date(lastValue) : null;
+    const lastMs = lastDate && !Number.isNaN(lastDate.getTime()) ? lastDate.getTime() : 0;
+    return {
+      id: row.id,
+      firebase_uid: row.firebase_uid || "",
+      email: row.email || raw.email || "",
+      nombre: row.nombre || raw.nombre || "",
+      saldo_actual: Number(row.saldo_actual || 0),
+      activo: row.activo !== false,
+      ultima_actividad: lastDate && !Number.isNaN(lastDate.getTime()) ? lastDate.toISOString() : null,
+      dias_inactivo: lastMs ? Math.floor((Date.now() - lastMs) / (24 * 60 * 60 * 1000)) : null,
+      raw_data: raw,
+      caducable: !lastMs || lastMs < cutoffMs
+    };
+  }).filter((row) => row.caducable && row.saldo_actual > 0);
+}
+
+app.get("/api/v1/admin/panel/inactive-users", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+    const days = Number(req.query.days || 29);
+    const limit = Number(req.query.limit || 1000);
+    const rows = await getInactiveBalanceCandidates(days, limit);
+    res.json({
+      success: true,
+      days: Math.min(Math.max(days || 29, 1), 365),
+      count: rows.length,
+      total_saldo_caducable: Number(rows.reduce((sum, row) => sum + Number(row.saldo_actual || 0), 0).toFixed(2)),
+      rows: rows.map(({ raw_data, ...row }) => row)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/inactive-users/expire-balances", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const dryRun = req.body?.dry_run !== false;
+    const days = Number(req.body?.days || 29);
+    const limit = Number(req.body?.limit || 200);
+    const confirmText = normalizeString(req.body?.confirm_text || "").toUpperCase();
+    const rows = await getInactiveBalanceCandidates(days, limit);
+
+    if (!dryRun && confirmText !== "CADUCAR SALDOS") {
+      const error = new Error("Para aplicar caducidad escribe confirm_text: CADUCAR SALDOS.");
+      error.statusCode = 400;
+      error.errorCode = "EXPIRE_BALANCE_CONFIRMATION_REQUIRED";
+      throw error;
+    }
+
+    const applied = [];
+    for (const row of rows) {
+      if (!dryRun) {
+        await supabaseRequest(`asesores?id=eq.${supabaseEq(row.id)}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          timeoutMs: 12000,
+          body: JSON.stringify({
+            saldo_actual: 0,
+            fecha_actualizacion: new Date().toISOString(),
+            raw_data: {
+              ...row.raw_data,
+              saldo_caducado: true,
+              saldo_caducado_monto: row.saldo_actual,
+              saldo_caducado_fecha: new Date().toISOString(),
+              saldo_caducado_motivo: `Sin uso del panel por ${Math.min(Math.max(days || 29, 1), 365)} dias o mas`
+            }
+          })
+        });
+      }
+      applied.push({
+        firebase_uid: row.firebase_uid,
+        email: row.email,
+        nombre: row.nombre,
+        saldo_caducado: row.saldo_actual,
+        ultima_actividad: row.ultima_actividad,
+        dias_inactivo: row.dias_inactivo
+      });
+    }
+
+    res.json({
+      success: true,
+      dry_run: dryRun,
+      days: Math.min(Math.max(days || 29, 1), 365),
+      applied_count: applied.length,
+      total_saldo_caducado: Number(applied.reduce((sum, row) => sum + Number(row.saldo_caducado || 0), 0).toFixed(2)),
+      applied
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.get("/api/v1/admin/panel/chat", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+    const rows = await supabaseRequest(
+      "chat_soporte?select=*&order=fecha.desc&limit=500",
+      { timeoutMs: 18000 }
+    );
+    res.json({ success: true, rows: (rows || []).map(mapSupabaseChat) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.get("/api/v1/admin/panel/chat/:uid", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+    const uid = normalizeString(req.params.uid);
+    if (!uid) {
+      const error = new Error("Falta UID de usuario.");
+      error.statusCode = 400;
+      error.errorCode = "CHAT_UID_REQUIRED";
+      throw error;
+    }
+    const rows = await supabaseRequest(
+      `chat_soporte?firebase_uid=eq.${supabaseEq(uid)}&select=*&order=fecha.asc&limit=200`,
+      { timeoutMs: 18000 }
+    );
+    res.json({ success: true, rows: (rows || []).map(mapSupabaseChat) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/chat/:uid/reply", async (req, res) => {
+  try {
+    const staff = validateStaffOrAdmin(req);
+    const uid = normalizeString(req.params.uid);
+    const texto = normalizeString(req.body?.texto || req.body?.nota_admin || "");
+    const estado = normalizeString(req.body?.estado_aclaracion || req.body?.estado || "atendida").toLowerCase();
+    const estadosPermitidos = new Set(["atendida", "reembolsada", "improcedente", "en_revision"]);
+
+    if (!uid) {
+      const error = new Error("Falta UID de usuario.");
+      error.statusCode = 400;
+      error.errorCode = "CHAT_UID_REQUIRED";
+      throw error;
+    }
+    if (!estadosPermitidos.has(estado)) {
+      const error = new Error("Estado de aclaracion invalido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_CLARIFICATION_STATUS";
+      throw error;
+    }
+    if (!texto || texto.length > 2000) {
+      const error = new Error("Escribe una nota para el usuario.");
+      error.statusCode = 400;
+      error.errorCode = "ADMIN_REPLY_REQUIRED";
+      throw error;
+    }
+
+    const prevRows = await supabaseRequest(
+      `chat_soporte?firebase_uid=eq.${supabaseEq(uid)}&select=*&order=fecha.desc&limit=1`,
+      { timeoutMs: 12000 }
+    );
+    const last = prevRows?.[0] || null;
+    const lastRaw = last?.raw_data && typeof last.raw_data === "object" ? last.raw_data : {};
+    const now = new Date().toISOString();
+    const email = normalizeString(req.body?.email || last?.email || lastRaw.email || "");
+
+    if (last) {
+      await supabaseRequest(`chat_soporte?id=eq.${supabaseEq(last.id)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        timeoutMs: 12000,
+        body: JSON.stringify({
+          respondido: estado !== "en_revision",
+          raw_data: {
+            ...lastRaw,
+            estado_aclaracion: estado,
+            nota_admin: texto,
+            fecha_respuesta: now,
+            atendido_por: staff.name || staff.username || "admin"
+          }
+        })
+      });
+    }
+
+    await supabaseRequest("chat_soporte", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      timeoutMs: 12000,
+      body: JSON.stringify([{
+        firebase_id: crypto.randomUUID(),
+        firebase_uid: uid,
+        email,
+        remitente: staff.name || staff.username || "admin",
+        texto,
+        respondido: true,
+        fecha: now,
+        raw_data: {
+          tipo: "respuesta_aclaracion",
+          origen: "admin_panel",
+          estado_aclaracion: estado,
+          nota_admin: texto,
+          fecha_respuesta: now,
+          atendido_por: staff.name || staff.username || "admin",
+          email
+        }
+      }])
+    });
+
+    res.json({ success: true, estado_aclaracion: estado });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 app.get("/api/v1/dashboard/balance", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
@@ -3111,16 +3365,27 @@ app.get("/api/v1/dashboard/chat", async (req, res) => {
 app.post("/api/v1/dashboard/chat", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
-    const texto = normalizeString(req.body?.texto);
+    const servicio = normalizeString(req.body?.servicio || req.body?.tipo || "Aclaracion general");
+    const datosServicio = normalizeString(req.body?.datos_servicio || req.body?.datos || "");
+    const notaUsuario = normalizeString(req.body?.nota || req.body?.texto || "");
 
-    if (!texto || texto.length > 1200) {
-      const error = new Error("Mensaje invalido.");
+    if (!servicio || servicio.length > 160) {
+      const error = new Error("Servicio invalido.");
       error.statusCode = 400;
-      error.errorCode = "INVALID_CHAT_MESSAGE";
+      error.errorCode = "INVALID_CLARIFICATION_SERVICE";
+      throw error;
+    }
+
+    if ((!datosServicio && !notaUsuario) || datosServicio.length > 2000 || notaUsuario.length > 2000) {
+      const error = new Error("Escribe los datos del servicio o una nota de aclaracion.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_CLARIFICATION_MESSAGE";
       throw error;
     }
 
     const mensajeId = crypto.randomUUID();
+    const email = auth.email || auth.asesor.email || "";
+    const texto = `ACLARACION: ${servicio}\nDATOS: ${datosServicio || "N/A"}\nNOTA: ${notaUsuario || "N/A"}`;
 
     await supabaseRequest("chat_soporte", {
       method: "POST",
@@ -3130,13 +3395,21 @@ app.post("/api/v1/dashboard/chat", async (req, res) => {
       body: JSON.stringify([{
         firebase_id: mensajeId,
         firebase_uid: auth.uid,
-        email: auth.email || auth.asesor.email || "",
-        remitente: auth.email || auth.asesor.email || "",
+        email,
+        remitente: email,
         texto,
         respondido: false,
         fecha: new Date().toISOString(),
         raw_data: {
-          origen: "dashboard_backend"
+          origen: "dashboard_backend",
+          tipo: "aclaracion",
+          servicio,
+          datos_servicio: datosServicio,
+          nota_usuario: notaUsuario,
+          estado_aclaracion: "en_revision",
+          email,
+          terminos_aceptados_por_uso: true,
+          terminos_version: "2026-07-14"
         }
       }])
     });
