@@ -439,7 +439,7 @@
                 <div>
                     <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">CRM</span></h1>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NOVYRA SERVICES</p>
-                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesión: <span id="txtSesion">Cargando...</span></p>
+                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesi�n: <span id="txtSesion">Cargando...</span></p>
                 </div>
             </div>
 
@@ -455,7 +455,7 @@
                 </div>
 
                 <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[8px] font-black uppercase">Ventas del día</p>
+                    <p class="text-[8px] font-black uppercase">Ventas del d�a</p>
                     <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
                 </div>
 
@@ -464,7 +464,7 @@
                 </button>
 
                 <button onclick="window.verErroresSinDevolucion()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[10px] font-black uppercase">Sin devolución</p>
+                    <p class="text-[10px] font-black uppercase">Sin devoluci�n</p>
                 </button>
 
                 <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px] solo-admin">
@@ -476,19 +476,19 @@
             </div>
         </header>
 
-        <nav class="admin-menu-shell" aria-label="Menú administrativo">
+        <nav class="admin-menu-shell" aria-label="Men� administrativo">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                 <div>
-                    <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Menú del panel</p>
-                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Selecciona un módulo</h2>
+                    <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Men� del panel</p>
+                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Selecciona un m�dulo</h2>
                 </div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase">Solo se muestra una sección a la vez</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Solo se muestra una secci�n a la vez</p>
             </div>
             <div class="admin-menu-grid">
                 <button type="button" class="admin-menu-btn activo" data-admin-btn="solicitudes" onclick="window.mostrarModuloAdmin('solicitudes')">Historial</button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="recargas" onclick="window.mostrarModuloAdmin('recargas')"> Recargas <span class="notif-dot" data-notif-dot="recargas"></span></button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="metricas" onclick="window.mostrarModuloAdmin('metricas')"> Métricas</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="operacion" onclick="window.mostrarModuloAdmin('operacion')"> Operación</button>
+                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="metricas" onclick="window.mostrarModuloAdmin('metricas')"> M�tricas</button>
+                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="operacion" onclick="window.mostrarModuloAdmin('operacion')"> Operaci�n</button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')"> Leads <span class="notif-dot" data-notif-dot="leads"></span></button>
                 <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="avisos" onclick="window.mostrarModuloAdmin('avisos')"> Avisos</button>
 <a href="admin/tramites"
@@ -508,7 +508,7 @@ class="admin-menu-btn solo-admin relative">
 
         <section class="mb-8 solo-admin admin-vista admin-oculta" data-admin-view="recargas">
             <div onclick="window.toggleSeccion('contenidoSaldo', 'icoSaldo')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobación de Saldo</h2>
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-emerald-500 pl-4">Aprobaci�n de Saldo</h2>
                 <div id="icoSaldo" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400"></div>
             </div>
             <div id="contenidoSaldo" class="seccion-contenido mt-4">
@@ -532,7 +532,7 @@ class="admin-menu-btn solo-admin relative">
                         <div class="space-y-3">
                             <input id="nuevoAsesorUser" type="text" placeholder="Usuario" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                             <input id="nuevoAsesorNombre" type="text" placeholder="Nombre visible" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
-                            <input id="nuevoAsesorPass" type="text" placeholder="Contraseña" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <input id="nuevoAsesorPass" type="text" placeholder="Contrase�a" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                             <select id="nuevoAsesorRol" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                                 <option value="operador">Operador / proveedor</option>
                                 <option value="asesor">Asesor general</option>
@@ -540,7 +540,7 @@ class="admin-menu-btn solo-admin relative">
                             </select>
 
                             <div class="bg-slate-50 border rounded-2xl p-4">
-                                <p class="text-[10px] font-black uppercase text-slate-500 mb-3">Trámites que podrá ver y tomar</p>
+                                <p class="text-[10px] font-black uppercase text-slate-500 mb-3">Tr�mites que podr� ver y tomar</p>
                                 <div id="nuevoAsesorTramites" class="dpr-check-grid"></div>
                             </div>
 
@@ -577,25 +577,25 @@ class="admin-menu-btn solo-admin relative">
                 <div class="mt-6 bg-white rounded-[2rem] shadow-xl border p-6">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
                         <div>
-                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Nómina operativa</p>
+                            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">N�mina operativa</p>
                             <h3 class="text-lg font-black uppercase italic text-slate-800">Corte diario por operador</h3>
-                            <p class="text-xs font-bold text-slate-500 mt-1">Configura cuánto pagas por trámite y el sistema calcula automáticamente cuánto debe cobrarse por día.</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Configura cu�nto pagas por tr�mite y el sistema calcula autom�ticamente cu�nto debe cobrarse por d�a.</p>
                         </div>
                         <div class="flex gap-2 flex-wrap">
                             <input id="fechaCorteOperadores" type="date" onchange="window.renderCorteOperadores()" class="bg-slate-100 p-3 rounded-xl text-xs font-black">
                             <button onclick="window.guardarTarifasOperadores()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Guardar tarifas</button>
                             <button onclick="window.actualizarCorteOperadores()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar corte</button>
-                            <button onclick="window.renderCorteOperadores()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Cargar día</button>
+                            <button onclick="window.renderCorteOperadores()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Cargar d�a</button>
                         </div>
                     </div>
                     <div class="grid lg:grid-cols-3 gap-5">
                         <div class="pay-mini-card lg:col-span-1">
-                            <h4 class="text-xs font-black uppercase text-slate-600 mb-3">Pago por trámite</h4>
+                            <h4 class="text-xs font-black uppercase text-slate-600 mb-3">Pago por tr�mite</h4>
                             <div id="tarifasOperadoresBox" class="space-y-2"></div>
                         </div>
                         <div class="pay-mini-card lg:col-span-2">
                             <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-xs font-black uppercase text-slate-600">Resumen del día</h4>
+                                <h4 class="text-xs font-black uppercase text-slate-600">Resumen del d�a</h4>
                                 <span id="totalCorteOperadores" class="op-pill green">$0.00</span>
                             </div>
                             <div id="tablaCorteOperadores" class="space-y-3"></div>
@@ -618,11 +618,11 @@ class="admin-menu-btn solo-admin relative">
                     <div class="bg-white rounded-[2rem] shadow-xl border p-6 lg:col-span-1">
                         <h3 class="text-xs font-black uppercase text-slate-500 mb-4">Publicar aviso</h3>
                         <div class="space-y-3">
-                            <input id="tituloAviso" type="text" placeholder="Título del aviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
+                            <input id="tituloAviso" type="text" placeholder="T�tulo del aviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                             <textarea id="mensajeAviso" placeholder="Mensaje del aviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold min-h-[120px]"></textarea>
                             <select id="tipoAviso" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                                 <option value="info">Informativo</option>
-                                <option value="promo">Promoción</option>
+                                <option value="promo">Promoci�n</option>
                                 <option value="urgente">Urgente</option>
                                 <option value="mantenimiento">Mantenimiento</option>
                             </select>
@@ -647,7 +647,7 @@ class="admin-menu-btn solo-admin relative">
 
         <section class="mb-8 admin-vista admin-oculta" data-admin-view="chat">
             <div onclick="window.toggleSeccion('contenidoChat', 'icoChat')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-fuchsia-600 pl-4">Solicitudes de aclaración</h2>
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-fuchsia-600 pl-4">Solicitudes de aclaraci�n</h2>
                 <div id="icoChat" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400"></div>
             </div>
             <div id="contenidoChat" class="seccion-contenido">
@@ -693,7 +693,7 @@ class="admin-menu-btn solo-admin relative">
             <h2 class="text-2xl font-black mb-6 uppercase italic text-slate-800">Finanzas DPR</h2>
             <div class="space-y-6">
                 <div class="bg-emerald-100 p-6 rounded-3xl border-2 border-emerald-500">
-                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del Día</p>
+                    <p class="text-[10px] font-black uppercase text-emerald-600 mb-1">Venta del D�a</p>
                     <p id="gananciaHoy" class="text-4xl font-black text-emerald-800">$0.00</p>
                 </div>
                 <div class="bg-purple-100 p-6 rounded-3xl border-2 border-purple-500">
@@ -711,7 +711,7 @@ class="admin-menu-btn solo-admin relative">
             <h2 class="text-2xl font-black text-blue-600 uppercase mb-6 border-b pb-4 italic text-center">Expediente DPR</h2>
             <div id="contenedorDetalles" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
             <div id="contenedorCuestionario" class="bg-blue-50/50 p-5 rounded-2xl mb-6 border border-blue-200 hidden">
-                <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Pensión</h3>
+                <h3 class="text-xs font-black text-blue-800 uppercase mb-4 text-center border-b pb-2">Cuestionario Pensi�n</h3>
                 <div id="gridCuestionario" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
             </div>
             <div id="contenedorVariablesExtra" class="premium-extra-box hidden">
@@ -739,11 +739,11 @@ class="admin-menu-btn solo-admin relative">
 
     <div id="modalChat" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[160] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl">
-            <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic">Aclaración de:</h2>
+            <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic">Aclaraci�n de:</h2>
             <div id="chatHistory" class="bg-slate-50 h-64 overflow-y-auto p-4 rounded-2xl mb-4 space-y-2 flex flex-col"></div>
-            <div class="mb-3"><select id="estadoAclaracion" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-black uppercase"><option value="en_revision">En revisión</option><option value="atendida">Atendida</option><option value="reembolsada">Reembolsada</option><option value="improcedente">Solicitud improcedente</option></select></div>
+            <div class="mb-3"><select id="estadoAclaracion" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-black uppercase"><option value="en_revision">En revisi�n</option><option value="atendida">Atendida</option><option value="reembolsada">Reembolsada</option><option value="improcedente">Solicitud improcedente</option></select></div>
             <div class="flex gap-2">
-                <textarea id="inputRespuesta" placeholder="Nota para el usuario o resolución..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold min-h-[90px]"></textarea>
+                <textarea id="inputRespuesta" placeholder="Nota para el usuario o resoluci�n..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold min-h-[90px]"></textarea>
                 <button id="btnEnviarRespuesta" class="bg-blue-600 text-white px-6 rounded-xl font-black">ENVIAR</button>
             </div>
             <button onclick="window.cerrarModales()" class="mt-4 text-[9px] font-black uppercase text-slate-400">Cerrar</button>
@@ -757,7 +757,7 @@ class="admin-menu-btn solo-admin relative">
           <div>
             <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Venta directa / WhatsApp</p>
             <h2 class="text-xl font-black uppercase italic text-slate-800">Inventario, ventas y utilidad</h2>
-            <p class="text-xs font-bold text-slate-500 mt-1">Módulo conectado visualmente con el corte: registra trámites, precio proveedor, precio público y utilidad estimada.</p>
+            <p class="text-xs font-bold text-slate-500 mt-1">M�dulo conectado visualmente con el corte: registra tr�mites, precio proveedor, precio p�blico y utilidad estimada.</p>
           </div>
           <div class="flex gap-2 flex-wrap">
             <a href="https://novyraservices.org/admin/corte.html" target="_blank" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Abrir corte</a>
@@ -781,8 +781,8 @@ class="admin-menu-btn solo-admin relative">
         </div>
 
         <div class="grid md:grid-cols-4 gap-4 mb-6">
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ventas válidas hoy</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ingreso público</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">$0</p></div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ventas v�lidas hoy</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">0</p></div>
+          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ingreso p�blico</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">$0</p></div>
           <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Costo proveedor</p><p id="vdCostoHoy" class="text-3xl font-black text-amber-600">$0</p></div>
           <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Utilidad estimada</p><p id="vdUtilidadHoy" class="text-3xl font-black text-purple-700">$0</p></div>
         </div>
@@ -792,14 +792,14 @@ class="admin-menu-btn solo-admin relative">
             <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Configurar inventario</h3>
             <div class="space-y-3">
               <input id="vdInventarioEditId" type="hidden">
-              <input id="vdNombreTramite" type="text" placeholder="Nombre del trámite" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <input id="vdNombreTramite" type="text" placeholder="Nombre del tr�mite" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
               <input id="vdPrecioProveedor" type="number" min="0" step="0.01" placeholder="Precio proveedor" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <input id="vdPrecioPublico" type="number" min="0" step="0.01" placeholder="Precio público" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar trámite / cambios</button>
+              <input id="vdPrecioPublico" type="number" min="0" step="0.01" placeholder="Precio p�blico" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
+              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar tr�mite / cambios</button>
               <button onclick="window.limpiarFormularioInventarioVentaDirecta()" class="w-full bg-slate-200 text-slate-700 py-4 rounded-xl font-black text-xs uppercase">Limpiar formulario</button>
-              <button onclick="window.precargarInventarioVentaDirecta()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase">Precargar trámites del dashboard</button>
+              <button onclick="window.precargarInventarioVentaDirecta()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase">Precargar tr�mites del dashboard</button>
             </div>
-            <p class="text-[10px] text-slate-500 font-bold mt-3">Puedes editar los precios después. La utilidad se calcula: precio público - precio proveedor.</p>
+            <p class="text-[10px] text-slate-500 font-bold mt-3">Puedes editar los precios despu�s. La utilidad se calcula: precio p�blico - precio proveedor.</p>
           </div>
 
           <div class="op-card lg:col-span-2">
@@ -813,16 +813,16 @@ class="admin-menu-btn solo-admin relative">
 
         <div class="grid lg:grid-cols-2 gap-5 mt-5">
           <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Tabla de utilidad por trámite</h3>
+            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Tabla de utilidad por tr�mite</h3>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-[10px]">
-                <thead class="text-white uppercase font-black"><tr><th class="p-3">Trámite</th><th class="p-3 text-center">Vendidos</th><th class="p-3 text-right">Venta</th><th class="p-3 text-right">Utilidad</th></tr></thead>
+                <thead class="text-white uppercase font-black"><tr><th class="p-3">Tr�mite</th><th class="p-3 text-center">Vendidos</th><th class="p-3 text-right">Venta</th><th class="p-3 text-right">Utilidad</th></tr></thead>
                 <tbody id="vdTablaUtilidad"></tbody>
               </table>
             </div>
           </div>
           <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-slate-700 mb-3">Últimas ventas válidas</h3>
+            <h3 class="text-xs font-black uppercase text-slate-700 mb-3">�ltimas ventas v�lidas</h3>
             <div id="vdUltimasVentas" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
           </div>
         </div>
@@ -832,7 +832,7 @@ class="admin-menu-btn solo-admin relative">
 
     <section id="vistaMetricas" class="mb-8 solo-admin admin-vista admin-oculta" data-admin-view="metricas">
       <div class="bg-white rounded-[2rem] p-6 shadow-xl border">
-        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-indigo-700">Métricas y reportes</h2></div>
+        <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-indigo-700">M�tricas y reportes</h2></div>
         <div class="grid md:grid-cols-4 gap-4 mb-4">
           <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Ventas hoy</p><p id="repVentasHoy" class="text-2xl font-black">$0</p></div>
           <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Semanas cotizadas</p><p id="repSemanasHoy" class="text-2xl font-black">0</p></div>
@@ -843,7 +843,7 @@ class="admin-menu-btn solo-admin relative">
           <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
             <div>
               <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Corte real de dinero</p>
-              <h3 class="font-black text-lg uppercase text-slate-800">Resumen financiero por día</h3>
+              <h3 class="font-black text-lg uppercase text-slate-800">Resumen financiero por d�a</h3>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <input id="fechaCorteDinero" type="date" class="border rounded-xl px-3 py-2 text-xs font-black">
@@ -858,13 +858,13 @@ class="admin-menu-btn solo-admin relative">
           </div>
           <div id="corteDineroDetalle" class="text-[11px] font-bold text-slate-600"></div>
         </div>
-        <div class="mb-4"><h3 class="font-black text-sm mb-2">Ventas diarias (últimos 14 días)</h3><div id="graficaVentas" class="flex items-end gap-2 h-48 bg-slate-50 p-3 rounded-xl border"></div></div>
+        <div class="mb-4"><h3 class="font-black text-sm mb-2">Ventas diarias (�ltimos 14 d�as)</h3><div id="graficaVentas" class="flex items-end gap-2 h-48 bg-slate-50 p-3 rounded-xl border"></div></div>
         <div class="mb-4 bg-slate-50 border rounded-2xl p-4">
-          <h3 class="font-black text-sm mb-3 uppercase text-slate-700">Conteo por trámite válido hoy</h3>
+          <h3 class="font-black text-sm mb-3 uppercase text-slate-700">Conteo por tr�mite v�lido hoy</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-[10px]">
               <thead class="bg-slate-900 text-white uppercase font-black">
-                <tr><th class="p-3">Trámite</th><th class="p-3 text-center">Cantidad</th><th class="p-3 text-right">Venta</th></tr>
+                <tr><th class="p-3">Tr�mite</th><th class="p-3 text-center">Cantidad</th><th class="p-3 text-right">Venta</th></tr>
               </thead>
               <tbody id="repTablaConteoTramites"></tbody>
             </table>
@@ -900,7 +900,7 @@ class="admin-menu-btn solo-admin relative">
             window.location.href = 'staff-login.html';
         } else {
             document.body.style.display = 'block';
-            document.getElementById('txtSesion').textContent = `${staffSession.name || staffSession.username} · ${staffSession.role}`;
+            document.getElementById('txtSesion').textContent = `${staffSession.name || staffSession.username} � ${staffSession.role}`;
             const esAdmin = staffSession.role === 'admin';
             if (esAdmin) {
                 document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'block');
@@ -1011,7 +1011,7 @@ class="admin-menu-btn solo-admin relative">
         async function adminApi(path, options = {}) {
             const staffToken = sessionStorage.getItem('dpr_staff_token') || '';
             const token = sessionStorage.getItem('dpr_admin_token') || (miSesion.role === 'admin' ? obtenerAdminToken() : '');
-            if (!token && !staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
+            if (!token && !staffToken) throw new Error('Falta sesi�n interna. Cierra sesi�n e inicia de nuevo.');
 
             let res = null;
             let data = {};
@@ -1036,7 +1036,7 @@ class="admin-menu-btn solo-admin relative">
                     data = await res.json().catch(() => ({}));
                     if (res.ok && data.success !== false) break;
                 } catch (error) {
-                    data = { message: error.name === 'AbortError' ? 'El backend tardó demasiado en responder.' : (error.message || String(error)) };
+                    data = { message: error.name === 'AbortError' ? 'El backend tard� demasiado en responder.' : (error.message || String(error)) };
                 } finally {
                     clearTimeout(timeout);
                 }
@@ -1091,7 +1091,7 @@ class="admin-menu-btn solo-admin relative">
             const query = new URLSearchParams(rango).toString();
             const data = await adminApi(`/api/v1/admin/panel/summary?${query}`, { timeoutMs: 30000 });
             const nota = data.possibly_truncated
-                ? `Resumen parcial: se alcanzó el límite de ${data.limit || data.loaded_count || 0} registros.`
+                ? `Resumen parcial: se alcanz� el l�mite de ${data.limit || data.loaded_count || 0} registros.`
                 : `Sincronizado con backend. Registros revisados: ${data.loaded_count || 0}`;
             actualizarGananciaAdmin(data.total_vendido, nota);
             return data;
@@ -1115,9 +1115,9 @@ class="admin-menu-btn solo-admin relative">
                 const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 
                 setText('corteRecargas', dineroMX(data.total_recargas_aprobadas));
-                setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
+                setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas � ${data.recargas_pendientes || 0} pendientes`);
                 setText('corteVentaNeta', dineroMX(data.venta_neta));
-                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} terminadas · ${data.solicitudes_pendientes || 0} pendientes`);
+                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} terminadas � ${data.solicitudes_pendientes || 0} pendientes`);
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
                 setText('corteFlujoCaja', `Flujo: ${dineroMX(data.flujo_caja_dia)}`);
                 setText('corteSaldoClientes', dineroMX(data.saldo_clientes_positivo));
@@ -1132,7 +1132,7 @@ class="admin-menu-btn solo-admin relative">
                             <div class="bg-slate-50 border rounded-xl p-3">Recargas revisadas: <b>${data.recargas_cargadas || 0}</b></div>
                         </div>
                         <div class="mt-3 flex flex-wrap gap-2">
-                            ${top.length ? top.map(r => `<span class="op-pill blue">${r.tipo}: ${r.cantidad} · ${dineroMX(r.venta)}</span>`).join('') : '<span class="text-slate-400 uppercase">Sin ventas terminadas en este día.</span>'}
+                            ${top.length ? top.map(r => `<span class="op-pill blue">${r.tipo}: ${r.cantidad} � ${dineroMX(r.venta)}</span>`).join('') : '<span class="text-slate-400 uppercase">Sin ventas terminadas en este d�a.</span>'}
                         </div>
                     `;
                 }
@@ -1143,7 +1143,7 @@ class="admin-menu-btn solo-admin relative">
         };
 
         // ==============================
-        // DPR · PERMISOS Y CORTE DIARIO
+        // DPR � PERMISOS Y CORTE DIARIO
         // ==============================
         const TRAMITES_CRM = [
             { key: 'RFC_CLON', label: 'RFC Clon', aliases: ['rfc clon'] },
@@ -1156,10 +1156,10 @@ class="admin-menu-btn solo-admin relative">
             { key: 'SEMANAS_COTIZADAS', label: 'Semanas Cotizadas', aliases: ['semanas cotizadas','semanas'] },
             { key: 'RFC_VERIFICABLE', label: 'RFC Verificable', aliases: ['rfc verificable'] },
             { key: 'ACTA_NACIMIENTO', label: 'Acta de nacimiento', aliases: ['acta de nacimiento','acta','actas'] },
-            { key: 'BURO_DE_CREDITO', label: 'Buró de Crédito', aliases: ['buro de credito','buró de crédito'] },
+            { key: 'BURO_DE_CREDITO', label: 'Bur� de Cr�dito', aliases: ['buro de credito','bur� de cr�dito'] },
             { key: 'INFONAVIT', label: 'Infonavit', aliases: ['infonavit','mejoravit','cuentainfonavit'] },
-            { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensión','pensiones','analisis rapido','análisis rápido'] },
-            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore','localizar contraseña','localizar contrasena','resumen de saldos','localiza tu afore'] }
+            { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensi�n','pensiones','analisis rapido','an�lisis r�pido'] },
+            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore','localizar contrase�a','localizar contrasena','resumen de saldos','localiza tu afore'] }
         ];
         const TARIFAS_DEFAULT_OPERADOR = {
             RFC_CLON: 5,
@@ -1181,14 +1181,14 @@ class="admin-menu-btn solo-admin relative">
         let staffTramitesPermitidos = Array.isArray(miSesion.tramitesPermitidos) ? miSesion.tramitesPermitidos : [];
 
         const LISTA_ERRORES_DPR = {
-            "ERR_NSS_CURP": "Error: el CURP o el NSS están incorrectos, están mal escritos o no coinciden con los datos registrados.",
-            "ERR_INCONSISTENCIAS": "Error: existen inconsistencias en la información. El cliente debe acudir a su subdelegación del IMSS más cercana o realizar la aclaración correspondiente en línea.",
-            "ERR_FOTOS": "Error: las fotos o documentos enviados son ilegibles, están incompletos o no se distinguen correctamente.",
-            "ERR_INEXISTENTE": "Error: el documento, registro o información solicitada no existe o no fue encontrada en el sistema.",
-            "ERR_SOPORTE": "Error: el documento, contacta a soporte técnico",
-            "ERR_PASS": "Error: la contraseña proporcionada es incorrecta.",
-            "ERR_LIMITE": "Error: límite de consultas. Alguien ya realizó esta consulta anteriormente o el sistema detecta que el trámite ya fue intentado antes, por lo que es necesario esperar e intentar nuevamente más tarde.",
-            "ERR_IMSS": "Error: el sistema del IMSS presentó una falla al momento de procesar la consulta. Se recomienda intentar nuevamente más tarde."
+            "ERR_NSS_CURP": "Error: el CURP o el NSS est�n incorrectos, est�n mal escritos o no coinciden con los datos registrados.",
+            "ERR_INCONSISTENCIAS": "Error: existen inconsistencias en la informaci�n. El cliente debe acudir a su subdelegaci�n del IMSS m�s cercana o realizar la aclaraci�n correspondiente en l�nea.",
+            "ERR_FOTOS": "Error: las fotos o documentos enviados son ilegibles, est�n incompletos o no se distinguen correctamente.",
+            "ERR_INEXISTENTE": "Error: el documento, registro o informaci�n solicitada no existe o no fue encontrada en el sistema.",
+            "ERR_SOPORTE": "Error: el documento, contacta a soporte t�cnico",
+            "ERR_PASS": "Error: la contrase�a proporcionada es incorrecta.",
+            "ERR_LIMITE": "Error: l�mite de consultas. Alguien ya realiz� esta consulta anteriormente o el sistema detecta que el tr�mite ya fue intentado antes, por lo que es necesario esperar e intentar nuevamente m�s tarde.",
+            "ERR_IMSS": "Error: el sistema del IMSS present� una falla al momento de procesar la consulta. Se recomienda intentar nuevamente m�s tarde."
         };
 
         let currentPage = 1;
@@ -1214,7 +1214,7 @@ class="admin-menu-btn solo-admin relative">
             currentPage = paginaActual;
             selector.innerHTML = '';
             for (let i = 1; i <= totalPaginas; i++) {
-                selector.innerHTML += `<option value="${i}">Página ${i}</option>`;
+                selector.innerHTML += `<option value="${i}">P�gina ${i}</option>`;
             }
             selector.value = String(paginaActual);
         }
@@ -1226,12 +1226,12 @@ class="admin-menu-btn solo-admin relative">
             thead.innerHTML = `
                 <tr>
                     <th class="p-4">Origen</th>
-                    <th class="p-4">Trámite</th>
-                    <th class="p-4">Información</th>
+                    <th class="p-4">Tr�mite</th>
+                    <th class="p-4">Informaci�n</th>
                     <th class="p-4 text-center">Control</th>
                     <th class="p-4 text-center">Estatus</th>
                     ${miSesion.role === 'admin' ? '<th class="p-4 text-center">Reembolsado</th>' : ''}
-                    <th class="p-4 text-right">Acción</th>
+                    <th class="p-4 text-right">Acci�n</th>
                 </tr>
             `;
         }
@@ -1335,8 +1335,8 @@ class="admin-menu-btn solo-admin relative">
                     estatus.includes('NSS') ||
                     estatus.includes('INCONSISTENCIAS') ||
                     estatus.includes('FOTOS') ||
-                    estatus.includes('CONTRASEÑA') ||
-                    estatus.includes('LÍMITE') ||
+                    estatus.includes('CONTRASE�A') ||
+                    estatus.includes('L�MITE') ||
                     estatus.includes('LIMITE') ||
                     estatus.includes('IMSS') ||
                     estatus.includes('NO EXISTE') ||
@@ -1347,12 +1347,12 @@ class="admin-menu-btn solo-admin relative">
             });
 
             if (!filtrados.length) {
-                alert('No hay trámites con error pendientes de devolución.');
+                alert('No hay tr�mites con error pendientes de devoluci�n.');
                 return;
             }
 
             renderizarTablaPersonalizada(filtrados);
-            actualizarFiltroLabel('Errores sin devolución');
+            actualizarFiltroLabel('Errores sin devoluci�n');
             selector.value = 1;
             currentPage = 1;
         };
@@ -1371,7 +1371,7 @@ class="admin-menu-btn solo-admin relative">
                 <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border">
                     <div>
                         <p class="text-[11px] font-black uppercase text-slate-800">Administrador</p>
-                        <p class="text-[10px] font-bold text-slate-500">Usuario: admin · Ve todos los trámites</p>
+                        <p class="text-[10px] font-bold text-slate-500">Usuario: admin � Ve todos los tr�mites</p>
                     </div>
                     <span class="text-[10px] font-black text-emerald-600 uppercase">Fijo</span>
                 </div>
@@ -1385,8 +1385,8 @@ class="admin-menu-btn solo-admin relative">
                         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                             <div>
                                 <p class="text-[11px] font-black uppercase text-slate-800">${a.nombre || a.username || 'Asesor'}</p>
-                                <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} · Rol: ${a.role || a.area || 'operador'} · Clave: ${a.password || ''}</p>
-                                <p class="text-[9px] font-black uppercase text-emerald-700 mt-1">${permisos.length ? permisos.map(labelTramite).join(' · ') : 'Sin permisos asignados'}</p>
+                                <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} � Rol: ${a.role || a.area || 'operador'} � Clave: ${a.password || ''}</p>
+                                <p class="text-[9px] font-black uppercase text-emerald-700 mt-1">${permisos.length ? permisos.map(labelTramite).join(' � ') : 'Sin permisos asignados'}</p>
                             </div>
                             <div class="flex gap-2 flex-wrap">
                                 <button onclick="window.editarPermisosAsesor('${d.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-[9px] font-black uppercase">Permisos</button>
@@ -1429,8 +1429,8 @@ class="admin-menu-btn solo-admin relative">
             const rolEmpleado = document.getElementById('nuevoAsesorRol')?.value || 'operador';
             const tramitesPermitidos = leerCheckboxTramites('nuevoAsesorTramites');
 
-            if (!username || !nombre || !password) return alert('Llena usuario, nombre y contraseña');
-            if (rolEmpleado !== 'admin' && !tramitesPermitidos.length) return alert('Selecciona al menos un trámite para este usuario');
+            if (!username || !nombre || !password) return alert('Llena usuario, nombre y contrase�a');
+            if (rolEmpleado !== 'admin' && !tramitesPermitidos.length) return alert('Selecciona al menos un tr�mite para este usuario');
 
             const existente = await getDocs(query(collection(db, 'accesos_crm'), where('username', '==', username)));
             if (!existente.empty) return alert('Ese usuario ya existe');
@@ -1452,14 +1452,14 @@ class="admin-menu-btn solo-admin relative">
             document.getElementById('nuevoAsesorPass').value = '';
             if (document.getElementById('nuevoAsesorRol')) document.getElementById('nuevoAsesorRol').value = 'operador';
             renderCheckboxTramites('nuevoAsesorTramites', []);
-            alert('Empleado agregado con permisos por trámite');
+            alert('Empleado agregado con permisos por tr�mite');
         };
 
         window.editarPermisosAsesor = async (id) => {
             if (miSesion.role !== 'admin') return;
             const ref = doc(db, 'accesos_crm', id);
             const snap = await getDoc(ref);
-            if (!snap.exists()) return alert('No se encontró el usuario');
+            if (!snap.exists()) return alert('No se encontr� el usuario');
             const a = snap.data();
             const actuales = Array.isArray(a.tramitesPermitidos) ? a.tramitesPermitidos : [];
             const texto = prompt(
@@ -1474,7 +1474,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.eliminarAsesor = async (id) => {
             if (miSesion.role !== 'admin') return;
-            if (!confirm('¿Quitar este empleado?')) return;
+            if (!confirm('�Quitar este empleado?')) return;
             await deleteDoc(doc(db, 'accesos_crm', id));
         };
 
@@ -1591,7 +1591,7 @@ class="admin-menu-btn solo-admin relative">
                 e.includes('soporte') ||
                 e.includes('contrase') ||
                 e.includes('limite') ||
-                e.includes('límite') ||
+                e.includes('l�mite') ||
                 e.includes('imss')
             ) return 'error';
             return 'proceso';
@@ -1627,7 +1627,7 @@ class="admin-menu-btn solo-admin relative">
         }
 
         function labelTramite(key) {
-            return TRAMITES_CRM.find(t => t.key === key)?.label || String(key || 'Trámite');
+            return TRAMITES_CRM.find(t => t.key === key)?.label || String(key || 'Tr�mite');
         }
 
         function claveTramiteSolicitud(s) {
@@ -1649,7 +1649,7 @@ class="admin-menu-btn solo-admin relative">
             box.innerHTML = `
                 <label class="dpr-check" style="grid-column: 1 / -1; background:#ecfdf5; border-color:#10b981; color:#065f46;">
                     <input type="checkbox" value="TODO" ${todoChecked ? 'checked' : ''}>
-                    TODO · Ver y tomar todos los trámites
+                    TODO � Ver y tomar todos los tr�mites
                 </label>
             ` + TRAMITES_CRM.map(t => `
                 <label class="dpr-check">
@@ -1692,8 +1692,8 @@ class="admin-menu-btn solo-admin relative">
                 estatusUpper.includes('NSS') ||
                 estatusUpper.includes('INCONSISTENCIAS') ||
                 estatusUpper.includes('FOTOS') ||
-                estatusUpper.includes('CONTRASEÑA') ||
-                estatusUpper.includes('LÍMITE') ||
+                estatusUpper.includes('CONTRASE�A') ||
+                estatusUpper.includes('L�MITE') ||
                 estatusUpper.includes('LIMITE') ||
                 estatusUpper.includes('IMSS') ||
                 estatusUpper.includes('NO EXISTE') ||
@@ -1754,7 +1754,7 @@ class="admin-menu-btn solo-admin relative">
             try {
                 const s = todasLasSoliCargadas.find(item => String(item.id) === String(id)) || {};
                 if (miSesion.role !== 'admin' && String(s.tomado_uid || '') !== staffUid) {
-                    throw new Error('Solo puede liberar la solicitud quien la tomó o un admin.');
+                    throw new Error('Solo puede liberar la solicitud quien la tom� o un admin.');
                 }
 
                 await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
@@ -1798,7 +1798,7 @@ class="admin-menu-btn solo-admin relative">
             { key: 'VIGENCIA_DE_DERECHOS', nombre: 'Vigencia de Derechos', proveedor: 0, publico: 8 },
             { key: 'INCAPACIDAD', nombre: 'Incapacidad', proveedor: 0, publico: 20 },
             { key: 'RECETAS', nombre: 'Recetas', proveedor: 0, publico: 20 },
-            { key: 'INSCRIPCION_MODALIDAD_10', nombre: 'Inscripción Modalidad 10', proveedor: 0, publico: 200 },
+            { key: 'INSCRIPCION_MODALIDAD_10', nombre: 'Inscripci�n Modalidad 10', proveedor: 0, publico: 200 },
             { key: 'ALTA_MENSUAL', nombre: 'Alta Mensual', proveedor: 0, publico: 600 },
             { key: 'ALTA_PARA_DESEMPLEO_CON_LINEA_DE_CAPTURA', nombre: 'Alta Para Desempleo con linea de captura', proveedor: 0, publico: 200 },
             { key: 'ALTA_PARA_DESEMPLEO_CON_APORTACIONES', nombre: 'Alta para Desempleo con aportaciones', proveedor: 0, publico: 650 },
@@ -1806,30 +1806,30 @@ class="admin-menu-btn solo-admin relative">
             { key: 'RFC_VERIFICABLE', nombre: 'RFC Verificable', proveedor: 0, publico: 95 },
             { key: 'RFC_CON_IDCIF', nombre: 'RFC con IDCIF', proveedor: 0, publico: 20 },
             { key: 'RFC_ORIGINAL', nombre: 'RFC Original', proveedor: 0, publico: 180 },
-            { key: 'LOCALIZACION_DE_IDCIF', nombre: 'Localización de IDcif', proveedor: 0, publico: 60 },
-            { key: 'BURO_DE_CREDITO', nombre: 'Buró de Crédito', proveedor: 0, publico: 170 },
+            { key: 'LOCALIZACION_DE_IDCIF', nombre: 'Localizaci�n de IDcif', proveedor: 0, publico: 60 },
+            { key: 'BURO_DE_CREDITO', nombre: 'Bur� de Cr�dito', proveedor: 0, publico: 170 },
             { key: 'CURP', nombre: 'CURP', proveedor: 0, publico: 4 },
             { key: 'ACTA_DE_NACIMIENTO', nombre: 'Acta de Nacimiento', proveedor: 0, publico: 11 },
             { key: 'ACTA_DE_MATRIMONIO', nombre: 'Acta de Matrimonio', proveedor: 0, publico: 11 },
             { key: 'ACTA_DE_DIVORCIO', nombre: 'Acta de Divorcio', proveedor: 0, publico: 11 },
-            { key: 'ACTA_DE_DEFUNCION', nombre: 'Acta de Defunción', proveedor: 0, publico: 11 },
+            { key: 'ACTA_DE_DEFUNCION', nombre: 'Acta de Defunci�n', proveedor: 0, publico: 11 },
             { key: 'CERTIFICADO_INEA', nombre: 'Certificado INEA', proveedor: 0, publico: 30 },
             { key: 'CERTIFICADO_COVID', nombre: 'Certificado COVID', proveedor: 0, publico: 20 },
-            { key: 'LOCALIZACION_DE_CONTRASENA', nombre: 'Localización de Contraseña', proveedor: 0, publico: 150 },
+            { key: 'LOCALIZACION_DE_CONTRASENA', nombre: 'Localizaci�n de Contrase�a', proveedor: 0, publico: 150 },
             { key: 'RESETEO_CUENTA', nombre: 'Reseteo Cuenta', proveedor: 0, publico: 150 },
-            { key: 'PRECALIFICACION_MEJORAVIT', nombre: 'Precalificación Mejoravit', proveedor: 0, publico: 100 },
-            { key: 'PRECALIFICACION_LINEA_II', nombre: 'Precalificación Linea II', proveedor: 0, publico: 100 },
+            { key: 'PRECALIFICACION_MEJORAVIT', nombre: 'Precalificaci�n Mejoravit', proveedor: 0, publico: 100 },
+            { key: 'PRECALIFICACION_LINEA_II', nombre: 'Precalificaci�n Linea II', proveedor: 0, publico: 100 },
             { key: 'CREAR_CUENTA_EN_MI_CUENTAINFONAVIT', nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', proveedor: 0, publico: 150 },
-            { key: 'HISTORICO_INFONAVIT', nombre: 'Histórico Infonavit', proveedor: 0, publico: 150 },
+            { key: 'HISTORICO_INFONAVIT', nombre: 'Hist�rico Infonavit', proveedor: 0, publico: 150 },
             { key: 'REGISTRO_A_DISTANCIA', nombre: 'Registro a Distancia', proveedor: 0, publico: 90 },
             { key: 'RETIRO_DESEMPLEO_A_DISTANCIA', nombre: 'Retiro Desempleo a Distancia', proveedor: 0, publico: 60 },
-            { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', nombre: 'Cambiar Contraseña AFORE Web', proveedor: 0, publico: 30 },
+            { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', nombre: 'Cambiar Contrase�a AFORE Web', proveedor: 0, publico: 30 },
             { key: 'ESTADO_DE_CUENTA_AFORE', nombre: 'Estado de cuenta AFORE', proveedor: 0, publico: 500 },
-            { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contraseña', proveedor: 0, publico: 70 },
+            { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contrase�a', proveedor: 0, publico: 70 },
             { key: 'RESUMEN_DE_SALDOS', nombre: 'Resumen de Saldos', proveedor: 0, publico: 170 },
             { key: 'LOCALIZA_TU_AFORE', nombre: 'Localiza tu AFORE', proveedor: 0, publico: 29 },
-            { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'Análisis rápido de pensión', proveedor: 0, publico: 200 },
-            { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'Análisis Detallado de pensión', proveedor: 0, publico: 3000 }
+            { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'An�lisis r�pido de pensi�n', proveedor: 0, publico: 200 },
+            { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'An�lisis Detallado de pensi�n', proveedor: 0, publico: 3000 }
         ];
         let inventarioVentaDirecta = [];
 
@@ -1843,7 +1843,7 @@ class="admin-menu-btn solo-admin relative">
 
         function obtenerInventarioParaSolicitud(s) {
             const key = claveTramiteSolicitud(s);
-            const nombre = String(s.tipo || s.tramite || s.servicio || key || 'Trámite').trim();
+            const nombre = String(s.tipo || s.tramite || s.servicio || key || 'Tr�mite').trim();
             return inventarioVentaDirecta.find(i => i.key === key) ||
                    inventarioVentaDirecta.find(i => normalizarKeyInventario(i.nombre) === normalizarKeyInventario(nombre)) ||
                    { key, nombre, proveedor: Number(s.costoProveedor || 0), publico: Number(s.costo || s.precio || 0) };
@@ -1885,7 +1885,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.editarInventarioVentaDirecta = function (id) {
             const item = inventarioVentaDirecta.find(i => String(i.id) === String(id));
-            if (!item) return alert('No se encontró el trámite para editar');
+            if (!item) return alert('No se encontr� el tr�mite para editar');
 
             document.getElementById('vdInventarioEditId').value = item.id || item.key || '';
             document.getElementById('vdNombreTramite').value = item.nombre || item.key || '';
@@ -1898,12 +1898,12 @@ class="admin-menu-btn solo-admin relative">
             if (miSesion.role !== 'admin') return;
             const item = inventarioVentaDirecta.find(i => String(i.id || i.key) === String(id));
             const nombre = item?.nombre || id;
-            if (!confirm(`¿Borrar del inventario: ${nombre}?`)) return;
+            if (!confirm(`�Borrar del inventario: ${nombre}?`)) return;
             try {
                 await deleteDoc(doc(db, 'inventario_venta_directa', id));
                 window.limpiarFormularioInventarioVentaDirecta?.();
             } catch (e) {
-                alert(e.message || 'No se pudo borrar el trámite del inventario');
+                alert(e.message || 'No se pudo borrar el tr�mite del inventario');
             }
         };
 
@@ -1920,8 +1920,8 @@ class="admin-menu-btn solo-admin relative">
             const proveedor = Number(document.getElementById('vdPrecioProveedor')?.value || 0);
             const publico = Number(document.getElementById('vdPrecioPublico')?.value || 0);
 
-            if (!nombre) return alert('Agrega el nombre del trámite');
-            if (publico < proveedor) return alert('El precio público no debe ser menor al precio proveedor');
+            if (!nombre) return alert('Agrega el nombre del tr�mite');
+            if (publico < proveedor) return alert('El precio p�blico no debe ser menor al precio proveedor');
 
             const key = normalizarKeyInventario(nombre);
             const existente = inventarioVentaDirecta.find(i =>
@@ -1943,7 +1943,7 @@ class="admin-menu-btn solo-admin relative">
             }, { merge: true });
 
             window.limpiarFormularioInventarioVentaDirecta();
-            alert(editId ? ' Trámite actualizado sin duplicar' : ' Trámite guardado sin duplicar');
+            alert(editId ? ' Tr�mite actualizado sin duplicar' : ' Tr�mite guardado sin duplicar');
         };
 
         window.renderVentaDirecta = function () {
@@ -1953,7 +1953,7 @@ class="admin-menu-btn solo-admin relative">
 
             ventas.forEach(s => {
                 const inv = obtenerInventarioParaSolicitud(s);
-                const nombre = inv.nombre || s.tipo || 'Trámite';
+                const nombre = inv.nombre || s.tipo || 'Tr�mite';
                 const publico = Number(inv.publico || s.costo || s.precio || 0);
                 const proveedor = Number(inv.proveedor || s.costoProveedor || 0);
                 const util = publico - proveedor;
@@ -1983,7 +1983,7 @@ class="admin-menu-btn solo-admin relative">
                         <td class="p-3 text-right font-black text-blue-700">${money(r.ingreso)}</td>
                         <td class="p-3 text-right font-black text-emerald-700">${money(r.utilidad)}</td>
                     </tr>
-                `).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No hay ventas terminadas válidas hoy.</td></tr>';
+                `).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No hay ventas terminadas v�lidas hoy.</td></tr>';
             }
 
             const ultimas = document.getElementById('vdUltimasVentas');
@@ -1993,12 +1993,12 @@ class="admin-menu-btn solo-admin relative">
                     const f = (fechaSolicitudTerminada(s) || s.fecha?.toDate?.());
                     return `<div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
                         <div>
-                            <p class="text-xs font-black uppercase text-slate-800">${inv.nombre || s.tipo || 'Trámite'}</p>
-                            <p class="text-[10px] font-bold text-slate-500">${s.nombre_asesor || 'Venta directa'} · ${f ? f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
+                            <p class="text-xs font-black uppercase text-slate-800">${inv.nombre || s.tipo || 'Tr�mite'}</p>
+                            <p class="text-[10px] font-bold text-slate-500">${s.nombre_asesor || 'Venta directa'} � ${f ? f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
                         </div>
                         <span class="op-pill green">${money(Number(inv.publico || s.costo || 0))}</span>
                     </div>`;
-                }).join('') || '<p class="text-xs font-bold text-slate-400">Aún no hay ventas válidas terminadas hoy.</p>';
+                }).join('') || '<p class="text-xs font-bold text-slate-400">A�n no hay ventas v�lidas terminadas hoy.</p>';
             }
         };
 
@@ -2021,7 +2021,7 @@ class="admin-menu-btn solo-admin relative">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-slate-50 border rounded-xl p-3 gap-3">
                         <div>
                             <p class="text-xs font-black uppercase text-slate-800">${i.nombre || i.key}</p>
-                            <p class="text-[10px] font-bold text-slate-500">Proveedor: ${money(i.proveedor)} · Público: ${money(i.publico)}</p>
+                            <p class="text-[10px] font-bold text-slate-500">Proveedor: ${money(i.proveedor)} � P�blico: ${money(i.publico)}</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap justify-end">
                             <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
@@ -2134,9 +2134,9 @@ class="admin-menu-btn solo-admin relative">
                                     <option value="ERR_INCONSISTENCIAS" ${estatusActual.toLowerCase().includes('inconsistencias') ? 'selected' : ''}> INCONSISTENCIAS EN DATOS</option>
                                     <option value="ERR_FOTOS" ${(estatusActual.toLowerCase().includes('fotos') || estatusActual.toLowerCase().includes('ilegibles')) ? 'selected' : ''}> FOTOS ILEGIBLES</option>
                                     <option value="ERR_INEXISTENTE" ${(estatusActual.toLowerCase().includes('no existe') || estatusActual.toLowerCase().includes('no fue encontrada')) ? 'selected' : ''}> DOCUMENTO NO ENCONTRADO</option>
-                                    <option value="ERR_SOPORTE" ${estatusActual.toLowerCase().includes('soporte técnico') ? 'selected' : ''}> SOPORTE TECNICO</option>
-                                    <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contraseña') ? 'selected' : ''}> CONTRASEÑA INCORRECTA</option>
-                                    <option value="ERR_LIMITE" ${(estatusActual.toLowerCase().includes('límite de consultas') || estatusActual.toLowerCase().includes('ya realizó esta consulta')) ? 'selected' : ''}> LÍMITE DE CONSULTAS</option>
+                                    <option value="ERR_SOPORTE" ${estatusActual.toLowerCase().includes('soporte t�cnico') ? 'selected' : ''}> SOPORTE TECNICO</option>
+                                    <option value="ERR_PASS" ${estatusActual.toLowerCase().includes('contrase�a') ? 'selected' : ''}> CONTRASE�A INCORRECTA</option>
+                                    <option value="ERR_LIMITE" ${(estatusActual.toLowerCase().includes('l�mite de consultas') || estatusActual.toLowerCase().includes('ya realiz� esta consulta')) ? 'selected' : ''}> L�MITE DE CONSULTAS</option>
                                     <option value="ERR_IMSS" ${estatusActual.includes('IMSS') ? 'selected' : ''}> FALLA DEL SISTEMA IMSS</option>
                                 </select>
                             </div>
@@ -2209,11 +2209,11 @@ class="admin-menu-btn solo-admin relative">
                     method: "POST"
                 });
 
-                alert(` DEVOLUCIÓN AUTOMÁTICA APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
+                alert(` DEVOLUCI�N AUTOM�TICA APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
                 await cargarSolicitudesAdminDesdeBackend();
             } catch (e) {
                 console.error(e);
-                alert(e.message || 'Error al procesar estatus/devolución');
+                alert(e.message || 'Error al procesar estatus/devoluci�n');
             }
         };
 
@@ -2223,7 +2223,7 @@ class="admin-menu-btn solo-admin relative">
                 return;
             }
 
-            if (!confirm('¿Aplicar devolución manual de saldo a esta solicitud?')) return;
+            if (!confirm('�Aplicar devoluci�n manual de saldo a esta solicitud?')) return;
 
             try {
                 const s = todasLasSoliCargadas.find(x => x.id === id) || {};
@@ -2237,10 +2237,10 @@ class="admin-menu-btn solo-admin relative">
                     method: "POST"
                 });
 
-                alert(` DEVOLUCIÓN MANUAL APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
+                alert(` DEVOLUCI�N MANUAL APLICADA: $${Number(result.monto_reembolsado || s.costo || 0).toFixed(2)}`);
             } catch (e) {
                 console.error(e);
-                alert(e.message || 'Error en devolución manual');
+                alert(e.message || 'Error en devoluci�n manual');
             }
         };
 
@@ -2249,26 +2249,26 @@ class="admin-menu-btn solo-admin relative">
             nombre_completo: 'Nombre completo',
             nombre_cliente: 'Nombre del cliente',
             nss: 'NSS',
-            turno_delegacion: 'Turno / Delegación',
-            delegacion: 'Delegación',
+            turno_delegacion: 'Turno / Delegaci�n',
+            delegacion: 'Delegaci�n',
             fecha: 'Fecha',
-            clinica: 'Clínica',
+            clinica: 'Cl�nica',
             consultorio: 'Consultorio',
-            patron: 'Patrón',
+            patron: 'Patr�n',
             puesto: 'Puesto',
-            dias_incapacidad: 'Días de incapacidad',
+            dias_incapacidad: 'D�as de incapacidad',
             rfc: 'RFC',
             idcif: 'IDCIF',
-            num_servicio: 'Número de servicio CFE',
-            numero_servicio: 'Número de servicio CFE',
+            num_servicio: 'N�mero de servicio CFE',
+            numero_servicio: 'N�mero de servicio CFE',
             servicio_cfe: 'Servicio CFE',
-            telefono: 'Teléfono',
+            telefono: 'Tel�fono',
             correo: 'Correo',
-            pass: 'Contraseña actual',
-            pass_nueva: 'Contraseña nueva',
+            pass: 'Contrase�a actual',
+            pass_nueva: 'Contrase�a nueva',
             curp_beneficiario: 'CURP beneficiario',
             nombre_beneficiario: 'Nombre beneficiario',
-            credito: 'Crédito',
+            credito: 'Cr�dito',
             nss_beneficiario: 'NSS beneficiario'
         };
 
@@ -2351,7 +2351,7 @@ class="admin-menu-btn solo-admin relative">
 
         function construirFormatoWpp(data) {
             const bolsa = obtenerBolsaVariablesExtra(data || {});
-            const tipo = limpiarValorExtra(data?.tipo) || 'Trámite';
+            const tipo = limpiarValorExtra(data?.tipo) || 'Tr�mite';
             const asesor = limpiarValorExtra(data?.nombre_asesor) || 'N/A';
             const curp = limpiarValorExtra(data?.curp || bolsa.curp);
             const nss = limpiarValorExtra(data?.nss || bolsa.nss);
@@ -2364,7 +2364,7 @@ class="admin-menu-btn solo-admin relative">
             const lineas = [];
             lineas.push('*EXPEDIENTE NOVYRA*');
             lineas.push('');
-            lineas.push(`* Trámite:* ${tipo}`);
+            lineas.push(`* Tr�mite:* ${tipo}`);
             if (curp) lineas.push(`* CURP:* ${curp}`);
             if (nss) lineas.push(`*NSS:* ${nss}`);
 
@@ -2385,7 +2385,7 @@ class="admin-menu-btn solo-admin relative">
 
             if (datos.length) {
                 lineas.push('');
-                lineas.push('* Datos del trámite:*');
+                lineas.push('* Datos del tr�mite:*');
                 lineas.push(...datos);
             }
 
@@ -2420,7 +2420,7 @@ class="admin-menu-btn solo-admin relative">
                 }
             } catch (error) {
                 console.error('Error copiando formato WPP:', error);
-                alert('No se pudo copiar automáticamente. Revisa que el sitio esté abierto en HTTPS o localhost.');
+                alert('No se pudo copiar autom�ticamente. Revisa que el sitio est� abierto en HTTPS o localhost.');
             }
         };
 
@@ -2471,7 +2471,7 @@ class="admin-menu-btn solo-admin relative">
                 <div class="md:col-span-2 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
                     <div>
                         <p class="text-[9px] font-black uppercase tracking-[0.18em] text-emerald-700">Formato operativo</p>
-                        <p class="text-[11px] font-bold text-slate-500">Copia los datos del trámite listos para WhatsApp o soporte.</p>
+                        <p class="text-[11px] font-bold text-slate-500">Copia los datos del tr�mite listos para WhatsApp o soporte.</p>
                     </div>
                     <button type="button" id="btnCopiarWpp" onclick="window.copiarVariablesWpp()" class="btn-copiar-wpp"> Copiar formato WPP</button>
                 </div>
@@ -2480,7 +2480,7 @@ class="admin-menu-btn solo-admin relative">
             const extraModal = obtenerBolsaVariablesExtra(data);
             const campos = [
                 { l: 'Asesor', v: data.nombre_asesor },
-                { l: 'Trámite', v: data.tipo },
+                { l: 'Tr�mite', v: data.tipo },
                 { l: 'CURP', v: data.curp || extraModal.curp },
                 { l: 'NSS', v: data.nss || extraModal.nss }
             ];
@@ -2489,11 +2489,11 @@ class="admin-menu-btn solo-admin relative">
                 const e = data.detalles_extra;
                 if (e.nombre_cliente && e.nombre_cliente !== 'N/A') campos.push({ l: 'Cliente', v: e.nombre_cliente });
                 if (e.rfc && e.rfc !== 'N/A') campos.push({ l: 'RFC', v: e.rfc });
-                if (e.telefono && e.telefono !== 'N/A') campos.push({ l: 'Teléfono Cli.', v: e.telefono });
+                if (e.telefono && e.telefono !== 'N/A') campos.push({ l: 'Tel�fono Cli.', v: e.telefono });
                 if (e.correo && e.correo !== 'N/A') campos.push({ l: 'Correo', v: e.correo, isPass: true });
                 if (e.pass && e.pass !== 'N/A') campos.push({ l: 'Pass Actual', v: e.pass, isPass: true });
                 if (e.pass_nueva && e.pass_nueva !== 'N/A') campos.push({ l: 'Pass Nueva', v: e.pass_nueva, isPass: true });
-                if (e.num_servicio && e.num_servicio !== 'N/A') campos.push({ l: 'Núm. Servicio CFE', v: e.num_servicio });
+                if (e.num_servicio && e.num_servicio !== 'N/A') campos.push({ l: 'N�m. Servicio CFE', v: e.num_servicio });
                 if (e.idcif && e.idcif !== 'N/A') campos.push({ l: 'IDCIF (SAT)', v: e.idcif });
             }
 
@@ -2555,7 +2555,7 @@ class="admin-menu-btn solo-admin relative">
             if (!s) return alert('La solicitud no existe');
 
             if (!puedeOperarSolicitud(s)) {
-                return alert(`Esta solicitud ya está tomada por ${s.tomado_nombre || 'otro operador'}.`);
+                return alert(`Esta solicitud ya est� tomada por ${s.tomado_nombre || 'otro operador'}.`);
             }
 
             if (!s.tomado_uid) {
@@ -2615,7 +2615,7 @@ class="admin-menu-btn solo-admin relative">
                     });
                     window.cerrarModales();
                     await cargarSolicitudesAdminDesdeBackend();
-                    alert(' Trámite terminado.');
+                    alert(' Tr�mite terminado.');
                 }
             } catch (e) {
                 alert('Error al subir archivo.');
@@ -2643,7 +2643,7 @@ class="admin-menu-btn solo-admin relative">
             const fijado = fijadoEl.checked;
 
             if (!titulo || !mensaje) {
-                alert('Completa título y mensaje');
+                alert('Completa t�tulo y mensaje');
                 return;
             }
 
@@ -2674,7 +2674,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.desactivarAviso = async (id) => {
             if (miSesion.role !== 'admin') return alert('No autorizado');
-            if (!confirm('¿Desactivar este aviso?')) return;
+            if (!confirm('�Desactivar este aviso?')) return;
 
             await adminApi(`/api/v1/admin/panel/notices/${encodeURIComponent(id)}`, {
                 method: "PATCH",
@@ -2695,7 +2695,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.eliminarAviso = async (id) => {
             if (miSesion.role !== 'admin') return alert('No autorizado');
-            if (!confirm('¿Eliminar aviso definitivamente?')) return;
+            if (!confirm('�Eliminar aviso definitivamente?')) return;
 
             await adminApi(`/api/v1/admin/panel/notices/${encodeURIComponent(id)}`, {
                 method: "DELETE"
@@ -2808,7 +2808,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.borrarRecarga = async (docId) => {
             if (miSesion.role !== 'admin') return;
-            if (!confirm('¿Borrar esta recarga del panel? Esta acción solo elimina la notificación de pago.')) return;
+            if (!confirm('�Borrar esta recarga del panel? Esta acci�n solo elimina la notificaci�n de pago.')) return;
             try {
                 await adminApi(`/api/v1/admin/panel/recharges/${encodeURIComponent(docId)}`, {
                     method: "DELETE"
@@ -2821,7 +2821,7 @@ class="admin-menu-btn solo-admin relative">
 
         window.validarRecarga = async (docId, uid, monto, est) => {
             if (miSesion.role !== 'admin') return;
-            if (confirm('¿Confirmar aprobación de saldo?')) {
+            if (confirm('�Confirmar aprobaci�n de saldo?')) {
                 try {
                     await adminApi(`/api/v1/admin/panel/recharges/${encodeURIComponent(docId)}/approve`, {
                         method: "POST",
@@ -2866,7 +2866,7 @@ class="admin-menu-btn solo-admin relative">
             });
 
             renderizarTablaPersonalizada(filtrados);
-            actualizarFiltroLabel(`Búsqueda semanal: ${filtrados.length} resultado(s)`);
+            actualizarFiltroLabel(`B�squeda semanal: ${filtrados.length} resultado(s)`);
         };
 
         function etiquetaEstadoAclaracion(estado) {
@@ -3055,7 +3055,7 @@ class="admin-menu-btn solo-admin relative">
                 actualizado_por: staffNombre,
                 actualizado: serverTimestamp()
             }).catch(async () => {
-                // Si el documento todavía no existe, se crea con set mediante transacción simple.
+                // Si el documento todav�a no existe, se crea con set mediante transacci�n simple.
                 await addDoc(collection(db, 'configuracion_crm'), {
                     nombre: 'tarifas_pago_operadores',
                     tarifas: tarifasPagoOperador,
@@ -3153,7 +3153,7 @@ class="admin-menu-btn solo-admin relative">
             if (totalBadge) totalBadge.textContent = `Total a pagar: $${totalGeneral.toFixed(2)}`;
 
             if (!filas.length) {
-                cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-slate-400 bg-slate-50 border rounded-2xl p-6">No hay trámites terminados para este día.</div>`;
+                cont.innerHTML = `<div class="text-center text-xs font-black uppercase text-slate-400 bg-slate-50 border rounded-2xl p-6">No hay tr�mites terminados para este d�a.</div>`;
                 return;
             }
 
@@ -3166,7 +3166,7 @@ class="admin-menu-btn solo-admin relative">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
                                 <p class="text-sm font-black uppercase text-slate-800">${r.nombre}</p>
-                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} trámites completados · Semanas hoy: ${r.semanasHoy || 0} · Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
+                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} tr�mites completados � Semanas hoy: ${r.semanasHoy || 0} � Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
                             </div>
                             <div class="pay-total text-right">
                                 <p class="text-[9px] font-black uppercase text-white/60">Total a pagar</p>
@@ -3246,7 +3246,7 @@ class="admin-menu-btn solo-admin relative">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
                                 <p class="text-sm font-black uppercase text-slate-800">${r.nombre}</p>
-                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} tramites completados en 15 dias · Semanas: ${r.semanasHoy || 0} · Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
+                                <p class="text-[10px] font-bold uppercase text-slate-500">${r.totalTramites} tramites completados en 15 dias � Semanas: ${r.semanasHoy || 0} � Tiempo prom.: ${r.conTiempo ? Math.round(r.totalMinutos / r.conTiempo) : 0} min</p>
                             </div>
                             <div class="pay-total text-right">
                                 <p class="text-[9px] font-black uppercase text-white/60">Total a pagar</p>
@@ -3336,7 +3336,7 @@ class="admin-menu-btn solo-admin relative">
               if (tipo.includes('semana')) semanas++;
               if (tipo.includes('acta')) actas++;
 
-              const nombre = tipoRaw || 'Trámite';
+              const nombre = tipoRaw || 'Tr�mite';
               if (!conteo[nombre]) conteo[nombre] = { nombre, cantidad: 0, venta: 0 };
               conteo[nombre].cantidad += 1;
               conteo[nombre].venta += monto;
@@ -3359,7 +3359,7 @@ class="admin-menu-btn solo-admin relative">
                 <td class="p-3 text-center font-black">${r.cantidad}</td>
                 <td class="p-3 text-right font-black text-emerald-700">${money(r.venta)}</td>
               </tr>
-            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 font-bold uppercase">Sin ventas válidas hoy.</td></tr>';
+            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 font-bold uppercase">Sin ventas v�lidas hoy.</td></tr>';
           }
 
           const g = document.getElementById('graficaVentas');
@@ -3406,7 +3406,7 @@ class="admin-menu-btn solo-admin relative">
               el.innerHTML = '<p class="text-xs font-black text-slate-400 uppercase py-4">Sin leads registrados</p>';
               return;
             }
-            el.innerHTML = '<table class="w-full"><tr><th class="text-left p-2">Nombre</th><th class="text-left p-2">Teléfono</th><th class="text-left p-2">Interés</th></tr>' +
+            el.innerHTML = '<table class="w-full"><tr><th class="text-left p-2">Nombre</th><th class="text-left p-2">Tel�fono</th><th class="text-left p-2">Inter�s</th></tr>' +
               rows.map(r => `<tr class="border-t"><td class="p-2">${r.nombre || r.name || ''}</td><td class="p-2">${r.telefono || r.celular || r.phone || ''}</td><td class="p-2">${r.interes || r.tipo || r.servicio || ''}</td></tr>`).join('') +
               '</table>';
           },
@@ -3418,7 +3418,7 @@ class="admin-menu-btn solo-admin relative">
         );
         window.descargarReporte = (tipo) => {
           const { jsPDF } = window.jspdf || {};
-          if (!jsPDF) return alert('No se pudo cargar la librería PDF');
+          if (!jsPDF) return alert('No se pudo cargar la librer�a PDF');
           const docPdf = new jsPDF();
           const mesElegido = document.getElementById('mesReporte')?.value || '';
           docPdf.setFontSize(16);
@@ -3431,7 +3431,7 @@ class="admin-menu-btn solo-admin relative">
           docPdf.text(`Actas hoy: ${document.getElementById('repActasHoy')?.textContent || '0'}`, 14, 56);
           docPdf.save(`reporte-${tipo}-${new Date().toISOString().slice(0,10)}.pdf`);
         };
-        window.agregarTramiteAdmin = async () => { const nombre=document.getElementById('tramiteNombre').value.trim(); if(!nombre) return alert('Nombre requerido'); const precio=Number(document.getElementById('tramitePrecio').value||0); const descripcion=document.getElementById('tramiteDesc').value.trim(); const campos=document.getElementById('tramiteCampos').value.split(',').map(x=>x.trim()).filter(Boolean); await addDoc(collection(db,'tramites'),{nombre,precio,descripcion,campos,activo:true,creado:serverTimestamp()}); alert('Trámite agregado'); };
+        window.agregarTramiteAdmin = async () => { const nombre=document.getElementById('tramiteNombre').value.trim(); if(!nombre) return alert('Nombre requerido'); const precio=Number(document.getElementById('tramitePrecio').value||0); const descripcion=document.getElementById('tramiteDesc').value.trim(); const campos=document.getElementById('tramiteCampos').value.split(',').map(x=>x.trim()).filter(Boolean); await addDoc(collection(db,'tramites'),{nombre,precio,descripcion,campos,activo:true,creado:serverTimestamp()}); alert('Tr�mite agregado'); };
         onSnapshot(query(collection(db,'tramites'), limit(200)), snap=>{ const cont=document.getElementById('listaTramitesAdmin'); if(!cont) return; cont.innerHTML=''; snap.forEach(d=>{ const t=d.data(); cont.innerHTML += `<div class="p-3 border rounded-xl mb-2 flex justify-between gap-2"><div><p class="font-black text-sm">${t.nombre||''} - $${Number(t.precio||0).toLocaleString('es-MX')}</p><p class="text-xs">${t.descripcion||''}</p></div><button onclick="window.toggleTramite('${d.id}', ${t.activo===false?'true':'false'})" class="px-3 py-2 rounded-lg text-xs font-black ${t.activo===false?'bg-emerald-600':'bg-red-600'} text-white">${t.activo===false?'Activar':'Desactivar'}</button></div>`; }); });
         window.toggleTramite = async (id, activar) => { await updateDoc(doc(db,'tramites',id), { activo: activar }); };
 
