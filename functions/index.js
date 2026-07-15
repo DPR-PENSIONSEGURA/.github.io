@@ -1805,6 +1805,127 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
   }
 });
 
+app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
+  try {
+    validateAdminToken(req);
+
+    const now = new Date();
+    const dateFrom = req.query.date_from ? new Date(String(req.query.date_from)) : new Date(now);
+    if (!req.query.date_from) dateFrom.setHours(0, 0, 0, 0);
+
+    const dateTo = req.query.date_to ? new Date(String(req.query.date_to)) : new Date(dateFrom);
+    if (!req.query.date_to) dateTo.setDate(dateTo.getDate() + 1);
+
+    if (Number.isNaN(dateFrom.getTime()) || Number.isNaN(dateTo.getTime()) || dateTo <= dateFrom) {
+      const error = new Error("Rango de fechas invalido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_DATE_RANGE";
+      throw error;
+    }
+
+    const encodedFrom = encodeURIComponent(dateFrom.toISOString());
+    const encodedTo = encodeURIComponent(dateTo.toISOString());
+    const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha,raw_data";
+    const rechargeFields = "id,firebase_id,email,monto,rastreo,estatus,fecha,raw_data";
+
+    const [solicitudes, recargas, asesores] = await Promise.all([
+      supabaseRequest(
+        `solicitudes?select=${solicitudFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc&limit=5000`,
+        { timeoutMs: 22000 }
+      ),
+      supabaseRequest(
+        `notificaciones_pago?select=${rechargeFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc&limit=5000`,
+        { timeoutMs: 22000 }
+      ),
+      supabaseRequest(
+        "asesores?select=saldo_actual,activo&limit=5000",
+        { timeoutMs: 22000 }
+      )
+    ]);
+
+    let totalVendido = 0;
+    let totalReembolsado = 0;
+    let solicitudesTerminadas = 0;
+    let solicitudesPendientes = 0;
+    let solicitudesError = 0;
+    const porTramite = new Map();
+
+    for (const row of solicitudes || []) {
+      const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+      const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
+      const costo = Number(row.costo || raw.costo || raw.precio || raw.monto || 0);
+      const reembolso = Number(row.monto_reembolsado || raw.monto_reembolsado || 0);
+      if (reembolso > 0 || row.reembolsado === true || raw.reembolsado === true) totalReembolsado += reembolso || costo;
+
+      if (isCompletedSaleSolicitud(row)) {
+        solicitudesTerminadas += 1;
+        totalVendido += costo;
+        const tipo = normalizeString(row.tipo || raw.tipo || "Tramite");
+        const actual = porTramite.get(tipo) || { tipo, cantidad: 0, venta: 0 };
+        actual.cantidad += 1;
+        actual.venta += costo;
+        porTramite.set(tipo, actual);
+      } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
+        solicitudesError += 1;
+      } else {
+        solicitudesPendientes += 1;
+      }
+    }
+
+    let totalRecargasAprobadas = 0;
+    let recargasAprobadas = 0;
+    let recargasPendientes = 0;
+    let recargasRechazadas = 0;
+    for (const row of recargas || []) {
+      const estatus = normalizeForCompare(row.estatus || row.raw_data?.estatus || "");
+      if (estatus.includes("aprob")) {
+        recargasAprobadas += 1;
+        totalRecargasAprobadas += Number(row.monto || 0);
+      } else if (estatus.includes("rechaz") || estatus.includes("cancel")) {
+        recargasRechazadas += 1;
+      } else {
+        recargasPendientes += 1;
+      }
+    }
+
+    let saldoClientesPositivo = 0;
+    let clientesConSaldo = 0;
+    for (const asesor of asesores || []) {
+      const saldo = Number(asesor.saldo_actual || 0);
+      if (saldo > 0) {
+        saldoClientesPositivo += saldo;
+        clientesConSaldo += 1;
+      }
+    }
+
+    const ventaNeta = totalVendido - totalReembolsado;
+    const flujoCajaDia = totalRecargasAprobadas - totalReembolsado;
+
+    res.json({
+      success: true,
+      date_from: dateFrom.toISOString(),
+      date_to: dateTo.toISOString(),
+      solicitudes_cargadas: Array.isArray(solicitudes) ? solicitudes.length : 0,
+      recargas_cargadas: Array.isArray(recargas) ? recargas.length : 0,
+      total_recargas_aprobadas: Number(totalRecargasAprobadas.toFixed(2)),
+      recargas_aprobadas: recargasAprobadas,
+      recargas_pendientes: recargasPendientes,
+      recargas_rechazadas: recargasRechazadas,
+      total_vendido: Number(totalVendido.toFixed(2)),
+      total_reembolsado: Number(totalReembolsado.toFixed(2)),
+      venta_neta: Number(ventaNeta.toFixed(2)),
+      flujo_caja_dia: Number(flujoCajaDia.toFixed(2)),
+      solicitudes_terminadas: solicitudesTerminadas,
+      solicitudes_pendientes: solicitudesPendientes,
+      solicitudes_error: solicitudesError,
+      saldo_clientes_positivo: Number(saldoClientesPositivo.toFixed(2)),
+      clientes_con_saldo: clientesConSaldo,
+      por_tramite: [...porTramite.values()].sort((a, b) => b.venta - a.venta).slice(0, 50)
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
