@@ -230,6 +230,68 @@ function mapSupabaseChat(row) {
   };
 }
 
+function mapSupabaseNotice(row) {
+  const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const created = row.creado || row.fecha || row.created_at || raw.creado || raw.fecha || raw.created_at || null;
+  return {
+    id: row.firebase_id || row.id,
+    supabase_id: row.id,
+    firebase_id: row.firebase_id || "",
+    titulo: row.titulo || raw.titulo || raw.title || "",
+    mensaje: row.mensaje || row.texto || raw.mensaje || raw.texto || raw.message || "",
+    tipo: row.tipo || raw.tipo || "info",
+    activo: row.activo !== false && raw.activo !== false,
+    fijado: row.fijado === true || raw.fijado === true,
+    creado: created,
+    creado_por: row.creado_por || raw.creado_por || "admin"
+  };
+}
+
+function sortNotices(rows) {
+  return (rows || []).map(mapSupabaseNotice).sort((a, b) => {
+    const fixed = Number(b.fijado === true) - Number(a.fijado === true);
+    if (fixed !== 0) return fixed;
+    const fb = b.creado ? new Date(b.creado).getTime() : 0;
+    const fa = a.creado ? new Date(a.creado).getTime() : 0;
+    return fb - fa;
+  });
+}
+
+async function updateSupabaseNoticeByAnyId(id, patch) {
+  const encoded = supabaseEq(id);
+  let rows = await supabaseRequest(`avisos?firebase_id=eq.${encoded}&select=*`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(patch),
+    timeoutMs: 12000
+  });
+  if (!rows || rows.length === 0) {
+    rows = await supabaseRequest(`avisos?id=eq.${encoded}&select=*`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify(patch),
+      timeoutMs: 12000
+    });
+  }
+  return rows || [];
+}
+
+async function deleteSupabaseNoticeByAnyId(id) {
+  const encoded = supabaseEq(id);
+  let rows = await supabaseRequest(`avisos?firebase_id=eq.${encoded}&select=*`, {
+    method: "DELETE",
+    headers: { Prefer: "return=representation" },
+    timeoutMs: 12000
+  });
+  if (!rows || rows.length === 0) {
+    rows = await supabaseRequest(`avisos?id=eq.${encoded}&select=*`, {
+      method: "DELETE",
+      headers: { Prefer: "return=representation" },
+      timeoutMs: 12000
+    });
+  }
+  return rows || [];
+}
 async function insertSupabaseMovimientoSaldo(row) {
   try {
     await supabaseRequest("movimientos_saldo", {
@@ -2802,6 +2864,119 @@ app.post("/api/v1/admin/panel/inactive-users/expire-balances", async (req, res) 
   }
 });
 
+app.get("/api/v1/admin/panel/notices", async (req, res) => {
+  try {
+    validateStaffOrAdmin(req);
+    const rows = await supabaseRequest("avisos?select=*&limit=300", { timeoutMs: 12000 });
+    res.json({ success: true, rows: sortNotices(rows) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/admin/panel/notices", async (req, res) => {
+  try {
+    const staff = validateStaffOrAdmin(req);
+    if (staff.role !== "admin") {
+      const error = new Error("No autorizado.");
+      error.statusCode = 403;
+      error.errorCode = "ADMIN_ONLY";
+      throw error;
+    }
+
+    const titulo = normalizeString(req.body?.titulo || req.body?.title || "");
+    const mensaje = normalizeString(req.body?.mensaje || req.body?.texto || req.body?.message || "");
+    const tipo = normalizeString(req.body?.tipo || "info").toLowerCase();
+    const fijado = req.body?.fijado === true;
+    const now = new Date().toISOString();
+    const firebaseId = crypto.randomUUID();
+
+    if (!titulo || !mensaje) {
+      const error = new Error("Completa titulo y mensaje del aviso.");
+      error.statusCode = 400;
+      error.errorCode = "NOTICE_REQUIRED_FIELDS";
+      throw error;
+    }
+
+    const row = {
+      firebase_id: firebaseId,
+      titulo,
+      mensaje,
+      tipo,
+      activo: true,
+      fijado,
+      creado: now,
+      raw_data: {
+        titulo,
+        mensaje,
+        tipo,
+        activo: true,
+        fijado,
+        creado: now,
+        origen: "admin_backend"
+      }
+    };
+
+    const rows = await supabaseRequest("avisos?select=*", {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify([row]),
+      timeoutMs: 12000
+    });
+
+    res.status(201).json({ success: true, notice: mapSupabaseNotice(rows?.[0] || row) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.patch("/api/v1/admin/panel/notices/:id", async (req, res) => {
+  try {
+    const staff = validateStaffOrAdmin(req);
+    if (staff.role !== "admin") {
+      const error = new Error("No autorizado.");
+      error.statusCode = 403;
+      error.errorCode = "ADMIN_ONLY";
+      throw error;
+    }
+
+    const rawPatch = { actualizado: new Date().toISOString() };
+    const patch = {};
+    if (typeof req.body?.activo === "boolean") { patch.activo = req.body.activo; rawPatch.activo = req.body.activo; }
+    if (typeof req.body?.fijado === "boolean") { patch.fijado = req.body.fijado; rawPatch.fijado = req.body.fijado; }
+    if (req.body?.titulo !== undefined) { patch.titulo = normalizeString(req.body.titulo); rawPatch.titulo = patch.titulo; }
+    if (req.body?.mensaje !== undefined) { patch.mensaje = normalizeString(req.body.mensaje); rawPatch.mensaje = patch.mensaje; }
+    if (req.body?.tipo !== undefined) { patch.tipo = normalizeString(req.body.tipo).toLowerCase(); rawPatch.tipo = patch.tipo; }
+    patch.raw_data = rawPatch;
+
+    const rows = await updateSupabaseNoticeByAnyId(req.params.id, patch);
+    if (!rows.length) {
+      const error = new Error("No se encontro el aviso.");
+      error.statusCode = 404;
+      error.errorCode = "NOTICE_NOT_FOUND";
+      throw error;
+    }
+    res.json({ success: true, notice: mapSupabaseNotice(rows[0]) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.delete("/api/v1/admin/panel/notices/:id", async (req, res) => {
+  try {
+    const staff = validateStaffOrAdmin(req);
+    if (staff.role !== "admin") {
+      const error = new Error("No autorizado.");
+      error.statusCode = 403;
+      error.errorCode = "ADMIN_ONLY";
+      throw error;
+    }
+    await deleteSupabaseNoticeByAnyId(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 app.get("/api/v1/admin/panel/chat", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
@@ -3346,6 +3521,15 @@ app.post("/api/v1/dashboard/payment-notifications", async (req, res) => {
   }
 });
 
+app.get("/api/v1/dashboard/notices", async (req, res) => {
+  try {
+    await authenticateDashboardUser(req);
+    const rows = await supabaseRequest("avisos?select=*&activo=eq.true&limit=100", { timeoutMs: 12000 });
+    res.json({ success: true, notices: sortNotices(rows).filter(a => a.activo !== false) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
 app.get("/api/v1/dashboard/chat", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
