@@ -1884,6 +1884,7 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
 
     res.json({
       success: true,
+      as_of: new Date().toISOString(),
       date_from: dateFrom.toISOString(),
       date_to: dateTo.toISOString(),
       limit: summaryLimit,
@@ -1901,6 +1902,9 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
 
 app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
     validateAdminToken(req);
 
     const now = new Date();
@@ -1997,6 +2001,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
 
     res.json({
       success: true,
+      as_of: new Date().toISOString(),
       date_from: dateFrom.toISOString(),
       date_to: dateTo.toISOString(),
       solicitudes_cargadas: Array.isArray(solicitudes) ? solicitudes.length : 0,
