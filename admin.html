@@ -833,12 +833,6 @@ class="admin-menu-btn solo-admin relative">
     <section id="vistaMetricas" class="mb-8 solo-admin admin-vista admin-oculta" data-admin-view="metricas">
       <div class="bg-white rounded-[2rem] p-6 shadow-xl border">
         <div class="flex justify-between items-center mb-4"><h2 class="text-lg font-black uppercase text-indigo-700">Métricas y reportes</h2></div>
-        <div class="grid md:grid-cols-4 gap-4 mb-4">
-          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Ventas hoy</p><p id="repVentasHoy" class="text-2xl font-black">$0</p></div>
-          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Semanas cotizadas</p><p id="repSemanasHoy" class="text-2xl font-black">0</p></div>
-          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Actas hoy</p><p id="repActasHoy" class="text-2xl font-black">0</p></div>
-          <div class="bg-slate-100 p-4 rounded-xl"><p class="text-xs font-black uppercase text-slate-500">Usuarios registrados</p><p id="tablaUsuariosAdmin" class="text-2xl font-black">0</p></div>
-        </div>
         <div class="mb-4 bg-white border rounded-2xl p-4 shadow-sm">
           <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
             <div>
@@ -852,23 +846,11 @@ class="admin-menu-btn solo-admin relative">
           </div>
           <div class="grid md:grid-cols-4 gap-3 mb-4">
             <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-emerald-700">Recargas aprobadas</p><p id="corteRecargas" class="text-2xl font-black text-emerald-700">$0.00</p><small id="corteRecargasMeta" class="font-bold text-slate-500">0 operaciones</small></div>
-            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-indigo-700">Ventas netas</p><p id="corteVentaNeta" class="text-2xl font-black text-indigo-700">$0.00</p><small id="corteVentasMeta" class="font-bold text-slate-500">0 terminadas</small></div>
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-indigo-700">Vendido real</p><p id="corteVentaNeta" class="text-2xl font-black text-indigo-700">$0.00</p><small id="corteVentasMeta" class="font-bold text-slate-500">Neto después de devoluciones</small></div>
             <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-rose-700">Reembolsos</p><p id="corteReembolsos" class="text-2xl font-black text-rose-700">$0.00</p><small id="corteFlujoCaja" class="font-bold text-slate-500">Flujo: $0.00</small></div>
             <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-amber-700">Saldo clientes actual</p><p id="corteSaldoClientes" class="text-2xl font-black text-amber-700">$0.00</p><small id="corteSaldoMeta" class="font-bold text-slate-500">0 clientes con saldo</small></div>
           </div>
           <div id="corteDineroDetalle" class="text-[11px] font-bold text-slate-600"></div>
-        </div>
-        <div class="mb-4"><h3 class="font-black text-sm mb-2">Ventas diarias (últimos 14 días)</h3><div id="graficaVentas" class="flex items-end gap-2 h-48 bg-slate-50 p-3 rounded-xl border"></div></div>
-        <div class="mb-4 bg-slate-50 border rounded-2xl p-4">
-          <h3 class="font-black text-sm mb-3 uppercase text-slate-700">Conteo por trámite válido hoy</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-[10px]">
-              <thead class="bg-slate-900 text-white uppercase font-black">
-                <tr><th class="p-3">Trámite</th><th class="p-3 text-center">Cantidad</th><th class="p-3 text-right">Venta</th></tr>
-              </thead>
-              <tbody id="repTablaConteoTramites"></tbody>
-            </table>
-          </div>
         </div>
         <div class="flex gap-2 items-center flex-wrap"><button onclick="window.descargarReporte('semanal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-black">PDF semanal</button><input id="mesReporte" type="month" class="border rounded-lg p-2 text-xs"><button onclick="window.descargarReporte('mensual')" class="bg-indigo-800 text-white px-4 py-2 rounded-lg text-xs font-black">PDF mensual</button></div>
       </div>
@@ -1120,7 +1102,7 @@ class="admin-menu-btn solo-admin relative">
                 setText('corteRecargas', dineroMX(data.total_recargas_aprobadas));
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
                 setText('corteVentaNeta', dineroMX(data.venta_neta));
-                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} terminadas · ${data.solicitudes_pendientes || 0} pendientes`);
+                setText('corteVentasMeta', `Bruta ${dineroMX(data.total_vendido)} - devoluciones ${dineroMX(data.total_reembolsado)}`);
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
                 setText('corteFlujoCaja', `Flujo: ${dineroMX(data.flujo_caja_dia)}`);
                 setText('corteSaldoClientes', dineroMX(data.saldo_clientes_positivo));
@@ -1135,7 +1117,7 @@ class="admin-menu-btn solo-admin relative">
                             <div class="bg-slate-50 border rounded-xl p-3">Recargas revisadas: <b>${data.recargas_cargadas || 0}</b></div>
                         </div>
                         <div class="mt-3 flex flex-wrap gap-2">
-                            ${top.length ? top.map(r => `<span class="op-pill blue">${r.tipo}: ${r.cantidad} x ${dineroMX(r.precio_unitario || 0)} = ${dineroMX(r.venta)}</span>`).join('') : '<span class="text-slate-400 uppercase">Sin ventas terminadas en este d?a.</span>'}
+                            ${top.length ? top.map(r => `<span class="op-pill blue">${r.tipo}: ${r.cantidad} x ${dineroMX(r.precio_unitario || 0)} = ${dineroMX(r.venta)}</span>`).join('') : '<span class="text-slate-400 uppercase">Sin ventas terminadas en este día.</span>'}
                         </div>
                     `;
                 }
@@ -3304,93 +3286,10 @@ class="admin-menu-btn solo-admin relative">
         };
         const fechaKey = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
         async function cargarReportesAdmin(){
-          const hoy = fechaKey(new Date());
-          const dias = {};
-          for(let i=13;i>=0;i--){
-            const d = new Date();
-            d.setDate(d.getDate()-i);
-            dias[fechaKey(d)] = 0;
+          if (typeof window.cargarCorteDineroAdmin === 'function') {
+            await window.cargarCorteDineroAdmin();
           }
-
-          let semanas = 0;
-          let actas = 0;
-          let ventasHoy = 0;
-          const conteo = {};
-
-          const lista = Array.isArray(todasLasSoliCargadas) && todasLasSoliCargadas.length
-            ? todasLasSoliCargadas
-            : (Array.isArray(cacheSolicitudes) ? cacheSolicitudes : []);
-
-          lista.forEach(s => {
-            const fechaSolicitud = fechaSolicitudTerminada(s) || s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
-            if (!fechaSolicitud || isNaN(fechaSolicitud.getTime())) return;
-
-            const k = fechaKey(fechaSolicitud);
-            const monto = Number(s.costo ?? s.precio ?? s.monto ?? 0);
-            const tipoRaw = String(s.tipo || s.tramite || s.servicio || '').trim();
-            const tipo = tipoRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            const estatus = String(s.estatus || '').trim().toLowerCase();
-            const cuentaComoVenta = (estatus === 'terminado' || estatus === 'finalizado' || s.finalizado === true) && !esDocumentoConError(s) && s.reembolsado !== true;
-
-            if (cuentaComoVenta && k in dias) dias[k] += monto;
-
-            if (k === hoy && cuentaComoVenta) {
-              ventasHoy += monto;
-              if (tipo.includes('semana')) semanas++;
-              if (tipo.includes('acta')) actas++;
-
-              const nombre = tipoRaw || 'Trámite';
-              if (!conteo[nombre]) conteo[nombre] = { nombre, cantidad: 0, venta: 0 };
-              conteo[nombre].cantidad += 1;
-              conteo[nombre].venta += monto;
-            }
-          });
-
-          const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
-
-          setText('repVentasHoy', money(ventasHoy));
-          setText('repSemanasHoy', semanas.toLocaleString('es-MX'));
-          setText('repActasHoy', actas.toLocaleString('es-MX'));
-
-          const tablaConteo = document.getElementById('repTablaConteoTramites');
-          if (tablaConteo) {
-            const filas = Object.values(conteo).sort((a,b) => b.cantidad - a.cantidad || b.venta - a.venta);
-            tablaConteo.innerHTML = filas.length ? filas.map(r => `
-              <tr class="border-b hover:bg-white">
-                <td class="p-3 font-black uppercase text-slate-700">${r.nombre}</td>
-                <td class="p-3 text-center font-black">${r.cantidad}</td>
-                <td class="p-3 text-right font-black text-emerald-700">${money(r.venta)}</td>
-              </tr>
-            `).join('') : '<tr><td colspan="3" class="p-4 text-center text-slate-400 font-bold uppercase">Sin ventas válidas hoy.</td></tr>';
-          }
-
-          const g = document.getElementById('graficaVentas');
-          if (!g) return;
-          g.innerHTML = '';
-          const max = Math.max(...Object.values(dias), 1);
-          Object.entries(dias).forEach(([k,v]) => {
-            const h = Math.max(8, Math.round((v / max) * 140));
-            g.innerHTML += `
-              <div class="flex-1 flex flex-col items-center justify-end min-w-[28px]">
-                <div class="w-full bg-indigo-500 rounded-t" style="height:${h}px" title="${k}: ${money(v)}"></div>
-                <span class="text-[9px] mt-1">${k.slice(5)}</span>
-              </div>`;
-          });
         }
-        onSnapshot(
-          query(collection(db,'asesores'), limit(1000)),
-          snap => {
-            const el = document.getElementById('tablaUsuariosAdmin');
-            if (!el) return;
-            el.textContent = snap.size.toLocaleString('es-MX');
-          },
-          error => {
-            console.error('Error usuarios registrados:', error);
-            const el = document.getElementById('tablaUsuariosAdmin');
-            if (el) el.textContent = 'Error';
-          }
-        );
         onSnapshot(
           query(collection(db,'leads_web'), orderBy('fecha','desc'), limit(50)),
           snap => {
@@ -3429,9 +3328,9 @@ class="admin-menu-btn solo-admin relative">
           docPdf.setFontSize(11);
           docPdf.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, 26);
           if (tipo === 'mensual') docPdf.text(`Mes seleccionado: ${mesElegido || 'No definido'}`, 14, 33);
-          docPdf.text(`Ventas hoy: ${document.getElementById('repVentasHoy')?.textContent || '$0'}`, 14, 42);
-          docPdf.text(`Semanas hoy: ${document.getElementById('repSemanasHoy')?.textContent || '0'}`, 14, 49);
-          docPdf.text(`Actas hoy: ${document.getElementById('repActasHoy')?.textContent || '0'}`, 14, 56);
+          docPdf.text(`Vendido real: ${document.getElementById('corteVentaNeta')?.textContent || '$0.00'}`, 14, 42);
+          docPdf.text(`Recargas aprobadas: ${document.getElementById('corteRecargas')?.textContent || '$0.00'}`, 14, 49);
+          docPdf.text(`Reembolsos: ${document.getElementById('corteReembolsos')?.textContent || '$0.00'}`, 14, 56);
           docPdf.save(`reporte-${tipo}-${new Date().toISOString().slice(0,10)}.pdf`);
         };
         window.agregarTramiteAdmin = async () => { const nombre=document.getElementById('tramiteNombre').value.trim(); if(!nombre) return alert('Nombre requerido'); const precio=Number(document.getElementById('tramitePrecio').value||0); const descripcion=document.getElementById('tramiteDesc').value.trim(); const campos=document.getElementById('tramiteCampos').value.split(',').map(x=>x.trim()).filter(Boolean); await addDoc(collection(db,'tramites'),{nombre,precio,descripcion,campos,activo:true,creado:serverTimestamp()}); alert('Trámite agregado'); };
