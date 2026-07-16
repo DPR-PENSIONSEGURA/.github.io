@@ -478,7 +478,7 @@ const DASHBOARD_SERVICE_PRICES = {
   "ALTA MENSUAL": 670,
   "ALTA PARA DESEMPLEO CON LINEA DE CAPTURA": 200,
   "ALTA PARA DESEMPLEO CON APORTACIONES": 650,
-  "RFC CLON": 25,
+  "RFC CLON": 20,
   "RFC VERIFICABLE": 95,
   "RFC CON IDCIF": 20,
   "RFC ORIGINAL": 180,
@@ -1923,7 +1923,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
 
     const encodedFrom = encodeURIComponent(dateFrom.toISOString());
     const encodedTo = encodeURIComponent(dateTo.toISOString());
-    const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha,raw_data";
+    const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha,detalles_extra,cuestionario,raw_data";
     const rechargeFields = "id,firebase_id,email,monto,rastreo,estatus,fecha,raw_data";
 
     const [solicitudes, recargas, asesores] = await Promise.all([
@@ -1951,17 +1951,26 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
     for (const row of solicitudes || []) {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
-      const costo = Number(row.costo || raw.costo || raw.precio || raw.monto || 0);
+      const tipo = normalizeString(row.tipo || raw.tipo || "Tramite");
+      const detalles = {
+        ...(row.detalles_extra && typeof row.detalles_extra === "object" ? row.detalles_extra : {}),
+        ...(raw.detalles_extra && typeof raw.detalles_extra === "object" ? raw.detalles_extra : {}),
+        ...(row.cuestionario && typeof row.cuestionario === "object" ? row.cuestionario : {}),
+        ...(raw.cuestionario && typeof raw.cuestionario === "object" ? raw.cuestionario : {})
+      };
+      const precioBackend = Number(getDashboardServicePrice(tipo, detalles) || 0);
+      const costoGuardado = Number(row.costo || raw.costo || raw.precio || raw.monto || 0);
+      const precioVenta = precioBackend > 0 ? precioBackend : costoGuardado;
       const reembolso = Number(row.monto_reembolsado || raw.monto_reembolsado || 0);
-      if (reembolso > 0 || row.reembolsado === true || raw.reembolsado === true) totalReembolsado += reembolso || costo;
+      if (reembolso > 0 || row.reembolsado === true || raw.reembolsado === true) totalReembolsado += reembolso || precioVenta;
 
       if (isCompletedSaleSolicitud(row)) {
         solicitudesTerminadas += 1;
-        totalVendido += costo;
-        const tipo = normalizeString(row.tipo || raw.tipo || "Tramite");
-        const actual = porTramite.get(tipo) || { tipo, cantidad: 0, venta: 0 };
+        totalVendido += precioVenta;
+        const actual = porTramite.get(tipo) || { tipo, cantidad: 0, precio_unitario: precioVenta, venta: 0 };
         actual.cantidad += 1;
-        actual.venta += costo;
+        actual.precio_unitario = precioVenta;
+        actual.venta += precioVenta;
         porTramite.set(tipo, actual);
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
         solicitudesError += 1;
