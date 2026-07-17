@@ -472,13 +472,13 @@ const DASHBOARD_SERVICE_PRICES = {
   "TARJETA NSS": 15,
   "DESCARGA DE CARTILLA": 20,
   "VIGENCIA DE DERECHOS": 15,
-  "INCAPACIDAD": 20,
-  "RECETAS": 20,
+  "INCAPACIDAD": 15,
+  "RECETAS": 15,
   "INSCRIPCION MODALIDAD 10": 200,
-  "ALTA MENSUAL": 670,
+  "ALTA MENSUAL": 480,
   "ALTA PARA DESEMPLEO CON LINEA DE CAPTURA": 200,
   "ALTA PARA DESEMPLEO CON APORTACIONES": 650,
-  "RFC CLON": 20,
+  "RFC CLON": 15,
   "RFC VERIFICABLE": 95,
   "RFC CON IDCIF": 20,
   "RFC ORIGINAL": 180,
@@ -499,7 +499,7 @@ const DASHBOARD_SERVICE_PRICES = {
   "CREAR CUENTA EN MI CUENTAINFONAVIT": 100,
   "HISTORICO INFONAVIT": 100,
   "REGISTRO A DISTANCIA": 90,
-  "RETIRO DESEMPLEO A DISTANCIA": 60,
+  "RETIRO DESEMPLEO A DISTANCIA": 50,
   "CAMBIAR CONTRASENA AFORE WEB": 30,
   "ESTADO DE CUENTA AFORE": 500,
   "LOCALIZAR CONTRASENA": 70,
@@ -525,6 +525,25 @@ const DASHBOARD_AFORE_OPTIONS = [
   { nombre: "Principal", precio: 0 },
   { nombre: "Banamex", precio: 0 }
 ];
+
+const DASHBOARD_PREMIUM_PLANS = {
+  premium: {
+    key: "premium",
+    nombre: "Premium mensual",
+    precio: 800,
+    solicitudes_limite: 20,
+    infonavit_limite: 20,
+    rfc_gratis_limite: 0
+  },
+  premium_plus: {
+    key: "premium_plus",
+    nombre: "Premium Plus",
+    precio: 1500,
+    solicitudes_limite: 40,
+    infonavit_limite: 40,
+    rfc_gratis_limite: 30
+  }
+};
 
 const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
@@ -3127,6 +3146,107 @@ app.get("/api/v1/dashboard/balance", async (req, res) => {
         email: auth.email || asesor.email || "",
         nombre: asesor.nombre || ""
       }
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+
+app.post("/api/v1/dashboard/premium/activate", async (req, res) => {
+  try {
+    const auth = await authenticateDashboardUser(req);
+    const asesor = await getSupabaseAsesorByUid(auth.uid);
+
+    if (!asesor) {
+      const error = new Error("No existe el expediente del asesor.");
+      error.statusCode = 404;
+      error.errorCode = "ASESOR_NOT_FOUND";
+      throw error;
+    }
+
+    if (asesor.activo === false) {
+      const error = new Error("La cuenta se encuentra inhabilitada.");
+      error.statusCode = 403;
+      error.errorCode = "ASESOR_DISABLED";
+      throw error;
+    }
+
+    const planKey = normalizeString(req.body?.plan || req.body?.plan_key || "").toLowerCase();
+    const plan = DASHBOARD_PREMIUM_PLANS[planKey];
+
+    if (!plan) {
+      const error = new Error("Plan premium no valido.");
+      error.statusCode = 400;
+      error.errorCode = "INVALID_PREMIUM_PLAN";
+      throw error;
+    }
+
+    const balanceBefore = Number(asesor.saldo_actual || 0);
+    if (balanceBefore < plan.precio) {
+      const error = new Error("Saldo insuficiente para activar " + plan.nombre + ".");
+      error.statusCode = 402;
+      error.errorCode = "INSUFFICIENT_BALANCE";
+      throw error;
+    }
+
+    const now = new Date();
+    const inicio = now.toISOString();
+    const fin = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const balanceAfter = Number((balanceBefore - plan.precio).toFixed(2));
+    let currentRaw = {};
+
+    if (asesor.raw_data && typeof asesor.raw_data === "object" && !Array.isArray(asesor.raw_data)) {
+      currentRaw = asesor.raw_data;
+    }
+
+    const premium = {
+      activo: true,
+      plan: plan.key,
+      nombre: plan.nombre,
+      precio: plan.precio,
+      inicio,
+      fin,
+      solicitudes_limite: plan.solicitudes_limite,
+      solicitudes_usadas: 0,
+      infonavit_limite: plan.infonavit_limite,
+      infonavit_usadas: 0,
+      rfc_gratis_limite: plan.rfc_gratis_limite,
+      rfc_gratis_usadas: 0,
+      fecha_activacion: inicio
+    };
+
+    await supabaseRequest("asesores?id=eq." + supabaseEq(asesor.id), {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        saldo_actual: balanceAfter,
+        raw_data: {
+          ...currentRaw,
+          premium
+        }
+      }),
+      timeoutMs: 12000
+    });
+
+    await insertSupabaseMovimientoSaldo({
+      firebase_uid: auth.uid,
+      email: auth.email || asesor.email || "",
+      tipo: "cargo_premium",
+      monto: -Math.abs(plan.precio),
+      saldo_antes: balanceBefore,
+      saldo_despues: balanceAfter,
+      descripcion: "Activacion de " + plan.nombre,
+      referencia: "premium_" + plan.key + "_" + Date.now(),
+      origen: "dashboard",
+      fecha_movimiento: inicio
+    });
+
+    res.json({
+      success: true,
+      plan: premium,
+      saldo_anterior: balanceBefore,
+      saldo_nuevo: balanceAfter
     });
   } catch (error) {
     sendError(res, error);
