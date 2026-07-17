@@ -852,7 +852,6 @@ class="admin-menu-btn solo-admin relative">
           </div>
           <div id="corteDineroDetalle" class="text-[11px] font-bold text-slate-600"></div>
         </div>
-        <div class="flex gap-2 items-center flex-wrap"><button onclick="window.descargarReporte('semanal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-black">PDF semanal</button><input id="mesReporte" type="month" class="border rounded-lg p-2 text-xs"><button onclick="window.descargarReporte('mensual')" class="bg-indigo-800 text-white px-4 py-2 rounded-lg text-xs font-black">PDF mensual</button></div>
       </div>
     </section>
 
@@ -1078,7 +1077,7 @@ class="admin-menu-btn solo-admin relative">
             const nota = data.possibly_truncated
                 ? `Resumen parcial: se alcanzó el límite de ${data.limit || data.loaded_count || 0} registros.`
                 : `Sincronizado con backend. Registros revisados: ${data.loaded_count || 0}`;
-            actualizarGananciaAdmin(data.total_vendido, nota);
+            actualizarGananciaAdmin(data.venta_real ?? data.venta_neta ?? data.total_vendido, nota);
             return data;
         }
 
@@ -1101,18 +1100,20 @@ class="admin-menu-btn solo-admin relative">
 
                 setText('corteRecargas', dineroMX(data.total_recargas_aprobadas));
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
-                setText('corteVentaNeta', dineroMX(data.venta_neta));
-                setText('corteVentasMeta', `Bruta ${dineroMX(data.total_vendido)} - devoluciones ${dineroMX(data.total_reembolsado)}`);
+                const vendidoReal = data.venta_real ?? data.venta_neta ?? data.total_vendido;
+                setText('corteVentaNeta', dineroMX(vendidoReal));
+                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} cobradas - ${data.solicitudes_pendientes || 0} pendientes`);
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
-                setText('corteFlujoCaja', `Flujo: ${dineroMX(data.flujo_caja_dia)}`);
+                setText('corteFlujoCaja', `Ajustes devueltos del dia`);
+                setText('txtVisitas', String(data.usuarios_dashboard_activos ?? 0));
+                actualizarGananciaAdmin(vendidoReal, 'Venta real del dia: tramites cobrados efectivamente.');
                 setText('corteSaldoClientes', dineroMX(data.saldo_clientes_positivo));
                 setText('corteSaldoMeta', `${data.clientes_con_saldo || 0} clientes con saldo · corte ${data.as_of ? new Date(data.as_of).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : ''}`);
 
                 const top = Array.isArray(data.por_tramite) ? data.por_tramite.slice(0, 8) : [];
                 if (detalle) {
                     detalle.innerHTML = `
-                        <div class="grid md:grid-cols-3 gap-3">
-                            <div class="bg-slate-50 border rounded-xl p-3">Venta bruta: <b>${dineroMX(data.total_vendido)}</b></div>
+                        <div class="grid md:grid-cols-2 gap-3">
                             <div class="bg-slate-50 border rounded-xl p-3">Solicitudes revisadas: <b>${data.solicitudes_cargadas || 0}</b></div>
                             <div class="bg-slate-50 border rounded-xl p-3">Recargas revisadas: <b>${data.recargas_cargadas || 0}</b></div>
                         </div>
@@ -1341,11 +1342,7 @@ class="admin-menu-btn solo-admin relative">
             selector.value = 1;
             currentPage = 1;
         };
-        onSnapshot(doc(db, "visitas_diarias", new Date().toISOString().split('T')[0]), (d) => {
-            if (d.exists() && document.getElementById('txtVisitas')) {
-                document.getElementById('txtVisitas').innerText = d.data().contador || 0;
-            }
-        });
+        // Usuarios conectados se actualiza desde el corte real del backend con ultima_conexion_panel.
 
         function renderListaAsesores(snap) {
             if (miSesion.role !== 'admin') return;
@@ -3318,21 +3315,7 @@ class="admin-menu-btn solo-admin relative">
             if (el) el.innerHTML = '<p class="text-xs font-black text-red-600 uppercase">No se pudieron cargar los leads. Revisa permisos de Firestore.</p>';
           }
         );
-        window.descargarReporte = (tipo) => {
-          const { jsPDF } = window.jspdf || {};
-          if (!jsPDF) return alert('No se pudo cargar la librería PDF');
-          const docPdf = new jsPDF();
-          const mesElegido = document.getElementById('mesReporte')?.value || '';
-          docPdf.setFontSize(16);
-          docPdf.text(`Reporte ${tipo === 'mensual' ? 'mensual' : 'semanal'} NOVYRA`, 14, 18);
-          docPdf.setFontSize(11);
-          docPdf.text(`Generado: ${new Date().toLocaleString('es-MX')}`, 14, 26);
-          if (tipo === 'mensual') docPdf.text(`Mes seleccionado: ${mesElegido || 'No definido'}`, 14, 33);
-          docPdf.text(`Vendido real: ${document.getElementById('corteVentaNeta')?.textContent || '$0.00'}`, 14, 42);
-          docPdf.text(`Recargas aprobadas: ${document.getElementById('corteRecargas')?.textContent || '$0.00'}`, 14, 49);
-          docPdf.text(`Reembolsos: ${document.getElementById('corteReembolsos')?.textContent || '$0.00'}`, 14, 56);
-          docPdf.save(`reporte-${tipo}-${new Date().toISOString().slice(0,10)}.pdf`);
-        };
+
         window.agregarTramiteAdmin = async () => { const nombre=document.getElementById('tramiteNombre').value.trim(); if(!nombre) return alert('Nombre requerido'); const precio=Number(document.getElementById('tramitePrecio').value||0); const descripcion=document.getElementById('tramiteDesc').value.trim(); const campos=document.getElementById('tramiteCampos').value.split(',').map(x=>x.trim()).filter(Boolean); await addDoc(collection(db,'tramites'),{nombre,precio,descripcion,campos,activo:true,creado:serverTimestamp()}); alert('Trámite agregado'); };
         onSnapshot(query(collection(db,'tramites'), limit(200)), snap=>{ const cont=document.getElementById('listaTramitesAdmin'); if(!cont) return; cont.innerHTML=''; snap.forEach(d=>{ const t=d.data(); cont.innerHTML += `<div class="p-3 border rounded-xl mb-2 flex justify-between gap-2"><div><p class="font-black text-sm">${t.nombre||''} - $${Number(t.precio||0).toLocaleString('es-MX')}</p><p class="text-xs">${t.descripcion||''}</p></div><button onclick="window.toggleTramite('${d.id}', ${t.activo===false?'true':'false'})" class="px-3 py-2 rounded-lg text-xs font-black ${t.activo===false?'bg-emerald-600':'bg-red-600'} text-white">${t.activo===false?'Activar':'Desactivar'}</button></div>`; }); });
         window.toggleTramite = async (id, activar) => { await updateDoc(doc(db,'tramites',id), { activo: activar }); };
