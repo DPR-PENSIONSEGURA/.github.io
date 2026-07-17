@@ -1248,6 +1248,105 @@ function getDashboardServicePrice(serviceName, details = {}) {
   return DASHBOARD_SERVICE_PRICES[normalizedName];
 }
 
+function getDashboardServiceCategory(serviceName) {
+  const normalizedName = normalizeForCompare(serviceName).toUpperCase();
+
+  for (const [category, services] of Object.entries(DASHBOARD_SERVICE_CATALOG || {})) {
+    if (!Array.isArray(services)) continue;
+    const found = services.some((service) => normalizeForCompare(service?.nombre || "").toUpperCase() === normalizedName);
+    if (found) return category;
+  }
+
+  return "";
+}
+
+function getActivePremiumPlan(rawData, now = new Date()) {
+  const raw = rawData && typeof rawData === "object" && !Array.isArray(rawData) ? rawData : {};
+  const premium = raw.premium && typeof raw.premium === "object" && !Array.isArray(raw.premium) ? raw.premium : null;
+
+  if (!premium || premium.activo !== true) return null;
+  if (premium.fin) {
+    const endDate = new Date(premium.fin);
+    if (Number.isNaN(endDate.getTime()) || endDate.getTime() < now.getTime()) return null;
+  }
+
+  return premium;
+}
+
+function getPremiumStatusForClient(rawData, now = new Date()) {
+  const premium = getActivePremiumPlan(rawData, now);
+  if (!premium) return { activo: false };
+
+  const infonavitLimite = Number(premium.infonavit_limite || premium.solicitudes_limite || 0);
+  const infonavitUsadas = Number(premium.infonavit_usadas || 0);
+  const rfcLimite = Number(premium.rfc_gratis_limite || 0);
+  const rfcUsadas = Number(premium.rfc_gratis_usadas || 0);
+
+  return {
+    activo: true,
+    plan: premium.plan || "",
+    nombre: premium.nombre || "Premium",
+    inicio: premium.inicio || null,
+    fin: premium.fin || null,
+    infonavit_limite: infonavitLimite,
+    infonavit_usadas: infonavitUsadas,
+    infonavit_restantes: Math.max(0, infonavitLimite - infonavitUsadas),
+    rfc_gratis_limite: rfcLimite,
+    rfc_gratis_usadas: rfcUsadas,
+    rfc_gratis_restantes: Math.max(0, rfcLimite - rfcUsadas)
+  };
+}
+function resolvePremiumBenefit(asesor, serviceName, now = new Date()) {
+  const raw = asesor?.raw_data && typeof asesor.raw_data === "object" && !Array.isArray(asesor.raw_data)
+    ? asesor.raw_data
+    : {};
+  const premium = getActivePremiumPlan(raw, now);
+
+  if (!premium) {
+    return { applies: false, raw_data: raw, premium: null };
+  }
+
+  const serviceCategory = getDashboardServiceCategory(serviceName);
+  const normalizedName = normalizeForCompare(serviceName).toUpperCase();
+  const nextPremium = { ...premium };
+
+  if (serviceCategory === "INF") {
+    const limit = Number(nextPremium.infonavit_limite || nextPremium.solicitudes_limite || 0);
+    const used = Number(nextPremium.infonavit_usadas || 0);
+
+    if (limit > used) {
+      nextPremium.infonavit_usadas = used + 1;
+      nextPremium.solicitudes_usadas = Number(nextPremium.solicitudes_usadas || 0) + 1;
+      nextPremium.ultima_aplicacion = now.toISOString();
+      return {
+        applies: true,
+        benefit: "infonavit_incluido",
+        message: "Beneficio premium Infonavit " + nextPremium.infonavit_usadas + "/" + limit,
+        raw_data: { ...raw, premium: nextPremium },
+        premium: nextPremium
+      };
+    }
+  }
+
+  if (nextPremium.plan === "premium_plus" && ["RFC CLON", "RFC CON IDCIF"].includes(normalizedName)) {
+    const limit = Number(nextPremium.rfc_gratis_limite || 0);
+    const used = Number(nextPremium.rfc_gratis_usadas || 0);
+
+    if (limit > used) {
+      nextPremium.rfc_gratis_usadas = used + 1;
+      nextPremium.ultima_aplicacion = now.toISOString();
+      return {
+        applies: true,
+        benefit: "rfc_incluido_premium_plus",
+        message: "Beneficio Premium Plus RFC " + nextPremium.rfc_gratis_usadas + "/" + limit,
+        raw_data: { ...raw, premium: nextPremium },
+        premium: nextPremium
+      };
+    }
+  }
+
+  return { applies: false, raw_data: raw, premium };
+}
 function isApprovedRecharge(data) {
   const estatus = normalizeForCompare(data?.estatus || data?.status || "");
   return estatus.includes("aprob");
@@ -3371,13 +3470,15 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
 
 app.get("/api/v1/dashboard/services", async (req, res) => {
   try {
-    await authenticateFirebaseUserToken(req);
+    const auth = await authenticateDashboardUser(req);
+    const asesor = auth.asesor || await getSupabaseAsesorByUid(auth.uid);
 
     res.json({
       success: true,
       prices: DASHBOARD_SERVICE_PRICES,
       catalog: DASHBOARD_SERVICE_CATALOG,
-      aforeOptions: DASHBOARD_AFORE_OPTIONS
+      aforeOptions: DASHBOARD_AFORE_OPTIONS,
+      premium: getPremiumStatusForClient(asesor?.raw_data)
     });
   } catch (error) {
     sendError(res, error);
@@ -3467,21 +3568,29 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
     }
 
     const balanceBefore = Number(asesor.saldo_actual || 0);
+    const nowDate = new Date();
+    const premiumBenefit = resolvePremiumBenefit(asesor, serviceName, nowDate);
+    const costoAplicado = premiumBenefit.applies ? 0 : costoServidor;
 
-    if (balanceBefore < costoServidor) {
+    if (balanceBefore < costoAplicado) {
       const error = new Error("Saldo insuficiente.");
       error.statusCode = 402;
       error.errorCode = "INSUFFICIENT_BALANCE";
       throw error;
     }
 
-    const balanceAfter = balanceBefore - costoServidor;
+    const balanceAfter = Number((balanceBefore - costoAplicado).toFixed(2));
     solicitudId = crypto.randomUUID();
-    const now = new Date().toISOString();
+    const now = nowDate.toISOString();
     const asesorEmail = auth.email || asesor.email || "";
     const rawSolicitud = {
       origen: "dashboard",
       created_via: "dashboard_backend",
+      costo_catalogo: costoServidor,
+      costo_cobrado: costoAplicado,
+      premium_aplicado: premiumBenefit.applies === true,
+      premium_beneficio: premiumBenefit.benefit || null,
+      premium_mensaje: premiumBenefit.message || null,
       file_ine_f: normalizeString(body.file_ine_f || "N/A") || "N/A",
       file_ine_r: normalizeString(body.file_ine_r || "N/A") || "N/A",
       file_selfie: normalizeString(body.file_selfie || "N/A") || "N/A",
@@ -3489,14 +3598,17 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
       file_edocta: normalizeString(body.file_edocta || "N/A") || "N/A"
     };
 
+    const asesorPatch = { saldo_actual: balanceAfter };
+    if (premiumBenefit.applies) {
+      asesorPatch.raw_data = premiumBenefit.raw_data;
+    }
+
     await supabaseRequest(`asesores?firebase_uid=eq.${supabaseEq(auth.uid)}`, {
       method: "PATCH",
       headers: {
         Prefer: "return=minimal"
       },
-      body: JSON.stringify({
-        saldo_actual: balanceAfter
-      })
+      body: JSON.stringify(asesorPatch)
     });
 
     try {
@@ -3510,7 +3622,7 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
           firebase_uid: auth.uid,
           email: asesorEmail,
           tipo: serviceDisplayName,
-          costo: costoServidor,
+          costo: costoAplicado,
           estatus: "En Proceso",
           finalizado: false,
           reembolsado: false,
@@ -3530,7 +3642,8 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
           Prefer: "return=minimal"
         },
         body: JSON.stringify({
-          saldo_actual: balanceBefore
+          saldo_actual: balanceBefore,
+          raw_data: asesor.raw_data || {}
         })
       });
       throw error;
@@ -3539,17 +3652,21 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
     await insertSupabaseMovimientoSaldo({
       firebase_uid: auth.uid,
       email: asesorEmail,
-      tipo: "cargo_tramite",
-      monto: -costoServidor,
+      tipo: premiumBenefit.applies ? "beneficio_premium" : "cargo_tramite",
+      monto: premiumBenefit.applies ? 0 : -costoAplicado,
       saldo_antes: balanceBefore,
       saldo_despues: balanceAfter,
       referencia_id: solicitudId,
       referencia_tipo: "solicitudes",
-      descripcion: `Cargo por tramite: ${serviceDisplayName}`,
+      descripcion: premiumBenefit.applies ? `Beneficio premium aplicado: ${serviceDisplayName}` : `Cargo por tramite: ${serviceDisplayName}`,
       origen: "dashboard",
       fecha_movimiento: now,
       raw_data: {
-        tramite: serviceDisplayName
+        tramite: serviceDisplayName,
+        costo_catalogo: costoServidor,
+        costo_cobrado: costoAplicado,
+        premium_aplicado: premiumBenefit.applies === true,
+        premium_beneficio: premiumBenefit.benefit || null
       }
     });
 
