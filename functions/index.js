@@ -1982,6 +1982,7 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
     );
 
     let totalVendido = 0;
+    let totalReembolsado = 0;
     let terminadas = 0;
     let pendientes = 0;
     let errores = 0;
@@ -1990,9 +1991,13 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
 
+      const montoBase = Number(row.costo || row.precio || row.monto || raw.costo || raw.precio || raw.monto || 0);
+      const reembolso = Number(row.monto_reembolsado || raw.monto_reembolsado || 0);
+      if (reembolso > 0 || row.reembolsado === true || raw.reembolsado === true) totalReembolsado += reembolso || montoBase;
+
       if (isCompletedSaleSolicitud(row)) {
         terminadas += 1;
-        totalVendido += Number(row.costo || row.precio || row.monto || raw.costo || raw.precio || raw.monto || 0);
+        totalVendido += montoBase;
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
         errores += 1;
       } else {
@@ -2009,6 +2014,9 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       loaded_count: Array.isArray(rows) ? rows.length : 0,
       possibly_truncated: Array.isArray(rows) && rows.length >= summaryLimit,
       total_vendido: Number(totalVendido.toFixed(2)),
+      venta_real: Number(totalVendido.toFixed(2)),
+      venta_neta: Number(totalVendido.toFixed(2)),
+      total_reembolsado: Number(totalReembolsado.toFixed(2)),
       terminadas,
       pendientes,
       errores
@@ -2054,7 +2062,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
         { timeoutMs: 22000 }
       ),
       supabaseRequest(
-        "asesores?select=saldo_actual,activo&limit=5000",
+        "asesores?select=saldo_actual,activo,raw_data&limit=5000",
         { timeoutMs: 22000 }
       )
     ]);
@@ -2115,15 +2123,20 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
 
     let saldoClientesPositivo = 0;
     let clientesConSaldo = 0;
+    let usuariosDashboardActivos = 0;
+    const activeSince = Date.now() - (15 * 60 * 1000);
     for (const asesor of asesores || []) {
       const saldo = Number(asesor.saldo_actual || 0);
       if (saldo > 0) {
         saldoClientesPositivo += saldo;
         clientesConSaldo += 1;
       }
+      const rawAsesor = asesor.raw_data && typeof asesor.raw_data === "object" ? asesor.raw_data : {};
+      const lastConnection = rawAsesor.ultima_conexion_panel ? new Date(rawAsesor.ultima_conexion_panel).getTime() : 0;
+      if (lastConnection && lastConnection >= activeSince) usuariosDashboardActivos += 1;
     }
 
-    const ventaNeta = totalVendido - totalReembolsado;
+    const ventaNeta = totalVendido;
     const flujoCajaDia = totalRecargasAprobadas - totalReembolsado;
 
     res.json({
@@ -2146,6 +2159,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       solicitudes_error: solicitudesError,
       saldo_clientes_positivo: Number(saldoClientesPositivo.toFixed(2)),
       clientes_con_saldo: clientesConSaldo,
+      usuarios_dashboard_activos: usuariosDashboardActivos,
       por_tramite: [...porTramite.values()].sort((a, b) => b.venta - a.venta).slice(0, 50)
     });
   } catch (error) {
