@@ -327,6 +327,8 @@
         let TRAMITES = {};
         let OPCIONES_ESTADO_CUENTA_AFORE = [];
         let preciosBackendListos = false;
+        let premiumState = { activo: false };
+        let categoriaActual = "";
 
 function normalizarClavePrecio(value) {
     return String(value || "")
@@ -345,6 +347,58 @@ function obtenerPrecioTramite(t) {
     }
 
     return Number(t.precio || 0);
+}
+
+function obtenerBeneficioPremium(t) {
+    if (!premiumState || premiumState.activo !== true) return null;
+
+    const categoria = String(t?.categoria || "").toUpperCase();
+    const nombre = normalizarClavePrecio(t?.nombre);
+
+    if (categoria === "INF" && Number(premiumState.infonavit_restantes || 0) > 0) {
+        return {
+            etiqueta: "Premium",
+            detalle: `${premiumState.infonavit_usadas || 0}/${premiumState.infonavit_limite || 0} usados`
+        };
+    }
+
+    if (
+        premiumState.plan === "premium_plus" &&
+        ["RFC CLON", "RFC CON IDCIF"].includes(nombre) &&
+        Number(premiumState.rfc_gratis_restantes || 0) > 0
+    ) {
+        return {
+            etiqueta: "Premium Plus",
+            detalle: `${premiumState.rfc_gratis_usadas || 0}/${premiumState.rfc_gratis_limite || 0} RFC usados`
+        };
+    }
+
+    return null;
+}
+
+function obtenerEtiquetaPrecioTramite(t) {
+    const beneficio = obtenerBeneficioPremium(t);
+    if (beneficio) return beneficio.etiqueta;
+    return `$${obtenerPrecioTramite(t)}`;
+}
+
+function renderContadorPremiumCategoria(cat) {
+    if (!premiumState || premiumState.activo !== true) return "";
+
+    const categoria = String(cat || "").toUpperCase();
+    if (categoria === "INF") {
+        return `<div class="col-span-full rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-black text-emerald-800 uppercase">
+            Plan ${premiumState.nombre || "Premium"} activo: ${premiumState.infonavit_restantes || 0} solicitudes de Infonavit disponibles de ${premiumState.infonavit_limite || 0}.
+        </div>`;
+    }
+
+    if (categoria === "SAT" && premiumState.plan === "premium_plus") {
+        return `<div class="col-span-full rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-black text-emerald-800 uppercase">
+            Premium Plus activo: ${premiumState.rfc_gratis_restantes || 0} RFC Clon o RFC con IDCIF disponibles de ${premiumState.rfc_gratis_limite || 0}. No consumen usos de Infonavit.
+        </div>`;
+    }
+
+    return "";
 }
 
 function obtenerPrecioAfore(nombre) {
@@ -378,12 +432,14 @@ async function cargarPreciosBackend() {
         TRAMITES = data.catalog || {};
         OPCIONES_ESTADO_CUENTA_AFORE = Array.isArray(data.aforeOptions) ? data.aforeOptions : [];
         preciosBackend = data.prices || {};
+        premiumState = data.premium || { activo: false };
         aplicarPreciosBackend();
     } catch (error) {
         console.error("catalogo precios", error);
         TRAMITES = {};
         OPCIONES_ESTADO_CUENTA_AFORE = [];
         preciosBackend = {};
+        premiumState = { activo: false };
     } finally {
         preciosBackendListos = true;
     }
@@ -635,7 +691,9 @@ async function cargarPreciosBackend() {
                 });
                 alert(`${data.plan?.nombre || nombrePlan} activado correctamente. Saldo nuevo: $${saldoNuevo}`);
                 window.cerrarModal();
+                await cargarPreciosBackend();
                 cargarSaldo();
+                if (categoriaActual) window.mostrarTramites(categoriaActual);
             } catch (error) {
                 console.error("activar premium", error);
                 alert(error.message || "No se pudo activar el plan premium.");
@@ -658,8 +716,9 @@ async function cargarPreciosBackend() {
             document.getElementById('listaServicios').classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+            categoriaActual = cat;
             const lista = document.getElementById('listaServicios');
-            let html = '';
+            let html = renderContadorPremiumCategoria(cat);
 
             const serviciosCategoria = Array.isArray(TRAMITES[cat]) ? TRAMITES[cat] : [];
             if (!serviciosCategoria.length) {
@@ -668,9 +727,15 @@ async function cargarPreciosBackend() {
             }
 
             serviciosCategoria.forEach(t => {
-                const conf = JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                const servicio = { ...t, categoria: cat };
+                const conf = JSON.stringify(servicio).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                const beneficio = obtenerBeneficioPremium(servicio);
+                const etiquetaPrecio = obtenerEtiquetaPrecioTramite(servicio);
+                const badgeClass = beneficio
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-emerald-50 text-emerald-700 border-emerald-100";
                 html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${t.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">Solicitud rápida y segura</p></div><span class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-3 py-1 rounded-full font-black text-[10px]">$${obtenerPrecioTramite(t)}</span></div>
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">${beneficio ? beneficio.detalle : "Solicitud rápida y segura"}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm">Ir</span></div>
                 </div>`;
             });
@@ -683,6 +748,7 @@ async function cargarPreciosBackend() {
             document.getElementById('listaServicios').classList.add('hidden');
             document.getElementById('btnVolver').classList.add('hidden');
             document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+            categoriaActual = "";
         };
 
         const VALIDADORES_DPR = {
@@ -753,6 +819,8 @@ async function cargarPreciosBackend() {
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
             let pFinal = obtenerPrecioTramite(t);
+            const beneficioPremium = obtenerBeneficioPremium(t);
+            const textoBotonPago = beneficioPremium ? `Usar ${beneficioPremium.etiqueta}` : `Pagar $${pFinal}.00`;
 
             let fields = '';
 
@@ -965,7 +1033,7 @@ fields += `
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">NOVYRA SERVICES</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${t.nombre}</h2>
                 ${fields}
                 <button id="btnPagarTramite" onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
-                    Pagar $${pFinal}.00
+                    ${textoBotonPago}
                 </button>
             `;
 
@@ -1170,6 +1238,8 @@ vacuna_covid: val('vacuna_covid_p'),
 
                 alert("Enviado.");
                 window.cerrarModal();
+                await cargarPreciosBackend();
+                if (categoriaActual) window.mostrarTramites(categoriaActual);
                 cargarSaldo();
                 cargarHistorial();
 
