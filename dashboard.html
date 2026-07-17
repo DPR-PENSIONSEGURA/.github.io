@@ -96,6 +96,7 @@
                         </button>
                         <div class="flex items-center gap-2 flex-wrap justify-end quick-scroll">
                             <button onclick="window.abrirModal('modalSaldo')" class="quick-action"> Recargar</button>
+                            <button onclick="window.abrirModal('modalPremium')" class="quick-action text-amber-700">Premium</button>
                             <a href="finanzas.html" class="quick-action"> Finanzas</a>
                             <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})" class="quick-action">Historial</button>
                             <button onclick="window.abrirAvisos()" class="quick-action notify-wrap"> Avisos<span class="notify-dot aviso-dot"></span></button>
@@ -191,6 +192,65 @@
                 <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
                 <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
                 <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPremium" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] p-6 md:p-8 relative border shadow-2xl overflow-y-auto max-h-[92vh]">
+            <button onclick="window.cerrarModal()" class="absolute top-5 right-7 text-slate-400 text-2xl font-black">x</button>
+            <div class="mb-6 pr-8">
+                <p class="text-[10px] font-black uppercase tracking-[0.35em] text-amber-600">Novyra Services</p>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase italic leading-tight">Hazte Premium</h2>
+                <p class="text-sm font-bold text-slate-500 mt-2">Planes pensados para asesores con volumen constante. Ahorra en servicios frecuentes y trabaja con cupos claros por periodo.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="rounded-[2rem] border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.24em] text-amber-700">Premium mensual</p>
+                            <h3 class="text-3xl font-black text-slate-950">$800</h3>
+                            <p class="text-xs font-bold text-slate-500">Vigencia de 30 dias naturales.</p>
+                        </div>
+                        <span class="rounded-full bg-amber-500 px-3 py-1 text-[10px] font-black uppercase text-white">20 usos</span>
+                    </div>
+                    <ul class="space-y-2 text-sm font-bold text-slate-700">
+                        <li>Hasta 20 solicitudes generales incluidas.</li>
+                        <li>Servicio gratuito de Infonavit hasta 20 solicitudes.</li>
+                        <li>RFC Clon a $15.</li>
+                        <li>RFC con IDCIF a $20.</li>
+                        <li>Recetas e incapacidad a $15.</li>
+                        <li>Alta mensual a $480.</li>
+                        <li>Retiro a distancia a $50.</li>
+                    </ul>
+                </div>
+                <div class="rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-slate-50 p-5 shadow-sm">
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-700">Premium Plus</p>
+                            <h3 class="text-3xl font-black text-slate-950">$1,500</h3>
+                            <p class="text-xs font-bold text-slate-500">Para asesores con mayor movimiento mensual.</p>
+                        </div>
+                        <span class="rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-black uppercase text-white">Plus</span>
+                    </div>
+                    <ul class="space-y-2 text-sm font-bold text-slate-700">
+                        <li>Hasta 40 solicitudes generales incluidas.</li>
+                        <li>Servicio gratuito de Infonavit hasta 40 solicitudes.</li>
+                        <li>30 solicitudes de RFC Clon o RFC con IDCIF sin costo.</li>
+                        <li>Recetas e incapacidad a $15.</li>
+                        <li>Alta mensual a $480.</li>
+                        <li>Retiro a distancia a $50.</li>
+                        <li>Prioridad de revision en aclaraciones.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                <p class="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500 mb-2">Condiciones del plan</p>
+                <p class="text-xs font-bold text-slate-600 leading-relaxed">Los planes son personales por cuenta, no transferibles y no acumulables. Las solicitudes incluidas vencen al finalizar el periodo. Servicios especiales, casos con datos incorrectos o tramites no listados pueden requerir revision o costo adicional.</p>
+            </div>
+            <div class="mt-5 flex flex-col sm:flex-row gap-3">
+                <button data-premium-plan="premium" onclick="window.activarPremium('premium')" class="green-gradient text-white rounded-2xl px-5 py-4 text-xs font-black uppercase shadow-lg">Activar Premium con saldo</button>
+                <button data-premium-plan="premium_plus" onclick="window.activarPremium('premium_plus')" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-xs font-black uppercase text-emerald-700">Activar Premium Plus con saldo</button>
             </div>
         </div>
     </div>
@@ -545,6 +605,47 @@ async function cargarPreciosBackend() {
 
         window.cerrarModal = () => {
             document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
+        };
+
+        window.activarPremium = async (plan) => {
+            const nombres = {
+                premium: "Premium mensual",
+                premium_plus: "Premium Plus"
+            };
+            const nombrePlan = nombres[plan] || "Premium";
+            if (!confirm(`Se descontara el costo de ${nombrePlan} de tu saldo disponible. ¿Deseas continuar?`)) return;
+
+            const botones = document.querySelectorAll(`[data-premium-plan="${plan}"]`);
+            const textosOriginales = Array.from(botones).map(btn => btn.innerText);
+            botones.forEach(btn => {
+                btn.disabled = true;
+                btn.innerText = "Activando...";
+                btn.classList.add("opacity-60", "cursor-wait");
+            });
+
+            try {
+                const data = await requestDashboardApi("/api/v1/dashboard/premium/activate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ plan })
+                });
+                const saldoNuevo = Number(data.saldo_nuevo || 0).toLocaleString('es-MX', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                alert(`${data.plan?.nombre || nombrePlan} activado correctamente. Saldo nuevo: $${saldoNuevo}`);
+                window.cerrarModal();
+                cargarSaldo();
+            } catch (error) {
+                console.error("activar premium", error);
+                alert(error.message || "No se pudo activar el plan premium.");
+            } finally {
+                botones.forEach((btn, index) => {
+                    btn.disabled = false;
+                    btn.innerText = textosOriginales[index] || "Activar con saldo";
+                    btn.classList.remove("opacity-60", "cursor-wait");
+                });
+            }
         };
 
         window.mostrarTramites = (cat) => {
