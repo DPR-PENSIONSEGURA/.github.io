@@ -1347,6 +1347,95 @@ function resolvePremiumBenefit(asesor, serviceName, now = new Date()) {
 
   return { applies: false, raw_data: raw, premium };
 }
+function isPremiumUsageReturnStatus(status) {
+  const text = normalizeForCompare(status).toLowerCase();
+  if (!text) return false;
+  if (text.includes("terminado") || text.includes("finalizado") || text.includes("terminada")) return false;
+
+  return text.includes("error") ||
+    text.includes("err_") ||
+    text.includes("incorrect") ||
+    text.includes("inconsist") ||
+    text.includes("ilegible") ||
+    text.includes("foto") ||
+    text.includes("no existe") ||
+    text.includes("no fue encontrada") ||
+    text.includes("soporte") ||
+    text.includes("contrasena") ||
+    text.includes("contrase") ||
+    text.includes("limite") ||
+    text.includes("imss") ||
+    text.includes("rechaz") ||
+    text.includes("cancel") ||
+    text.includes("improcedente");
+}
+
+async function restorePremiumUsageForSolicitud(solicitud, reason = "") {
+  const raw = solicitud?.raw_data && typeof solicitud.raw_data === "object" && !Array.isArray(solicitud.raw_data)
+    ? solicitud.raw_data
+    : {};
+
+  if (raw.premium_aplicado !== true || raw.premium_uso_restaurado === true) {
+    return { restored: false, reason: "not_applicable" };
+  }
+
+  const asesor = await getSupabaseAsesorByUid(solicitud.firebase_uid);
+  if (!asesor) return { restored: false, reason: "asesor_not_found" };
+
+  const asesorRaw = asesor.raw_data && typeof asesor.raw_data === "object" && !Array.isArray(asesor.raw_data)
+    ? asesor.raw_data
+    : {};
+  const premium = asesorRaw.premium && typeof asesorRaw.premium === "object" && !Array.isArray(asesorRaw.premium)
+    ? { ...asesorRaw.premium }
+    : null;
+
+  if (!premium) return { restored: false, reason: "premium_not_found" };
+
+  const benefit = normalizeForCompare(raw.premium_beneficio || "").toLowerCase();
+  const serviceCategory = getDashboardServiceCategory(solicitud.tipo || "");
+  const now = new Date().toISOString();
+  let restoredField = "";
+
+  if (benefit.includes("rfc") || (premium.plan === "premium_plus" && ["RFC CLON", "RFC CON IDCIF"].includes(normalizeForCompare(solicitud.tipo || "").toUpperCase()))) {
+    premium.rfc_gratis_usadas = Math.max(0, Number(premium.rfc_gratis_usadas || 0) - 1);
+    restoredField = "rfc_gratis_usadas";
+  } else if (benefit.includes("infonavit") || serviceCategory === "INF") {
+    premium.infonavit_usadas = Math.max(0, Number(premium.infonavit_usadas || 0) - 1);
+    premium.solicitudes_usadas = Math.max(0, Number(premium.solicitudes_usadas || 0) - 1);
+    restoredField = "infonavit_usadas";
+  }
+
+  if (!restoredField) return { restored: false, reason: "unknown_benefit" };
+
+  premium.ultima_restauracion_uso = now;
+  await supabaseRequest("asesores?firebase_uid=eq." + supabaseEq(solicitud.firebase_uid), {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      raw_data: {
+        ...asesorRaw,
+        premium
+      }
+    })
+  });
+
+  await supabaseRequest("solicitudes?" + supabaseSolicitudFilterByPanelId(solicitud.firebase_id || solicitud.id), {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      raw_data: {
+        ...raw,
+        premium_uso_restaurado: true,
+        premium_uso_restaurado_en: now,
+        premium_uso_restaurado_motivo: reason || "estatus_error",
+        premium_uso_restaurado_campo: restoredField
+      }
+    })
+  });
+
+  return { restored: true, field: restoredField };
+}
+
 function isApprovedRecharge(data) {
   const estatus = normalizeForCompare(data?.estatus || data?.status || "");
   return estatus.includes("aprob");
@@ -2220,7 +2309,21 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
       body: JSON.stringify(payload)
     });
 
-    res.json({ success: true });
+    let premiumUsageRestored = null;
+    if (payload.estatus && isPremiumUsageReturnStatus(payload.estatus)) {
+      premiumUsageRestored = await restorePremiumUsageForSolicitud({
+        ...solicitud,
+        estatus: payload.estatus,
+        finalizado: payload.finalizado ?? solicitud.finalizado,
+        raw_data: payload.raw_data
+      }, payload.estatus);
+    }
+
+    res.json({
+      success: true,
+      premium_usage_restored: premiumUsageRestored?.restored === true,
+      premium_usage_restored_field: premiumUsageRestored?.field || null
+    });
   } catch (error) {
     sendError(res, error);
   }
