@@ -448,6 +448,15 @@ const EXTRA_DEFAULTS = {
   pass_nueva: "N/A",
   num_servicio: "N/A",
   fecha: "N/A",
+  calle: "N/A",
+  colonia: "N/A",
+  municipio: "N/A",
+  estado: "N/A",
+  cp: "N/A",
+  ocupacion: "N/A",
+  salario_mensual: "N/A",
+  periodicidad_pago: "N/A",
+  afore_tipo: "N/A",
   turno: "N/A",
   delegacion: "N/A",
   clinica: "N/A",
@@ -458,7 +467,13 @@ const EXTRA_DEFAULTS = {
   telefono: "N/A",
   telefono_contacto: "N/A",
   correo: "N/A",
-  nota: "N/A"
+  nota: "N/A",
+  dia: "N/A",
+  mes: "N/A",
+  anio: "N/A",
+  nivel_educativo: "N/A",
+  promedio: "N/A",
+  vacuna_covid: "N/A"
 };
 
 const DASHBOARD_SERVICE_PRICES = {
@@ -1095,16 +1110,89 @@ async function notifyN8n(payload) {
   }
 }
 
+function normalizeN8nField(value, fallback = "N/A") {
+  if (value && typeof value === "object") return value;
+  const clean = normalizeString(value || "");
+  return clean || fallback;
+}
+
+function normalizeN8nExtraFields(extra) {
+  const source = extra && typeof extra === "object" && !Array.isArray(extra) ? extra : {};
+  const merged = { ...EXTRA_DEFAULTS, ...source };
+  const normalized = {};
+
+  for (const [key, value] of Object.entries(merged)) {
+    normalized[key] = normalizeN8nField(value);
+  }
+
+  return normalized;
+}
+
 function buildN8nSolicitudPayload(row, origen = "dashboard") {
   const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const detallesExtra = normalizeN8nExtraFields(row?.detalles_extra || raw.detalles_extra || raw.extra || {});
+  const cuestionario = row?.cuestionario || raw.cuestionario || raw.quest || "N/A";
+  const curp = normalizeString(row?.curp || raw.curp || detallesExtra.curp || "N/A").toUpperCase() || "N/A";
+  const nss = normalizeString(row?.nss || raw.nss || detallesExtra.nss || "N/A") || "N/A";
+  const rfc = normalizeString(row?.rfc || raw.rfc || detallesExtra.rfc || "N/A").toUpperCase() || "N/A";
+  const idcif = normalizeString(row?.idcif || raw.idcif || detallesExtra.idcif || "N/A") || "N/A";
+  const numeroServicio = normalizeString(
+    row?.num_servicio ||
+    row?.numero_servicio ||
+    raw.num_servicio ||
+    raw.numero_servicio ||
+    detallesExtra.num_servicio ||
+    detallesExtra.numero_servicio ||
+    "N/A"
+  ) || "N/A";
+
   return {
     id_solicitud: row?.firebase_id || row?.id || raw.id_solicitud || "",
     asesor: row?.email || raw.email || raw.asesor || raw.nombre_asesor || "",
     tramite: row?.tipo || raw.tipo || "",
-    curp: normalizeString(row?.curp || raw.curp || "N/A") || "N/A",
-    nss: normalizeString(row?.nss || raw.nss || "N/A") || "N/A",
-    extra: row?.detalles_extra || raw.detalles_extra || raw.extra || {},
-    quest: row?.cuestionario || raw.cuestionario || raw.quest || "N/A",
+    curp,
+    nss,
+    rfc,
+    idcif,
+    id_cif: idcif,
+    idCif: idcif,
+    num_servicio: numeroServicio,
+    numero_servicio: numeroServicio,
+    servicio_numero: numeroServicio,
+    nombre_cliente: detallesExtra.nombre_cliente,
+    pass: detallesExtra.pass,
+    pass_nueva: detallesExtra.pass_nueva,
+    fecha: detallesExtra.fecha,
+    calle: detallesExtra.calle,
+    colonia: detallesExtra.colonia,
+    municipio: detallesExtra.municipio,
+    estado: detallesExtra.estado,
+    cp: detallesExtra.cp,
+    ocupacion: detallesExtra.ocupacion,
+    salario_mensual: detallesExtra.salario_mensual,
+    periodicidad_pago: detallesExtra.periodicidad_pago,
+    afore_tipo: detallesExtra.afore_tipo,
+    turno: detallesExtra.turno,
+    delegacion: detallesExtra.delegacion,
+    clinica: detallesExtra.clinica,
+    consultorio: detallesExtra.consultorio,
+    patron: detallesExtra.patron,
+    puesto: detallesExtra.puesto,
+    dias_incapacidad: detallesExtra.dias_incapacidad,
+    telefono: detallesExtra.telefono,
+    telefono_contacto: detallesExtra.telefono_contacto,
+    correo: detallesExtra.correo,
+    nota: detallesExtra.nota,
+    dia: detallesExtra.dia,
+    mes: detallesExtra.mes,
+    anio: detallesExtra.anio,
+    nivel_educativo: detallesExtra.nivel_educativo,
+    promedio: detallesExtra.promedio,
+    vacuna_covid: detallesExtra.vacuna_covid,
+    extra: detallesExtra,
+    detalles_extra: detallesExtra,
+    quest: cuestionario,
+    cuestionario,
     file_ine_f: normalizeString(raw.file_ine_f || "N/A") || "N/A",
     file_ine_r: normalizeString(raw.file_ine_r || "N/A") || "N/A",
     file_selfie: normalizeString(raw.file_selfie || "N/A") || "N/A",
