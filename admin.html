@@ -1299,7 +1299,7 @@ class="admin-menu-btn solo-admin relative">
                 actualizarFiltroLabel('Pendientes cargados desde Supabase');
                 currentPage = 1;
                 if (selector) selector.value = 1;
-                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 100, status: 'pending' }, 30000);
+                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 500, status: 'pending' }, 30000);
                 cacheSolicitudes = rows;
                 todasLasSoliCargadas = rows;
                 const elPend = document.getElementById('contadorPendientes');
@@ -1469,7 +1469,7 @@ class="admin-menu-btn solo-admin relative">
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 150 }, 22000);
+                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 500 }, 30000);
                 cacheSolicitudes = rows;
                 metricasListas = true;
             todasLasSoliCargadas = [];
