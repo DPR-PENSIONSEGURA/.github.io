@@ -96,7 +96,7 @@
             <p id="txtSaldo" class="text-3xl font-black text-emerald-600 mt-2">$0.00</p>
           </div>
           <div class="summary-card rounded-[1.5rem] p-4">
-            <p class="text-[10px] font-black uppercase text-slate-400">Ãšltima actualizaciÃ³n</p>
+            <p class="text-[10px] font-black uppercase text-slate-400">Última actualización</p>
             <p id="txtActualizacion" class="text-sm font-black text-slate-800 mt-3">Sin cargar</p>
           </div>
           <div class="summary-card rounded-[1.5rem] p-4">
@@ -110,7 +110,7 @@
     <section class="grid md:grid-cols-3 gap-4 mb-6">
       <div class="summary-card rounded-[1.5rem] p-4">
         <p class="text-[10px] font-black uppercase text-slate-400">Cargos</p>
-        <p class="text-sm text-slate-700 mt-2">Los trÃ¡mites aparecen como salida de saldo.</p>
+        <p class="text-sm text-slate-700 mt-2">Los trámites aparecen como salida de saldo.</p>
       </div>
       <div class="summary-card rounded-[1.5rem] p-4">
         <p class="text-[10px] font-black uppercase text-slate-400">Recargas</p>
@@ -250,7 +250,7 @@
         const titulo = String(m.titulo || "Movimiento").toUpperCase();
         const detalle = m.detalle ? `<p class="text-[11px] font-bold text-slate-500 mt-1 break-words">${m.detalle}</p>` : "";
         const saldo = m.saldo_despues !== null && m.saldo_despues !== undefined
-          ? `<p class="text-[10px] font-black text-slate-400 uppercase mt-1">Saldo despuÃ©s: ${money(m.saldo_despues)}</p>`
+          ? `<p class="text-[10px] font-black text-slate-400 uppercase mt-1">Saldo después: ${money(m.saldo_despues)}</p>`
           : "";
 
         return `
@@ -287,7 +287,7 @@
         renderMovimientos(data.movimientos || []);
       } catch (error) {
         console.error("finanzas", error);
-        estado.innerText = "Error de conexiÃ³n";
+        estado.innerText = "Error de conexión";
         document.getElementById("contenedorMovimientos").innerHTML = `
           <div class="rounded-2xl bg-red-50 border border-red-200 p-5 text-red-700">
             <p class="font-black uppercase text-sm">No se pudieron cargar tus finanzas</p>
