@@ -3596,21 +3596,24 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
 
     const uid = supabaseEq(auth.uid);
     const [ledgerRows, solicitudRows, pagoRows] = await Promise.all([
-      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,raw_data&order=fecha.desc&limit=50`),
+      supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=id,tipo,monto,saldo_antes,saldo_despues,descripcion,referencia,origen,fecha_movimiento&order=fecha_movimiento.desc&limit=80`),
+      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,raw_data&order=fecha.desc&limit=80`),
+      supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=id,firebase_id,monto,rastreo,estatus,fecha,raw_data&order=fecha.desc&limit=50`)
     ]);
 
-    const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia_id || "")).filter(Boolean));
+    const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia || "")).filter(Boolean));
 
     const ledgerMovements = (ledgerRows || []).map((row) => ({
-      id: row.id || row.referencia_id || crypto.randomUUID(),
+      id: row.id || row.referencia || crypto.randomUUID(),
       tipo_movimiento: row.tipo || "movimiento",
       titulo: row.descripcion || row.tipo || "Movimiento de saldo",
-      detalle: row.referencia_tipo || "",
+      detalle: row.referencia || "",
       monto: Number(row.monto || 0),
       saldo_antes: row.saldo_antes === null || row.saldo_antes === undefined ? null : Number(row.saldo_antes || 0),
       saldo_despues: row.saldo_despues === null || row.saldo_despues === undefined ? null : Number(row.saldo_despues || 0),
       estatus: row.tipo || "",
-      origen: row.origen || "Sistema"
+      origen: row.origen || "Sistema",
+      fecha: row.fecha_movimiento || null
     }));
 
     const solicitudMovements = (solicitudRows || []).filter((row) => {
@@ -3630,7 +3633,8 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
         saldo_antes: null,
         saldo_despues: null,
         estatus: row.estatus || "",
-        origen: row.raw_data?.origen || "Dashboard"
+        origen: row.raw_data?.origen || "Dashboard",
+        fecha: row.fecha || row.raw_data?.fecha || row.raw_data?.createdAt || null
       };
     });
 
@@ -3646,7 +3650,8 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
       saldo_antes: null,
       saldo_despues: null,
       estatus: row.estatus || "pendiente",
-      origen: "Recarga"
+      origen: "Recarga",
+      fecha: row.fecha || row.raw_data?.fecha || null
     }));
 
     const movimientos = [
