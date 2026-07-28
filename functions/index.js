@@ -113,6 +113,10 @@ function mapSupabaseSolicitud(row) {
     finalizado: row.finalizado === true,
     reembolsado: row.reembolsado === true,
     monto_reembolsado: Number(row.monto_reembolsado || 0),
+    green_message_id: row.green_message_id || "",
+    codigo_error: row.codigo_error || "",
+    detalle_error: row.detalle_error || "",
+    fecha_finalizacion: row.fecha_finalizacion || null,
     curp: row.curp || "",
     nss: row.nss || "",
     archivoFinal: resolveArchivoFinal(row),
@@ -151,6 +155,10 @@ function mapSupabaseAdminSolicitud(row) {
     finalizado: row.finalizado === true || raw.finalizado === true,
     reembolsado: row.reembolsado === true || raw.reembolsado === true,
     monto_reembolsado: Number(row.monto_reembolsado || raw.monto_reembolsado || 0),
+    green_message_id: row.green_message_id || raw.green_message_id || "",
+    codigo_error: row.codigo_error || raw.codigo_error || "",
+    detalle_error: row.detalle_error || raw.detalle_error || "",
+    fecha_finalizacion: row.fecha_finalizacion || raw.fecha_finalizacion || null,
     curp: row.curp || raw.curp || "",
     nss: row.nss || raw.nss || "",
     archivoFinal: resolveArchivoFinal(row),
@@ -2060,6 +2068,414 @@ function supabaseSolicitudFilterByPanelId(id) {
   return `firebase_id=eq.${encodedId}`;
 }
 
+const PROVIDER_AUTOMATION = Object.freeze({
+  "120363424712619825@g.us": "weeks",
+  "120363427907217541@g.us": "detailed_weeks",
+  "120363405737968577@g.us": "civil_records",
+  "120363409003681418@g.us": "idcif",
+  "120363426493207414@g.us": "cfe"
+});
+const IDCIF_PROVIDER_CHAT_ID = "120363409003681418@g.us";
+const RFC_ADVISORS_CHAT_ID = "120363425835293476@g.us";
+const PROVIDER_CONTEXT_MINUTES = 10;
+
+function providerWebhookPayload(body) {
+  const source = body?.payload || body?.event || body?.body || body || {};
+  return source?.body && source.body.typeWebhook ? source.body : source;
+}
+
+function providerMessageText(payload) {
+  const data = payload?.messageData || {};
+  return normalizeString(
+    data.textMessageData?.textMessage ||
+    data.extendedTextMessageData?.text ||
+    data.captionMessageData?.caption ||
+    data.fileMessageData?.caption ||
+    ""
+  );
+}
+
+function providerParticipantId(payload) {
+  return normalizeString(
+    payload?.senderData?.sender ||
+    payload?.senderData?.senderId ||
+    payload?.senderData?.participant ||
+    payload?.participantData?.participant ||
+    ""
+  );
+}
+
+function providerQuotedMessageId(payload) {
+  const data = payload?.messageData || {};
+  return normalizeString(
+    data.quotedMessage?.stanzaId ||
+    data.extendedTextMessageData?.stanzaId ||
+    data.reactionMessageData?.stanzaId ||
+    ""
+  );
+}
+
+function normalizeProviderValue(value) {
+  return normalizeString(value)
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function providerIdentifiers(text) {
+  const source = normalizeString(text).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const compact = source.replace(/[^A-Z0-9]/g, "");
+  const curp = (source.match(/\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/) || compact.match(/[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d/) || [])[0] || "";
+  const rfc = (source.match(/\b[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}\b/) || [])[0] || "";
+  const nss = (source.match(/\b\d{11}\b/) || [])[0] || "";
+  const serviceNumber = !curp && !rfc && !nss && /^\s*\d{8,20}\s*$/.test(source)
+    ? source.replace(/\D/g, "")
+    : "";
+  return { curp, rfc, nss, service_number: serviceNumber };
+}
+
+function isIdentifierOnlyProviderMessage(text) {
+  const clean = normalizeProviderValue(text);
+  const ids = providerIdentifiers(text);
+  return Boolean(
+    (ids.curp && clean === ids.curp) ||
+    (ids.rfc && clean === ids.rfc) ||
+    (ids.nss && clean === ids.nss) ||
+    (ids.service_number && clean === ids.service_number)
+  );
+}
+
+async function saveProviderContext(payload, identifiers) {
+  const chatId = normalizeString(payload?.senderData?.chatId);
+  const participantId = providerParticipantId(payload);
+  const messageId = normalizeString(payload?.idMessage);
+  const entries = [
+    ["curp", identifiers.curp],
+    ["rfc", identifiers.rfc],
+    ["nss", identifiers.nss],
+    ["service_number", identifiers.service_number]
+  ].filter(([, value]) => value);
+  if (!entries.length) return;
+
+  for (const [contextType, contextValue] of entries) {
+    try {
+      await supabaseRequest("provider_message_context", {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify([{
+          provider_chat_id: chatId,
+          participant_id: participantId,
+          context_type: contextType,
+          context_value: contextValue,
+          source_message_id: messageId || null
+        }])
+      });
+    } catch (error) {
+      if (!String(error.message).toLowerCase().includes("duplicate")) throw error;
+    }
+  }
+}
+
+async function getLatestProviderContext(payload) {
+  const chatId = normalizeString(payload?.senderData?.chatId);
+  const participantId = providerParticipantId(payload);
+  const since = new Date(Date.now() - PROVIDER_CONTEXT_MINUTES * 60 * 1000).toISOString();
+  const rows = await supabaseRequest(
+    `provider_message_context?provider_chat_id=eq.${supabaseEq(chatId)}&participant_id=eq.${supabaseEq(participantId)}&consumed_at=is.null&created_at=gte.${encodeURIComponent(since)}&select=*&order=created_at.desc&limit=1`
+  );
+  return rows?.[0] || null;
+}
+
+async function consumeProviderContext(context) {
+  if (!context?.id) return;
+  await supabaseRequest(`provider_message_context?id=eq.${supabaseEq(context.id)}&consumed_at=is.null`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ consumed_at: new Date().toISOString() })
+  });
+}
+
+function classifyProviderError(chatId, text, reaction = "") {
+  const emoji = normalizeString(reaction).replace(/\uFE0F/g, "");
+  if (emoji === "⚠") return { code: "IMSS_INCONSISTENCIA", status: "Error: inconsistencias IMSS" };
+  if (emoji === "🔓") return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
+  if (emoji === "❌") return { code: "CURP_INCORRECTA", status: "Error: CURP incorrecta" };
+  if (emoji === "💤") return { code: "NSS_NO_ASIGNADO", status: "Error: sin NSS asignado" };
+
+  const clean = normalizeForCompare(String(text || "").replace(/🆔/g, " ID ")).toLowerCase();
+  if (!clean) return null;
+
+  if (chatId === IDCIF_PROVIDER_CHAT_ID && /\b(?:sin|no)\s+(?:id|idcif)\b/.test(clean)) {
+    return { code: "IDCIF_NO_LOCALIZADO", status: "Error: IDCIF no localizado" };
+  }
+  if (PROVIDER_AUTOMATION[chatId] === "cfe") {
+    if (/numero de servicio no localizad/.test(clean)) {
+      return { code: "CFE_SERVICIO_NO_LOCALIZADO", status: "Error: número de servicio CFE no localizado" };
+    }
+    if (/recibo aun no disponible/.test(clean)) {
+      return { code: "CFE_RECIBO_NO_DISPONIBLE", status: "Error: recibo CFE aún no disponible" };
+    }
+  }
+
+  const rules = [
+    [/\binconsistenc/, "IMSS_INCONSISTENCIA", "Error: inconsistencias IMSS"],
+    [/\blimite de consultas/, "LIMITE_CONSULTAS", "Error: límite de consultas alcanzado"],
+    [/\b(?:sin nss|nss (?:sin asignar|no asignado))\b/, "NSS_NO_ASIGNADO", "Error: sin NSS asignado"],
+    [/\bcurp (?:incorrect|invalid|mal escrit)/, "CURP_INCORRECTA", "Error: CURP incorrecta"],
+    [/\berror (?:en |de |del )?(?:el |la )?curp\b/, "CURP_INCORRECTA", "Error: CURP incorrecta"],
+    [/\b(?:no encontrad|no localizad).*(?:renapo|curp)\b/, "CURP_NO_LOCALIZADA", "Error: CURP no localizada"],
+    [/\botr[oa] curp registrad/, "CURP_IMSS_DIFERENTE", "Error: existe otra CURP registrada en IMSS"],
+    [/\blos datos no coinciden\b/, "DATOS_NO_COINCIDEN", "Error: los datos no coinciden"],
+    [/\bverificar (?:el )?curp\b/, "CURP_VERIFICAR", "Error: verificar CURP"],
+    [/\bimprocedente\b/, "IMPROCEDENTE", "Error: solicitud improcedente"]
+  ];
+  const match = rules.find(([pattern]) => pattern.test(clean));
+  return match ? { code: match[1], status: match[2] } : null;
+}
+
+async function pendingProviderSolicitudes() {
+  return supabaseRequest(
+    "solicitudes?select=*&or=(finalizado.eq.false,finalizado.is.null)&order=fecha.desc&limit=5000",
+    { timeoutMs: 22000 }
+  );
+}
+
+function solicitudMatchesProviderIdentifier(row, type, value) {
+  const target = normalizeProviderValue(value);
+  if (!target) return false;
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const details = row?.detalles_extra && typeof row.detalles_extra === "object" ? row.detalles_extra : {};
+  const values = collectLookupValues({ row, raw, details });
+  if (type === "curp") return normalizeProviderValue(row.curp) === target || values.includes(target);
+  if (type === "nss") return normalizeProviderValue(row.nss) === target || values.includes(target);
+  if (type === "service_number") return values.includes(target);
+  if (type === "rfc") {
+    const typeName = normalizeForCompare(row.tipo || raw.tipo || "").toLowerCase();
+    if (!typeName.includes("rfc verificable")) return false;
+    const curp = normalizeProviderValue(row.curp || raw.curp || details.curp);
+    return values.includes(target) || (curp.length >= 10 && target.length >= 10 && curp.slice(0, 10) === target.slice(0, 10));
+  }
+  return false;
+}
+
+async function findProviderSolicitud({ quotedMessageId = "", identifiers = {}, context = null }) {
+  if (quotedMessageId) {
+    const rows = await supabaseRequest(
+      `solicitudes?green_message_id=eq.${supabaseEq(quotedMessageId)}&or=(finalizado.eq.false,finalizado.is.null)&select=*&order=fecha.desc&limit=2`
+    );
+    if (rows?.length === 1) return { request: rows[0], matchedBy: "green_message_id" };
+    if (rows?.length > 1) return { request: null, ambiguous: true, matchedBy: "green_message_id" };
+  }
+
+  const candidates = await pendingProviderSolicitudes();
+  const tests = [
+    ["curp", identifiers.curp],
+    ["rfc", identifiers.rfc],
+    ["nss", identifiers.nss],
+    ["service_number", identifiers.service_number]
+  ].filter(([, value]) => value);
+  if (!tests.length && context) tests.push([context.context_type, context.context_value]);
+  if (!tests.length) return { request: null, matchedBy: "none" };
+
+  const matches = candidates.filter((row) =>
+    tests.some(([type, value]) => solicitudMatchesProviderIdentifier(row, type, value))
+  );
+  if (matches.length === 1) return { request: matches[0], matchedBy: context ? "context" : "identifier" };
+  return { request: null, ambiguous: matches.length > 1, matchedBy: context ? "context" : "identifier", matches: matches.length };
+}
+
+async function refundProviderError(solicitud, classification, detail) {
+  const result = await supabaseRequest("rpc/procesar_error_proveedor", {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      p_solicitud_id: solicitud.id,
+      p_estatus: classification.status,
+      p_codigo_error: classification.code,
+      p_detalle_error: normalizeString(detail).slice(0, 2000),
+      p_origen: "green_provider"
+    })
+  });
+  const updated = await getSupabaseSolicitudByPanelId(solicitud.id);
+  const premium = updated
+    ? await restorePremiumUsageForSolicitud(updated, classification.status)
+    : { restored: false };
+  return { result, premium_usage_restored: premium?.restored === true };
+}
+
+function parseIdcifLines(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const normalized = line.toUpperCase().replace(/🆔/g, " ID ");
+      const rfc = (normalized.match(/\b[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}\b/) || [])[0] || "";
+      if (!rfc) return null;
+      const noId = /\b(?:SIN|NO)\s+(?:ID|IDCIF)\b/.test(normalized);
+      const idcif = noId ? "" : ((normalized.match(/\b\d{11}\b/) || [])[0] || "");
+      if (!noId && !idcif) return null;
+      return { line, rfc, idcif, noId };
+    })
+    .filter(Boolean);
+}
+
+async function processIdcifBatch(text) {
+  const parsed = parseIdcifLines(text);
+  if (!parsed.length) return null;
+  const forwards = [];
+  const results = [];
+
+  for (const item of parsed) {
+    const found = await findProviderSolicitud({ identifiers: { rfc: item.rfc } });
+    if (!found.request) {
+      results.push({ rfc: item.rfc, success: false, ambiguous: found.ambiguous === true });
+      continue;
+    }
+    const solicitud = found.request;
+
+    if (item.noId) {
+      const classification = { code: "IDCIF_NO_LOCALIZADO", status: "Error: IDCIF no localizado" };
+      const refunded = await refundProviderError(solicitud, classification, item.line);
+      results.push({ rfc: item.rfc, success: true, error: true, refunded });
+      continue;
+    }
+
+    const raw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    const details = solicitud.detalles_extra && typeof solicitud.detalles_extra === "object" ? solicitud.detalles_extra : {};
+    await supabaseRequest(`solicitudes?id=eq.${supabaseEq(solicitud.id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        detalles_extra: { ...details, rfc: item.rfc, idcif: item.idcif, id_cif: item.idcif },
+        raw_data: {
+          ...raw,
+          rfc: item.rfc,
+          idcif: item.idcif,
+          id_cif: item.idcif,
+          idcif_recibido_en: new Date().toISOString()
+        }
+      })
+    });
+    const curp = normalizeProviderValue(solicitud.curp || raw.curp || details.curp);
+    forwards.push({
+      chatId: RFC_ADVISORS_CHAT_ID,
+      message: `📄 RFC VERIFICABLE\n\nCURP: ${curp || "N/D"}\nRFC: ${item.rfc}\nIDCIF: ${item.idcif}`
+    });
+    results.push({ rfc: item.rfc, idcif: item.idcif, success: true, error: false });
+  }
+  return { forwards, results };
+}
+
+app.post("/api/v1/n8n/green-message/link", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const body = req.body || {};
+    const requestId = normalizeString(getN8nBodyField(body, ["id_solicitud", "request_id", "solicitud_id"]));
+    const greenMessageId = normalizeString(getN8nBodyField(body, ["green_message_id", "idMessage", "id_message"]));
+    if (!requestId || !greenMessageId) {
+      const error = new Error("Falta id_solicitud o green_message_id.");
+      error.statusCode = 400;
+      error.errorCode = "GREEN_MESSAGE_LINK_REQUIRED";
+      throw error;
+    }
+    const solicitud = await getSupabaseSolicitudByPanelId(requestId);
+    if (!solicitud) {
+      const error = new Error("Solicitud no encontrada.");
+      error.statusCode = 404;
+      error.errorCode = "REQUEST_NOT_FOUND";
+      throw error;
+    }
+    const raw = solicitud.raw_data && typeof solicitud.raw_data === "object" ? solicitud.raw_data : {};
+    await supabaseRequest(`solicitudes?id=eq.${supabaseEq(solicitud.id)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        green_message_id: greenMessageId,
+        raw_data: {
+          ...raw,
+          green_message_id: greenMessageId,
+          green_message_linked_at: new Date().toISOString()
+        }
+      })
+    });
+    res.json({ success: true, solicitud_id: solicitud.id, green_message_id: greenMessageId });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
+  try {
+    validateAdminToken(req);
+    const payload = providerWebhookPayload(req.body || {});
+    const chatId = normalizeString(payload?.senderData?.chatId);
+    if (!PROVIDER_AUTOMATION[chatId]) {
+      res.json({ success: true, ignored: true, reason: "chat_not_authorized", forwards: [] });
+      return;
+    }
+
+    const messageData = payload?.messageData || {};
+    const typeMessage = normalizeString(messageData.typeMessage);
+    const text = providerMessageText(payload);
+    const reaction = typeMessage === "reactionMessage"
+      ? normalizeString(messageData.extendedTextMessageData?.text || messageData.reactionMessageData?.text)
+      : "";
+    const quotedMessageId = providerQuotedMessageId(payload);
+
+    if (chatId === IDCIF_PROVIDER_CHAT_ID && text) {
+      const batch = await processIdcifBatch(text);
+      if (batch) {
+        res.json({ success: true, ignored: false, kind: "idcif_batch", ...batch });
+        return;
+      }
+    }
+
+    const identifiers = providerIdentifiers(text);
+    const classification = classifyProviderError(chatId, text, reaction);
+    if (!classification) {
+      if (text && Object.values(identifiers).some(Boolean)) {
+        await saveProviderContext(payload, identifiers);
+        res.json({ success: true, ignored: true, reason: "context_saved", forwards: [] });
+        return;
+      }
+      res.json({ success: true, ignored: true, reason: "not_an_error", forwards: [] });
+      return;
+    }
+
+    const context = Object.values(identifiers).some(Boolean) ? null : await getLatestProviderContext(payload);
+    const found = await findProviderSolicitud({ quotedMessageId, identifiers, context });
+    if (!found.request) {
+      res.json({
+        success: true,
+        ignored: true,
+        reason: found.ambiguous ? "ambiguous_request" : "request_not_found",
+        matches: found.matches || 0,
+        code: classification.code,
+        forwards: []
+      });
+      return;
+    }
+
+    const refunded = await refundProviderError(found.request, classification, text || reaction);
+    if (context) await consumeProviderContext(context);
+    res.json({
+      success: true,
+      ignored: false,
+      kind: "provider_error",
+      code: classification.code,
+      status: classification.status,
+      matched_by: found.matchedBy,
+      solicitud_id: found.request.id,
+      refunded,
+      forwards: []
+    });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 app.get("/api/v1/admin/panel/requests", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
@@ -2084,6 +2500,10 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
       "finalizado",
       "reembolsado",
       "monto_reembolsado",
+      "green_message_id",
+      "codigo_error",
+      "detalle_error",
+      "fecha_finalizacion",
       "curp",
       "nss",
       "archivo_final",
