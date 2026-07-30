@@ -570,16 +570,16 @@ const DASHBOARD_PREMIUM_PLANS = {
 
 const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
-    { nombre: "SEMANAS COTIZADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true },
     { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
     { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
     { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
     { nombre: "SINDO COMPLETO", precio: 0, nss: true },
     { nombre: "SINDO SALARIO PROMEDIO", precio: 0, nss: true },
     { nombre: "SINDO VIGENCIA", precio: 0, nss: true },
-    { nombre: "Tarjeta NSS", precio: 0, nss: true, curp: true },
+    { nombre: "Tarjeta NSS", precio: 0, curp: true },
     { nombre: "Descarga de Cartilla", precio: 0, pideNombre: true, curp: true, nss: true },
-    { nombre: "Vigencia de Derechos", precio: 0, curp: true, nss: true },
+    { nombre: "Vigencia de Derechos", precio: 0, curp: true },
     { nombre: "Incapacidad", precio: 0, curp: true, nss: true, pideNombre: true, pideTurno: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true, pidePatron: true, pidePuesto: true, pideDiasIncapacidad: true },
     { nombre: "Recetas", precio: 0, curp: true, nss: true, pideNombre: true, pideDelegacion: true, pideClinica: true, pideConsultorio: true, pideFecha: true },
     { nombre: "Inscripcion Modalidad 10", precio: 0, nss: true, rfc: true, pideNombre: true, pideCalle: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true, pideTel: true, pideCorreo: true, pideOcupacion: true, pideSalarioMensual: true, pidePeriodicidadPago: true, notaLineaCaptura: true },
@@ -2236,7 +2236,7 @@ function classifyProviderError(chatId, text, reaction = "") {
 
 async function pendingProviderSolicitudes() {
   return supabaseRequest(
-    "solicitudes?select=*&or=(finalizado.eq.false,finalizado.is.null)&order=fecha.desc&limit=5000",
+    "solicitudes?select=*&or=(finalizado.eq.false,finalizado.is.null)&order=fecha.desc.nullslast&limit=1000",
     { timeoutMs: 22000 }
   );
 }
@@ -3126,6 +3126,33 @@ function solicitudCoincideConDocumentoN8n(solicitud, body) {
   return false;
 }
 
+async function getN8nDocumentCandidateRows(body) {
+  const curp = normalizeLookupValue(getN8nBodyField(body, ["curp", "CURP"]));
+  const nss = normalizeLookupValue(getN8nBodyField(body, ["nss", "NSS"]));
+  const idCorto = normalizeLookupValue(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]));
+  const directQueries = [];
+
+  if (curp) {
+    directQueries.push(`solicitudes?curp=eq.${supabaseEq(curp)}&select=*&order=fecha.desc.nullslast&limit=50`);
+  }
+  if (nss) {
+    directQueries.push(`solicitudes?nss=eq.${supabaseEq(nss)}&select=*&order=fecha.desc.nullslast&limit=50`);
+  }
+  if (!curp && idCorto && /^[A-Z]{4}\d{6}$/.test(idCorto)) {
+    directQueries.push(`solicitudes?curp=like.${supabaseEq(`${idCorto}*`)}&select=*&order=fecha.desc.nullslast&limit=50`);
+  }
+
+  for (const query of directQueries) {
+    const rows = await supabaseRequest(query);
+    if (rows?.length) return rows;
+  }
+
+  return supabaseRequest(
+    "solicitudes?select=*&order=fecha.desc.nullslast&limit=1000",
+    { timeoutMs: 22000 }
+  );
+}
+
 app.post("/api/v1/n8n/final-document/import", async (req, res) => {
   try {
     validateAdminToken(req);
@@ -3166,9 +3193,7 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
       throw error;
     }
 
-    const rows = await supabaseRequest(
-      "solicitudes?select=*&order=fecha.desc&limit=5000"
-    );
+    const rows = await getN8nDocumentCandidateRows(body);
 
     const candidatos = (rows || [])
       .filter(isMeaningfulAdminSolicitud)
