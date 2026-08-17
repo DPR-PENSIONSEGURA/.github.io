@@ -103,6 +103,17 @@ async function getSupabaseAsesorByUid(uid) {
 
 function mapSupabaseSolicitud(row) {
   const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const fechaSolicitud = firstValidDateValue(
+    row.fecha,
+    row.fecha_creacion,
+    raw.fecha,
+    raw.fechaSolicitud,
+    raw.fecha_solicitud,
+    raw.fechaRegistro,
+    raw.fecha_registro,
+    raw.fechaCreacion,
+    raw.fecha_creacion
+  );
   return {
     id: row.firebase_id || row.id,
     asesor_uid: row.firebase_uid,
@@ -120,6 +131,9 @@ function mapSupabaseSolicitud(row) {
     curp: row.curp || "",
     nss: row.nss || "",
     archivoFinal: resolveArchivoFinal(row),
+    fecha: fechaSolicitud,
+    fecha_creacion: fechaSolicitud,
+    fechaSolicitud,
     detalles_extra: row.detalles_extra || {},
     cuestionario: row.cuestionario || {},
     descargado_cliente: raw.descargado_cliente === true
@@ -468,6 +482,7 @@ const EXTRA_DEFAULTS = {
   fecha: "N/A",
   preferencia_fecha_cita: "N/A",
   fecha_cita_afore: "N/A",
+  motivo_cita: "N/A",
   calle: "N/A",
   numero_exterior: "N/A",
   numero_interior: "N/A",
@@ -640,9 +655,9 @@ const DASHBOARD_SERVICE_CATALOG = {
     { nombre: "Localiza tu AFORE", precio: 0, curp: true }
   ],
   CITAS_AFORE: [
-    { nombre: "Cita Invercap", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
-    { nombre: "Cita Banamex", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
-    { nombre: "Cita Coppel", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true }
+    { nombre: "Cita Invercap", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideMotivoCita: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
+    { nombre: "Cita Banamex", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideMotivoCita: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
+    { nombre: "Cita Coppel", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideMotivoCita: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true }
   ],
   PENSIONES: [
     { nombre: "Analisis rapido de pension", precio: 0, curp: true, nss: true },
@@ -1195,6 +1210,7 @@ function buildN8nSolicitudPayload(row, origen = "dashboard") {
     fecha: detallesExtra.fecha,
     preferencia_fecha_cita: detallesExtra.preferencia_fecha_cita,
     fecha_cita_afore: detallesExtra.fecha_cita_afore,
+    motivo_cita: detallesExtra.motivo_cita,
     calle: detallesExtra.calle,
     numero_exterior: detallesExtra.numero_exterior,
     numero_interior: detallesExtra.numero_interior,
@@ -4338,7 +4354,7 @@ app.get("/api/v1/dashboard/requests", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
     const rows = await supabaseRequest(
-      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
+      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,fecha_creacion,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
     );
 
     res.json({
@@ -4387,6 +4403,7 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
     if (isCitaAfore) {
       const requiredExtraFields = [
         ["nombre_cliente", "nombre completo"],
+        ["motivo_cita", "motivo de la cita"],
         ["calle", "calle"],
         ["numero_exterior", "numero exterior"],
         ["colonia", "colonia"],
