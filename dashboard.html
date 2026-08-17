@@ -124,6 +124,7 @@
                 <button onclick="window.mostrarTramites('INF')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3"></span><span class="text-sm block font-black uppercase">Infonavit</span><span class="text-[10px] font-bold text-slate-400">Cuenta y crédito</span></button>
                 <button onclick="window.mostrarTramites('PENSIONES')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3"></span><span class="text-sm block font-black uppercase">Pensiones</span><span class="text-[10px] font-bold text-slate-400">Análisis</span></button>
                 <button onclick="window.mostrarTramites('AFORE')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3"></span><span class="text-sm block font-black uppercase">AFORE</span><span class="text-[10px] font-bold text-slate-400">Estados y retiro</span></button>
+                <button onclick="window.mostrarTramites('CITAS_AFORE')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3">📅</span><span class="text-sm block font-black uppercase">Citas AFORE</span><span class="text-[10px] font-bold text-slate-400">Invercap, Banamex y Coppel</span></button>
             </div>
         </section>
 
@@ -715,7 +716,7 @@ async function cargarPreciosBackend() {
             document.getElementById('gridCategorias').classList.add('hidden');
             document.getElementById('listaServicios').classList.remove('hidden');
             document.getElementById('btnVolver').classList.remove('hidden');
-            document.getElementById('tituloSeccion').innerText = "Servicios: " + cat;
+            document.getElementById('tituloSeccion').innerText = "Servicios: " + String(cat || '').replace(/_/g, ' ');
             categoriaActual = cat;
             const lista = document.getElementById('listaServicios');
             let html = renderContadorPremiumCategoria(cat);
@@ -816,6 +817,16 @@ async function cargarPreciosBackend() {
             btn.innerText = `Pagar $${precio}.00`;
         };
 
+        window.actualizarFechaCitaAfore = () => {
+            const preferencia = document.getElementById('preferencia_fecha_cita_p');
+            const fecha = document.getElementById('fecha_cita_afore_p');
+            if (!preferencia || !fecha) return;
+            const solicitaFecha = preferencia.value === 'FECHA_ESPECIFICA';
+            fecha.classList.toggle('hidden', !solicitaFecha);
+            fecha.disabled = !solicitaFecha;
+            if (!solicitaFecha) fecha.value = '';
+        };
+
         window.prepararTramite = (t) => {
             const content = document.getElementById('formContent');
             let pFinal = obtenerPrecioTramite(t);
@@ -889,6 +900,16 @@ fields += `
             if (t.pidePassNueva) fields += `<input type="text" id="pass_nueva_p" placeholder="CONTRASEÑA NUEVA" class="input-light mb-4">`;
             if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
             if (t.pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
+            if (t.pideCitaAfore) fields += `
+                <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <label class="text-[9px] font-black uppercase text-amber-800 block mb-2">Fecha solicitada para la cita</label>
+                    <select id="preferencia_fecha_cita_p" onchange="window.actualizarFechaCitaAfore()" class="input-light mb-3">
+                        <option value="FECHA_ESPECIFICA">Elegir una fecha</option>
+                        <option value="LO_MAS_PRONTO_POSIBLE">Lo más pronto posible</option>
+                    </select>
+                    <input type="date" id="fecha_cita_afore_p" min="${new Date().toISOString().slice(0, 10)}" class="input-light mb-3">
+                    <p class="text-[10px] font-bold leading-relaxed text-amber-800">La fecha solicitada está sujeta a la disponibilidad de la AFORE. Confirmaremos la fecha y horario disponibles.</p>
+                </div>`;
             if (t.pideTurno) fields += `<input type="text" id="turno_p" placeholder="TURNO" class="input-light mb-4 uppercase">`;
             if (t.pideDelegacion) fields += `<input type="text" id="delegacion_p" placeholder="DELEGACIÓN" class="input-light mb-4 uppercase">`;
             if (t.pideClinica) fields += `<input type="text" id="clinica_p" placeholder="CLÍNICA" class="input-light mb-4 uppercase">`;
@@ -901,6 +922,8 @@ fields += `
             if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
             if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
             if (t.pideCalle) fields += `<input type="text" id="calle_p" placeholder="CALLE" class="input-light mb-4 uppercase">`;
+            if (t.pideNumeroExterior) fields += `<input type="text" id="numero_exterior_p" placeholder="NÚMERO EXTERIOR" class="input-light mb-4 uppercase">`;
+            if (t.pideNumeroInterior) fields += `<input type="text" id="numero_interior_p" placeholder="NÚMERO INTERIOR (OPCIONAL)" class="input-light mb-4 uppercase">`;
             if (t.pideColonia) fields += `<input type="text" id="colonia_p" placeholder="COLONIA" class="input-light mb-4 uppercase">`;
             if (t.pideMunicipio) fields += `<input type="text" id="municipio_p" placeholder="MUNICIPIO" class="input-light mb-4 uppercase">`;
             if (t.pideEstado) fields += `<input type="text" id="estado_p" placeholder="ESTADO" class="input-light mb-4 uppercase">`;
@@ -1039,6 +1062,7 @@ fields += `
 
             window.abrirModal('modalTramite');
             setTimeout(() => window.actualizarPrecioAfore?.(), 0);
+            setTimeout(() => window.actualizarFechaCitaAfore?.(), 0);
         };
 
         let enviandoTramite = false;
@@ -1092,6 +1116,32 @@ fields += `
                     c = Number(sel?.selectedOptions?.[0]?.dataset?.precio || c);
                 }
 
+                if (t.pideCitaAfore) {
+                    const requeridos = [
+                        ['nombre_p', 'nombre completo'],
+                        ['curp_p', 'CURP'],
+                        ['nss_p', 'NSS'],
+                        ['calle_p', 'calle'],
+                        ['numero_exterior_p', 'número exterior'],
+                        ['colonia_p', 'colonia'],
+                        ['municipio_p', 'municipio'],
+                        ['estado_p', 'estado'],
+                        ['cp_p', 'código postal']
+                    ];
+                    const faltante = requeridos.find(([id]) => !String(document.getElementById(id)?.value || '').trim());
+                    if (faltante) {
+                        alert(`Completa el campo: ${faltante[1]}.`);
+                        document.getElementById(faltante[0])?.focus();
+                        return;
+                    }
+                    const preferencia = document.getElementById('preferencia_fecha_cita_p')?.value || '';
+                    if (preferencia === 'FECHA_ESPECIFICA' && !document.getElementById('fecha_cita_afore_p')?.value) {
+                        alert('Selecciona la fecha solicitada para la cita.');
+                        document.getElementById('fecha_cita_afore_p')?.focus();
+                        return;
+                    }
+                }
+
                 if (botonPago) {
                     botonPago.disabled = true;
                     botonPago.innerText = "ENVIANDO...";
@@ -1109,7 +1159,11 @@ fields += `
                     pass_nueva: val('pass_nueva_p'),
                     num_servicio: val('num_servicio_p'),
                     fecha: val('fecha_p'),
+                    preferencia_fecha_cita: val('preferencia_fecha_cita_p'),
+                    fecha_cita_afore: val('preferencia_fecha_cita_p') === 'LO_MAS_PRONTO_POSIBLE' ? 'LO MAS PRONTO POSIBLE' : val('fecha_cita_afore_p'),
                     calle: val('calle_p'),
+                    numero_exterior: val('numero_exterior_p'),
+                    numero_interior: val('numero_interior_p'),
                     colonia: val('colonia_p'),
                     municipio: val('municipio_p'),
                     estado: val('estado_p'),
