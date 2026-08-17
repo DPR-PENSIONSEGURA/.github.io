@@ -910,6 +910,7 @@ fields += `
                     <input type="date" id="fecha_cita_afore_p" min="${new Date().toISOString().slice(0, 10)}" class="input-light mb-3">
                     <p class="text-[10px] font-bold leading-relaxed text-amber-800">La fecha solicitada está sujeta a la disponibilidad de la AFORE. Confirmaremos la fecha y horario disponibles.</p>
                 </div>`;
+            if (t.pideMotivoCita) fields += `<textarea id="motivo_cita_p" rows="3" placeholder="MOTIVO DE LA CITA" class="input-light mb-4 uppercase"></textarea>`;
             if (t.pideTurno) fields += `<input type="text" id="turno_p" placeholder="TURNO" class="input-light mb-4 uppercase">`;
             if (t.pideDelegacion) fields += `<input type="text" id="delegacion_p" placeholder="DELEGACIÓN" class="input-light mb-4 uppercase">`;
             if (t.pideClinica) fields += `<input type="text" id="clinica_p" placeholder="CLÍNICA" class="input-light mb-4 uppercase">`;
@@ -1119,6 +1120,7 @@ fields += `
                 if (t.pideCitaAfore) {
                     const requeridos = [
                         ['nombre_p', 'nombre completo'],
+                        ['motivo_cita_p', 'motivo de la cita'],
                         ['curp_p', 'CURP'],
                         ['nss_p', 'NSS'],
                         ['calle_p', 'calle'],
@@ -1161,6 +1163,7 @@ fields += `
                     fecha: val('fecha_p'),
                     preferencia_fecha_cita: val('preferencia_fecha_cita_p'),
                     fecha_cita_afore: val('preferencia_fecha_cita_p') === 'LO_MAS_PRONTO_POSIBLE' ? 'LO MAS PRONTO POSIBLE' : val('fecha_cita_afore_p'),
+                    motivo_cita: val('motivo_cita_p'),
                     calle: val('calle_p'),
                     numero_exterior: val('numero_exterior_p'),
                     numero_interior: val('numero_interior_p'),
@@ -1417,8 +1420,17 @@ vacuna_covid: val('vacuna_covid_p'),
             }
 
             lista.forEach(s => {
-                const fechaBase = s.fecha?.toDate ? s.fecha.toDate() : (s.fecha ? new Date(s.fecha) : null);
-                const f = fechaBase && !Number.isNaN(fechaBase.getTime()) ? fechaBase.toLocaleDateString('es-MX') : '...';
+                const fechaValor = s.fecha || s.fecha_creacion || s.fechaSolicitud || s.fecha_solicitud || null;
+                const fechaBase = fechaValor?.toDate ? fechaValor.toDate() : (fechaValor ? new Date(fechaValor) : null);
+                const f = fechaBase && !Number.isNaN(fechaBase.getTime())
+                    ? fechaBase.toLocaleString('es-MX', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                    : 'Sin fecha';
                 const estatusTexto = String(s.estatus || '');
                 let estatusColor = 'text-amber-600 bg-amber-50 border-amber-100';
 
