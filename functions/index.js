@@ -130,6 +130,7 @@ function mapSupabaseAdminSolicitud(row) {
   const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
   const fechaSolicitud = firstValidDateValue(
     row.fecha,
+    row.fecha_creacion,
     raw.fecha,
     raw.fechaSolicitud,
     raw.fecha_solicitud,
@@ -163,6 +164,9 @@ function mapSupabaseAdminSolicitud(row) {
     nss: row.nss || raw.nss || "",
     archivoFinal: resolveArchivoFinal(row),
     fecha: fechaSolicitud,
+    fecha_creacion: fechaSolicitud,
+    fechaSolicitud,
+    created_at: fechaSolicitud,
     fecha_terminado: firstValidDateValue(raw.fecha_terminado, raw.fechaTerminado, raw.fecha_finalizado),
     fecha_finalizado: firstValidDateValue(raw.fecha_finalizado, raw.fecha_terminado, raw.fechaTerminado),
     detalles_extra: row.detalles_extra || raw.detalles_extra || {},
@@ -389,6 +393,9 @@ const SERVICE_MAP = {
   ESTADO_CUENTA_AFORE_BANORTE: "Estado de cuenta AFORE - Banorte",
   ESTADO_CUENTA_AFORE_PRINCIPAL: "Estado de cuenta AFORE - Principal",
   ESTADO_CUENTA_AFORE_BANAMEX: "Estado de cuenta AFORE - Banamex",
+  CITA_AFORE_INVERCAP: "Cita Invercap",
+  CITA_AFORE_BANAMEX: "Cita Banamex",
+  CITA_AFORE_COPPEL: "Cita Coppel",
 
   ANALISIS_RAPIDO_PENSION: "Análisis rápido de pensión",
   ANALISIS_DETALLADO_PENSION: "Análisis Detallado de pensión",
@@ -438,6 +445,9 @@ const LEGACY_SERVICE_NAMES = {
   ESTADO_CUENTA_AFORE_BANORTE: ["ESTADO CUENTA AFORE BANORTE"],
   ESTADO_CUENTA_AFORE_PRINCIPAL: ["ESTADO CUENTA AFORE PRINCIPAL"],
   ESTADO_CUENTA_AFORE_BANAMEX: ["ESTADO CUENTA AFORE BANAMEX"],
+  CITA_AFORE_INVERCAP: ["CITA INVERCAP"],
+  CITA_AFORE_BANAMEX: ["CITA BANAMEX"],
+  CITA_AFORE_COPPEL: ["CITA COPPEL"],
   ANALISIS_RAPIDO_PENSION: ["ANALISIS RAPIDO PENSION"],
   ANALISIS_DETALLADO_PENSION: ["ANALISIS DETALLADO PENSION"],
   VIGENCIA: ["VIGENCIA DERECHOS"],
@@ -456,7 +466,11 @@ const EXTRA_DEFAULTS = {
   pass_nueva: "N/A",
   num_servicio: "N/A",
   fecha: "N/A",
+  preferencia_fecha_cita: "N/A",
+  fecha_cita_afore: "N/A",
   calle: "N/A",
+  numero_exterior: "N/A",
+  numero_interior: "N/A",
   colonia: "N/A",
   municipio: "N/A",
   estado: "N/A",
@@ -528,6 +542,9 @@ const DASHBOARD_SERVICE_PRICES = {
   "LOCALIZAR CONTRASENA": 70,
   "RESUMEN DE SALDOS": 170,
   "LOCALIZA TU AFORE": 29,
+  "CITA INVERCAP": 250,
+  "CITA BANAMEX": 250,
+  "CITA COPPEL": 250,
   "ANALISIS RAPIDO DE PENSION": 200,
   "ANALISIS DETALLADO DE PENSION": 3000,
   "AZTECA": 500,
@@ -621,6 +638,11 @@ const DASHBOARD_SERVICE_CATALOG = {
     { nombre: "Localizar Contrasena", precio: 0, curp: true, extraMsg: "El usuario debe estar registrado en AFORE Movil o AFORE Web." },
     { nombre: "Resumen de Saldos", precio: 0, curp: true, extraMsg: "Si el cliente no cuenta con registro en AFORE Movil o AFORE Web, se dara una contrasena generica." },
     { nombre: "Localiza tu AFORE", precio: 0, curp: true }
+  ],
+  CITAS_AFORE: [
+    { nombre: "Cita Invercap", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
+    { nombre: "Cita Banamex", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true },
+    { nombre: "Cita Coppel", precio: 0, pideNombre: true, curp: true, nss: true, pideCitaAfore: true, pideCalle: true, pideNumeroExterior: true, pideNumeroInterior: true, pideColonia: true, pideMunicipio: true, pideEstado: true, pideCP: true }
   ],
   PENSIONES: [
     { nombre: "Analisis rapido de pension", precio: 0, curp: true, nss: true },
@@ -1171,7 +1193,11 @@ function buildN8nSolicitudPayload(row, origen = "dashboard") {
     pass: detallesExtra.pass,
     pass_nueva: detallesExtra.pass_nueva,
     fecha: detallesExtra.fecha,
+    preferencia_fecha_cita: detallesExtra.preferencia_fecha_cita,
+    fecha_cita_afore: detallesExtra.fecha_cita_afore,
     calle: detallesExtra.calle,
+    numero_exterior: detallesExtra.numero_exterior,
+    numero_interior: detallesExtra.numero_interior,
     colonia: detallesExtra.colonia,
     municipio: detallesExtra.municipio,
     estado: detallesExtra.estado,
@@ -2071,12 +2097,27 @@ function supabaseSolicitudFilterByPanelId(id) {
 const PROVIDER_AUTOMATION = Object.freeze({
   "120363424712619825@g.us": "weeks",
   "120363427907217541@g.us": "detailed_weeks",
-  "120363405737968577@g.us": "civil_records",
+  "120363411286493569@g.us": "civil_records",
   "120363409003681418@g.us": "idcif",
-  "120363426493207414@g.us": "cfe"
+  "120363426493207414@g.us": "cfe",
+  "120363425835293476@g.us": "rfc_document_primary",
+  "120363429387260006@g.us": "rfc_document_fallback"
 });
 const IDCIF_PROVIDER_CHAT_ID = "120363409003681418@g.us";
 const RFC_ADVISORS_CHAT_ID = "120363425835293476@g.us";
+const RFC_DOCUMENT_FALLBACK_CHAT_ID = "120363429387260006@g.us";
+const FINAL_DOCUMENT_PROVIDER_CHATS = new Set([
+  "120363424712619825@g.us",
+  "120363427907217541@g.us",
+  "120363411286493569@g.us",
+  "120363407805083311@g.us",
+  "120363405950447774@g.us",
+  "120363421354896501@g.us",
+  "120363426493207414@g.us",
+  "120363428182287786@g.us",
+  "120363425835293476@g.us",
+  "120363411615694603@g.us"
+]);
 const PROVIDER_CONTEXT_MINUTES = 10;
 
 function providerWebhookPayload(body) {
@@ -2092,6 +2133,22 @@ function providerMessageText(payload) {
     data.captionMessageData?.caption ||
     data.fileMessageData?.caption ||
     ""
+  );
+}
+
+function providerQuotedMessageText(payload) {
+  const data = payload?.messageData || {};
+  const quoted = data.quotedMessage
+    || data.extendedTextMessageData?.quotedMessage
+    || {};
+  return normalizeString(
+    quoted.textMessage
+      || quoted.textMessageData?.textMessage
+      || quoted.extendedTextMessage?.text
+      || quoted.extendedTextMessageData?.text
+      || quoted.caption
+      || quoted.fileName
+      || ""
   );
 }
 
@@ -2203,6 +2260,12 @@ function classifyProviderError(chatId, text, reaction = "") {
   if (emoji === "❌") return { code: "CURP_INCORRECTA", status: "Error: CURP incorrecta" };
   if (emoji === "💤") return { code: "NSS_NO_ASIGNADO", status: "Error: sin NSS asignado" };
 
+  // Algunos proveedores envían el candado como texto independiente en vez
+  // de usarlo como reacción al mensaje solicitado.
+  if (normalizeString(text).replace(/\uFE0F/g, "").includes("🔓")) {
+    return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
+  }
+
   const clean = normalizeForCompare(String(text || "").replace(/🆔/g, " ID ")).toLowerCase();
   if (!clean) return null;
 
@@ -2216,6 +2279,16 @@ function classifyProviderError(chatId, text, reaction = "") {
     if (/recibo aun no disponible/.test(clean)) {
       return { code: "CFE_RECIBO_NO_DISPONIBLE", status: "Error: recibo CFE aún no disponible" };
     }
+  }
+  if (PROVIDER_AUTOMATION[chatId] === "civil_records" && (
+    /no se encontro el acta en (?:el )?sistema/.test(clean)
+    || (/no hay registros disponibles/.test(clean) && /curp/.test(clean))
+  )) {
+    return { code: "ACTA_NO_ENCONTRADA", status: "Error: documento no encontrado" };
+  }
+  if (PROVIDER_AUTOMATION[chatId] === "rfc_document_fallback"
+    && /constancia no generada/.test(clean)) {
+    return { code: "RFC_CONSTANCIA_NO_GENERADA", status: "Error: constancia RFC no generada" };
   }
 
   const rules = [
@@ -2305,20 +2378,37 @@ async function refundProviderError(solicitud, classification, detail) {
 }
 
 function parseIdcifLines(text) {
-  return String(text || "")
+  const source = String(text || "");
+  const parsedLines = source
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
       const normalized = line.toUpperCase().replace(/🆔/g, " ID ");
-      const rfc = (normalized.match(/\b[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}\b/) || [])[0] || "";
+      const curp = (normalized.match(/\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/) || [])[0] || "";
+      const rfc = (normalized.match(/\b[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}\b/g) || [])
+        .find((value) => !curp || value !== curp.slice(0, 13)) || "";
       if (!rfc) return null;
       const noId = /\b(?:SIN|NO)\s+(?:ID|IDCIF)\b/.test(normalized);
       const idcif = noId ? "" : ((normalized.match(/\b\d{11}\b/) || [])[0] || "");
       if (!noId && !idcif) return null;
-      return { line, rfc, idcif, noId };
+      return { line, curp, rfc, idcif, noId };
     })
     .filter(Boolean);
+
+  if (parsedLines.length) return parsedLines;
+
+  // Algunos proveedores envían CURP, RFC e IDCIF en renglones separados.
+  // En ese formato se procesa el mensaje completo como un solo resultado.
+  const normalized = source.toUpperCase().replace(/🆔/g, " ID ");
+  const curp = (normalized.match(/\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/) || [])[0] || "";
+  const rfc = (normalized.match(/\b[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}\b/g) || [])
+    .find((value) => !curp || value !== curp.slice(0, 13)) || "";
+  const noId = /\b(?:SIN|NO)\s+(?:ID|IDCIF)\b/.test(normalized);
+  const idcif = noId ? "" : ((normalized.match(/\b\d{11}\b/) || [])[0] || "");
+  return rfc && (noId || idcif)
+    ? [{ line: source.trim(), curp, rfc, idcif, noId }]
+    : [];
 }
 
 async function processIdcifBatch(text) {
@@ -2328,12 +2418,24 @@ async function processIdcifBatch(text) {
   const results = [];
 
   for (const item of parsed) {
-    const found = await findProviderSolicitud({ identifiers: { rfc: item.rfc } });
+    const found = await findProviderSolicitud({ identifiers: { curp: item.curp, rfc: item.rfc } });
     if (!found.request) {
-      results.push({ rfc: item.rfc, success: false, ambiguous: found.ambiguous === true });
+      // No se reenvía un resultado sin relacionarlo con su solicitud. El mismo
+      // proveedor atiende RFC verificable y Localización de IDcif, y ambos
+      // responden con RFC + IDCIF.
+      results.push({
+        rfc: item.rfc,
+        idcif: item.idcif,
+        success: !item.noId,
+        forwarded: false,
+        request_linked: false,
+        ambiguous: found.ambiguous === true
+      });
       continue;
     }
     const solicitud = found.request;
+    const solicitudTipo = normalizeForCompare(solicitud.tipo || "").toLowerCase();
+    const isRfcVerificable = solicitudTipo.includes("rfc verificable");
 
     if (item.noId) {
       const classification = { code: "IDCIF_NO_LOCALIZADO", status: "Error: IDCIF no localizado" };
@@ -2359,11 +2461,21 @@ async function processIdcifBatch(text) {
       })
     });
     const curp = normalizeProviderValue(solicitud.curp || raw.curp || details.curp);
-    forwards.push({
-      chatId: RFC_ADVISORS_CHAT_ID,
-      message: `📄 RFC VERIFICABLE\n\nCURP: ${curp || "N/D"}\nRFC: ${item.rfc}\nIDCIF: ${item.idcif}`
+    if (isRfcVerificable) {
+      forwards.push({
+        chatId: RFC_ADVISORS_CHAT_ID,
+        message: `📄 RFC VERIFICABLE\n\nCURP: ${curp || "N/D"}\nRFC: ${item.rfc}\nIDCIF: ${item.idcif}`
+      });
+    }
+    results.push({
+      rfc: item.rfc,
+      idcif: item.idcif,
+      success: true,
+      error: false,
+      forwarded: isRfcVerificable,
+      request_linked: true,
+      request_type: solicitud.tipo || ""
     });
-    results.push({ rfc: item.rfc, idcif: item.idcif, success: true, error: false });
   }
   return { forwards, results };
 }
@@ -2423,6 +2535,32 @@ app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
       ? normalizeString(messageData.extendedTextMessageData?.text || messageData.reactionMessageData?.text)
       : "";
     const quotedMessageId = providerQuotedMessageId(payload);
+
+    if (PROVIDER_AUTOMATION[chatId] === "rfc_document_primary"
+      && /documento no encontrado/.test(normalizeForCompare(text).toLowerCase())) {
+      const quotedText = providerQuotedMessageText(payload);
+      const quotedIdentifiers = providerIdentifiers(quotedText);
+      if (!quotedIdentifiers.rfc || !quotedIdentifiers.nss) {
+        res.json({
+          success: true,
+          ignored: true,
+          reason: "quoted_rfc_idcif_not_found",
+          forwards: []
+        });
+        return;
+      }
+      const curpLine = quotedIdentifiers.curp ? `CURP: ${quotedIdentifiers.curp}\n` : "";
+      res.json({
+        success: true,
+        ignored: false,
+        kind: "rfc_document_retry",
+        forwards: [{
+          chatId: RFC_DOCUMENT_FALLBACK_CHAT_ID,
+          message: `${curpLine}RFC: ${quotedIdentifiers.rfc}\nIDCIF: ${quotedIdentifiers.nss}`
+        }]
+      });
+      return;
+    }
 
     if (chatId === IDCIF_PROVIDER_CHAT_ID && text) {
       const batch = await processIdcifBatch(text);
@@ -2508,6 +2646,7 @@ app.get("/api/v1/admin/panel/requests", async (req, res) => {
       "nss",
       "archivo_final",
       "fecha",
+      "fecha_creacion",
       "detalles_extra",
       "cuestionario",
       "raw_data"
@@ -3115,12 +3254,17 @@ function solicitudCoincideConDocumentoN8n(solicitud, body) {
   const nss = normalizeLookupValue(getN8nBodyField(body, ["nss", "NSS"]));
   const valorDetectado = normalizeLookupValue(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"]));
   const idCorto = normalizeLookupValue(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]));
+  const serviceNumber = normalizeLookupValue(getN8nBodyField(body, ["service_number", "numero_servicio", "num_servicio"]));
+  const quotedMessageId = normalizeString(getN8nBodyField(body, ["quoted_message_id", "provider_message_id", "green_message_id"]));
+  const linkedMessageId = normalizeString(solicitud.green_message_id || raw.green_message_id);
 
   const valoresSolicitud = collectLookupValues(bolsa);
 
+  if (quotedMessageId && linkedMessageId === quotedMessageId) return true;
   if (curp && valoresSolicitud.includes(curp)) return true;
   if (rfc && valoresSolicitud.includes(rfc)) return true;
   if (nss && valoresSolicitud.includes(nss)) return true;
+  if (serviceNumber && valoresSolicitud.includes(serviceNumber)) return true;
   if (valorDetectado && valoresSolicitud.includes(valorDetectado)) return true;
   if (idCorto && valoresSolicitud.some((value) => value.startsWith(idCorto) || value.includes(idCorto))) return true;
   return false;
@@ -3130,8 +3274,12 @@ async function getN8nDocumentCandidateRows(body) {
   const curp = normalizeLookupValue(getN8nBodyField(body, ["curp", "CURP"]));
   const nss = normalizeLookupValue(getN8nBodyField(body, ["nss", "NSS"]));
   const idCorto = normalizeLookupValue(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]));
+  const quotedMessageId = normalizeString(getN8nBodyField(body, ["quoted_message_id", "provider_message_id", "green_message_id"]));
   const directQueries = [];
 
+  if (quotedMessageId) {
+    directQueries.push(`solicitudes?green_message_id=eq.${supabaseEq(quotedMessageId)}&select=*&order=fecha.desc.nullslast&limit=50`);
+  }
   if (curp) {
     directQueries.push(`solicitudes?curp=eq.${supabaseEq(curp)}&select=*&order=fecha.desc.nullslast&limit=50`);
   }
@@ -3142,15 +3290,33 @@ async function getN8nDocumentCandidateRows(body) {
     directQueries.push(`solicitudes?curp=like.${supabaseEq(`${idCorto}*`)}&select=*&order=fecha.desc.nullslast&limit=50`);
   }
 
+  const directRows = [];
+  const seenIds = new Set();
   for (const query of directQueries) {
     const rows = await supabaseRequest(query);
-    if (rows?.length) return rows;
+    for (const row of rows || []) {
+      const key = normalizeString(row.id || row.firebase_id);
+      if (!key || seenIds.has(key)) continue;
+      seenIds.add(key);
+      directRows.push(row);
+    }
   }
 
-  return supabaseRequest(
+  // Una coincidencia directa puede ser una solicitud histórica ya terminada,
+  // mientras la solicitud pendiente conserva el identificador dentro de
+  // detalles_extra, cuestionario o raw_data. Incluimos también las pendientes
+  // recientes y deduplicamos para no detener la búsqueda en el registro viejo.
+  const fallbackRows = await supabaseRequest(
     "solicitudes?select=*&order=fecha.desc.nullslast&limit=1000",
     { timeoutMs: 22000 }
   );
+  for (const row of fallbackRows || []) {
+    const key = normalizeString(row.id || row.firebase_id);
+    if (!key || seenIds.has(key)) continue;
+    seenIds.add(key);
+    directRows.push(row);
+  }
+  return directRows;
 }
 
 app.post("/api/v1/n8n/final-document/import", async (req, res) => {
@@ -3158,6 +3324,14 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
     validateAdminToken(req);
 
     const body = req.body || {};
+    const sourceChatId = normalizeString(getN8nBodyField(body, ["source_chat_id", "sourceChatId", "chat_id"]));
+    if (sourceChatId && !FINAL_DOCUMENT_PROVIDER_CHATS.has(sourceChatId)) {
+      const error = new Error("El documento proviene de un chat no autorizado.");
+      error.statusCode = 403;
+      error.errorCode = "N8N_SOURCE_CHAT_NOT_AUTHORIZED";
+      error.details = { source_chat_id: sourceChatId };
+      throw error;
+    }
     const archivoTemporal = normalizeString(
       getN8nBodyField(body, [
         "archivoUrl",
@@ -3182,12 +3356,14 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
       getN8nBodyField(body, ["curp", "CURP"]),
       getN8nBodyField(body, ["rfc", "RFC"]),
       getN8nBodyField(body, ["nss", "NSS"]),
+      getN8nBodyField(body, ["service_number", "numero_servicio", "num_servicio"]),
+      getN8nBodyField(body, ["quoted_message_id", "provider_message_id", "green_message_id"]),
       getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"]),
       getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"])
     ].some((value) => Boolean(normalizeString(value)));
 
     if (!hasSearchKey) {
-      const error = new Error("Falta CURP, RFC, NSS o idCorto para localizar la solicitud.");
+      const error = new Error("Falta CURP, RFC, NSS, número de servicio o mensaje citado para localizar la solicitud.");
       error.statusCode = 400;
       error.errorCode = "N8N_LOOKUP_KEY_REQUIRED";
       throw error;
@@ -3199,9 +3375,14 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
       .filter(isMeaningfulAdminSolicitud)
       .filter((row) => {
         const estatus = normalizeForCompare(row.estatus || row.raw_data?.estatus || "");
-        const archivoActual = normalizeString(row.archivo_final || row.raw_data?.archivo_final || row.raw_data?.archivoFinal);
-        if (archivoActual) return false;
-        if (row.finalizado === true && estatus.includes("termin")) return false;
+        const archivoFinalColumna = normalizeString(row.archivo_final);
+        const archivoFinalRaw = normalizeString(row.raw_data?.archivo_final || row.raw_data?.archivoFinal);
+        const estaTerminada = row.finalizado === true || estatus.includes("termin") || estatus.includes("finaliz");
+        // Un archivo dentro de raw_data no demuestra por sí solo que la
+        // solicitud terminó: algunos trámites guardan ahí archivos de entrada.
+        if (archivoFinalColumna) return false;
+        if (archivoFinalRaw && estaTerminada) return false;
+        if (estaTerminada) return false;
         return solicitudCoincideConDocumentoN8n(row, body);
       });
 
@@ -3214,6 +3395,10 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
           curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
           rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
           nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+          service_number: normalizeString(getN8nBodyField(body, ["service_number", "numero_servicio", "num_servicio"])),
+          quoted_message_id: normalizeString(getN8nBodyField(body, ["quoted_message_id", "provider_message_id", "green_message_id"])),
+          source_chat_id: sourceChatId,
+          file_name: normalizeString(getN8nBodyField(body, ["file_name", "archivo_nombre", "archivoNombreOriginal"])),
           valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
           idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
         },
@@ -3223,10 +3408,16 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
     }
 
     if (candidatos.length > 1) {
-      console.warn("n8n final-document import encontro multiples candidatos; se usara el mas reciente", {
-        total: candidatos.length,
-        ids: candidatos.slice(0, 5).map((row) => row.firebase_id || row.id)
-      });
+      const error = new Error("Se encontraron varias solicitudes pendientes para el documento; no se modificó ninguna.");
+      error.statusCode = 409;
+      error.errorCode = "N8N_REQUEST_AMBIGUOUS";
+      error.details = {
+        source_chat_id: sourceChatId,
+        file_name: normalizeString(getN8nBodyField(body, ["file_name", "archivo_nombre", "archivoNombreOriginal"])),
+        matched_count: candidatos.length,
+        candidate_ids: candidatos.slice(0, 10).map((row) => row.firebase_id || row.id)
+      };
+      throw error;
     }
 
     const archivoFinal = await uploadRemoteUrlToCloudinary(archivoTemporal, "novyra/documentos-finales");
@@ -3256,6 +3447,9 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
             curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
             rfc: normalizeString(getN8nBodyField(body, ["rfc", "RFC"])),
             nss: normalizeString(getN8nBodyField(body, ["nss", "NSS"])),
+            service_number: normalizeString(getN8nBodyField(body, ["service_number", "numero_servicio", "num_servicio"])),
+            quoted_message_id: normalizeString(getN8nBodyField(body, ["quoted_message_id", "provider_message_id", "green_message_id"])),
+            source_chat_id: sourceChatId,
             valorDetectado: normalizeString(getN8nBodyField(body, ["valorDetectado", "valor_detectado", "VALOR_DETECTADO"])),
             idCorto: normalizeString(getN8nBodyField(body, ["idCorto", "id_corto", "IDCORTO"]))
           }
@@ -4184,9 +4378,74 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
 
     const curp = normalizeString(body.curp || "N/A").toUpperCase() || "N/A";
     const nss = normalizeString(body.nss || "N/A") || "N/A";
-    const detallesExtra = body.detalles_extra && typeof body.detalles_extra === "object" ? body.detalles_extra : {};
+    const detallesExtra = body.detalles_extra && typeof body.detalles_extra === "object" ? { ...body.detalles_extra } : {};
     const cuestionario = body.cuestionario || "N/A";
     const costoServidor = getDashboardServicePrice(serviceName, detallesExtra);
+
+    const normalizedServiceName = normalizeForCompare(serviceName).toUpperCase();
+    const isCitaAfore = ["CITA INVERCAP", "CITA BANAMEX", "CITA COPPEL"].includes(normalizedServiceName);
+    if (isCitaAfore) {
+      const requiredExtraFields = [
+        ["nombre_cliente", "nombre completo"],
+        ["calle", "calle"],
+        ["numero_exterior", "numero exterior"],
+        ["colonia", "colonia"],
+        ["municipio", "municipio"],
+        ["estado", "estado"],
+        ["cp", "codigo postal"]
+      ];
+      const missingField = requiredExtraFields.find(([key]) => {
+        const value = normalizeString(detallesExtra[key]);
+        return !value || value.toUpperCase() === "N/A";
+      });
+      if (missingField) {
+        const error = new Error(`Falta el campo ${missingField[1]} para solicitar la cita AFORE.`);
+        error.statusCode = 400;
+        error.errorCode = "AFORE_APPOINTMENT_FIELD_REQUIRED";
+        throw error;
+      }
+      if (!/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/.test(curp)) {
+        const error = new Error("La CURP de la cita AFORE no tiene un formato valido.");
+        error.statusCode = 400;
+        error.errorCode = "AFORE_APPOINTMENT_CURP_INVALID";
+        throw error;
+      }
+      if (!/^\d{11}$/.test(nss)) {
+        const error = new Error("El NSS de la cita AFORE debe contener 11 digitos.");
+        error.statusCode = 400;
+        error.errorCode = "AFORE_APPOINTMENT_NSS_INVALID";
+        throw error;
+      }
+      if (!/^\d{5}$/.test(normalizeString(detallesExtra.cp))) {
+        const error = new Error("El codigo postal de la AFORE debe contener 5 digitos.");
+        error.statusCode = 400;
+        error.errorCode = "AFORE_APPOINTMENT_ZIP_INVALID";
+        throw error;
+      }
+
+      const preference = normalizeForCompare(detallesExtra.preferencia_fecha_cita).replace(/_/g, " ").toUpperCase();
+      if (!["FECHA ESPECIFICA", "LO MAS PRONTO POSIBLE"].includes(preference)) {
+        const error = new Error("Selecciona una fecha o la opcion lo mas pronto posible.");
+        error.statusCode = 400;
+        error.errorCode = "AFORE_APPOINTMENT_DATE_PREFERENCE_REQUIRED";
+        throw error;
+      }
+      detallesExtra.preferencia_fecha_cita = preference === "FECHA ESPECIFICA"
+        ? "FECHA_ESPECIFICA"
+        : "LO_MAS_PRONTO_POSIBLE";
+      if (preference === "FECHA ESPECIFICA") {
+        const requestedDate = normalizeString(detallesExtra.fecha_cita_afore);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(requestedDate) || Number.isNaN(new Date(`${requestedDate}T12:00:00`).getTime())) {
+          const error = new Error("La fecha solicitada para la cita AFORE no es valida.");
+          error.statusCode = 400;
+          error.errorCode = "AFORE_APPOINTMENT_DATE_INVALID";
+          throw error;
+        }
+      } else {
+        detallesExtra.fecha_cita_afore = "LO MAS PRONTO POSIBLE";
+      }
+      detallesExtra.numero_interior = normalizeString(detallesExtra.numero_interior) || "NO APLICA";
+    }
 
     if (!Number.isFinite(costoServidor) || costoServidor <= 0) {
       const error = new Error("Tramite no soportado por el catalogo seguro.");
