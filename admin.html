@@ -1145,7 +1145,8 @@ class="admin-menu-btn solo-admin relative">
             { key: 'BURO_DE_CREDITO', label: 'Buró de Crédito', aliases: ['buro de credito','buró de crédito'] },
             { key: 'INFONAVIT', label: 'Infonavit', aliases: ['infonavit','mejoravit','cuentainfonavit'] },
             { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensión','pensiones','analisis rapido','análisis rápido'] },
-            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore','localizar contraseña','localizar contrasena','resumen de saldos','localiza tu afore'] }
+            { key: 'AFORE', label: 'AFORE', aliases: ['afore','estado de cuenta afore','localizar contraseña','localizar contrasena','resumen de saldos','localiza tu afore'] },
+            { key: 'CITAS_AFORE', label: 'Citas AFORE', aliases: ['cita invercap','cita banamex','cita coppel','citas afore'] }
         ];
         const TARIFAS_DEFAULT_OPERADOR = {
             RFC_CLON: 5,
@@ -1161,7 +1162,8 @@ class="admin-menu-btn solo-admin relative">
             BURO_DE_CREDITO: 0,
             INFONAVIT: 0,
             PENSIONES: 0,
-            AFORE: 0
+            AFORE: 0,
+            CITAS_AFORE: 0
         };
         let tarifasPagoOperador = { ...TARIFAS_DEFAULT_OPERADOR };
         let staffTramitesPermitidos = Array.isArray(miSesion.tramitesPermitidos) ? miSesion.tramitesPermitidos : [];
@@ -1810,6 +1812,9 @@ class="admin-menu-btn solo-admin relative">
             { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contraseña', proveedor: 0, publico: 70 },
             { key: 'RESUMEN_DE_SALDOS', nombre: 'Resumen de Saldos', proveedor: 0, publico: 170 },
             { key: 'LOCALIZA_TU_AFORE', nombre: 'Localiza tu AFORE', proveedor: 0, publico: 29 },
+            { key: 'CITA_INVERCAP', nombre: 'Cita Invercap', proveedor: 0, publico: 250 },
+            { key: 'CITA_BANAMEX', nombre: 'Cita Banamex', proveedor: 0, publico: 250 },
+            { key: 'CITA_COPPEL', nombre: 'Cita Coppel', proveedor: 0, publico: 250 },
             { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'Análisis rápido de pensión', proveedor: 0, publico: 200 },
             { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'Análisis Detallado de pensión', proveedor: 0, publico: 3000 }
         ];
@@ -2234,6 +2239,15 @@ class="admin-menu-btn solo-admin relative">
             turno_delegacion: 'Turno / Delegación',
             delegacion: 'Delegación',
             fecha: 'Fecha',
+            preferencia_fecha_cita: 'Preferencia de fecha',
+            fecha_cita_afore: 'Fecha solicitada para cita',
+            calle: 'Calle de la AFORE',
+            numero_exterior: 'Número exterior',
+            numero_interior: 'Número interior',
+            colonia: 'Colonia',
+            municipio: 'Municipio',
+            estado: 'Estado',
+            cp: 'Código postal',
             clinica: 'Clínica',
             consultorio: 'Consultorio',
             patron: 'Patrón',
