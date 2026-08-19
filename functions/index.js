@@ -478,6 +478,7 @@ const EXTRA_DEFAULTS = {
   idcif: "N/A",
   pass: "N/A",
   pass_nueva: "N/A",
+  tipo_retiro_desempleo: "N/A",
   num_servicio: "N/A",
   fecha: "N/A",
   preferencia_fecha_cita: "N/A",
@@ -545,14 +546,15 @@ const DASHBOARD_SERVICE_PRICES = {
   "CERTIFICADO INEA": 30,
   "CERTIFICADO COVID": 20,
   "LOCALIZACION DE CONTRASENA": 90,
-  "RESETEO CUENTA": 90,
+  "RESETEO CUENTA": 220,
   "PRECALIFICACION MEJORAVIT": 50,
   "PRECALIFICACION LINEA II": 80,
   "CREAR CUENTA EN MI CUENTAINFONAVIT": 100,
   "HISTORICO INFONAVIT": 100,
-  "REGISTRO A DISTANCIA": 90,
-  "RETIRO DESEMPLEO A DISTANCIA": 50,
-  "CAMBIAR CONTRASENA AFORE WEB": 30,
+  "REGISTRO A DISTANCIA": 110,
+  "RETIRO DESEMPLEO A DISTANCIA": 90,
+  "RETIRO POR DESEMPLEO A DISTANCIA": 90,
+  "CAMBIAR CONTRASENA AFORE WEB": 50,
   "ESTADO DE CUENTA AFORE": 500,
   "LOCALIZAR CONTRASENA": 70,
   "RESUMEN DE SALDOS": 170,
@@ -646,12 +648,12 @@ const DASHBOARD_SERVICE_CATALOG = {
     { nombre: "Historico Infonavit", precio: 0, nss: true, pideFecha: true }
   ],
   AFORE: [
-    { nombre: "Registro a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
-    { nombre: "Retiro Desempleo a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true },
-    { nombre: "Cambiar Contrasena AFORE Web", precio: 0, curp: true, pidePassNueva: true, pideFotoCli: true },
     { nombre: "Estado de cuenta AFORE", precio: 0, pideNombre: true, nss: true, curp: true, pideAforeTipo: true },
-    { nombre: "Localizar Contrasena", precio: 0, curp: true, extraMsg: "El usuario debe estar registrado en AFORE Movil o AFORE Web." },
-    { nombre: "Resumen de Saldos", precio: 0, curp: true, extraMsg: "Si el cliente no cuenta con registro en AFORE Movil o AFORE Web, se dara una contrasena generica." },
+    { nombre: "Registro a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
+    { nombre: "Retiro por Desempleo a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true, pideTipoRetiroDesempleo: true },
+    { nombre: "Cambiar Contraseña AFORE Web", precio: 0, curp: true, pidePassNueva: true, pideFotoCli: true },
+    { nombre: "Localizar Contraseña", precio: 0, curp: true, extraMsg: "El usuario debe estar registrado en AFORE Móvil o AFORE Web." },
+    { nombre: "Resumen de Saldos", precio: 0, curp: true, extraMsg: "Si el cliente no cuenta con registro en AFORE Móvil o AFORE Web, se dará una contraseña genérica." },
     { nombre: "Localiza tu AFORE", precio: 0, curp: true }
   ],
   CITAS_AFORE: [
@@ -1207,6 +1209,7 @@ function buildN8nSolicitudPayload(row, origen = "dashboard") {
     nombre_cliente: detallesExtra.nombre_cliente,
     pass: detallesExtra.pass,
     pass_nueva: detallesExtra.pass_nueva,
+    tipo_retiro_desempleo: detallesExtra.tipo_retiro_desempleo,
     fecha: detallesExtra.fecha,
     preferencia_fecha_cita: detallesExtra.preferencia_fecha_cita,
     fecha_cita_afore: detallesExtra.fecha_cita_afore,
@@ -4462,6 +4465,64 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
         detallesExtra.fecha_cita_afore = "LO MAS PRONTO POSIBLE";
       }
       detallesExtra.numero_interior = normalizeString(detallesExtra.numero_interior) || "NO APLICA";
+    }
+
+    const requiredValue = (value) => {
+      const clean = normalizeString(value);
+      return Boolean(clean && clean.toUpperCase() !== "N/A");
+    };
+    const requiredAforeFields = {
+      "REGISTRO A DISTANCIA": [
+        [detallesExtra.telefono, "teléfono"],
+        [detallesExtra.telefono_contacto, "teléfono de contacto"],
+        [detallesExtra.correo, "correo"],
+        [detallesExtra.nota, "nota"],
+        [body.file_ine_f, "INE frente"],
+        [body.file_ine_r, "INE reverso"],
+        [body.file_selfie, "foto del cliente"]
+      ],
+      "RETIRO POR DESEMPLEO A DISTANCIA": [
+        [detallesExtra.pass, "contraseña"],
+        [body.file_ine_f, "INE frente"],
+        [body.file_ine_r, "INE reverso"],
+        [body.file_edocta, "estado de cuenta"],
+        [body.file_selfie, "foto del cliente"]
+      ],
+      "RETIRO DESEMPLEO A DISTANCIA": [
+        [detallesExtra.pass, "contraseña"],
+        [body.file_ine_f, "INE frente"],
+        [body.file_ine_r, "INE reverso"],
+        [body.file_edocta, "estado de cuenta"],
+        [body.file_selfie, "foto del cliente"]
+      ],
+      "CAMBIAR CONTRASENA AFORE WEB": [
+        [detallesExtra.pass_nueva, "contraseña nueva"],
+        [body.file_selfie, "foto del cliente"]
+      ]
+    };
+    const missingAforeField = (requiredAforeFields[normalizedServiceName] || [])
+      .find(([value]) => !requiredValue(value));
+    if (missingAforeField) {
+      const error = new Error(`Falta el requisito ${missingAforeField[1]} para solicitar este servicio AFORE.`);
+      error.statusCode = 400;
+      error.errorCode = "AFORE_SERVICE_FIELD_REQUIRED";
+      throw error;
+    }
+    if (normalizedServiceName === "CAMBIAR CONTRASENA AFORE WEB" && !/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/.test(curp)) {
+      const error = new Error("La CURP para cambiar la contraseña AFORE no tiene un formato válido.");
+      error.statusCode = 400;
+      error.errorCode = "AFORE_PASSWORD_CURP_INVALID";
+      throw error;
+    }
+    if (["RETIRO DESEMPLEO A DISTANCIA", "RETIRO POR DESEMPLEO A DISTANCIA"].includes(normalizedServiceName)) {
+      const withdrawalType = normalizeForCompare(detallesExtra.tipo_retiro_desempleo).toUpperCase();
+      if (!new Set(["TIPO A", "TIPO B"]).has(withdrawalType)) {
+        const error = new Error("Selecciona Tipo A o Tipo B para el retiro por desempleo.");
+        error.statusCode = 400;
+        error.errorCode = "AFORE_WITHDRAWAL_TYPE_REQUIRED";
+        throw error;
+      }
+      detallesExtra.tipo_retiro_desempleo = withdrawalType === "TIPO A" ? "Tipo A" : "Tipo B";
     }
 
     if (!Number.isFinite(costoServidor) || costoServidor <= 0) {
