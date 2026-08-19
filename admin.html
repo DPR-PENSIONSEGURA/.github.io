@@ -1102,7 +1102,7 @@ class="admin-menu-btn solo-admin relative">
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
                 const vendidoReal = data.venta_real ?? data.venta_neta ?? data.total_vendido;
                 setText('corteVentaNeta', dineroMX(vendidoReal));
-                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} cobradas - ${data.solicitudes_pendientes || 0} pendientes`);
+                setText('corteVentasMeta', `${data.solicitudes_cobradas ?? data.solicitudes_terminadas ?? 0} cobradas · venta bruta ${dineroMX(data.total_vendido)} menos reembolsos`);
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
                 setText('corteFlujoCaja', `Ajustes devueltos del dia`);
                 setText('txtVisitas', String(data.usuarios_dashboard_activos ?? 0));
