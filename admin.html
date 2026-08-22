@@ -1106,7 +1106,6 @@ class="admin-menu-btn solo-admin relative">
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
                 setText('corteFlujoCaja', `Ajustes devueltos del dia`);
                 setText('txtVisitas', String(data.usuarios_dashboard_activos ?? 0));
-                actualizarGananciaAdmin(vendidoReal, 'Venta real del dia: tramites cobrados efectivamente.');
                 setText('corteSaldoClientes', dineroMX(data.saldo_clientes_positivo));
                 setText('corteSaldoMeta', `${data.clientes_con_saldo || 0} clientes con saldo · corte ${data.as_of ? new Date(data.as_of).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : ''}`);
 
@@ -1145,9 +1144,6 @@ class="admin-menu-btn solo-admin relative">
             { key: 'BURO_DE_CREDITO', label: 'Buró de Crédito', aliases: ['buro de credito','buró de crédito'] },
             { key: 'INFONAVIT', label: 'Infonavit', aliases: ['infonavit','mejoravit','cuentainfonavit'] },
             { key: 'PENSIONES', label: 'Pensiones', aliases: ['pension','pensión','pensiones','analisis rapido','análisis rápido'] },
-            { key: 'REGISTRO_A_DISTANCIA', label: 'Registro a Distancia', aliases: ['registro a distancia','registro afore distancia'] },
-            { key: 'RETIRO_DESEMPLEO_A_DISTANCIA', label: 'Retiro por Desempleo a Distancia', aliases: ['retiro por desempleo a distancia','retiro desempleo a distancia','retiro desempleo afore'] },
-            { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', label: 'Cambiar Contraseña AFORE Web', aliases: ['cambiar contraseña afore web','cambiar contrasena afore web','cambio contraseña afore','cambio contrasena afore'] },
             { key: 'AFORE', label: 'Otros servicios AFORE', aliases: ['afore','estado de cuenta afore','localizar contraseña','localizar contrasena','resumen de saldos','localiza tu afore'] },
             { key: 'CITAS_AFORE', label: 'Citas AFORE', aliases: ['cita invercap','cita banamex','cita coppel','citas afore'] }
         ];
@@ -1165,9 +1161,6 @@ class="admin-menu-btn solo-admin relative">
             BURO_DE_CREDITO: 0,
             INFONAVIT: 0,
             PENSIONES: 0,
-            REGISTRO_A_DISTANCIA: 0,
-            RETIRO_DESEMPLEO_A_DISTANCIA: 0,
-            CAMBIAR_CONTRASENA_AFORE_WEB: 0,
             AFORE: 0,
             CITAS_AFORE: 0
         };
@@ -1481,27 +1474,19 @@ class="admin-menu-btn solo-admin relative">
                 cacheSolicitudes = rows;
                 metricasListas = true;
             todasLasSoliCargadas = [];
-            let ganancia = 0;
             let pendientes = 0;
-            const hoy = new Date();
 
                 rows.forEach(data => {
                     todasLasSoliCargadas.push(data);
 
                 const estatus = String(data.estatus || '').trim().toLowerCase();
-                    const fechaBase = fechaSolicitudTerminada(data) || fechaDateCampo(data.fecha);
-                const esVentaValida = (estatus === 'terminado' || estatus === 'finalizado' || data.finalizado === true) && !esDocumentoConError(data) && data.reembolsado !== true;
 
                 if (estatus === 'en proceso' && usuarioPuedeVerTramite(data)) pendientes++;
-                if (fechaBase && esMismoDia(fechaBase, hoy) && esVentaValida) {
-                    ganancia += Number(data.costo || data.precio || data.monto || 0);
-                }
             });
 
             const elPend = document.getElementById('contadorPendientes');
             if (elPend) elPend.innerText = pendientes;
 
-            actualizarGananciaAdmin(ganancia, 'Estimado con la carga visible. Sincronizando total real...');
             cargarResumenVentasAdmin().catch(error => {
                 console.error('Error cargando resumen de ventas:', error);
             });
@@ -1630,8 +1615,7 @@ class="admin-menu-btn solo-admin relative">
             if (staffTramitesPermitidos.includes('TODO')) return true;
             const clave = claveTramiteSolicitud(s);
             if (staffTramitesPermitidos.includes(clave)) return true;
-            const clavesAforeCompatibles = new Set(['REGISTRO_A_DISTANCIA', 'RETIRO_DESEMPLEO_A_DISTANCIA', 'CAMBIAR_CONTRASENA_AFORE_WEB']);
-            return staffTramitesPermitidos.includes('AFORE') && clavesAforeCompatibles.has(clave);
+            return false;
         }
 
         function renderCheckboxTramites(containerId, seleccionados = []) {
@@ -1814,9 +1798,6 @@ class="admin-menu-btn solo-admin relative">
             { key: 'PRECALIFICACION_LINEA_II', nombre: 'Precalificación Linea II', proveedor: 0, publico: 100 },
             { key: 'CREAR_CUENTA_EN_MI_CUENTAINFONAVIT', nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', proveedor: 0, publico: 150 },
             { key: 'HISTORICO_INFONAVIT', nombre: 'Histórico Infonavit', proveedor: 0, publico: 150 },
-            { key: 'REGISTRO_A_DISTANCIA', nombre: 'Registro a Distancia', proveedor: 0, publico: 110 },
-            { key: 'RETIRO_DESEMPLEO_A_DISTANCIA', nombre: 'Retiro por Desempleo a Distancia', proveedor: 0, publico: 90 },
-            { key: 'CAMBIAR_CONTRASENA_AFORE_WEB', nombre: 'Cambiar Contraseña AFORE Web', proveedor: 0, publico: 50 },
             { key: 'ESTADO_DE_CUENTA_AFORE', nombre: 'Estado de cuenta AFORE', proveedor: 0, publico: 500 },
             { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contraseña', proveedor: 0, publico: 70 },
             { key: 'RESUMEN_DE_SALDOS', nombre: 'Resumen de Saldos', proveedor: 0, publico: 170 },
