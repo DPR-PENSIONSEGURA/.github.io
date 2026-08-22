@@ -330,7 +330,8 @@ async function insertSupabaseMovimientoSaldo(row) {
       descripcion: row.descripcion || "",
       referencia: row.referencia || row.referencia_id || "",
       origen: row.origen || "backend",
-      fecha_movimiento: row.fecha_movimiento || new Date().toISOString()
+      fecha_movimiento: row.fecha_movimiento || new Date().toISOString(),
+      raw_data: row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {}
     };
     await supabaseRequest("movimientos_saldo", {
       method: "POST",
@@ -563,10 +564,6 @@ const DASHBOARD_SERVICE_PRICES = {
   "PRECALIFICACION LINEA II": 80,
   "CREAR CUENTA EN MI CUENTAINFONAVIT": 100,
   "HISTORICO INFONAVIT": 100,
-  "REGISTRO A DISTANCIA": 110,
-  "RETIRO DESEMPLEO A DISTANCIA": 90,
-  "RETIRO POR DESEMPLEO A DISTANCIA": 90,
-  "CAMBIAR CONTRASENA AFORE WEB": 50,
   "ESTADO DE CUENTA AFORE": 500,
   "LOCALIZAR CONTRASENA": 70,
   "RESUMEN DE SALDOS": 170,
@@ -661,9 +658,6 @@ const DASHBOARD_SERVICE_CATALOG = {
   ],
   AFORE: [
     { nombre: "Estado de cuenta AFORE", precio: 0, pideNombre: true, nss: true, curp: true, pideAforeTipo: true },
-    { nombre: "Registro a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideFotoCli: true, pideTel: true, pideTelContacto: true, pideCorreo: true, pideNota: true },
-    { nombre: "Retiro por Desempleo a Distancia", precio: 0, pideIneFrente: true, pideIneReverso: true, pideEdoCta: true, pideFotoCli: true, pidePass: true, pideTipoRetiroDesempleo: true },
-    { nombre: "Cambiar Contraseña AFORE Web", precio: 0, curp: true, pidePassNueva: true, pideFotoCli: true },
     { nombre: "Localizar Contraseña", precio: 0, curp: true, extraMsg: "El usuario debe estar registrado en AFORE Móvil o AFORE Web." },
     { nombre: "Resumen de Saldos", precio: 0, curp: true, extraMsg: "Si el cliente no cuenta con registro en AFORE Móvil o AFORE Web, se dará una contraseña genérica." },
     { nombre: "Localiza tu AFORE", precio: 0, curp: true }
@@ -2125,6 +2119,29 @@ function supabaseSolicitudFilterByPanelId(id) {
   return `firebase_id=eq.${encodedId}`;
 }
 
+function classifySalesLedgerMovement(row) {
+  const tipo = normalizeForCompare(row?.tipo || "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+  const monto = Number(row?.monto || 0);
+  if (tipo === "cargo tramite" && monto < 0) {
+    return { kind: "charge", amount: Math.abs(monto) };
+  }
+  if (tipo.includes("reembolso") && monto > 0) {
+    return { kind: "refund", amount: Math.abs(monto) };
+  }
+  return { kind: "other", amount: 0 };
+}
+
+function salesLedgerServiceName(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const rawName = normalizeString(raw.tramite || raw.tipo_tramite || "");
+  if (rawName) return rawName;
+  const description = normalizeString(row?.descripcion || "");
+  const separator = description.indexOf(":");
+  return separator >= 0
+    ? normalizeString(description.slice(separator + 1)) || "Trámite"
+    : "Trámite";
+}
+
 const PROVIDER_AUTOMATION = Object.freeze({
   "120363424712619825@g.us": "weeks",
   "120363427907217541@g.us": "detailed_weeks",
@@ -2717,6 +2734,10 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
   try {
     validateStaffOrAdmin(req);
 
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+
     const now = new Date();
     const dateFrom = req.query.date_from ? new Date(String(req.query.date_from)) : new Date(now);
     if (!req.query.date_from) dateFrom.setHours(0, 0, 0, 0);
@@ -2743,13 +2764,14 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
     ].join(",");
 
     const summaryLimit = Math.min(Math.max(Number(req.query.limit || 5000), 1), 10000);
-    const [rows, refundedRows] = await Promise.all([
+    const movementFields = "id,tipo,monto,descripcion,referencia,origen,fecha_movimiento,raw_data";
+    const [rows, ledgerRows] = await Promise.all([
       supabaseRequest(
         `solicitudes?select=${selectFields}&fecha=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha.desc&limit=${summaryLimit}`,
         { timeoutMs: 22000 }
       ),
       supabaseRequest(
-        `solicitudes?select=${selectFields}&reembolsado=eq.true&order=fecha.desc&limit=${summaryLimit}`,
+        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha_movimiento=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha_movimiento.desc&limit=${summaryLimit}`,
         { timeoutMs: 22000 }
       )
     ]);
@@ -2764,9 +2786,6 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
 
-      const montoBase = Number(row.costo || row.precio || row.monto || raw.costo || raw.precio || raw.monto || 0);
-      if (montoBase > 0) totalVendido += montoBase;
-
       if (isCompletedSaleSolicitud(row)) {
         terminadas += 1;
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
@@ -2776,12 +2795,10 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       }
     }
 
-    for (const row of refundedRows || []) {
-      const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
-      const refundDate = new Date(raw.fecha_reembolso || raw.reembolsado_en || "");
-      if (Number.isNaN(refundDate.getTime()) || refundDate < dateFrom || refundDate >= dateTo) continue;
-      const montoBase = Number(row.costo || raw.costo_cobrado || raw.costo || 0);
-      totalReembolsado += Number(row.monto_reembolsado || raw.monto_reembolsado || montoBase || 0);
+    for (const row of ledgerRows || []) {
+      const movement = classifySalesLedgerMovement(row);
+      if (movement.kind === "charge") totalVendido += movement.amount;
+      if (movement.kind === "refund") totalReembolsado += movement.amount;
     }
 
     const ventaNeta = totalVendido - totalReembolsado;
@@ -2793,7 +2810,9 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       date_to: dateTo.toISOString(),
       limit: summaryLimit,
       loaded_count: Array.isArray(rows) ? rows.length : 0,
-      possibly_truncated: Array.isArray(rows) && rows.length >= summaryLimit,
+      movement_count: Array.isArray(ledgerRows) ? ledgerRows.length : 0,
+      possibly_truncated: (Array.isArray(rows) && rows.length >= summaryLimit) ||
+        (Array.isArray(ledgerRows) && ledgerRows.length >= summaryLimit),
       total_vendido: Number(totalVendido.toFixed(2)),
       venta_real: Number(ventaNeta.toFixed(2)),
       venta_neta: Number(ventaNeta.toFixed(2)),
@@ -2832,8 +2851,9 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
     const encodedTo = encodeURIComponent(dateTo.toISOString());
     const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha,detalles_extra,cuestionario,raw_data";
     const rechargeFields = "id,firebase_id,email,monto,rastreo,estatus,fecha,raw_data";
+    const movementFields = "id,tipo,monto,descripcion,referencia,origen,fecha_movimiento,raw_data";
 
-    const [solicitudes, recargas, asesores, solicitudesReembolsadas] = await Promise.all([
+    const [solicitudes, recargas, asesores, ledgerRows] = await Promise.all([
       supabaseRequest(
         `solicitudes?select=${solicitudFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc&limit=5000`,
         { timeoutMs: 22000 }
@@ -2847,7 +2867,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
         { timeoutMs: 22000 }
       ),
       supabaseRequest(
-        `solicitudes?select=${solicitudFields}&reembolsado=eq.true&order=fecha.desc&limit=5000`,
+        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodedFrom}&fecha_movimiento=lt.${encodedTo}&order=fecha_movimiento.desc&limit=5000`,
         { timeoutMs: 22000 }
       )
     ]);
@@ -2863,19 +2883,6 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
     for (const row of solicitudes || []) {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
-      const tipo = normalizeString(row.tipo || raw.tipo || "Tramite");
-      const precioVenta = Number(row.costo || raw.costo_cobrado || raw.costo || raw.precio || raw.monto || 0);
-
-      if (precioVenta > 0) {
-        solicitudesCobradas += 1;
-        totalVendido += precioVenta;
-        const actual = porTramite.get(tipo) || { tipo, cantidad: 0, precio_unitario: precioVenta, venta: 0 };
-        actual.cantidad += 1;
-        actual.precio_unitario = precioVenta;
-        actual.venta += precioVenta;
-        porTramite.set(tipo, actual);
-      }
-
       if (isCompletedSaleSolicitud(row)) {
         solicitudesTerminadas += 1;
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
@@ -2885,12 +2892,21 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       }
     }
 
-    for (const row of solicitudesReembolsadas || []) {
-      const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
-      const refundDate = new Date(raw.fecha_reembolso || raw.reembolsado_en || "");
-      if (Number.isNaN(refundDate.getTime()) || refundDate < dateFrom || refundDate >= dateTo) continue;
-      const montoBase = Number(row.costo || raw.costo_cobrado || raw.costo || 0);
-      totalReembolsado += Number(row.monto_reembolsado || raw.monto_reembolsado || montoBase || 0);
+    for (const row of ledgerRows || []) {
+      const movement = classifySalesLedgerMovement(row);
+      if (movement.kind === "refund") {
+        totalReembolsado += movement.amount;
+        continue;
+      }
+      if (movement.kind !== "charge") continue;
+      solicitudesCobradas += 1;
+      totalVendido += movement.amount;
+      const tipo = salesLedgerServiceName(row);
+      const actual = porTramite.get(tipo) || { tipo, cantidad: 0, precio_unitario: movement.amount, venta: 0 };
+      actual.cantidad += 1;
+      actual.precio_unitario = movement.amount;
+      actual.venta += movement.amount;
+      porTramite.set(tipo, actual);
     }
 
     let totalRecargasAprobadas = 0;
@@ -2933,6 +2949,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       date_from: dateFrom.toISOString(),
       date_to: dateTo.toISOString(),
       solicitudes_cargadas: Array.isArray(solicitudes) ? solicitudes.length : 0,
+      movimientos_cargados: Array.isArray(ledgerRows) ? ledgerRows.length : 0,
       recargas_cargadas: Array.isArray(recargas) ? recargas.length : 0,
       total_recargas_aprobadas: Number(totalRecargasAprobadas.toFixed(2)),
       recargas_aprobadas: recargasAprobadas,
@@ -4500,64 +4517,6 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
         detallesExtra.fecha_cita_afore = "LO MAS PRONTO POSIBLE";
       }
       detallesExtra.numero_interior = normalizeString(detallesExtra.numero_interior) || "NO APLICA";
-    }
-
-    const requiredValue = (value) => {
-      const clean = normalizeString(value);
-      return Boolean(clean && clean.toUpperCase() !== "N/A");
-    };
-    const requiredAforeFields = {
-      "REGISTRO A DISTANCIA": [
-        [detallesExtra.telefono, "teléfono"],
-        [detallesExtra.telefono_contacto, "teléfono de contacto"],
-        [detallesExtra.correo, "correo"],
-        [detallesExtra.nota, "nota"],
-        [body.file_ine_f, "INE frente"],
-        [body.file_ine_r, "INE reverso"],
-        [body.file_selfie, "foto del cliente"]
-      ],
-      "RETIRO POR DESEMPLEO A DISTANCIA": [
-        [detallesExtra.pass, "contraseña"],
-        [body.file_ine_f, "INE frente"],
-        [body.file_ine_r, "INE reverso"],
-        [body.file_edocta, "estado de cuenta"],
-        [body.file_selfie, "foto del cliente"]
-      ],
-      "RETIRO DESEMPLEO A DISTANCIA": [
-        [detallesExtra.pass, "contraseña"],
-        [body.file_ine_f, "INE frente"],
-        [body.file_ine_r, "INE reverso"],
-        [body.file_edocta, "estado de cuenta"],
-        [body.file_selfie, "foto del cliente"]
-      ],
-      "CAMBIAR CONTRASENA AFORE WEB": [
-        [detallesExtra.pass_nueva, "contraseña nueva"],
-        [body.file_selfie, "foto del cliente"]
-      ]
-    };
-    const missingAforeField = (requiredAforeFields[normalizedServiceName] || [])
-      .find(([value]) => !requiredValue(value));
-    if (missingAforeField) {
-      const error = new Error(`Falta el requisito ${missingAforeField[1]} para solicitar este servicio AFORE.`);
-      error.statusCode = 400;
-      error.errorCode = "AFORE_SERVICE_FIELD_REQUIRED";
-      throw error;
-    }
-    if (normalizedServiceName === "CAMBIAR CONTRASENA AFORE WEB" && !/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/.test(curp)) {
-      const error = new Error("La CURP para cambiar la contraseña AFORE no tiene un formato válido.");
-      error.statusCode = 400;
-      error.errorCode = "AFORE_PASSWORD_CURP_INVALID";
-      throw error;
-    }
-    if (["RETIRO DESEMPLEO A DISTANCIA", "RETIRO POR DESEMPLEO A DISTANCIA"].includes(normalizedServiceName)) {
-      const withdrawalType = normalizeForCompare(detallesExtra.tipo_retiro_desempleo).toUpperCase();
-      if (!new Set(["TIPO A", "TIPO B"]).has(withdrawalType)) {
-        const error = new Error("Selecciona Tipo A o Tipo B para el retiro por desempleo.");
-        error.statusCode = 400;
-        error.errorCode = "AFORE_WITHDRAWAL_TYPE_REQUIRED";
-        throw error;
-      }
-      detallesExtra.tipo_retiro_desempleo = withdrawalType === "TIPO A" ? "Tipo A" : "Tipo B";
     }
 
     if (!Number.isFinite(costoServidor) || costoServidor <= 0) {
