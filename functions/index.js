@@ -89,6 +89,26 @@ async function supabaseRequest(path, options = {}) {
   return data;
 }
 
+async function supabaseRequestAll(path, options = {}) {
+  const pageSize = Math.min(Math.max(Number(options.pageSize || 1000), 1), 1000);
+  const maxRows = Math.min(Math.max(Number(options.maxRows || 20000), pageSize), 50000);
+  const timeoutMs = Number(options.timeoutMs || 22000);
+  const rows = [];
+  const separator = path.includes("?") ? "&" : "?";
+
+  for (let offset = 0; offset < maxRows; offset += pageSize) {
+    const page = await supabaseRequest(
+      `${path}${separator}limit=${pageSize}&offset=${offset}`,
+      { timeoutMs }
+    );
+    if (!Array.isArray(page) || page.length === 0) break;
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+
+  return rows;
+}
+
 function supabaseEq(value) {
   return encodeURIComponent(String(value || ""));
 }
@@ -372,6 +392,7 @@ const N8N_WEBHOOK_URL = "https://n8n.srv1567730.hstgr.cloud/webhook/Nueva_acta";
 const SERVICE_MAP = {
   SEMANAS_COTIZADAS: "SEMANAS COTIZADAS",
   SEMANAS_DETALLADAS: "SEMANAS DETALLADAS",
+  SEMANAS_SUBDELEGACION: "SEMANAS DE SUBDELEGACIÓN",
 
   SINDO_ULTIMO_RETIRO: "SINDO ULTIMO RETIRO",
   SINDO_ALFANUMERICO: "SINDO ALFANUMÉRICO",
@@ -437,6 +458,7 @@ const SERVICE_MAP = {
 
 const LEGACY_SERVICE_NAMES = {
   SEMANAS_COTIZADAS: ["SEMANAS"],
+  SEMANAS_SUBDELEGACION: ["SEMANAS SUBDELEGACION"],
   SINDO_ULTIMO_RETIRO: ["SINDO ULT RET"],
   SINDO_ALFANUMERICO: ["SINDO ALFANUMERICO"],
   TARJETA_NSS: ["TARJETA NSS"],
@@ -530,6 +552,7 @@ const EXTRA_DEFAULTS = {
 const DASHBOARD_SERVICE_PRICES = {
   "SEMANAS COTIZADAS": 15,
   "SEMANAS DETALLADAS": 25,
+  "SEMANAS DE SUBDELEGACION": 30,
   "SINDO ULTIMO RETIRO": 45,
   "SINDO ALFANUMERICO": 55,
   "SINDO COMPLETO": 190,
@@ -552,10 +575,10 @@ const DASHBOARD_SERVICE_PRICES = {
   "BURO DE CREDITO": 170,
   "CURP": 4,
   "RECIBO CFE": 10,
-  "ACTA DE NACIMIENTO": 11,
-  "ACTA DE MATRIMONIO": 11,
-  "ACTA DE DIVORCIO": 11,
-  "ACTA DE DEFUNCION": 11,
+  "ACTA DE NACIMIENTO": 13,
+  "ACTA DE MATRIMONIO": 13,
+  "ACTA DE DIVORCIO": 13,
+  "ACTA DE DEFUNCION": 13,
   "CERTIFICADO INEA": 30,
   "CERTIFICADO COVID": 20,
   "LOCALIZACION DE CONTRASENA": 90,
@@ -615,6 +638,7 @@ const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
     { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true },
     { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SEMANAS DE SUBDELEGACIÓN", precio: 0, curp: true, destacadoAmarillo: true, tiempoEstimado: "45 minutos", extraMsg: "Tiempo de espera aproximado: 45 minutos." },
     { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
     { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
     { nombre: "SINDO COMPLETO", precio: 0, nss: true },
@@ -2119,6 +2143,32 @@ function supabaseSolicitudFilterByPanelId(id) {
   return `firebase_id=eq.${encodedId}`;
 }
 
+function chargedAmountForSolicitud(row) {
+  const amount = Number(row?.costo ?? row?.precio ?? row?.monto ?? 0);
+  return Number.isFinite(amount) && amount > 0 ? amount : 0;
+}
+
+function completionDateForSolicitud(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const value = firstValidDateValue(
+    row?.fecha_finalizacion,
+    raw.fecha_finalizacion,
+    raw.fecha_finalizado,
+    raw.fecha_terminado,
+    raw.fechaTerminado,
+    raw.n8n_fecha_documento,
+    raw.fecha_documento,
+    raw.completed_at
+  );
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function dateIsWithin(date, from, to) {
+  return date instanceof Date && !Number.isNaN(date.getTime()) && date >= from && date < to;
+}
+
 function classifySalesLedgerMovement(row) {
   const tipo = normalizeForCompare(row?.tipo || "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   const monto = Number(row?.monto || 0);
@@ -2164,6 +2214,7 @@ const FINAL_DOCUMENT_PROVIDER_CHATS = new Set([
   "120363426493207414@g.us",
   "120363428182287786@g.us",
   "120363425835293476@g.us",
+  "120363429387260006@g.us",
   "120363411615694603@g.us"
 ]);
 const PROVIDER_CONTEXT_MINUTES = 10;
@@ -2759,20 +2810,21 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       "finalizado",
       "reembolsado",
       "monto_reembolsado",
+      "fecha_finalizacion",
       "fecha",
       "raw_data"
     ].join(",");
 
-    const summaryLimit = Math.min(Math.max(Number(req.query.limit || 5000), 1), 10000);
+    const summaryLimit = Math.min(Math.max(Number(req.query.limit || 20000), 1), 50000);
     const movementFields = "id,tipo,monto,descripcion,referencia,origen,fecha_movimiento,raw_data";
     const [rows, ledgerRows] = await Promise.all([
-      supabaseRequest(
-        `solicitudes?select=${selectFields}&fecha=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha.desc&limit=${summaryLimit}`,
-        { timeoutMs: 22000 }
+      supabaseRequestAll(
+        `solicitudes?select=${selectFields}&finalizado=eq.true&order=fecha.desc`,
+        { timeoutMs: 22000, maxRows: summaryLimit }
       ),
-      supabaseRequest(
-        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha_movimiento=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha_movimiento.desc&limit=${summaryLimit}`,
-        { timeoutMs: 22000 }
+      supabaseRequestAll(
+        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodeURIComponent(dateFrom.toISOString())}&fecha_movimiento=lt.${encodeURIComponent(dateTo.toISOString())}&order=fecha_movimiento.desc`,
+        { timeoutMs: 22000, maxRows: summaryLimit }
       )
     ]);
 
@@ -2781,13 +2833,19 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
     let terminadas = 0;
     let pendientes = 0;
     let errores = 0;
+    let terminadasSinFecha = 0;
 
     for (const row of rows || []) {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
-
       if (isCompletedSaleSolicitud(row)) {
-        terminadas += 1;
+        const completionDate = completionDateForSolicitud(row);
+        if (!completionDate) {
+          terminadasSinFecha += 1;
+        } else if (dateIsWithin(completionDate, dateFrom, dateTo)) {
+          terminadas += 1;
+          totalVendido += chargedAmountForSolicitud(row);
+        }
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
         errores += 1;
       } else {
@@ -2797,11 +2855,10 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
 
     for (const row of ledgerRows || []) {
       const movement = classifySalesLedgerMovement(row);
-      if (movement.kind === "charge") totalVendido += movement.amount;
       if (movement.kind === "refund") totalReembolsado += movement.amount;
     }
 
-    const ventaNeta = totalVendido - totalReembolsado;
+    const ventaNeta = totalVendido;
 
     res.json({
       success: true,
@@ -2818,6 +2875,7 @@ app.get("/api/v1/admin/panel/summary", async (req, res) => {
       venta_neta: Number(ventaNeta.toFixed(2)),
       total_reembolsado: Number(totalReembolsado.toFixed(2)),
       terminadas,
+      terminadas_sin_fecha: terminadasSinFecha,
       pendientes,
       errores
     });
@@ -2849,26 +2907,26 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
 
     const encodedFrom = encodeURIComponent(dateFrom.toISOString());
     const encodedTo = encodeURIComponent(dateTo.toISOString());
-    const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha,detalles_extra,cuestionario,raw_data";
+    const solicitudFields = "id,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,fecha_finalizacion,fecha,detalles_extra,cuestionario,raw_data";
     const rechargeFields = "id,firebase_id,email,monto,rastreo,estatus,fecha,raw_data";
     const movementFields = "id,tipo,monto,descripcion,referencia,origen,fecha_movimiento,raw_data";
 
     const [solicitudes, recargas, asesores, ledgerRows] = await Promise.all([
-      supabaseRequest(
-        `solicitudes?select=${solicitudFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc&limit=5000`,
-        { timeoutMs: 22000 }
+      supabaseRequestAll(
+        `solicitudes?select=${solicitudFields}&finalizado=eq.true&order=fecha.desc`,
+        { timeoutMs: 22000, maxRows: 50000 }
       ),
-      supabaseRequest(
-        `notificaciones_pago?select=${rechargeFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc&limit=5000`,
-        { timeoutMs: 22000 }
+      supabaseRequestAll(
+        `notificaciones_pago?select=${rechargeFields}&fecha=gte.${encodedFrom}&fecha=lt.${encodedTo}&order=fecha.desc`,
+        { timeoutMs: 22000, maxRows: 20000 }
       ),
       supabaseRequest(
         "asesores?select=saldo_actual,activo,raw_data&limit=5000",
         { timeoutMs: 22000 }
       ),
-      supabaseRequest(
-        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodedFrom}&fecha_movimiento=lt.${encodedTo}&order=fecha_movimiento.desc&limit=5000`,
-        { timeoutMs: 22000 }
+      supabaseRequestAll(
+        `movimientos_saldo?select=${movementFields}&fecha_movimiento=gte.${encodedFrom}&fecha_movimiento=lt.${encodedTo}&order=fecha_movimiento.desc`,
+        { timeoutMs: 22000, maxRows: 20000 }
       )
     ]);
 
@@ -2878,13 +2936,30 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
     let solicitudesCobradas = 0;
     let solicitudesPendientes = 0;
     let solicitudesError = 0;
+    let solicitudesTerminadasSinFecha = 0;
     const porTramite = new Map();
 
     for (const row of solicitudes || []) {
       const raw = row.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
       const estatus = normalizeForCompare(row.estatus || raw.estatus || "");
       if (isCompletedSaleSolicitud(row)) {
-        solicitudesTerminadas += 1;
+        const completionDate = completionDateForSolicitud(row);
+        if (!completionDate) {
+          solicitudesTerminadasSinFecha += 1;
+        } else if (dateIsWithin(completionDate, dateFrom, dateTo)) {
+          solicitudesTerminadas += 1;
+          const chargedAmount = chargedAmountForSolicitud(row);
+          if (chargedAmount > 0) {
+            solicitudesCobradas += 1;
+            totalVendido += chargedAmount;
+            const tipo = normalizeString(row.tipo || raw.tipo || "Trámite") || "Trámite";
+            const actual = porTramite.get(tipo) || { tipo, cantidad: 0, precio_unitario: chargedAmount, venta: 0 };
+            actual.cantidad += 1;
+            actual.precio_unitario = chargedAmount;
+            actual.venta += chargedAmount;
+            porTramite.set(tipo, actual);
+          }
+        }
       } else if (estatus.includes("error") || estatus.includes("rechaz") || estatus.includes("cancel")) {
         solicitudesError += 1;
       } else {
@@ -2896,17 +2971,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       const movement = classifySalesLedgerMovement(row);
       if (movement.kind === "refund") {
         totalReembolsado += movement.amount;
-        continue;
       }
-      if (movement.kind !== "charge") continue;
-      solicitudesCobradas += 1;
-      totalVendido += movement.amount;
-      const tipo = salesLedgerServiceName(row);
-      const actual = porTramite.get(tipo) || { tipo, cantidad: 0, precio_unitario: movement.amount, venta: 0 };
-      actual.cantidad += 1;
-      actual.precio_unitario = movement.amount;
-      actual.venta += movement.amount;
-      porTramite.set(tipo, actual);
     }
 
     let totalRecargasAprobadas = 0;
@@ -2940,7 +3005,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       if (lastConnection && lastConnection >= activeSince) usuariosDashboardActivos += 1;
     }
 
-    const ventaNeta = totalVendido - totalReembolsado;
+    const ventaNeta = totalVendido;
     const flujoCajaDia = totalRecargasAprobadas - totalReembolsado;
 
     res.json({
@@ -2961,6 +3026,7 @@ app.get("/api/v1/admin/panel/money-cut", async (req, res) => {
       venta_neta: Number(ventaNeta.toFixed(2)),
       flujo_caja_dia: Number(flujoCajaDia.toFixed(2)),
       solicitudes_terminadas: solicitudesTerminadas,
+      solicitudes_terminadas_sin_fecha: solicitudesTerminadasSinFecha,
       solicitudes_cobradas: solicitudesCobradas,
       solicitudes_pendientes: solicitudesPendientes,
       solicitudes_error: solicitudesError,
@@ -3017,6 +3083,7 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
       payload.raw_data.archivo_final = archivoFinalAdmin;
     }
     if (finalizado) {
+      payload.fecha_finalizacion = solicitud.fecha_finalizacion || now;
       payload.raw_data.fecha_terminado = payload.raw_data.fecha_terminado || now;
       payload.raw_data.fecha_finalizado = payload.raw_data.fecha_finalizado || now;
     }
@@ -3219,6 +3286,7 @@ app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
         archivo_final: archivoFinal,
         estatus,
         finalizado: true,
+        fecha_finalizacion: now,
         raw_data: {
           ...currentRaw,
           archivoFinal,
@@ -3378,7 +3446,7 @@ async function getN8nDocumentCandidateRows(body) {
   // detalles_extra, cuestionario o raw_data. Incluimos también las pendientes
   // recientes y deduplicamos para no detener la búsqueda en el registro viejo.
   const fallbackRows = await supabaseRequest(
-    "solicitudes?select=*&order=fecha.desc.nullslast&limit=1000",
+    "solicitudes?finalizado=eq.false&select=*&order=fecha.desc.nullslast&limit=1000",
     { timeoutMs: 22000 }
   );
   for (const row of fallbackRows || []) {
@@ -3445,6 +3513,14 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
     const candidatos = (rows || [])
       .filter(isMeaningfulAdminSolicitud)
       .filter((row) => {
+        if (sourceChatId !== RFC_DOCUMENT_FALLBACK_CHAT_ID) return true;
+        const tipo = normalizeForCompare(row.tipo || row.raw_data?.tipo || "");
+        if (tipo.includes("localizacion") && tipo.includes("idcif")) return false;
+        return tipo.includes("rfc verificable") ||
+          (tipo.includes("rfc") && tipo.includes("idcif")) ||
+          (tipo.includes("rfc") && (tipo.includes("clon") || tipo.includes("clone")));
+      })
+      .filter((row) => {
         const estatus = normalizeForCompare(row.estatus || row.raw_data?.estatus || "");
         const archivoFinalColumna = normalizeString(row.archivo_final);
         const archivoFinalRaw = normalizeString(row.raw_data?.archivo_final || row.raw_data?.archivoFinal);
@@ -3505,6 +3581,7 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
         archivo_final: archivoFinal,
         estatus,
         finalizado: true,
+        fecha_finalizacion: now,
         raw_data: {
           ...currentRaw,
           archivoFinal,
@@ -3776,6 +3853,7 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
         archivo_final: archivoFinal,
         estatus,
         finalizado: true,
+        fecha_finalizacion: now,
         raw_data: {
           ...currentRaw,
           archivoFinal,
@@ -4747,6 +4825,13 @@ app.post("/api/v1/dashboard/payment-notifications", async (req, res) => {
           origen: "dashboard_backend"
         }
       }])
+    });
+
+    console.log("Recarga reportada", {
+      notificacion_id: notificacionId,
+      firebase_uid: auth.uid,
+      monto,
+      fecha: new Date().toISOString()
     });
 
     res.status(201).json({
