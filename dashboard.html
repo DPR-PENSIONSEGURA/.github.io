@@ -26,6 +26,9 @@
         .category-card { background: rgba(255,255,255,.92); border: 1px solid rgba(148,163,184,.22); transition: all 0.25s ease; cursor: pointer; border-radius: 26px; box-shadow: 0 18px 35px rgba(15,23,42,.055); }
         .category-card:hover { border-color: rgba(16,185,129,.45); transform: translateY(-4px); box-shadow:0 24px 44px rgba(15,23,42,.09); }
         .service-card { background:white; border:1px solid rgba(148,163,184,.24); border-radius:24px; padding:20px; box-shadow:0 14px 32px rgba(15,23,42,.06); }
+        .service-card-highlight { background:linear-gradient(135deg,#FEF3C7,#FDE68A); border:2px solid #F59E0B; animation:serviceYellowPulse 1.45s ease-in-out infinite; }
+        @keyframes serviceYellowPulse { 0%,100% { box-shadow:0 12px 28px rgba(245,158,11,.16); transform:scale(1); } 50% { box-shadow:0 18px 42px rgba(245,158,11,.48); transform:scale(1.015); } }
+        @media (prefers-reduced-motion: reduce) { .service-card-highlight { animation:none; } }
         .input-light { background: #FFFFFF; border: 1.8px solid #E2E8F0; padding: 13px; border-radius: 16px; width: 100%; outline: none; font-weight: 700; font-size: 12px; transition:.2s; }
         .input-light:focus { border-color:#10B981; box-shadow:0 0 0 4px rgba(16,185,129,.10); }
         .orange-btn { background: linear-gradient(135deg, #F97316, #EA580C); color: white; transition: all 0.3s ease; cursor: pointer; box-shadow:0 18px 32px rgba(249,115,22,.22); }
@@ -734,9 +737,17 @@ async function cargarPreciosBackend() {
                 const etiquetaPrecio = obtenerEtiquetaPrecioTramite(servicio);
                 const badgeClass = beneficio
                     ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-emerald-50 text-emerald-700 border-emerald-100";
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-bold text-slate-400 mt-2">${beneficio ? beneficio.detalle : "Solicitud rápida y segura"}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
+                    : servicio.destacadoAmarillo
+                        ? "bg-amber-500 text-white border-amber-600"
+                        : "bg-emerald-50 text-emerald-700 border-emerald-100";
+                const cardClass = servicio.destacadoAmarillo ? "service-card-highlight" : "";
+                const detalleCard = beneficio
+                    ? beneficio.detalle
+                    : servicio.tiempoEstimado
+                        ? `⏱ Tiempo aproximado: ${servicio.tiempoEstimado}`
+                        : "Solicitud rápida y segura";
+                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card ${cardClass} cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-bold ${servicio.destacadoAmarillo ? 'text-amber-800' : 'text-slate-400'} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm">Ir</span></div>
                 </div>`;
             });
@@ -795,9 +806,64 @@ async function cargarPreciosBackend() {
             return true;
         }
 
+        function nombreServicioNormalizado(t) {
+            return String(t?.nombre || '')
+                .toUpperCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim();
+        }
+
+        function permiteVariasCurp(t) {
+            const nombre = nombreServicioNormalizado(t);
+            return nombre === 'SEMANAS COTIZADAS' || nombre.startsWith('ACTA DE ');
+        }
+
+        function obtenerCurpsCapturadas(valor) {
+            const vistas = new Set();
+            return String(valor || '')
+                .toUpperCase()
+                .split(/[\s,;]+/)
+                .map(curp => curp.replace(/[^A-Z0-9]/g, '').trim())
+                .filter(Boolean)
+                .filter(curp => {
+                    if (vistas.has(curp)) return false;
+                    vistas.add(curp);
+                    return true;
+                });
+        }
+
+        function validarCurpsMultiples(t) {
+            if (!t?.curp || !permiteVariasCurp(t)) return true;
+            const campo = document.getElementById('curp_p');
+            const curps = obtenerCurpsCapturadas(campo?.value);
+            if (!curps.length) {
+                alert('Captura al menos una CURP.');
+                campo?.focus();
+                return false;
+            }
+            if (curps.length > 50) {
+                alert('Puedes enviar hasta 50 CURP por lote.');
+                campo?.focus();
+                return false;
+            }
+            const invalidas = curps.filter(curp => !VALIDADORES_DPR.curp.regex.test(curp));
+            if (invalidas.length) {
+                campo?.focus();
+                campo?.classList.add('border-red-500');
+                alert(`Estas CURP no tienen una estructura válida:\n\n${invalidas.join('\n')}`);
+                return false;
+            }
+            campo.classList.remove('border-red-500');
+            campo.value = curps.join('\n');
+            return true;
+        }
+
         function validarCandadosTramite(t) {
             const checks = [];
-            if (t.curp) checks.push(['curp_p', 'curp', 'CURP']);
+            if (t.curp && permiteVariasCurp(t)) {
+                if (!validarCurpsMultiples(t)) return false;
+            } else if (t.curp) checks.push(['curp_p', 'curp', 'CURP']);
             if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
             if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
             if (t.idcif) checks.push(['idcif_p', 'idcif', 'IDCIF']);
@@ -890,9 +956,14 @@ fields += `
     <option>Pfizer</option>
 </select>
 `;
-            if (t.extraMsg) fields += `<p class="text-[9px] font-bold text-red-600 mb-4 bg-red-50 p-2 border border-red-100 uppercase">${t.extraMsg}</p>`;
+            if (t.extraMsg) fields += `<p class="text-[9px] font-bold ${t.destacadoAmarillo ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-red-600 bg-red-50 border-red-100'} mb-4 p-3 border rounded-xl uppercase">${t.extraMsg}</p>`;
             if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
-            if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" maxlength="18" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
+            if (t.curp && permiteVariasCurp(t)) fields += `
+                <div class="mb-4">
+                    <textarea id="curp_p" rows="5" autocomplete="off" placeholder="ESCRIBE UNA O VARIAS CURP, SEPARADAS POR COMAS O RENGLONES" oninput="this.value=this.value.toUpperCase()" class="input-light uppercase min-h-[130px]"></textarea>
+                    <p class="mt-2 text-[9px] font-black uppercase text-emerald-700">Cada CURP genera una solicitud y un cobro individual. Máximo 50 por lote.</p>
+                </div>`;
+            else if (t.curp) fields += `<input type="text" id="curp_p" placeholder="CURP" maxlength="18" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
             if (t.nss) fields += `<input type="text" id="nss_p" placeholder="NSS  11 números, sin letras" maxlength="11" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)" class="input-light mb-4">`;
             if (t.rfc) fields += `<input type="text" id="rfc_p" placeholder="RFC con homoclave" maxlength="13" autocomplete="off" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')" class="input-light mb-4 uppercase">`;
             if (t.idcif) fields += `<input type="text" id="idcif_p" placeholder="IDCIF  11 números" maxlength="11" inputmode="numeric" autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)" class="input-light mb-4 uppercase">`;
@@ -1130,6 +1201,16 @@ fields += `
                     c = Number(sel?.selectedOptions?.[0]?.dataset?.precio || c);
                 }
 
+                const curpsLote = t.curp && permiteVariasCurp(t)
+                    ? obtenerCurpsCapturadas(document.getElementById('curp_p')?.value)
+                    : [];
+                const cantidadSolicitudes = Math.max(curpsLote.length, 1);
+                const costoEstimadoLote = Number(c || 0) * cantidadSolicitudes;
+                if (saldoGlobal < costoEstimadoLote) {
+                    alert(`Saldo insuficiente para ${cantidadSolicitudes} solicitudes.\n\nCosto estimado: $${costoEstimadoLote.toFixed(2)}\nSaldo disponible: $${Number(saldoGlobal || 0).toFixed(2)}`);
+                    return;
+                }
+
                 if (t.pideCitaAfore) {
                     const requeridos = [
                         ['nombre_p', 'nombre completo'],
@@ -1153,47 +1234,6 @@ fields += `
                     if (preferencia === 'FECHA_ESPECIFICA' && !document.getElementById('fecha_cita_afore_p')?.value) {
                         alert('Selecciona la fecha solicitada para la cita.');
                         document.getElementById('fecha_cita_afore_p')?.focus();
-                        return;
-                    }
-                }
-
-                const nombreNormalizado = normalizarClavePrecio(t.nombre);
-                const serviciosAforeRestaurados = new Set([
-                    'REGISTRO A DISTANCIA',
-                    'RETIRO DESEMPLEO A DISTANCIA',
-                    'RETIRO POR DESEMPLEO A DISTANCIA',
-                    'CAMBIAR CONTRASENA AFORE WEB'
-                ]);
-                if (serviciosAforeRestaurados.has(nombreNormalizado)) {
-                    const camposRequeridos = [];
-                    if (t.pideTel) camposRequeridos.push(['tel_p', 'teléfono']);
-                    if (t.pideTelContacto) camposRequeridos.push(['tel_contacto_p', 'teléfono de contacto']);
-                    if (t.pideCorreo) camposRequeridos.push(['correo_p', 'correo']);
-                    if (t.pideNota) camposRequeridos.push(['nota_p', 'nota']);
-                    if (t.pidePass) camposRequeridos.push(['pass_p', 'contraseña']);
-                    if (t.pidePassNueva) camposRequeridos.push(['pass_nueva_p', 'contraseña nueva']);
-                    if (t.curp) camposRequeridos.push(['curp_p', 'CURP']);
-                    const campoFaltante = camposRequeridos.find(([id]) => !String(document.getElementById(id)?.value || '').trim());
-                    if (campoFaltante) {
-                        alert(`Completa el campo: ${campoFaltante[1]}.`);
-                        document.getElementById(campoFaltante[0])?.focus();
-                        return;
-                    }
-
-                    const archivosRequeridos = [];
-                    if (t.pideIneFrente) archivosRequeridos.push(['file_ine_f', 'INE frente']);
-                    if (t.pideIneReverso) archivosRequeridos.push(['file_ine_r', 'INE reverso']);
-                    if (t.pideFotoCli) archivosRequeridos.push(['file_selfie', 'foto del cliente']);
-                    if (t.pideEdoCta) archivosRequeridos.push(['file_edocta', 'estado de cuenta']);
-                    const archivoFaltante = archivosRequeridos.find(([id]) => !document.getElementById(id)?.files?.[0]);
-                    if (archivoFaltante) {
-                        alert(`Adjunta el archivo: ${archivoFaltante[1]}.`);
-                        document.getElementById(archivoFaltante[0])?.focus();
-                        return;
-                    }
-
-                    if (t.pideTipoRetiroDesempleo && !document.querySelector('input[name="tipo_retiro_desempleo"]:checked')) {
-                        alert('Selecciona Tipo A o Tipo B para el retiro por desempleo.');
                         return;
                     }
                 }
@@ -1327,28 +1367,50 @@ vacuna_covid: val('vacuna_covid_p'),
                 if (t.pideCompDomicilio) file_comp_domicilio = await subirArchivoCloudinary('file_comp_domicilio');
                 if (t.pideEdoCta) file_edocta = await subirArchivoCloudinary('file_edocta');
 
-                await requestDashboardApi("/api/v1/dashboard/requests", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        service_name: t.nombre,
-                        service_display_name: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
-                        costo: c,
-                        curp: (val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp')).toUpperCase(),
-                        nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
-                        detalles_extra: extra,
-                        cuestionario: quest,
-                        file_ine_f,
-                        file_ine_r,
-                        file_selfie,
-                        file_comp_domicilio,
-                        file_edocta
-                    })
-                });
+                const curpsSolicitud = curpsLote.length
+                    ? curpsLote
+                    : [(val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp')).toUpperCase()];
+                let enviadas = 0;
+                for (let index = 0; index < curpsSolicitud.length; index++) {
+                    const curpActual = curpsSolicitud[index];
+                    if (botonPago && curpsSolicitud.length > 1) {
+                        botonPago.innerText = `ENVIANDO ${index + 1} DE ${curpsSolicitud.length}...`;
+                    }
+                    try {
+                        await requestDashboardApi("/api/v1/dashboard/requests", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                service_name: t.nombre,
+                                service_display_name: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
+                                costo: c,
+                                curp: curpActual,
+                                nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
+                                detalles_extra: { ...extra, lote_total: curpsSolicitud.length, lote_posicion: index + 1 },
+                                cuestionario: quest,
+                                file_ine_f,
+                                file_ine_r,
+                                file_selfie,
+                                file_comp_domicilio,
+                                file_edocta
+                            })
+                        });
+                        enviadas += 1;
+                    } catch (errorSolicitud) {
+                        const pendientes = curpsSolicitud.slice(index);
+                        const campoCurp = document.getElementById('curp_p');
+                        if (campoCurp && curpsLote.length) campoCurp.value = pendientes.join('\n');
+                        await cargarSaldo();
+                        await cargarHistorial();
+                        throw new Error(`${enviadas} de ${curpsSolicitud.length} solicitudes fueron enviadas. Falló ${curpActual}: ${errorSolicitud.message || 'error desconocido'}. Las CURP pendientes permanecen en el cuadro.`);
+                    }
+                }
 
-                alert("Enviado.");
+                alert(curpsSolicitud.length > 1
+                    ? `${enviadas} solicitudes enviadas correctamente. Cada CURP fue registrada de manera individual.`
+                    : "Solicitud enviada correctamente.");
                 window.cerrarModal();
                 await cargarPreciosBackend();
                 if (categoriaActual) window.mostrarTramites(categoriaActual);
@@ -1371,33 +1433,60 @@ vacuna_covid: val('vacuna_covid_p'),
 
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
-            const r = document.getElementById('claveRastreo').value;
+            const r = document.getElementById('claveRastreo').value.trim();
             const f = document.getElementById('fileRecarga').files[0];
+            const boton = document.getElementById('btnNotificar');
 
-            if (!m || !r || !f) return alert("Completa datos.");
+            if (!Number.isFinite(m) || m < 200) return alert("La recarga mínima es de $200.");
+            if (!r) return alert("Escribe la clave de rastreo.");
+            if (!f) return alert("Adjunta el comprobante de pago.");
 
-            const fd = new FormData();
-            fd.append('file', f);
-            fd.append('upload_preset', UPLOAD_PRESET);
+            if (boton) {
+                boton.disabled = true;
+                boton.textContent = "ENVIANDO...";
+                boton.style.opacity = "0.65";
+            }
 
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-            const d = await res.json();
+            try {
+                const fd = new FormData();
+                fd.append('file', f);
+                fd.append('upload_preset', UPLOAD_PRESET);
 
-            await requestDashboardApi("/api/v1/dashboard/payment-notifications", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    monto: m,
-                    rastreo: r.toUpperCase(),
-                    comprobante: d.secure_url
-                })
-            });
+                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
+                let d = {};
+                try { d = await res.json(); } catch (_) {}
+                if (!res.ok || !d.secure_url) {
+                    throw new Error(d.error?.message || "No se pudo subir el comprobante. Intenta con una imagen JPG o PNG.");
+                }
 
-            alert("Reportado.");
-            window.cerrarModal();
-            cargarHistorial();
+                await requestDashboardApi("/api/v1/dashboard/payment-notifications", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        monto: m,
+                        rastreo: r.toUpperCase(),
+                        comprobante: d.secure_url
+                    })
+                });
+
+                alert("Recarga reportada correctamente. Un asesor validará el pago.");
+                document.getElementById('depMonto').value = '';
+                document.getElementById('claveRastreo').value = '';
+                document.getElementById('fileRecarga').value = '';
+                window.cerrarModal();
+                cargarHistorial();
+            } catch (error) {
+                console.error("Error reportando recarga", error);
+                alert(`No se pudo reportar la recarga: ${error.message || "error desconocido"}`);
+            } finally {
+                if (boton) {
+                    boton.disabled = false;
+                    boton.textContent = "REPORTAR PAGO";
+                    boton.style.opacity = "1";
+                }
+            }
         };
 
         window.abrirTerminos = () => {
