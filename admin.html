@@ -846,7 +846,7 @@ class="admin-menu-btn solo-admin relative">
           </div>
           <div class="grid md:grid-cols-4 gap-3 mb-4">
             <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-emerald-700">Recargas aprobadas</p><p id="corteRecargas" class="text-2xl font-black text-emerald-700">$0.00</p><small id="corteRecargasMeta" class="font-bold text-slate-500">0 operaciones</small></div>
-            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-indigo-700">Vendido real</p><p id="corteVentaNeta" class="text-2xl font-black text-indigo-700">$0.00</p><small id="corteVentasMeta" class="font-bold text-slate-500">Neto después de devoluciones</small></div>
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-indigo-700">Venta de terminados</p><p id="corteVentaNeta" class="text-2xl font-black text-indigo-700">$0.00</p><small id="corteVentasMeta" class="font-bold text-slate-500">Solo trámites terminados durante el día</small></div>
             <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-rose-700">Reembolsos</p><p id="corteReembolsos" class="text-2xl font-black text-rose-700">$0.00</p><small id="corteFlujoCaja" class="font-bold text-slate-500">Flujo: $0.00</small></div>
             <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-amber-700">Saldo clientes actual</p><p id="corteSaldoClientes" class="text-2xl font-black text-amber-700">$0.00</p><small id="corteSaldoMeta" class="font-bold text-slate-500">0 clientes con saldo</small></div>
           </div>
@@ -1076,7 +1076,7 @@ class="admin-menu-btn solo-admin relative">
             const data = await adminApi(`/api/v1/admin/panel/summary?${query}`, { timeoutMs: 30000 });
             const nota = data.possibly_truncated
                 ? `Resumen parcial: se alcanzó el límite de ${data.limit || data.loaded_count || 0} registros.`
-                : `Sincronizado con backend. Registros revisados: ${data.loaded_count || 0}`;
+                : `Solo trámites terminados hoy: ${data.terminadas || 0}`;
             actualizarGananciaAdmin(data.venta_real ?? data.venta_neta ?? data.total_vendido, nota);
             return data;
         }
@@ -1102,7 +1102,7 @@ class="admin-menu-btn solo-admin relative">
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
                 const vendidoReal = data.venta_real ?? data.venta_neta ?? data.total_vendido;
                 setText('corteVentaNeta', dineroMX(vendidoReal));
-                setText('corteVentasMeta', `${data.solicitudes_cobradas ?? data.solicitudes_terminadas ?? 0} cobradas · venta bruta ${dineroMX(data.total_vendido)} menos reembolsos`);
+                setText('corteVentasMeta', `${data.solicitudes_terminadas || 0} trámites terminados en este día`);
                 setText('corteReembolsos', dineroMX(data.total_reembolsado));
                 setText('corteFlujoCaja', `Ajustes devueltos del dia`);
                 setText('txtVisitas', String(data.usuarios_dashboard_activos ?? 0));
@@ -1138,6 +1138,7 @@ class="admin-menu-btn solo-admin relative">
             { key: 'VIGENCIA', label: 'Vigencia de derechos', aliases: ['vigencia','vigencia de derechos'] },
             { key: 'INCAPACIDAD', label: 'Incapacidad', aliases: ['incapacidad','incapacidades'] },
             { key: 'RECETAS', label: 'Recetas', aliases: ['receta','recetas'] },
+            { key: 'SEMANAS_SUBDELEGACION', label: 'Semanas de Subdelegación', aliases: ['semanas de subdelegacion','semanas subdelegacion'] },
             { key: 'SEMANAS_COTIZADAS', label: 'Semanas Cotizadas', aliases: ['semanas cotizadas','semanas'] },
             { key: 'RFC_VERIFICABLE', label: 'RFC Verificable', aliases: ['rfc verificable'] },
             { key: 'ACTA_NACIMIENTO', label: 'Acta de nacimiento', aliases: ['acta de nacimiento','acta','actas'] },
@@ -1156,6 +1157,7 @@ class="admin-menu-btn solo-admin relative">
             INCAPACIDAD: 5,
             RECETAS: 5,
             SEMANAS_COTIZADAS: 3,
+            SEMANAS_SUBDELEGACION: 0,
             RFC_VERIFICABLE: 0,
             ACTA_NACIMIENTO: 0,
             BURO_DE_CREDITO: 0,
@@ -1764,6 +1766,7 @@ class="admin-menu-btn solo-admin relative">
 
         const INVENTARIO_VENTA_DIRECTA_DEFAULT = [
             { key: 'SEMANAS_COTIZADAS', nombre: 'SEMANAS COTIZADAS', proveedor: 0, publico: 18 },
+            { key: 'SEMANAS_SUBDELEGACION', nombre: 'SEMANAS DE SUBDELEGACIÓN', proveedor: 0, publico: 30 },
             { key: 'SEMANAS_DETALLADAS', nombre: 'SEMANAS DETALLADAS', proveedor: 0, publico: 29 },
             { key: 'SINDO_ULTIMO_RETIRO', nombre: 'SINDO ULTIMO RETIRO', proveedor: 0, publico: 45 },
             { key: 'SINDO_ALFANUMERICO', nombre: 'SINDO ALFANUMERICO', proveedor: 0, publico: 55 },
@@ -2788,6 +2791,9 @@ class="admin-menu-btn solo-admin relative">
                 window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
             } catch (e) {
                 console.error(e);
+                const t = document.getElementById('tablaRecargas');
+                if (t) t.innerHTML = `<tr><td colspan="4" class="p-5 text-center text-red-600 font-black">NO SE PUDIERON CARGAR LAS RECARGAS: ${e.message || 'ERROR DEL SERVIDOR'}</td></tr>`;
+                window.actualizarNotificacionAdmin('recargas', true, '!');
             }
         }
         cargarRecargasAdmin();
