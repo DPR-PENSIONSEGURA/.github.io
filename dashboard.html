@@ -735,22 +735,31 @@ async function cargarPreciosBackend() {
             serviciosCategoria.forEach(t => {
                 const servicio = { ...t, categoria: cat };
                 const conf = JSON.stringify(servicio).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+                const nombreServicio = String(servicio.nombre || '').trim().toUpperCase();
+                const pausado = servicio.pausado === true || ["SEMANAS COTIZADAS", "SEMANAS DETALLADAS"].includes(nombreServicio);
                 const beneficio = obtenerBeneficioPremium(servicio);
-                const etiquetaPrecio = obtenerEtiquetaPrecioTramite(servicio);
-                const badgeClass = beneficio
+                const etiquetaPrecio = pausado ? "NO DISPONIBLE" : obtenerEtiquetaPrecioTramite(servicio);
+                const badgeClass = pausado
+                    ? "bg-slate-200 text-slate-600 border-slate-300"
+                    : beneficio
                     ? "bg-emerald-600 text-white border-emerald-600"
                     : servicio.destacadoAmarillo
                         ? "bg-amber-500 text-white border-amber-600"
                         : "bg-emerald-50 text-emerald-700 border-emerald-100";
-                const cardClass = servicio.destacadoAmarillo ? "service-card-highlight" : "";
-                const detalleCard = beneficio
+                const cardClass = pausado
+                    ? "opacity-65 cursor-not-allowed bg-slate-100"
+                    : servicio.destacadoAmarillo ? "service-card-highlight" : "";
+                const detalleCard = pausado
+                    ? (servicio.estadoServicio || "SERVICIO NO DISPONIBLE")
+                    : beneficio
                     ? beneficio.detalle
                     : servicio.tiempoEstimado
                         ? `⏱ Tiempo aproximado: ${servicio.tiempoEstimado}`
                         : "Solicitud rápida y segura";
-                html += `<div onclick="window.prepararTramite(JSON.parse('${conf}'))" class="service-card ${cardClass} cursor-pointer transition hover:-translate-y-1 hover:shadow-xl">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-bold ${servicio.destacadoAmarillo ? 'text-amber-800' : 'text-slate-400'} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
-                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase text-slate-400">Iniciar trámite</span><span class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-sm">Ir</span></div>
+                const actionAttr = pausado ? `aria-disabled="true"` : `onclick="window.prepararTramite(JSON.parse('${conf}'))"`;
+                html += `<div ${actionAttr} class="service-card ${cardClass} ${pausado ? '' : 'cursor-pointer transition hover:-translate-y-1 hover:shadow-xl'}">
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-black ${pausado ? 'text-red-600' : servicio.destacadoAmarillo ? 'text-amber-800' : 'text-slate-400'} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
+                    <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase ${pausado ? 'text-red-500' : 'text-slate-400'}">${pausado ? 'Temporalmente pausado' : 'Iniciar trámite'}</span><span class="w-9 h-9 rounded-2xl ${pausado ? 'bg-slate-300' : 'bg-slate-900'} text-white flex items-center justify-center font-black text-sm">${pausado ? '—' : 'Ir'}</span></div>
                 </div>`;
             });
 
@@ -896,6 +905,7 @@ async function cargarPreciosBackend() {
         };
 
         window.prepararTramite = (t) => {
+            if (!t || t.pausado === true) return;
             const content = document.getElementById('formContent');
             let pFinal = obtenerPrecioTramite(t);
             const beneficioPremium = obtenerBeneficioPremium(t);
