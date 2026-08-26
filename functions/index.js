@@ -2215,6 +2215,7 @@ function salesLedgerServiceName(row) {
 const PROVIDER_AUTOMATION = Object.freeze({
   "120363424712619825@g.us": "weeks",
   "120363427907217541@g.us": "detailed_weeks",
+  "120363428469412881@g.us": "subdelegation_weeks",
   "120363411286493569@g.us": "civil_records",
   "120363409003681418@g.us": "idcif",
   "120363426493207414@g.us": "cfe",
@@ -2227,6 +2228,7 @@ const RFC_DOCUMENT_FALLBACK_CHAT_ID = "120363429387260006@g.us";
 const FINAL_DOCUMENT_PROVIDER_CHATS = new Set([
   "120363424712619825@g.us",
   "120363427907217541@g.us",
+  "120363428469412881@g.us",
   "120363411286493569@g.us",
   "120363407805083311@g.us",
   "120363405950447774@g.us",
