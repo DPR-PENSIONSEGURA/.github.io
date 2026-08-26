@@ -648,8 +648,8 @@ const DASHBOARD_PREMIUM_PLANS = {
 
 const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
-    { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true },
-    { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true, pausado: true, estadoServicio: "SERVICIO NO DISPONIBLE" },
+    { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true, pausado: true, estadoServicio: "SERVICIO NO DISPONIBLE" },
     { nombre: "SEMANAS DE SUBDELEGACIÓN", precio: 0, curp: true, destacadoAmarillo: true, tiempoEstimado: "45 minutos", extraMsg: "Tiempo de espera aproximado: 45 minutos." },
     { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
     { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
@@ -4537,6 +4537,14 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
       const error = new Error("El tramite es obligatorio.");
       error.statusCode = 400;
       error.errorCode = "SERVICE_REQUIRED";
+      throw error;
+    }
+
+    const pausedServiceName = normalizeForCompare(serviceName).toUpperCase();
+    if (["SEMANAS COTIZADAS", "SEMANAS DETALLADAS"].includes(pausedServiceName)) {
+      const error = new Error("Este servicio se encuentra temporalmente no disponible.");
+      error.statusCode = 503;
+      error.errorCode = "DASHBOARD_SERVICE_PAUSED";
       throw error;
     }
 
