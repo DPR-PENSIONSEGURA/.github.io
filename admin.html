@@ -1183,7 +1183,7 @@ class="admin-menu-btn solo-admin relative">
         };
 
         let currentPage = 1;
-        const PAGE_SIZE = 30;
+        const PAGE_SIZE = 50;
         let idTramiteActual = "";
         let todasLasSoliCargadas = [];
         let solicitudesCorteOperadores = [];
@@ -1304,7 +1304,7 @@ class="admin-menu-btn solo-admin relative">
                 actualizarFiltroLabel('Pendientes cargados desde Supabase');
                 currentPage = 1;
                 if (selector) selector.value = 1;
-                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 500, status: 'pending' }, 30000);
+                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 2000, status: 'pending' }, 45000);
                 cacheSolicitudes = rows;
                 todasLasSoliCargadas = rows;
                 const elPend = document.getElementById('contadorPendientes');
