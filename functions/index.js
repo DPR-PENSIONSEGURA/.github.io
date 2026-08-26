@@ -422,6 +422,10 @@ const SERVICE_MAP = {
   ACTA_MATRIMONIO: "Acta de Matrimonio",
   ACTA_DIVORCIO: "Acta de Divorcio",
   ACTA_DEFUNCION: "Acta de Defunción",
+  ACTA_NACIMIENTO_FOLIO: "Acta de Nacimiento con Folio",
+  ACTA_MATRIMONIO_FOLIO: "Acta de Matrimonio con Folio",
+  ACTA_DIVORCIO_FOLIO: "Acta de Divorcio con Folio",
+  ACTA_DEFUNCION_FOLIO: "Acta de Defunción con Folio",
 
   LOCALIZACION_CONTRASENA_INFONAVIT: "Localización de Contraseña",
   RESETEO_INFONAVIT: "Reseteo Cuenta",
@@ -477,6 +481,10 @@ const LEGACY_SERVICE_NAMES = {
   ACTA_MATRIMONIO: ["ACTA MATRIMONIO"],
   ACTA_DIVORCIO: ["ACTA DIVORCIO"],
   ACTA_DEFUNCION: ["ACTA DEFUNCION"],
+  ACTA_NACIMIENTO_FOLIO: ["ACTA NACIMIENTO CON FOLIO"],
+  ACTA_MATRIMONIO_FOLIO: ["ACTA MATRIMONIO CON FOLIO"],
+  ACTA_DIVORCIO_FOLIO: ["ACTA DIVORCIO CON FOLIO"],
+  ACTA_DEFUNCION_FOLIO: ["ACTA DEFUNCION CON FOLIO"],
   LOCALIZACION_CONTRASENA_INFONAVIT: ["LOCALIZACION CONTRASENA INFONAVIT"],
   RESETEO_INFONAVIT: ["RESETEO INFONAVIT"],
   PRECALIFICACION_MEJORAVIT: ["PRECALIFICACION MEJORAVIT"],
@@ -579,6 +587,10 @@ const DASHBOARD_SERVICE_PRICES = {
   "ACTA DE MATRIMONIO": 13,
   "ACTA DE DIVORCIO": 13,
   "ACTA DE DEFUNCION": 13,
+  "ACTA DE NACIMIENTO CON FOLIO": 15,
+  "ACTA DE MATRIMONIO CON FOLIO": 15,
+  "ACTA DE DIVORCIO CON FOLIO": 15,
+  "ACTA DE DEFUNCION CON FOLIO": 15,
   "CERTIFICADO INEA": 30,
   "CERTIFICADO COVID": 20,
   "LOCALIZACION DE CONTRASENA": 90,
@@ -665,12 +677,20 @@ const DASHBOARD_SERVICE_CATALOG = {
     { nombre: "Buro de Credito", precio: 0, curp: true, pideIneFrente: true },
     { nombre: "CURP", precio: 0, curp: true },
     { nombre: "Recibo CFE", precio: 0, pideNumServicio: true },
+    { nombre: "Certificado INEA", precio: 0, pideNombre: true, curp: true, pideDia: true, pideMes: true, pideAnio: true, pideNivelEducativo: true, pidePromedio: true, pideEstado: true },
+    { nombre: "Certificado COVID", precio: 0, pideNombre: true, curp: true, pideVacunaCovid: true }
+  ],
+  ACTAS: [
     { nombre: "Acta de Nacimiento", precio: 0, curp: true },
     { nombre: "Acta de Matrimonio", precio: 0, curp: true },
     { nombre: "Acta de Divorcio", precio: 0, curp: true },
-    { nombre: "Acta de Defuncion", precio: 0, curp: true },
-    { nombre: "Certificado INEA", precio: 0, pideNombre: true, curp: true, pideDia: true, pideMes: true, pideAnio: true, pideNivelEducativo: true, pidePromedio: true, pideEstado: true },
-    { nombre: "Certificado COVID", precio: 0, pideNombre: true, curp: true, pideVacunaCovid: true }
+    { nombre: "Acta de Defuncion", precio: 0, curp: true }
+  ],
+  ACTAS_FOLIO: [
+    { nombre: "Acta de Nacimiento con Folio", precio: 0, curp: true },
+    { nombre: "Acta de Matrimonio con Folio", precio: 0, curp: true },
+    { nombre: "Acta de Divorcio con Folio", precio: 0, curp: true },
+    { nombre: "Acta de Defuncion con Folio", precio: 0, curp: true }
   ],
   INF: [
     { nombre: "Localizacion de Contrasena", precio: 0, nss: true, pideFecha: true },
