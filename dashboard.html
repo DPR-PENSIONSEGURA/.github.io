@@ -735,8 +735,7 @@ async function cargarPreciosBackend() {
             serviciosCategoria.forEach(t => {
                 const servicio = { ...t, categoria: cat };
                 const conf = JSON.stringify(servicio).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-                const nombreServicio = String(servicio.nombre || '').trim().toUpperCase();
-                const pausado = servicio.pausado === true || ["SEMANAS COTIZADAS", "SEMANAS DETALLADAS"].includes(nombreServicio);
+                const pausado = servicio.pausado === true;
                 const beneficio = obtenerBeneficioPremium(servicio);
                 const etiquetaPrecio = pausado ? "NO DISPONIBLE" : obtenerEtiquetaPrecioTramite(servicio);
                 const badgeClass = pausado
