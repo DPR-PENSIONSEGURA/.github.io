@@ -648,9 +648,8 @@ const DASHBOARD_PREMIUM_PLANS = {
 
 const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
-    { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true, pausado: true, estadoServicio: "SERVICIO NO DISPONIBLE" },
-    { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true, pausado: true, estadoServicio: "SERVICIO NO DISPONIBLE" },
-    { nombre: "SEMANAS DE SUBDELEGACIÓN", precio: 0, curp: true, destacadoAmarillo: true, tiempoEstimado: "45 minutos", extraMsg: "Tiempo de espera aproximado: 45 minutos." },
+    { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true },
+    { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
     { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
     { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
     { nombre: "SINDO COMPLETO", precio: 0, nss: true },
@@ -2216,14 +2215,14 @@ const PROVIDER_AUTOMATION = Object.freeze({
   "120363424712619825@g.us": "weeks",
   "120363427907217541@g.us": "detailed_weeks",
   "120363428469412881@g.us": "subdelegation_weeks",
-  "120363411286493569@g.us": "civil_records",
+  "120363411615694603@g.us": "civil_records",
   "120363409003681418@g.us": "idcif",
   "120363426493207414@g.us": "cfe",
   "120363425835293476@g.us": "rfc_document_primary",
   "120363429387260006@g.us": "rfc_document_fallback"
 });
 const IDCIF_PROVIDER_CHAT_ID = "120363409003681418@g.us";
-const RFC_ADVISORS_CHAT_ID = "120363425835293476@g.us";
+const RFC_ADVISORS_CHAT_ID = "120363429387260006@g.us";
 const RFC_DOCUMENT_FALLBACK_CHAT_ID = "120363429387260006@g.us";
 const FINAL_DOCUMENT_PROVIDER_CHATS = new Set([
   "120363424712619825@g.us",
@@ -2377,13 +2376,13 @@ async function consumeProviderContext(context) {
 function classifyProviderError(chatId, text, reaction = "") {
   const emoji = normalizeString(reaction).replace(/\uFE0F/g, "");
   if (emoji === "⚠") return { code: "IMSS_INCONSISTENCIA", status: "Error: inconsistencias IMSS" };
-  if (emoji === "🔓") return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
+  if (emoji === "🔓" || emoji === "🔒") return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
   if (emoji === "❌") return { code: "CURP_INCORRECTA", status: "Error: CURP incorrecta" };
   if (emoji === "💤") return { code: "NSS_NO_ASIGNADO", status: "Error: sin NSS asignado" };
 
   // Algunos proveedores envían el candado como texto independiente en vez
   // de usarlo como reacción al mensaje solicitado.
-  if (normalizeString(text).replace(/\uFE0F/g, "").includes("🔓")) {
+  if (/[🔓🔒]/u.test(normalizeString(text).replace(/\uFE0F/g, ""))) {
     return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
   }
 
@@ -2404,6 +2403,7 @@ function classifyProviderError(chatId, text, reaction = "") {
   if (PROVIDER_AUTOMATION[chatId] === "civil_records" && (
     /no se encontro el acta en (?:el )?sistema/.test(clean)
     || (/no hay registros disponibles/.test(clean) && /curp/.test(clean))
+    || /\bcurp\s+sin\b/.test(clean)
   )) {
     return { code: "ACTA_NO_ENCONTRADA", status: "Error: documento no encontrado" };
   }
@@ -2653,7 +2653,12 @@ app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
     const typeMessage = normalizeString(messageData.typeMessage);
     const text = providerMessageText(payload);
     const reaction = typeMessage === "reactionMessage"
-      ? normalizeString(messageData.extendedTextMessageData?.text || messageData.reactionMessageData?.text)
+      ? normalizeString(
+        messageData.extendedTextMessageData?.text
+          || messageData.reactionMessageData?.text
+          || payload?.reactionMessageData?.text
+          || payload?.textMessage
+      )
       : "";
     const quotedMessageId = providerQuotedMessageId(payload);
 
@@ -4537,14 +4542,6 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
       const error = new Error("El tramite es obligatorio.");
       error.statusCode = 400;
       error.errorCode = "SERVICE_REQUIRED";
-      throw error;
-    }
-
-    const pausedServiceName = normalizeForCompare(serviceName).toUpperCase();
-    if (["SEMANAS COTIZADAS", "SEMANAS DETALLADAS"].includes(pausedServiceName)) {
-      const error = new Error("Este servicio se encuentra temporalmente no disponible.");
-      error.statusCode = 503;
-      error.errorCode = "DASHBOARD_SERVICE_PAUSED";
       throw error;
     }
 
