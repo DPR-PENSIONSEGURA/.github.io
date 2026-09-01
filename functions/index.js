@@ -2260,6 +2260,9 @@ function providerQuotedMessageText(payload) {
   const data = payload?.messageData || {};
   const quoted = data.quotedMessage
     || data.extendedTextMessageData?.quotedMessage
+    || data.reactionMessageData?.quotedMessage
+    || payload?.quotedMessage
+    || payload?.reactionMessageData?.quotedMessage
     || {};
   return normalizeString(
     quoted.textMessage
@@ -2286,8 +2289,12 @@ function providerQuotedMessageId(payload) {
   const data = payload?.messageData || {};
   return normalizeString(
     data.quotedMessage?.stanzaId ||
+    data.extendedTextMessageData?.quotedMessage?.stanzaId ||
     data.extendedTextMessageData?.stanzaId ||
+    data.reactionMessageData?.quotedMessage?.stanzaId ||
     data.reactionMessageData?.stanzaId ||
+    payload?.quotedMessage?.stanzaId ||
+    payload?.reactionMessageData?.stanzaId ||
     ""
   );
 }
@@ -2585,7 +2592,7 @@ async function processIdcifBatch(text) {
     if (isRfcVerificable) {
       forwards.push({
         chatId: RFC_ADVISORS_CHAT_ID,
-        message: `📄 RFC VERIFICABLE\n\nCURP: ${curp || "N/D"}\nRFC: ${item.rfc}\nIDCIF: ${item.idcif}`
+        message: `RFC: ${item.rfc}\nIDCIF: ${item.idcif}`
       });
     }
     results.push({
@@ -2696,7 +2703,18 @@ app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
       }
     }
 
-    const identifiers = providerIdentifiers(text);
+    const quotedText = providerQuotedMessageText(payload);
+    const directIdentifiers = providerIdentifiers(text);
+    const quotedIdentifiers = providerIdentifiers(quotedText);
+    // Las reacciones de Green API no siempre conservan el mismo stanzaId que
+    // se guardó al enviar. En ese caso usamos el CURP/RFC/NSS contenido en el
+    // mensaje citado para localizar la solicitud y no omitir el reembolso.
+    const identifiers = {
+      curp: directIdentifiers.curp || quotedIdentifiers.curp,
+      rfc: directIdentifiers.rfc || quotedIdentifiers.rfc,
+      nss: directIdentifiers.nss || quotedIdentifiers.nss,
+      service_number: directIdentifiers.service_number || quotedIdentifiers.service_number
+    };
     const classification = classifyProviderError(chatId, text, reaction);
     if (!classification) {
       if (text && Object.values(identifiers).some(Boolean)) {
@@ -2711,6 +2729,14 @@ app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
     const context = Object.values(identifiers).some(Boolean) ? null : await getLatestProviderContext(payload);
     const found = await findProviderSolicitud({ quotedMessageId, identifiers, context });
     if (!found.request) {
+      console.warn("Error de proveedor sin solicitud para reembolso", {
+        chatId,
+        code: classification.code,
+        quotedMessageId,
+        identifiers,
+        ambiguous: found.ambiguous === true,
+        matches: found.matches || 0
+      });
       res.json({
         success: true,
         ignored: true,
@@ -4397,6 +4423,67 @@ app.get("/api/v1/dashboard/debug-data", async (req, res) => {
   }
 });
 
+function financeSolicitudIdentifier(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const details = row?.detalles_extra && typeof row.detalles_extra === "object" ? row.detalles_extra : {};
+  const questionnaire = row?.cuestionario && typeof row.cuestionario === "object" ? row.cuestionario : {};
+  const sources = [row || {}, details, questionnaire, raw];
+  const fields = [
+    ["CURP", ["curp"]],
+    ["NSS", ["nss", "numero_nss"]],
+    ["RFC", ["rfc"]],
+    ["IDCIF", ["idcif", "id_cif"]],
+    ["NÚM. SERVICIO", ["service_number", "numero_servicio", "numero_de_servicio"]],
+    ["FOLIO", ["folio", "folio_solicitud"]]
+  ];
+  for (const [label, keys] of fields) {
+    for (const source of sources) {
+      for (const key of keys) {
+        const value = normalizeString(source?.[key]);
+        if (value) return `${label}: ${value}`;
+      }
+    }
+  }
+  return "";
+}
+
+function financeDeliveryTime(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const startedValue = firstValidDateValue(
+    row?.fecha,
+    row?.fecha_creacion,
+    raw.fecha,
+    raw.fecha_creacion,
+    raw.fechaSolicitud,
+    raw.created_at
+  );
+  const completed = completionDateForSolicitud(row);
+  if (!startedValue || !completed) return "";
+  const started = new Date(startedValue);
+  if (Number.isNaN(started.getTime())) return "";
+  const seconds = Math.round((completed.getTime() - started.getTime()) / 1000);
+  if (!Number.isFinite(seconds) || seconds < 0) return "";
+  if (seconds < 60) return `${Math.max(1, seconds)} seg`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ${seconds % 60} seg`;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours} h${minutes ? ` ${minutes} min` : ""}`;
+}
+
+function financeMovementDetail(row, { includeDeliveryTime = false } = {}) {
+  if (!row) return "";
+  const parts = [];
+  const identifier = financeSolicitudIdentifier(row);
+  const service = normalizeString(row.tipo || row.raw_data?.tipo);
+  if (identifier) parts.push(identifier);
+  if (service) parts.push(`Trámite: ${service}`);
+  if (includeDeliveryTime) {
+    const deliveryTime = financeDeliveryTime(row);
+    if (deliveryTime) parts.push(`Entregado en: ${deliveryTime}`);
+  }
+  return parts.join(" • ");
+}
+
 app.get("/api/v1/dashboard/finance", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
@@ -4412,24 +4499,34 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
     const uid = supabaseEq(auth.uid);
     const [ledgerRows, solicitudRows, pagoRows] = await Promise.all([
       supabaseRequest(`movimientos_saldo?firebase_uid=eq.${uid}&select=id,tipo,monto,saldo_antes,saldo_despues,descripcion,referencia,origen,fecha_movimiento&order=fecha_movimiento.desc&limit=80`),
-      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,curp,nss,fecha,raw_data&order=fecha.desc&limit=80`),
+      supabaseRequest(`solicitudes?firebase_uid=eq.${uid}&select=id,firebase_id,tipo,costo,monto_reembolsado,reembolsado,estatus,finalizado,curp,nss,fecha,fecha_creacion,fecha_finalizacion,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=80`),
       supabaseRequest(`notificaciones_pago?firebase_uid=eq.${uid}&select=id,firebase_id,monto,rastreo,estatus,fecha,raw_data&order=fecha.desc&limit=50`)
     ]);
 
     const ledgerRefs = new Set((ledgerRows || []).map((row) => String(row.referencia || "")).filter(Boolean));
 
-    const ledgerMovements = (ledgerRows || []).map((row) => ({
-      id: row.id || row.referencia || crypto.randomUUID(),
-      tipo_movimiento: row.tipo || "movimiento",
-      titulo: row.descripcion || row.tipo || "Movimiento de saldo",
-      detalle: row.referencia || "",
-      monto: Number(row.monto || 0),
-      saldo_antes: row.saldo_antes === null || row.saldo_antes === undefined ? null : Number(row.saldo_antes || 0),
-      saldo_despues: row.saldo_despues === null || row.saldo_despues === undefined ? null : Number(row.saldo_despues || 0),
-      estatus: row.tipo || "",
-      origen: row.origen || "Sistema",
-      fecha: row.fecha_movimiento || null
-    }));
+    const solicitudByReference = new Map();
+    for (const row of solicitudRows || []) {
+      if (row.id) solicitudByReference.set(String(row.id), row);
+      if (row.firebase_id) solicitudByReference.set(String(row.firebase_id), row);
+    }
+
+    const ledgerMovements = (ledgerRows || []).map((row) => {
+      const solicitud = solicitudByReference.get(String(row.referencia || ""));
+      const isCharge = Number(row.monto || 0) < 0 || normalizeForCompare(row.tipo).includes("cargo");
+      return {
+        id: row.id || row.referencia || crypto.randomUUID(),
+        tipo_movimiento: row.tipo || "movimiento",
+        titulo: row.descripcion || row.tipo || "Movimiento de saldo",
+        detalle: financeMovementDetail(solicitud, { includeDeliveryTime: isCharge }),
+        monto: Number(row.monto || 0),
+        saldo_antes: row.saldo_antes === null || row.saldo_antes === undefined ? null : Number(row.saldo_antes || 0),
+        saldo_despues: row.saldo_despues === null || row.saldo_despues === undefined ? null : Number(row.saldo_despues || 0),
+        estatus: row.tipo || "",
+        origen: row.origen || "Sistema",
+        fecha: row.fecha_movimiento || null
+      };
+    });
 
     const solicitudMovements = (solicitudRows || []).filter((row) => {
       const ref = String(row.firebase_id || row.id || "");
@@ -4443,7 +4540,7 @@ app.get("/api/v1/dashboard/finance", async (req, res) => {
         id: row.firebase_id || row.id,
         tipo_movimiento: esReembolso ? "reembolso_tramite" : "cargo_tramite",
         titulo: esReembolso ? `Reembolso: ${row.tipo || "tramite"}` : row.tipo || "Tramite",
-        detalle: [row.curp, row.nss ? `NSS: ${row.nss}` : ""].filter(Boolean).join(" | "),
+        detalle: financeMovementDetail(row, { includeDeliveryTime: !esReembolso }),
         monto: esReembolso ? Math.abs(reembolso || costo) : -Math.abs(costo),
         saldo_antes: null,
         saldo_despues: null,
