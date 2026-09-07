@@ -2215,7 +2215,7 @@ const PROVIDER_AUTOMATION = Object.freeze({
   "120363424712619825@g.us": "weeks",
   "120363427907217541@g.us": "detailed_weeks",
   "120363428469412881@g.us": "subdelegation_weeks",
-  "120363411615694603@g.us": "civil_records",
+  "120363409761981605@g.us": "civil_records",
   "120363409003681418@g.us": "idcif",
   "120363426493207414@g.us": "cfe",
   "120363425835293476@g.us": "rfc_document_primary",
@@ -2236,7 +2236,7 @@ const FINAL_DOCUMENT_PROVIDER_CHATS = new Set([
   "120363428182287786@g.us",
   "120363425835293476@g.us",
   "120363429387260006@g.us",
-  "120363411615694603@g.us"
+  "120363409761981605@g.us"
 ]);
 const PROVIDER_CONTEXT_MINUTES = 10;
 
@@ -2384,6 +2384,9 @@ function classifyProviderError(chatId, text, reaction = "") {
   const emoji = normalizeString(reaction).replace(/\uFE0F/g, "");
   if (emoji === "⚠") return { code: "IMSS_INCONSISTENCIA", status: "Error: inconsistencias IMSS" };
   if (emoji === "🔓" || emoji === "🔒") return { code: "LIMITE_CONSULTAS", status: "Error: límite de consultas alcanzado" };
+  if (emoji === "🚫" && PROVIDER_AUTOMATION[chatId] === "weeks") {
+    return { code: "IMSS_REPORTE_BLOQUEADO", status: "Reporte de Semanas Cotizadas bloqueado por el IMSS" };
+  }
   if (emoji === "❌") return { code: "CURP_INCORRECTA", status: "Error: CURP incorrecta" };
   if (emoji === "💤") return { code: "NSS_NO_ASIGNADO", status: "Error: sin NSS asignado" };
 
