@@ -755,9 +755,16 @@ async function cargarPreciosBackend() {
                     : servicio.tiempoEstimado
                         ? `⏱ Tiempo aproximado: ${servicio.tiempoEstimado}`
                         : "Solicitud rápida y segura";
+                const detalleColor = pausado
+                    ? 'text-red-600'
+                    : servicio.destacadoAmarillo
+                        ? 'text-amber-800'
+                        : servicio.tiempoRapido
+                            ? 'text-emerald-600'
+                            : 'text-slate-900';
                 const actionAttr = pausado ? `aria-disabled="true"` : `onclick="window.prepararTramite(JSON.parse('${conf}'))"`;
                 html += `<div ${actionAttr} class="service-card ${cardClass} ${pausado ? '' : 'cursor-pointer transition hover:-translate-y-1 hover:shadow-xl'}">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-black ${pausado ? 'text-red-600' : servicio.destacadoAmarillo ? 'text-amber-800' : 'text-slate-400'} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-black ${detalleColor} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase ${pausado ? 'text-red-500' : 'text-slate-400'}">${pausado ? 'Temporalmente pausado' : 'Iniciar trámite'}</span><span class="w-9 h-9 rounded-2xl ${pausado ? 'bg-slate-300' : 'bg-slate-900'} text-white flex items-center justify-center font-black text-sm">${pausado ? '—' : 'Ir'}</span></div>
                 </div>`;
             });
@@ -956,6 +963,24 @@ type="text"
 id="promedio_p" 
 placeholder="PROMEDIO" 
 class="input-light mb-4">
+`;
+
+if (t.pideEscuela)
+fields += `
+<input
+type="text"
+id="escuela_p"
+placeholder="ESCUELA"
+class="input-light mb-4 uppercase">
+`;
+
+if (t.pideDireccion)
+fields += `
+<textarea
+id="direccion_p"
+rows="2"
+placeholder="DIRECCIÓN"
+class="input-light mb-4 uppercase"></textarea>
 `;
 
 if (t.pideVacunaCovid)
@@ -1297,6 +1322,8 @@ mes: val('mes_p'),
 anio: val('anio_p'),
 nivel_educativo: val('nivel_educativo_p'),
 promedio: val('promedio_p'),
+escuela: val('escuela_p'),
+direccion: val('direccion_p'),
 vacuna_covid: val('vacuna_covid_p'),
                 };
 
@@ -1593,6 +1620,9 @@ vacuna_covid: val('vacuna_covid_p'),
                 if (estatusTexto.toUpperCase().includes('ERROR')) estatusColor = 'text-red-600 bg-red-50 border-red-100';
 
                 let accion = '--';
+                const tiempoEntrega = s.finalizado === true && s.tiempo_entrega_texto
+                    ? `<div class="mt-1 text-[9px] font-black text-emerald-600 uppercase">⏱ Entregado en ${s.tiempo_entrega_texto}</div>`
+                    : '';
                 const archivoFinalUrl = normalizarUrlArchivo(s.archivoFinal);
                 if (archivoFinalUrl) {
                     if (s.descargado_cliente === true) {
@@ -1609,6 +1639,7 @@ vacuna_covid: val('vacuna_covid_p'),
                         <td class="py-3 px-2 font-black text-slate-500">${f}</td>
                         <td class="py-3 px-4">
                             <div class="font-black text-slate-800 uppercase">${s.tipo || ''}</div>
+                            ${tiempoEntrega}
                             <small class="text-slate-400 font-bold">
                                 ${s.curp || ''}${s.nss ? ' · NSS: ' + s.nss : ''}
                             </small>
