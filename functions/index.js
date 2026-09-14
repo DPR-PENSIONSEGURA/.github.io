@@ -134,6 +134,7 @@ function mapSupabaseSolicitud(row) {
     raw.fechaCreacion,
     raw.fecha_creacion
   );
+  const deliverySeconds = deliverySecondsForSolicitud(row);
   return {
     id: row.firebase_id || row.id,
     asesor_uid: row.firebase_uid,
@@ -147,7 +148,9 @@ function mapSupabaseSolicitud(row) {
     green_message_id: row.green_message_id || "",
     codigo_error: row.codigo_error || "",
     detalle_error: row.detalle_error || "",
-    fecha_finalizacion: row.fecha_finalizacion || null,
+    fecha_finalizacion: completionDateForSolicitud(row)?.toISOString() || null,
+    tiempo_entrega_segundos: deliverySeconds,
+    tiempo_entrega_texto: deliverySeconds === null ? "" : formatActualDeliveryTime(deliverySeconds),
     curp: row.curp || "",
     nss: row.nss || "",
     archivoFinal: resolveArchivoFinal(row),
@@ -554,6 +557,8 @@ const EXTRA_DEFAULTS = {
   anio: "N/A",
   nivel_educativo: "N/A",
   promedio: "N/A",
+  escuela: "N/A",
+  direccion: "N/A",
   vacuna_covid: "N/A"
 };
 
@@ -583,10 +588,10 @@ const DASHBOARD_SERVICE_PRICES = {
   "BURO DE CREDITO": 170,
   "CURP": 4,
   "RECIBO CFE": 10,
-  "ACTA DE NACIMIENTO": 13,
-  "ACTA DE MATRIMONIO": 13,
-  "ACTA DE DIVORCIO": 13,
-  "ACTA DE DEFUNCION": 13,
+  "ACTA DE NACIMIENTO": 11,
+  "ACTA DE MATRIMONIO": 11,
+  "ACTA DE DIVORCIO": 11,
+  "ACTA DE DEFUNCION": 11,
   "ACTA DE NACIMIENTO CON FOLIO": 15,
   "ACTA DE MATRIMONIO CON FOLIO": 15,
   "ACTA DE DIVORCIO CON FOLIO": 15,
@@ -650,6 +655,7 @@ const DASHBOARD_SERVICE_CATALOG = {
   IMSS: [
     { nombre: "SEMANAS COTIZADAS", precio: 0, curp: true },
     { nombre: "SEMANAS DETALLADAS", precio: 0, nss: true, curp: true },
+    { nombre: "SEMANAS DE SUBDELEGACIÓN", precio: 0, curp: true, destacadoAmarillo: true, tiempoEstimado: "45 minutos", pausado: true, estadoServicio: "SERVICIO NO DISPONIBLE" },
     { nombre: "SINDO ULTIMO RETIRO", precio: 0, nss: true },
     { nombre: "SINDO ALFANUMERICO", precio: 0, nss: true, pideNombre: true, curp: true },
     { nombre: "SINDO COMPLETO", precio: 0, nss: true },
@@ -1290,6 +1296,8 @@ function buildN8nSolicitudPayload(row, origen = "dashboard") {
     anio: detallesExtra.anio,
     nivel_educativo: detallesExtra.nivel_educativo,
     promedio: detallesExtra.promedio,
+    escuela: detallesExtra.escuela,
+    direccion: detallesExtra.direccion,
     vacuna_covid: detallesExtra.vacuna_covid,
     extra: detallesExtra,
     detalles_extra: detallesExtra,
@@ -2177,11 +2185,126 @@ function completionDateForSolicitud(row) {
     raw.fechaTerminado,
     raw.n8n_fecha_documento,
     raw.fecha_documento,
-    raw.completed_at
+    raw.completed_at,
+    raw.medicion_tiempo_fin
   );
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startDateForSolicitud(row) {
+  const raw = row?.raw_data && typeof row.raw_data === "object" ? row.raw_data : {};
+  const value = firstValidDateValue(
+    row?.fecha,
+    row?.fecha_creacion,
+    raw.fecha,
+    raw.fechaSolicitud,
+    raw.fecha_solicitud,
+    raw.fechaRegistro,
+    raw.fecha_registro,
+    raw.fechaCreacion,
+    raw.fecha_creacion,
+    raw.created_at,
+    raw.medicion_tiempo_inicio
+  );
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function deliverySecondsForSolicitud(row) {
+  const start = startDateForSolicitud(row);
+  const end = completionDateForSolicitud(row);
+  if (!start || !end) return null;
+  const seconds = Math.round((end.getTime() - start.getTime()) / 1000);
+  return seconds > 0 && seconds <= 30 * 24 * 60 * 60 ? seconds : null;
+}
+
+function formatActualDeliveryTime(seconds) {
+  if (seconds < 60) return `${seconds} seg${seconds === 1 ? "" : "s"}`;
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.round((minutes / 60) * 10) / 10;
+  return `${hours} h`;
+}
+
+function formatEstimatedMinutes(minutes) {
+  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 24 * 60) {
+    const hours = Math.ceil((minutes / 60) * 2) / 2;
+    return `${hours} h`;
+  }
+  const days = Math.ceil((minutes / (24 * 60)) * 2) / 2;
+  return `${days} días`;
+}
+
+let dashboardEstimatedTimesCache = { expiresAt: 0, values: {} };
+
+async function getDashboardEstimatedTimes() {
+  if (Date.now() < dashboardEstimatedTimesCache.expiresAt) {
+    return dashboardEstimatedTimesCache.values;
+  }
+
+  const rows = await supabaseRequest(
+    "solicitudes?finalizado=eq.true&select=tipo,estatus,reembolsado,fecha,fecha_creacion,fecha_finalizacion,raw_data&order=fecha.desc&limit=3000",
+    { timeoutMs: 20000 }
+  );
+  const grouped = {};
+
+  for (const row of rows || []) {
+    const status = normalizeForCompare(row.estatus || "");
+    if (row.reembolsado === true || (!status.includes("termin") && !status.includes("complet") && !status.includes("entreg"))) continue;
+    const seconds = deliverySecondsForSolicitud(row);
+    if (seconds === null) continue;
+    const key = normalizeForCompare(row.tipo || "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+    if (!key) continue;
+    (grouped[key] ||= []).push(seconds);
+  }
+
+  const values = {};
+  for (const [key, samples] of Object.entries(grouped)) {
+    const sorted = samples.slice().sort((a, b) => a - b);
+    const trim = sorted.length >= 10 ? Math.floor(sorted.length * 0.1) : 0;
+    const usable = trim ? sorted.slice(trim, sorted.length - trim) : sorted;
+    const averageMinutes = usable.reduce((sum, value) => sum + value, 0) / usable.length / 60;
+    // Dos minutos de margen y un mínimo de dos minutos para imprevistos manuales.
+    const estimatedMinutes = Math.max(2, Math.ceil(averageMinutes + 2));
+    values[key] = {
+      text: formatEstimatedMinutes(estimatedMinutes),
+      estimatedMinutes,
+      averageSeconds: Math.round(averageMinutes * 60),
+      samples: usable.length
+    };
+  }
+
+  dashboardEstimatedTimesCache = { expiresAt: Date.now() + 10 * 60 * 1000, values };
+  return values;
+}
+
+function catalogWithEstimatedTimes(estimatedTimes) {
+  const calculatedMinutes = Object.values(estimatedTimes)
+    .map((metric) => Number(metric?.estimatedMinutes))
+    .filter((value) => Number.isFinite(value) && value > 0)
+    .sort((a, b) => a - b);
+  const fastLimit = calculatedMinutes.length
+    ? calculatedMinutes[Math.floor((calculatedMinutes.length - 1) / 2)]
+    : 0;
+
+  return Object.fromEntries(Object.entries(DASHBOARD_SERVICE_CATALOG).map(([category, services]) => [
+    category,
+    services.map((service) => {
+      const key = normalizeForCompare(service.nombre || "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+      const metric = estimatedTimes[key];
+      return {
+        ...service,
+        tiempoEstimado: metric?.text || service.tiempoEstimado,
+        muestrasTiempo: metric?.samples || 0,
+        tiempoRapido: Boolean(metric && metric.estimatedMinutes <= fastLimit),
+        tiempoLargo: Boolean(metric && metric.estimatedMinutes > fastLimit)
+      };
+    })
+  ]));
 }
 
 function dateIsWithin(date, from, to) {
@@ -2245,6 +2368,10 @@ function providerWebhookPayload(body) {
   return source?.body && source.body.typeWebhook ? source.body : source;
 }
 
+function providerChatId(payload) {
+  return normalizeString(payload?.senderData?.chatId || payload?.chatId || "");
+}
+
 function providerMessageText(payload) {
   const data = payload?.messageData || {};
   return normalizeString(
@@ -2252,6 +2379,8 @@ function providerMessageText(payload) {
     data.extendedTextMessageData?.text ||
     data.captionMessageData?.caption ||
     data.fileMessageData?.caption ||
+    payload?.textMessage ||
+    payload?.caption ||
     ""
   );
 }
@@ -2281,6 +2410,7 @@ function providerParticipantId(payload) {
     payload?.senderData?.senderId ||
     payload?.senderData?.participant ||
     payload?.participantData?.participant ||
+    payload?.senderId ||
     ""
   );
 }
@@ -2331,7 +2461,7 @@ function isIdentifierOnlyProviderMessage(text) {
 }
 
 async function saveProviderContext(payload, identifiers) {
-  const chatId = normalizeString(payload?.senderData?.chatId);
+  const chatId = providerChatId(payload);
   const participantId = providerParticipantId(payload);
   const messageId = normalizeString(payload?.idMessage);
   const entries = [
@@ -2362,7 +2492,7 @@ async function saveProviderContext(payload, identifiers) {
 }
 
 async function getLatestProviderContext(payload) {
-  const chatId = normalizeString(payload?.senderData?.chatId);
+  const chatId = providerChatId(payload);
   const participantId = providerParticipantId(payload);
   const since = new Date(Date.now() - PROVIDER_CONTEXT_MINUTES * 60 * 1000).toISOString();
   const rows = await supabaseRequest(
@@ -2653,14 +2783,14 @@ app.post("/api/v1/n8n/provider-response/import", async (req, res) => {
   try {
     validateAdminToken(req);
     const payload = providerWebhookPayload(req.body || {});
-    const chatId = normalizeString(payload?.senderData?.chatId);
+    const chatId = providerChatId(payload);
     if (!PROVIDER_AUTOMATION[chatId]) {
       res.json({ success: true, ignored: true, reason: "chat_not_authorized", forwards: [] });
       return;
     }
 
     const messageData = payload?.messageData || {};
-    const typeMessage = normalizeString(messageData.typeMessage);
+    const typeMessage = normalizeString(messageData.typeMessage || payload?.typeMessage);
     const text = providerMessageText(payload);
     const reaction = typeMessage === "reactionMessage"
       ? normalizeString(
@@ -3142,6 +3272,8 @@ app.post("/api/v1/admin/panel/requests/:id/status", async (req, res) => {
       payload.fecha_finalizacion = solicitud.fecha_finalizacion || now;
       payload.raw_data.fecha_terminado = payload.raw_data.fecha_terminado || now;
       payload.raw_data.fecha_finalizado = payload.raw_data.fecha_finalizado || now;
+      payload.raw_data.medicion_tiempo_inicio = payload.raw_data.medicion_tiempo_inicio || startDateForSolicitud(solicitud)?.toISOString() || now;
+      payload.raw_data.medicion_tiempo_fin = payload.raw_data.medicion_tiempo_fin || now;
     }
 
     await supabaseRequest(`solicitudes?${supabaseSolicitudFilterByPanelId(id)}`, {
@@ -3349,6 +3481,8 @@ app.post("/api/v1/n8n/requests/:id/final-document", async (req, res) => {
           archivo_final: archivoFinal,
           n8n_documento_subido: true,
           n8n_fecha_documento: now,
+          medicion_tiempo_inicio: currentRaw.medicion_tiempo_inicio || startDateForSolicitud(solicitud)?.toISOString() || now,
+          medicion_tiempo_fin: now,
           n8n_origen: normalizeString(body.origen || "n8n")
         }
       })
@@ -3646,6 +3780,8 @@ app.post("/api/v1/n8n/final-document/import", async (req, res) => {
           n8n_documento_subido: true,
           n8n_cloudinary_import: true,
           n8n_fecha_documento: now,
+          medicion_tiempo_inicio: currentRaw.medicion_tiempo_inicio || startDateForSolicitud(solicitud)?.toISOString() || now,
+          medicion_tiempo_fin: now,
           n8n_origen: normalizeString(body.origen || "n8n"),
           n8n_resuelto_por: {
             curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
@@ -3916,6 +4052,8 @@ app.post("/api/v1/n8n/final-document/resolve", async (req, res) => {
           archivo_final: archivoFinal,
           n8n_documento_subido: true,
           n8n_fecha_documento: now,
+          medicion_tiempo_inicio: currentRaw.medicion_tiempo_inicio || startDateForSolicitud(solicitud)?.toISOString() || now,
+          medicion_tiempo_fin: now,
           n8n_origen: normalizeString(body.origen || "n8n"),
           n8n_resuelto_por: {
             curp: normalizeString(getN8nBodyField(body, ["curp", "CURP"])),
@@ -4597,11 +4735,12 @@ app.get("/api/v1/dashboard/services", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
     const asesor = auth.asesor || await getSupabaseAsesorByUid(auth.uid);
+    const estimatedTimes = await getDashboardEstimatedTimes();
 
     res.json({
       success: true,
       prices: DASHBOARD_SERVICE_PRICES,
-      catalog: DASHBOARD_SERVICE_CATALOG,
+      catalog: catalogWithEstimatedTimes(estimatedTimes),
       aforeOptions: DASHBOARD_AFORE_OPTIONS,
       premium: getPremiumStatusForClient(asesor?.raw_data)
     });
@@ -4614,7 +4753,7 @@ app.get("/api/v1/dashboard/requests", async (req, res) => {
   try {
     const auth = await authenticateDashboardUser(req);
     const rows = await supabaseRequest(
-      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,fecha_creacion,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
+      `solicitudes?firebase_uid=eq.${supabaseEq(auth.uid)}&select=id,firebase_id,firebase_uid,email,tipo,costo,estatus,finalizado,reembolsado,monto_reembolsado,curp,nss,archivo_final,fecha,fecha_creacion,fecha_finalizacion,detalles_extra,cuestionario,raw_data&order=fecha.desc&limit=100`
     );
 
     res.json({
@@ -4777,6 +4916,7 @@ app.post("/api/v1/dashboard/requests", async (req, res) => {
     const rawSolicitud = {
       origen: "dashboard",
       created_via: "dashboard_backend",
+      medicion_tiempo_inicio: now,
       costo_catalogo: costoServidor,
       costo_cobrado: costoAplicado,
       premium_aplicado: premiumBenefit.applies === true,
