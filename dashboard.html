@@ -1592,6 +1592,49 @@ vacuna_covid: val('vacuna_covid_p'),
             // Las conexiones se registran en /api/v1/dashboard/bootstrap.
         }
 
+        function valorUtilSolicitud(value) {
+            const text = String(value ?? '').trim();
+            return text && !['N/A', 'NA', 'S/N', 'NULL', 'UNDEFINED', '...'].includes(text.toUpperCase())
+                ? text
+                : '';
+        }
+
+        function escaparTextoHistorial(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function datoPrincipalSolicitud(s) {
+            const extra = s.detalles_extra && typeof s.detalles_extra === 'object' ? s.detalles_extra : {};
+            const cuestionario = s.cuestionario && typeof s.cuestionario === 'object' ? s.cuestionario : {};
+            const candidatos = [
+                ['CURP', s.curp],
+                ['CURP', extra.curp],
+                ['NSS', s.nss],
+                ['NSS', extra.nss],
+                ['RFC', s.rfc],
+                ['RFC', extra.rfc],
+                ['IDCIF', s.idcif],
+                ['IDCIF', extra.idcif],
+                ['NÚM. SERVICIO', extra.num_servicio],
+                ['NÚM. SERVICIO', extra.numero_servicio],
+                ['NÚM. SERVICIO', extra.service_number],
+                ['FOLIO', extra.folio],
+                ['NOMBRE', extra.nombre_cliente],
+                ['CURP', cuestionario.curp],
+                ['NSS', cuestionario.nss],
+                ['RFC', cuestionario.rfc],
+                ['NOMBRE', cuestionario.nombre_cliente || cuestionario.nombre]
+            ];
+            const encontrado = candidatos.find(([, value]) => valorUtilSolicitud(value));
+            if (!encontrado) return 'Dato del trámite no registrado';
+            return `${encontrado[0]}: ${valorUtilSolicitud(encontrado[1])}`;
+        }
+
         function renderizarHistorialSolicitudes(lista) {
             const tbody = document.getElementById('listaHistorial');
             tbody.innerHTML = "";
@@ -1602,6 +1645,7 @@ vacuna_covid: val('vacuna_covid_p'),
             }
 
             lista.forEach(s => {
+                const datoPrincipal = escaparTextoHistorial(datoPrincipalSolicitud(s));
                 const fechaValor = s.fecha || s.fecha_creacion || s.fechaSolicitud || s.fecha_solicitud || null;
                 const fechaBase = fechaValor?.toDate ? fechaValor.toDate() : (fechaValor ? new Date(fechaValor) : null);
                 const f = fechaBase && !Number.isNaN(fechaBase.getTime())
@@ -1640,9 +1684,7 @@ vacuna_covid: val('vacuna_covid_p'),
                         <td class="py-3 px-4">
                             <div class="font-black text-slate-800 uppercase">${s.tipo || ''}</div>
                             ${tiempoEntrega}
-                            <small class="text-slate-400 font-bold">
-                                ${s.curp || ''}${s.nss ? ' · NSS: ' + s.nss : ''}
-                            </small>
+                            <small class="text-slate-500 font-bold">${datoPrincipal}</small>
                         </td>
                         <td class="py-3 px-2 text-center">
                             <span class="inline-block px-3 py-1 rounded-full border text-[9px] font-black uppercase ${estatusColor}">
