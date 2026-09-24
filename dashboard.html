@@ -221,8 +221,7 @@
                         <span class="rounded-full bg-amber-500 px-3 py-1 text-[10px] font-black uppercase text-white">20 usos</span>
                     </div>
                     <ul class="space-y-2 text-sm font-bold text-slate-700">
-                        <li>Hasta 20 solicitudes generales incluidas.</li>
-                        <li>Servicio gratuito de Infonavit hasta 20 solicitudes.</li>
+                        <li>20 solicitudes compartidas entre Infonavit, Semanas Cotizadas y actas normales sin folio.</li>
                         <li>RFC Clon a $15.</li>
                         <li>RFC con IDCIF a $20.</li>
                         <li>Recetas e incapacidad a $15.</li>
@@ -240,8 +239,7 @@
                         <span class="rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-black uppercase text-white">Plus</span>
                     </div>
                     <ul class="space-y-2 text-sm font-bold text-slate-700">
-                        <li>Hasta 40 solicitudes generales incluidas.</li>
-                        <li>Servicio gratuito de Infonavit hasta 40 solicitudes.</li>
+                        <li>40 solicitudes compartidas entre Infonavit, Semanas Cotizadas y actas normales sin folio.</li>
                         <li>30 solicitudes de RFC Clon o RFC con IDCIF sin costo.</li>
                         <li>Recetas e incapacidad a $15.</li>
                         <li>Alta mensual a $480.</li>
@@ -361,10 +359,16 @@ function obtenerBeneficioPremium(t) {
     const categoria = String(t?.categoria || "").toUpperCase();
     const nombre = normalizarClavePrecio(t?.nombre);
 
-    if (categoria === "INF" && Number(premiumState.infonavit_restantes || 0) > 0) {
+    const actasNormales = ["ACTA DE NACIMIENTO", "ACTA DE MATRIMONIO", "ACTA DE DEFUNCION", "ACTA DE DIVORCIO"];
+    const usaCupoCompartido = categoria === "INF" || nombre === "SEMANAS COTIZADAS" || actasNormales.includes(nombre);
+    const compartidasRestantes = Number(premiumState.solicitudes_restantes ?? premiumState.infonavit_restantes ?? 0);
+    const compartidasUsadas = Number(premiumState.solicitudes_usadas ?? premiumState.infonavit_usadas ?? 0);
+    const compartidasLimite = Number(premiumState.solicitudes_limite ?? premiumState.infonavit_limite ?? 0);
+
+    if (usaCupoCompartido && compartidasRestantes > 0) {
         return {
             etiqueta: "Premium",
-            detalle: `${premiumState.infonavit_usadas || 0}/${premiumState.infonavit_limite || 0} usados`
+            detalle: `${compartidasUsadas}/${compartidasLimite} usos compartidos`
         };
     }
 
@@ -392,15 +396,17 @@ function renderContadorPremiumCategoria(cat) {
     if (!premiumState || premiumState.activo !== true) return "";
 
     const categoria = String(cat || "").toUpperCase();
-    if (categoria === "INF") {
+    if (["INF", "IMSS", "ACTAS"].includes(categoria)) {
+        const restantes = premiumState.solicitudes_restantes ?? premiumState.infonavit_restantes ?? 0;
+        const limite = premiumState.solicitudes_limite ?? premiumState.infonavit_limite ?? 0;
         return `<div class="col-span-full rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-black text-emerald-800 uppercase">
-            Plan ${premiumState.nombre || "Premium"} activo: ${premiumState.infonavit_restantes || 0} solicitudes de Infonavit disponibles de ${premiumState.infonavit_limite || 0}.
+            Plan ${premiumState.nombre || "Premium"} activo: ${restantes} de ${limite} usos compartidos disponibles para Infonavit, Semanas Cotizadas o actas normales sin folio.
         </div>`;
     }
 
     if (categoria === "SAT" && premiumState.plan === "premium_plus") {
         return `<div class="col-span-full rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-black text-emerald-800 uppercase">
-            Premium Plus activo: ${premiumState.rfc_gratis_restantes || 0} RFC Clon o RFC con IDCIF disponibles de ${premiumState.rfc_gratis_limite || 0}. No consumen usos de Infonavit.
+            Premium Plus activo: ${premiumState.rfc_gratis_restantes || 0} RFC Clon o RFC con IDCIF disponibles de ${premiumState.rfc_gratis_limite || 0}. No consumen el cupo compartido.
         </div>`;
     }
 
