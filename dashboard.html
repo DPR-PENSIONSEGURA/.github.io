@@ -1,4 +1,3 @@
-warning: in the working copy of 'dashboard.html', LF will be replaced by CRLF the next time Git touches it
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1652,6 +1651,37 @@ vacuna_covid: val('vacuna_covid_p'),
             return `${encontrado[0]}: ${valorUtilSolicitud(encontrado[1])}`;
         }
 
+        const reintentosLimiteEnCurso = new Set();
+        window.reintentarConsultaLimite = async (id, boton) => {
+            if (reintentosLimiteEnCurso.has(id)) return;
+            const solicitud = historialSolicitudesCache.find(s => s.id === id);
+            if (!solicitud?.puede_reintentar_limite) return;
+            const costo = Number(solicitud.costo_reintento);
+            if (!Number.isFinite(costo) || costo <= 0) return alert('No se pudo consultar el costo del reintento. Actualiza el historial.');
+            let nss = String(solicitud.nss || '').trim();
+            if (String(solicitud.tipo).toUpperCase() === 'VIGENCIA DE DERECHOS' && !/^\d{11}$/.test(nss)) {
+                const respuesta = prompt('Para recuperar esta vigencia, escribe el NSS de 11 dígitos:');
+                if (respuesta === null) return;
+                nss = respuesta.trim();
+                if (!/^\d{11}$/.test(nss)) return alert('El NSS debe tener exactamente 11 números.');
+            }
+            if (!confirm('Se cobrará nuevamente '+costo.toLocaleString('es-MX',{style:'currency',currency:'MXN'})+' por reintentar '+solicitud.tipo+'. Se conservará la solicitud original. ¿Continuar?')) return;
+            reintentosLimiteEnCurso.add(id);
+            if (boton) { boton.disabled = true; boton.textContent = 'Procesando...'; }
+            try {
+                const resultado = await requestDashboardApi('/api/v1/dashboard/requests/'+encodeURIComponent(id)+'/retry-limit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nss,expected_cost:costo})});
+                await cargarSaldo();
+                await cargarHistorial();
+                alert(resultado.already_retried ? 'Este reintento ya estaba registrado. No se hizo otro cargo.' : 'Reintento registrado. Aparece en morado al inicio de tu historial y se enviará al proveedor.');
+            } catch (error) {
+                alert((error.message || 'No se pudo confirmar el reintento.')+' Si se interrumpió la conexión, actualiza el historial antes de volver a intentar.');
+                await cargarSaldo(); await cargarHistorial();
+            } finally {
+                reintentosLimiteEnCurso.delete(id);
+                if (boton) { boton.disabled = false; boton.textContent = 'Reintentar'; }
+            }
+        };
+
         function renderizarHistorialSolicitudes(lista) {
             const tbody = document.getElementById('listaHistorial');
             tbody.innerHTML = "";
@@ -1677,6 +1707,7 @@ vacuna_covid: val('vacuna_covid_p'),
                 const estatusTexto = String(s.estatus || '');
                 let estatusColor = 'text-amber-600 bg-amber-50 border-amber-100';
 
+                if (s.recuperacion_limite === true) estatusColor = 'text-purple-700 bg-purple-50 border-purple-200';
                 if (estatusTexto === 'Terminado') estatusColor = 'text-emerald-600 bg-emerald-50 border-emerald-100';
                 if (estatusTexto.toUpperCase().includes('ERROR')) estatusColor = 'text-red-600 bg-red-50 border-red-100';
 
@@ -1696,12 +1727,16 @@ vacuna_covid: val('vacuna_covid_p'),
                 }
 
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition">
+                    <tr class="border-b transition ${s.recuperacion_limite === true ? 'bg-purple-50 hover:bg-purple-100' : 'hover:bg-slate-50'}">
                         <td class="py-3 px-2 font-black text-slate-500">${f}</td>
                         <td class="py-3 px-4">
                             <div class="font-black text-slate-800 uppercase">${s.tipo || ''}</div>
                             ${tiempoEntrega}
-                            <small class="text-slate-500 font-bold">${datoPrincipal}</small>
+                            ${s.recuperacion_limite === true ? '<div class="text-[9px] font-black text-purple-700 uppercase">Reintento por límite de consultas</div>' : ''}
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <small class="text-slate-500 font-bold">${datoPrincipal}</small>
+                                ${s.puede_reintentar_limite === true ? `<button onclick="window.reintentarConsultaLimite(${escaparTextoHistorial(JSON.stringify(s.id))}, this)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl text-[9px] font-black disabled:opacity-50">Reintentar</button>` : ''}
+                            </div>
                         </td>
                         <td class="py-3 px-2 text-center">
                             <span class="inline-block px-3 py-1 rounded-full border text-[9px] font-black uppercase ${estatusColor}">
