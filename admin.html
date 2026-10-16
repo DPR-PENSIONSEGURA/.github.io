@@ -969,7 +969,6 @@ class="admin-menu-btn solo-admin relative">
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const CLAVE_CAJA_FUERTE = "DPR2026";
         const miSesion = JSON.parse(localStorage.getItem('staffSession')) || { role: 'asesor' };
         const staffUid = String(miSesion.uid || miSesion.id || miSesion.username || miSesion.name || 'staff').trim();
         const staffNombre = String(miSesion.name || miSesion.nombre || miSesion.username || 'Empleado').trim();
@@ -2758,6 +2757,42 @@ class="admin-menu-btn solo-admin relative">
         cargarAvisosAdmin();
         setInterval(cargarAvisosAdmin, 300000);
 
+        function escaparRecargaAdmin(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+        function fechaRecargaAdmin(value) {
+            const date = value ? new Date(value) : null;
+            return date && Number.isFinite(date.getTime())
+                ? date.toLocaleString('es-MX', {timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+                : 'Sin fecha registrada';
+        }
+        function filaRecargaAdmin(r) {
+            const esc = escaparRecargaAdmin;
+            const pendiente = String(r.estatus || '').trim().toLowerCase() === 'pendiente';
+            const aprobada = String(r.estatus || '').toLowerCase().includes('aprob');
+            const automatica = aprobada && r.aprobacion_automatica === true;
+            const cuenta = r.cuenta_destino === 'mercado_pago' ? 'Mercado Pago · Alejandro Santos' : r.cuenta_destino === 'banorte' ? 'Banorte · Diana Puente Rodríguez' : 'Cuenta por revisar';
+            const cuentaColor = r.cuenta_destino === 'mercado_pago' ? 'text-blue-700' : 'text-slate-600';
+            const boton = pendiente
+                ? `<button onclick="window.validarRecarga(${esc(JSON.stringify(String(r.id)))}, '', ${Number(r.monto)||0}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-2 rounded-lg font-black mr-2">APROBAR</button>`
+                : automatica ? '<span class="inline-block bg-emerald-100 text-emerald-800 px-3 py-2 rounded-lg uppercase font-black">APROBADA AUTOMÁTICAMENTE</span>'
+                : `<span class="text-slate-500 uppercase font-black">${esc(r.estatus)}</span>`;
+            const pago = /^https?:\/\//i.test(r.comprobante || '')
+                ? `<a href="${esc(r.comprobante)}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline font-black text-[8px]">VER PAGO</a>`
+                : '<span class="text-[10px] text-slate-500">Clave y monto reportados</span>';
+            return `<tr class="border-b ${automatica ? 'bg-emerald-50' : ''}">
+                <td class="p-4"><b>${esc(r.asesorEmail)}</b><br>
+                    <small class="text-blue-600">RASTREO: ${esc(r.rastreo || 'N/A')}</small><br>
+                    <small class="font-bold ${cuentaColor}">CUENTA: ${cuenta}</small><br>
+                    <small class="text-slate-600">REPORTADA: ${fechaRecargaAdmin(r.fecha)} (hora CDMX)</small>
+                    ${r.aprobado_en ? '<br><small class="text-slate-600">APROBADA: '+fechaRecargaAdmin(r.aprobado_en)+' (hora CDMX)</small>' : ''}
+                </td>
+                <td class="p-4 text-center"><b>$${Number(r.monto)||0}</b></td>
+                <td class="p-4 text-center">${pago}</td>
+                <td class="p-4 text-right">${boton}<button onclick="window.borrarRecarga(${esc(JSON.stringify(String(r.id)))})" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black ml-2" title="Borrar recarga">x</button></td>
+            </tr>`;
+        }
+
         async function cargarRecargasAdmin() {
             if (miSesion.role !== 'admin') return;
             try {
@@ -2769,26 +2804,7 @@ class="admin-menu-btn solo-admin relative">
                 (data.rows || []).forEach(r => {
                     const id = r.id;
                     if (r.estatus === 'pendiente') pendientesRecarga++;
-                    let btns = (r.estatus === 'pendiente')
-                        ? `<button onclick="window.validarRecarga('${id}', '${r.uid}', ${r.monto}, 'aprobado')" class="bg-emerald-500 text-white px-3 py-1 rounded-lg font-black mr-2">APROBAR</button>`
-                        : `<span class="opacity-30 uppercase font-black">${r.estatus}</span>`;
-
-                    t.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-4">
-                                <b>${r.asesorEmail}</b><br>
-                                <small class="text-blue-600">RASTREO: ${r.rastreo || 'N/A'}</small>
-                            </td>
-                            <td class="p-4 text-center"><b>$${r.monto}</b></td>
-                            <td class="p-4 text-center">
-                                <button onclick="window.open('${r.comprobante || ''}')" class="text-blue-600 underline font-black text-[8px]">VER PAGO</button>
-                            </td>
-                            <td class="p-4 text-right">
-                                ${btns}
-                                <button onclick="window.borrarRecarga('${id}')" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black ml-2" title="Borrar recarga">x</button>
-                            </td>
-                        </tr>
-                    `;
+                    t.innerHTML += filaRecargaAdmin(r);
                 });
 
                 window.actualizarNotificacionAdmin('recargas', pendientesRecarga > 0, pendientesRecarga);
@@ -3337,3 +3353,4 @@ class="admin-menu-btn solo-admin relative">
     </script>
 </body>
 </html>
+
