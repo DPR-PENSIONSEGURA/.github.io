@@ -186,17 +186,25 @@
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 relative text-center border shadow-2xl">
+        <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[3rem] p-10 relative text-center border shadow-2xl">
             <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">x</button>
             <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <div class="bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center">
-                <p class="font-black text-emerald-600 text-[10px] uppercase mb-1">BANORTE | DIANA PUENTE RODRÍGUEZ</p>
-                <p class="text-lg font-black text-emerald-700 tracking-widest mb-1">4915 6630 4036 4896</p>
+            <div id="datosCuentaRecarga" class="hidden bg-emerald-50 border-2 border-emerald-500/20 p-5 rounded-3xl mb-6 text-center" aria-live="polite">
+                <p id="titularCuentaRecarga" class="font-black text-emerald-600 text-[10px] uppercase mb-1"></p>
+                <p class="text-[10px] text-slate-600 mb-1">Número para depósito</p>
+                <p id="numeroCuentaRecarga" class="text-lg font-black text-emerald-700 tracking-widest mb-1"></p>
             </div>
             <div class="space-y-3">
-                <input type="number" id="depMonto" placeholder="MONTO MÍN $200" class="input-light text-center">
-                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO / FOLIO" class="input-light text-center uppercase">
-                <input type="file" id="fileRecarga" class="block w-full text-[10px] file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700">
+                <label for="cuentaDestinoRecarga" class="block text-left text-xs font-bold">Cuenta a la que depositaste</label>
+                <select id="cuentaDestinoRecarga" onchange="window.actualizarCuentaRecarga()" class="input-light text-center" required>
+                    <option value="">Selecciona la cuenta destino</option>
+                    <option value="banorte">Banorte</option>
+                    <option value="mercado_pago">Mercado Pago</option>
+                </select>
+                <label for="depMonto" class="block text-left text-xs font-bold">Monto depositado</label>
+                <input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="MONTO MÍN $200" class="input-light text-center" required>
+                <label for="claveRastreo" class="block text-left text-xs font-bold">Clave de rastreo</label>
+                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center uppercase" required>
                 <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
             </div>
         </div>
@@ -469,7 +477,7 @@ async function cargarPreciosBackend() {
 
         const FLUJO_AYUDA = {
             "inicio": { texto: "Hola, ¿en qué puedo ayudarte?", opciones: [" Pagos", "Trámites"] },
-            " Pagos": { texto: "Transfiere a Banorte y sube captura en el botón derecargar.", opciones: ["¿Cuánto tarda?", "Volver al inicio"] },
+            " Pagos": { texto: "En Recargar saldo selecciona Banorte o Mercado Pago y consulta los datos de depósito. Para informar tu pago captura la clave de rastreo, el monto y la cuenta destino.", opciones: ["¿Cuánto tarda?", "Volver al inicio"] },
             "¿Cuánto tarda?": { texto: "Máximo 10 minutos.", opciones: ["Volver al inicio"] },
             "Trámites": { texto: "Semanas: 10min. RFC: 1h-3h. Altas: 2-3 días.", opciones: ["Volver al inicio"] }
         };
@@ -1475,15 +1483,26 @@ vacuna_covid: val('vacuna_covid_p'),
             }
         };
 
+        const cuentasRecarga = Object.freeze({
+            banorte: { nombre: "Banorte", titular: "Diana Puente Rodríguez", numero: "4915 6630 4036 4896" },
+            mercado_pago: { nombre: "Mercado Pago", titular: "Alejandro Santos", numero: "5428 7808 5064 0715" }
+        });
+        window.actualizarCuentaRecarga = () => {
+            const cuenta = cuentasRecarga[document.getElementById('cuentaDestinoRecarga').value];
+            document.getElementById('datosCuentaRecarga').classList.toggle('hidden', !cuenta);
+            document.getElementById('titularCuentaRecarga').textContent = cuenta ? `${cuenta.nombre} | ${cuenta.titular}` : '';
+            document.getElementById('numeroCuentaRecarga').textContent = cuenta ? cuenta.numero : '';
+        };
+
         window.notificarPago = async () => {
             const m = parseFloat(document.getElementById('depMonto').value);
             const r = document.getElementById('claveRastreo').value.trim();
-            const f = document.getElementById('fileRecarga').files[0];
+            const cuentaDestino = document.getElementById('cuentaDestinoRecarga').value;
             const boton = document.getElementById('btnNotificar');
 
             if (!Number.isFinite(m) || m < 200) return alert("La recarga mínima es de $200.");
             if (!r) return alert("Escribe la clave de rastreo.");
-            if (!f) return alert("Adjunta el comprobante de pago.");
+            if (!Object.hasOwn(cuentasRecarga, cuentaDestino)) return alert("Selecciona la cuenta a la que depositaste.");
 
             if (boton) {
                 boton.disabled = true;
@@ -1492,17 +1511,6 @@ vacuna_covid: val('vacuna_covid_p'),
             }
 
             try {
-                const fd = new FormData();
-                fd.append('file', f);
-                fd.append('upload_preset', UPLOAD_PRESET);
-
-                const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: fd });
-                let d = {};
-                try { d = await res.json(); } catch (_) {}
-                if (!res.ok || !d.secure_url) {
-                    throw new Error(d.error?.message || "No se pudo subir el comprobante. Intenta con una imagen JPG o PNG.");
-                }
-
                 await requestDashboardApi("/api/v1/dashboard/payment-notifications", {
                     method: "POST",
                     headers: {
@@ -1511,14 +1519,15 @@ vacuna_covid: val('vacuna_covid_p'),
                     body: JSON.stringify({
                         monto: m,
                         rastreo: r.toUpperCase(),
-                        comprobante: d.secure_url
+                        cuenta_destino: cuentaDestino
                     })
                 });
 
-                alert("Recarga reportada correctamente. Un asesor validará el pago.");
+                alert("Recarga reportada correctamente. Validaremos la clave de rastreo y el monto en la cuenta seleccionada.");
                 document.getElementById('depMonto').value = '';
                 document.getElementById('claveRastreo').value = '';
-                document.getElementById('fileRecarga').value = '';
+                document.getElementById('cuentaDestinoRecarga').value = '';
+                window.actualizarCuentaRecarga();
                 window.cerrarModal();
                 cargarHistorial();
             } catch (error) {
