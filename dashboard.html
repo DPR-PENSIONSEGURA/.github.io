@@ -214,6 +214,7 @@
                 <input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="MONTO MÍN $200" class="input-light text-center" required>
                 <label for="claveRastreo" class="block text-left text-xs font-bold">Clave de rastreo</label>
                 <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center uppercase" required>
+                <p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p>
                 <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
             </div>
         </div>
