@@ -172,7 +172,21 @@
 .nv-package-card button{min-height:44px}.nv-package-card button:disabled{opacity:.5}
 @media(max-width:600px){.nv-package-grid{grid-template-columns:1fr}}
 
-</style>
+.nv-bots-section { margin:28px 0; padding:24px; border:1px solid #cbd5e1; border-radius:24px; background:linear-gradient(135deg,#f0fdf4,#fff); }
+        .nv-bots-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+        .nv-bots-eyebrow { color:#047857; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; margin:0 0 6px; }
+        .nv-bots-heading h2 { font-size:20px; color:#0f172a; font-weight:800; margin:0; }
+        .nv-bots-heading>p { color:#475569; font-size:13px; max-width:290px; line-height:1.5; }
+        .nv-bots-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+        .nv-bot-card { display:flex; flex-direction:column; gap:10px; padding:20px; border:1px solid #d1dfe0; border-radius:18px; background:#fff; text-decoration:none; color:#0f172a; }
+        .nv-bot-card>strong { font-size:16px; font-weight:800; }
+        .nv-bot-card>span { font-size:13px; line-height:1.5; }
+        .nv-bot-card>span:not(.nv-bot-cta) { color:#475569; }
+        .nv-bot-card .nv-bot-cta { margin-top:auto; padding-top:6px; color:#047857; font-weight:800; }
+        .nv-bot-card:hover { border-color:#059669; box-shadow:0 6px 20px #04785712; }
+        .nv-bot-card:focus-visible { outline:3px solid #047857; outline-offset:3px; }
+        @media(max-width:640px) { .nv-bots-section { padding:18px; } .nv-bots-heading { display:block; } .nv-bots-heading>p { margin-top:10px; } .nv-bots-grid { grid-template-columns:1fr; } .nv-bot-card { padding:18px; } }
+    </style>
 </head>
 <body>
 
@@ -261,6 +275,14 @@
 
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
+        <section id="botsWhatsApp" class="nv-bots-section" aria-labelledby="tituloBotsWhatsApp">
+            <div class="nv-bots-heading"><div><p class="nv-bots-eyebrow">Para tu negocio</p><h2 id="tituloBotsWhatsApp">Conoce nuestros bots de WhatsApp</h2></div><p>Elige el bot que te interesa y solicita información por WhatsApp.</p></div>
+            <div class="nv-bots-grid">
+                <a class="nv-bot-card" href="https://wa.me/528131983700?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20de%20Sam%20Bot." target="_blank" rel="noopener noreferrer" aria-label="Pedir información de Sam Bot por WhatsApp"><strong>Sam Bot</strong><span>Actas y semanas cotizadas por WhatsApp.</span><span class="nv-bot-cta">Quiero información <span aria-hidden="true">↗</span></span></a>
+                <a class="nv-bot-card" href="https://wa.me/528131983700?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20del%20bot%20de%20monograf%C3%ADas." target="_blank" rel="noopener noreferrer" aria-label="Pedir información de Bot de monografías por WhatsApp"><strong>Bot de monografías</strong><span>Monografías, biografías, mapas y esquemas.</span><span class="nv-bot-cta">Quiero información <span aria-hidden="true">↗</span></span></a>
+                <a class="nv-bot-card" href="https://wa.me/528131983700?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20del%20bot%20CFE." target="_blank" rel="noopener noreferrer" aria-label="Pedir información de Bot CFE por WhatsApp"><strong>Bot CFE</strong><span>Conoce el bot de recibos CFE por WhatsApp.</span><span class="nv-bot-cta">Quiero información <span aria-hidden="true">↗</span></span></a>
+            </div>
+        </section>
         <section id="historialPanel" class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200 mt-12 backdrop-blur">
             <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-xl font-bold">Mis solicitudes</h2><p class="ux-muted">Consulta el estado real y descarga tus documentos.</p></div><button id="actualizarSolicitudes" type="button" class="ux-page-button" onclick="window.actualizarSolicitudes()">Actualizar</button></div>
             <div class="ux-history-controls" aria-label="Filtrar solicitudes">
