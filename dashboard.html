@@ -130,7 +130,20 @@
         #modalSaldo .input-light { font-size:16px; } .ux-recharge-actions { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
         [aria-busy=true] { cursor:progress; }.ux-page-button:focus-visible,.ux-filter:focus-visible,.ux-action-primary:focus-visible,.ux-action-secondary:focus-visible { outline:3px solid #059669; outline-offset:3px; }
         @media(max-width:700px) { #tablaSolicitudes { display:none; } #tarjetasSolicitudes { display:block; } #historialPanel { padding:18px; border-radius:24px; scroll-margin-top:230px; } .bottom-nav button { min-height:58px; font-size:12px; text-transform:none; } #modalSaldo > div { padding:24px 18px; } .ux-filter { flex:1; font-size:12px; padding:10px 7px; } }
-    </style>
+    
+        /* Conversación: colores y alineación independientes de utilidades externas. */
+        #chatHistory, #chat-messages { display:flex; flex-direction:column; gap:12px; background:linear-gradient(160deg,#d9eaf1,#f2f5fa); padding:18px; overflow-y:auto; }
+        .nv-chat-bubble { box-sizing:border-box; flex-shrink:0; max-width:86%; min-width:90px; padding:12px 15px; border-radius:20px; box-shadow:0 3px 10px rgba(15,23,42,.06); font-size:13px; line-height:1.55; overflow-wrap:anywhere; text-align:left; }
+        .nv-chat-own { align-self:flex-end; margin-left:auto; background:#172b69; color:#fff; border-bottom-right-radius:5px; }
+        .nv-chat-other { align-self:flex-start; margin-right:auto; background:#fff; color:#17233c; border:1px solid #dce5ed; border-bottom-left-radius:5px; }
+        .nv-chat-author { display:block; font-size:10px; letter-spacing:.03em; margin-bottom:5px; opacity:.85; }
+        .nv-chat-body { margin:0; white-space:pre-wrap; font-weight:500; }
+        .nv-chat-bubble time { display:block; margin-top:7px; font-size:10px; opacity:.8; text-align:right; }
+        #chatHistory { height: min(48vh,430px); min-height:200px; border-radius:20px; }
+        #inputRespuesta { min-width:0; font-size:14px; }
+        @media(max-width:600px) { #modalChat > div { padding:20px; max-height:92dvh; overflow-y:auto; border-radius:24px; } #btnEnviarRespuesta { padding-left:14px; padding-right:14px; } #chatHistory { padding:12px; } }
+
+</style>
 </head>
 <body>
 
@@ -2233,6 +2246,29 @@ document.addEventListener('visibilitychange', () => {
             cargarAvisosDashboard();
             setInterval(() => { if (!document.hidden) cargarAvisosDashboard(); }, 300000);
         }
+
+        function mensajeEsDelCliente(m, email) {
+            if (m.tipo === 'respuesta_aclaracion') return false;
+            if (m.tipo === 'aclaracion') return true;
+            const sender = String(m.remitente || '').trim().toLowerCase();
+            const customer = String(email || '').trim().toLowerCase();
+            return Boolean(customer) && (sender ? sender === customer : String(m.email || '').trim().toLowerCase() === customer);
+        }
+        function crearBurbujaChat(m, contenido, propio, nombre) {
+            const bubble = document.createElement('article');
+            bubble.className = 'nv-chat-bubble ' + (propio ? 'nv-chat-own' : 'nv-chat-other');
+            const author = document.createElement('strong'); author.className = 'nv-chat-author'; author.textContent = nombre;
+            const body = document.createElement('p'); body.className = 'nv-chat-body'; body.textContent = contenido;
+            bubble.append(author, body);
+            const date = m.fecha ? new Date(m.fecha) : null;
+            if (date && !Number.isNaN(date.getTime())) {
+                const time = document.createElement('time'); time.dateTime = date.toISOString();
+                time.textContent = date.toLocaleString('es-MX',{timeZone:'America/Mexico_City',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+                bubble.append(time);
+            }
+            return bubble;
+        }
+
         async function cargarChat() {
             try {
                 const data = await requestDashboardApi("/api/v1/dashboard/chat");
@@ -2252,15 +2288,12 @@ document.addEventListener('visibilitychange', () => {
                 }
 
                 mensajes.forEach(m => {
-                    const esUsuario = (m.remitente === emailAsesor) || (m.email === emailAsesor);
+                    const esUsuario = mensajeEsDelCliente(m, emailAsesor);
                     const estado = String(m.estado_aclaracion || '').replace('_', ' ').toUpperCase();
                     const contenido = m.tipo === 'aclaracion'
                         ? `Servicio: ${m.servicio || 'N/A'}\nDatos: ${m.datos_servicio || 'N/A'}\nNota: ${m.nota_usuario || 'N/A'}\nEstado: ${estado || 'EN REVISION'}`
                         : (m.texto || '');
-                    const div = document.createElement('div');
-                    div.className = esUsuario ? "msg-user" : "msg-support";
-                    div.innerText = contenido;
-                    box.appendChild(div);
+                    box.appendChild(crearBurbujaChat(m, contenido, esUsuario, esUsuario ? 'Tú' : 'Soporte Novyra'));
                 });
 
                 box.scrollTop = box.scrollHeight;
@@ -2281,6 +2314,7 @@ document.addEventListener('visibilitychange', () => {
     </script>
 </body>
 </html>
+
 
 
 
