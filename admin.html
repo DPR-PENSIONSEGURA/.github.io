@@ -411,6 +411,19 @@
             background: linear-gradient(135deg, #071832, #0F2A55);
             color:white; border-radius:1.5rem; padding:1rem;
         }
+
+        /* Conversación: colores y alineación independientes de utilidades externas. */
+        #chatHistory, #chat-messages { display:flex; flex-direction:column; gap:12px; background:linear-gradient(160deg,#d9eaf1,#f2f5fa); padding:18px; overflow-y:auto; }
+        .nv-chat-bubble { box-sizing:border-box; flex-shrink:0; max-width:86%; min-width:90px; padding:12px 15px; border-radius:20px; box-shadow:0 3px 10px rgba(15,23,42,.06); font-size:13px; line-height:1.55; overflow-wrap:anywhere; text-align:left; }
+        .nv-chat-own { align-self:flex-end; margin-left:auto; background:#172b69; color:#fff; border-bottom-right-radius:5px; }
+        .nv-chat-other { align-self:flex-start; margin-right:auto; background:#fff; color:#17233c; border:1px solid #dce5ed; border-bottom-left-radius:5px; }
+        .nv-chat-author { display:block; font-size:10px; letter-spacing:.03em; margin-bottom:5px; opacity:.85; }
+        .nv-chat-body { margin:0; white-space:pre-wrap; font-weight:500; }
+        .nv-chat-bubble time { display:block; margin-top:7px; font-size:10px; opacity:.8; text-align:right; }
+        #chatHistory { height: min(48vh,430px); min-height:200px; border-radius:20px; }
+        #inputRespuesta { min-width:0; font-size:14px; }
+        @media(max-width:600px) { #modalChat > div { padding:20px; max-height:92dvh; overflow-y:auto; border-radius:24px; } #btnEnviarRespuesta { padding-left:14px; padding-right:14px; } #chatHistory { padding:12px; } }
+
 </style>
 </head>
 <body class="p-4 md:p-8">
@@ -2941,6 +2954,29 @@ class="admin-menu-btn solo-admin relative">
         cargarChatAdmin();
         setInterval(cargarChatAdmin, 120000);
 
+
+        function mensajeEsDelCliente(m, email) {
+            if (m.tipo === 'respuesta_aclaracion') return false;
+            if (m.tipo === 'aclaracion') return true;
+            const sender = String(m.remitente || '').trim().toLowerCase();
+            const customer = String(email || '').trim().toLowerCase();
+            return Boolean(customer) && (sender ? sender === customer : String(m.email || '').trim().toLowerCase() === customer);
+        }
+        function crearBurbujaChat(m, contenido, propio, nombre) {
+            const bubble = document.createElement('article');
+            bubble.className = 'nv-chat-bubble ' + (propio ? 'nv-chat-own' : 'nv-chat-other');
+            const author = document.createElement('strong'); author.className = 'nv-chat-author'; author.textContent = nombre;
+            const body = document.createElement('p'); body.className = 'nv-chat-body'; body.textContent = contenido;
+            bubble.append(author, body);
+            const date = m.fecha ? new Date(m.fecha) : null;
+            if (date && !Number.isNaN(date.getTime())) {
+                const time = document.createElement('time'); time.dateTime = date.toISOString();
+                time.textContent = date.toLocaleString('es-MX',{timeZone:'America/Mexico_City',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+                bubble.append(time);
+            }
+            return bubble;
+        }
+
         window.abrirChat = async (uid, email) => {
             if (!uid) {
                 alert('No se encontró el ID del usuario.');
@@ -2960,12 +2996,11 @@ class="admin-menu-btn solo-admin relative">
                     box.innerHTML = '';
 
                     (data.rows || []).forEach(m => {
-                        const esUsuario = (m.email === email) || (m.remitente === email) || m.tipo === 'aclaracion';
-                        const align = esUsuario ? 'self-start bg-white' : 'self-end bg-blue-600 text-white';
+                        const esUsuario = mensajeEsDelCliente(m, email);
                         const contenido = m.tipo === 'aclaracion'
                             ? `Servicio: ${m.servicio || 'N/A'}\nDatos: ${m.datos_servicio || 'N/A'}\nNota: ${m.nota_usuario || 'N/A'}\nEstado: ${String(m.estado_aclaracion || 'en_revision').replace('_', ' ')}`
                             : (m.texto || '');
-                        box.innerHTML += `<div class="whitespace-pre-line p-3 rounded-xl text-[10px] font-bold shadow-sm max-w-[86%] ${align}">${contenido}</div>`;
+                        box.appendChild(crearBurbujaChat(m, contenido, !esUsuario, esUsuario ? 'Cliente' : 'Tú · Soporte Novyra'));
                     });
 
                     box.scrollTop = box.scrollHeight;
@@ -3353,4 +3388,5 @@ class="admin-menu-btn solo-admin relative">
     </script>
 </body>
 </html>
+
 
