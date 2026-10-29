@@ -163,6 +163,15 @@
         .ux-request-actions > .ux-info-button { margin-left:auto; }
         .ux-status-incidencia { max-width:240px; white-space:normal; }
         #listaHistorial td:last-child { min-width:160px; }
+
+.nv-package-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+.nv-package-card,.nv-package-current{border:1px solid #cbd5e1;border-radius:18px;padding:18px;margin:10px 0}
+.nv-package-card h3{font-size:18px;font-weight:800}.nv-package-card>strong{display:block;font-size:24px;margin:8px 0}
+.nv-package-card p,.nv-package-current p{font-size:13px;line-height:1.5;margin:10px 0}
+.nv-package-validity{color:#facc15!important;background:#172554;border-radius:10px;padding:10px;font-weight:800}
+.nv-package-card button{min-height:44px}.nv-package-card button:disabled{opacity:.5}
+@media(max-width:600px){.nv-package-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -207,7 +216,7 @@
                         </button>
                         <div class="flex items-center gap-2 flex-wrap justify-end quick-scroll">
                             <button onclick="window.abrirModal('modalSaldo')" class="quick-action"> Recargar</button>
-                            <button onclick="window.abrirModal('modalPremium')" class="quick-action text-amber-700">Premium</button>
+                            <button onclick="window.abrirModal('modalPremium')" class="quick-action text-amber-700">Suscripciones</button>
                             <a href="finanzas.html" class="quick-action"> Finanzas</a>
                             <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})" class="quick-action">Historial</button>
                             <button onclick="window.abrirAvisos()" class="quick-action notify-wrap"> Avisos<span class="notify-dot aviso-dot"></span></button>
@@ -311,7 +320,7 @@
             <button onclick="window.cerrarModal()" class="absolute top-5 right-7 text-slate-400 text-2xl font-black">x</button>
             <div class="mb-6 pr-8">
                 <p class="text-[10px] font-black uppercase tracking-[0.35em] text-amber-600">Novyra Services</p>
-                <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase italic leading-tight">Hazte Premium</h2>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-950 uppercase italic leading-tight">Suscripciones y paquetes</h2>
                 <p class="text-sm font-bold text-slate-500 mt-2">Planes pensados para asesores con volumen constante. Ahorra en servicios frecuentes y trabaja con cupos claros por periodo.</p>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
@@ -358,6 +367,15 @@
                 <button data-premium-plan="premium" onclick="window.activarPremium('premium')" class="green-gradient text-white rounded-2xl px-5 py-4 text-xs font-black uppercase shadow-lg">Activar Premium con saldo</button>
                 <button data-premium-plan="premium_plus" onclick="window.activarPremium('premium_plus')" class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-xs font-black uppercase text-emerald-700">Activar Premium Plus con saldo</button>
             </div>
+
+<section aria-labelledby="tituloPaquetes" class="mt-6">
+ <h2 id="tituloPaquetes" class="text-xl font-black">Paquetes de actas y semanas cotizadas</h2>
+ <p class="nv-package-validity">VIGENCIA DE 30 DÍAS NATURALES. Se pagan con el saldo del cliente.</p>
+ <div id="planesPaquetes" class="nv-package-grid"></div>
+ <p id="estadoPaquetes" role="status" class="text-sm"></p>
+ <h3 class="mt-4 font-bold">Mis paquetes</h3><div id="misPaquetes"></div>
+ <button type="button" class="ux-page-button" onclick="window.cargarPaquetesNovyra()">Actualizar paquetes</button>
+</section>
         </div>
     </div>
 
@@ -433,6 +451,53 @@
         let TRAMITES = {};
         let OPCIONES_ESTADO_CUENTA_AFORE = [];
         let preciosBackendListos = false;
+let paquetesUsuario = [];
+function paqueteParaTramite(t) {
+ const name=normalizarClavePrecio(t?.nombre),familia=name==='SEMANAS COTIZADAS'?'semanas':/^ACTA DE (NACIMIENTO|MATRIMONIO|DEFUNCION|DIVORCIO)( CON FOLIO)?$/.test(name)?'actas':null;
+ return paquetesUsuario.find(p=>p.familia===familia && new Date(p.fin).getTime()>Date.now() && Number(p.usados)<Number(p.total)) || null;
+}
+function textoVigenciaPaquete(p) {
+ const remaining=Math.max(0,Number(p.total)-Number(p.usados));
+ return (new Date(p.fin).getTime()<=Date.now()?'Vencido':remaining?'Vigente':'Agotado')+' · '+remaining+' de '+p.total+' disponibles · Vence '+new Date(p.fin).toLocaleString('es-MX',{timeZone:'America/Mexico_City'});
+}
+let compraPaqueteEnCurso=false;
+window.cargarPaquetesNovyra=async()=>{
+ const host=document.getElementById('planesPaquetes'),status=document.getElementById('estadoPaquetes');
+ status.textContent='Consultando paquetes…';host.replaceChildren();
+ try{
+  const data=await requestDashboardApi('/api/v1/dashboard/packages');
+  paquetesUsuario=Array.isArray(data.paquetes)?data.paquetes:[];
+  for(const plan of data.planes||[]){
+   const card=document.createElement('article');card.className='nv-package-card';
+   card.append(elementoTexto('h3',plan.nombre),elementoTexto('strong',Number(plan.precio).toLocaleString('es-MX',{style:'currency',currency:'MXN'})));
+   card.append(elementoTexto('p',plan.familia==='actas'?'Incluye todos los tipos de actas, con y sin folio.':'Solo semanas cotizadas normales. No incluye detalladas ni subdelegación.'));
+   const period=elementoTexto('p','Vigencia: 30 días naturales desde la compra.','nv-package-validity');card.append(period);
+   const buy=elementoTexto('button','Comprar con mi saldo','ux-action-primary');buy.type='button';buy.onclick=()=>window.comprarPaqueteNovyra(plan);card.append(buy);host.append(card);
+  }
+  const current=document.getElementById('misPaquetes');current.replaceChildren();
+  for(const p of paquetesUsuario){const row=document.createElement('article');row.className='nv-package-current';row.append(elementoTexto('strong',p.plan.replaceAll('_',' ')),elementoTexto('p',textoVigenciaPaquete(p)));current.append(row);}
+  if(!paquetesUsuario.length)current.append(elementoTexto('p','Aún no tienes paquetes.'));
+  status.textContent='Se pagan con tu saldo. Sin renovación automática. Puedes combinar Premium con un paquete de actas y uno de semanas. Primero se consume el paquete correspondiente; no se pueden acumular dos vigentes del mismo tipo con usos pendientes.';
+ }catch(e){status.textContent='No pudimos consultar los paquetes. '+(e.message||'Reintenta más tarde.');}
+};
+window.comprarPaqueteNovyra=async plan=>{
+ if(compraPaqueteEnCurso)return;
+ if(!confirm('Comprar '+plan.nombre+' por $'+plan.precio+' MXN de tu saldo. Vigencia: 30 días naturales. ¿Confirmas?'))return;
+ compraPaqueteEnCurso=true;
+ const key='novyra_compra_paquete_'+(userUID||auth.currentUser?.uid||'')+'_'+plan.key;
+ let id=localStorage.getItem(key);if(!id){id=crypto.randomUUID();localStorage.setItem(key,id);}
+ const buttons=document.querySelectorAll('#planesPaquetes button');for(const b of buttons)b.disabled=true;
+ try{
+  const result=await requestDashboardApi('/api/v1/dashboard/packages/purchase',{method:'POST',body:JSON.stringify({plan:plan.key,clave:id})});
+  localStorage.removeItem(key);
+  await window.cargarPaquetesNovyra();await cargarPreciosBackend();await cargarSaldo();
+  document.getElementById('estadoPaquetes').textContent='Paquete activado. Cargo registrado: $'+plan.precio+' MXN. Vigencia de 30 días. Saldo actual: '+Number(result.saldo).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+ }catch(e){
+  // Retain the operation id on ambiguous failures so retry cannot debit twice.
+  document.getElementById('estadoPaquetes').textContent=(e.message||'No se pudo confirmar la compra.')+' Consulta tus paquetes antes de reintentar.';
+ }finally{compraPaqueteEnCurso=false;for(const b of buttons)b.disabled=false;}
+};
+
         let premiumState = { activo: false };
         let categoriaActual = "";
 
@@ -456,6 +521,8 @@ function obtenerPrecioTramite(t) {
 }
 
 function obtenerBeneficioPremium(t) {
+    const paquete=paqueteParaTramite(t);
+    if(paquete)return {etiqueta:'Usar paquete',detalle:(paquete.total-paquete.usados)+' usos disponibles',paquete_id:paquete.id};
     if (!premiumState || premiumState.activo !== true) return null;
 
     const categoria = String(t?.categoria || "").toUpperCase();
@@ -547,6 +614,7 @@ async function cargarPreciosBackend() {
         OPCIONES_ESTADO_CUENTA_AFORE = Array.isArray(data.aforeOptions) ? data.aforeOptions : [];
         preciosBackend = data.prices || {};
         premiumState = data.premium || { activo: false };
+        paquetesUsuario = Array.isArray(data.paquetes)?data.paquetes:[];
         aplicarPreciosBackend();
     } catch (error) {
         console.error("catalogo precios", error);
@@ -766,7 +834,7 @@ async function cargarPreciosBackend() {
             w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
         };
 
-        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); if (id === 'modalSaldo') window.prepararRecargas(); };
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); if (id === 'modalSaldo') window.prepararRecargas(); if(id === 'modalPremium') window.cargarPaquetesNovyra(); };
         window.abrirAvisos = () => {
             document.getElementById('modalAvisos').classList.remove('hidden');
             const ultimoAviso = localStorage.getItem('ultimoAvisoAdminTS') || '0';
@@ -1151,6 +1219,7 @@ function prepararPasosCuestionario(content) {
         window.prepararTramite = (t) => {
             if (!t || t.pausado === true) return;
             const content = document.getElementById('formContent');
+            t = {...t,paquete_id:paqueteParaTramite(t)?.id || null};
             let pFinal = obtenerPrecioTramite(t);
             const beneficioPremium = obtenerBeneficioPremium(t);
             const textoBotonPago = beneficioPremium ? `Usar ${beneficioPremium.etiqueta}` : `Pagar $${pFinal}.00`;
@@ -1436,6 +1505,9 @@ fields += `
                 alert("No se pudo validar tu sesion. Cierra sesion e inicia nuevamente.");
                 return;
             }
+            const costoCatalogo = c, paqueteSeleccionado = paqueteParaTramite(t);
+            if(t.paquete_id && (!paqueteSeleccionado || paqueteSeleccionado.id!==t.paquete_id)){alert('El paquete mostrado ya no está disponible. Actualiza los servicios antes de enviar.');return;}
+            if(paqueteSeleccionado)c=0;
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
 
             const botonPago = document.querySelector('#modalTramite .orange-btn');
@@ -1480,6 +1552,7 @@ fields += `
                     ? obtenerCurpsCapturadas(document.getElementById('curp_p')?.value)
                     : [];
                 const cantidadSolicitudes = Math.max(curpsLote.length, 1);
+                if(paqueteSeleccionado && cantidadSolicitudes > paqueteSeleccionado.total-paqueteSeleccionado.usados){alert('El lote supera los usos disponibles de tu paquete. Reduce las CURP antes de enviar.');return;}
                 const costoEstimadoLote = Number(c || 0) * cantidadSolicitudes;
                 if (saldoGlobal < costoEstimadoLote) {
                     alert(`Saldo insuficiente para ${cantidadSolicitudes} solicitudes.\n\nCosto estimado: $${costoEstimadoLote.toFixed(2)}\nSaldo disponible: $${Number(saldoGlobal || 0).toFixed(2)}`);
@@ -1662,7 +1735,8 @@ vacuna_covid: val('vacuna_covid_p'),
                             body: JSON.stringify({
                                 service_name: t.nombre,
                                 service_display_name: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
-                                costo: c,
+                                costo: costoCatalogo,
+                                paquete_id: paqueteSeleccionado?.id || null,
                                 curp: curpActual,
                                 nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
                                 detalles_extra: { ...extra, lote_total: curpsSolicitud.length, lote_posicion: index + 1 },
@@ -2375,6 +2449,7 @@ document.addEventListener('visibilitychange', () => {
     </script>
 </body>
 </html>
+
 
 
 
