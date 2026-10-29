@@ -116,6 +116,13 @@
         .ux-recharge-steps { display:flex; list-style:none; gap:6px; margin:12px 0; padding:0; }
         .ux-recharge-steps li { flex:1; font-size:10px; padding:8px 3px; border-bottom:3px solid #e2e8f0; text-align:center; color:#475569; }
         .ux-recharge-steps .is-current { border-color:#047857; color:#047857; font-weight:700; }
+        .ux-account-fieldset { border:0; margin:12px 0; padding:0; min-width:0; }
+        .ux-account-card { border:1px solid #cbd5e1; border-radius:14px; margin:10px 0; padding:12px; }
+        .ux-account-card:has(input:checked) { border:2px solid #047857; background:#ecfdf5; padding:11px; }
+        .ux-account-choice { display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding:6px 0; min-height:44px; }
+        .ux-account-choice input { flex:none; width:20px; height:20px; margin-top:2px; accent-color:#047857; }
+        .ux-account-choice span { min-width:0; overflow-wrap:anywhere; }
+        .ux-account-choice strong,.ux-account-choice small { display:block; margin:0 0 5px; }
         .ux-bank-details { border:1px solid #a7f3d0; padding:18px; border-radius:18px; margin:16px 0; background:#ecfdf5; }
         .ux-bank-details strong,.ux-bank-details p { display:block; margin:6px 0; overflow-wrap:anywhere; }
         .ux-recharge-message { background:#eff6ff; border:1px solid #bfdbfe; padding:12px; border-radius:14px; font-size:13px; line-height:1.5; margin:16px 0; }
@@ -255,15 +262,14 @@
         <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto border shadow-2xl relative">
             <button onclick="window.cerrarModal()" aria-label="Cerrar recargas" class="absolute top-4 right-5 text-2xl text-slate-500">×</button>
             <h2 class="text-xl font-bold pr-6">Recargar saldo</h2>
-            <ol class="ux-recharge-steps" aria-label="Pasos de recarga"><li data-recarga-indicador="1">Cuenta</li><li data-recarga-indicador="2">Datos</li><li data-recarga-indicador="3">Transferir</li><li data-recarga-indicador="4">Informar</li><li data-recarga-indicador="5">Estado</li></ol>
-            <h3 id="recargaPasoTitulo" class="ux-section-title" aria-live="polite">Paso 1 de 5: Elige la cuenta</h3>
+            <ol class="ux-recharge-steps" aria-label="Pasos de recarga"><li data-recarga-indicador="1">Datos</li><li data-recarga-indicador="2">Informar pago</li><li data-recarga-indicador="3">Estado</li></ol>
+            <h3 id="recargaPasoTitulo" class="ux-section-title" aria-live="polite">Paso 1 de 3: Datos para transferir</h3>
             <div id="recargaMensaje" class="ux-recharge-message" role="status" aria-live="polite" hidden></div>
-            <div data-recarga-paso="1"><label for="cuentaDestinoRecarga" class="ux-field-label">Cuenta destino de tu depósito</label><select id="cuentaDestinoRecarga" class="input-light" required><option value="">Selecciona la cuenta destino</option><option value="banorte">Banorte</option><option value="mercado_pago">Mercado Pago</option></select><p class="ux-muted">Elige la cuenta antes de transferir. Si ya pagaste, selecciona la que utilizaste.</p><div class="ux-recharge-actions"><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(2)">Ver datos para transferir</button></div></div>
-            <div data-recarga-paso="2" hidden><div id="datosCuentaRecargaPaso" class="ux-bank-details"></div><button type="button" class="ux-page-button" onclick="window.copiarCuentaRecarga()">Copiar número de cuenta</button><p id="avisoAntesTransferir" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.pasoRecarga(1)">Anterior</button><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(3)">Continuar</button></div></div>
-            <div data-recarga-paso="3" hidden><p class="text-sm leading-relaxed">Realiza la transferencia desde tu banco. Verifica banco, titular e importe y conserva la clave de rastreo. Esta pantalla no mueve dinero.</p><p class="ux-muted">Monto mínimo: $200. No uses transferencias Banorte a Banorte.</p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.pasoRecarga(2)">Ver datos de cuenta</button><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(4)">Ya realicé el pago</button></div></div>
-            <div data-recarga-paso="4" hidden><label for="depMonto" class="ux-field-label">Monto depositado</label><input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="Monto mínimo $200" class="input-light" required><label for="claveRastreo" class="ux-field-label mt-4">Clave de rastreo</label><input type="text" id="claveRastreo" placeholder="Escribe la clave completa" class="input-light uppercase" required><p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><p class="ux-muted">Informar el pago no acredita el saldo de inmediato. Primero se valida el depósito; no se garantiza aprobación automática.</p><button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-bold text-white shadow-lg text-sm mt-4">Informar pago</button><button type="button" class="ux-page-button mt-3" onclick="window.pasoRecarga(3)">Anterior</button></div>
-            <div data-recarga-paso="5" hidden><p class="ux-muted">Mostramos hasta cinco recargas entre tus últimos movimientos. El estado y el saldo se obtienen del servidor.</p><div id="recargasRecientes" aria-live="polite">Cargando movimientos…</div><p id="recargasActualizadas" role="status" class="ux-muted"></p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.actualizarRecargas()">Actualizar estado</button><button type="button" class="ux-action-primary" onclick="window.nuevaRecarga()">Nueva recarga</button><a href="finanzas.html" class="ux-page-button">Ver finanzas</a></div></div>
-            <button type="button" class="ux-page-button mt-4" onclick="window.pasoRecarga(5)">Consultar mis recargas</button>
+            <select id="cuentaDestinoRecarga" hidden aria-hidden="true" tabindex="-1"><option value="">Selecciona la cuenta destino</option><option value="banorte">Banorte</option><option value="mercado_pago">Mercado Pago</option></select>
+            <div data-recarga-paso="1"><p class="ux-muted">Selecciona una cuenta para transferir. Monto mínimo: $200. Conserva la clave de rastreo.</p><fieldset class="ux-account-fieldset"><legend class="ux-field-label">Cuentas disponibles</legend><div id="cuentasRecargaDatos"></div></fieldset><p id="avisoAntesTransferir" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><div class="ux-recharge-actions"><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(2)">Ya hice mi recarga</button></div></div>
+            <div data-recarga-paso="2" hidden><fieldset class="ux-account-fieldset"><legend class="ux-field-label">¿En qué cuenta realizaste tu recarga?</legend><div id="cuentasRecargaInforme"></div></fieldset><label for="depMonto" class="ux-field-label">Monto depositado</label><input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="Monto mínimo $200" class="input-light" required><label for="claveRastreo" class="ux-field-label mt-4">Clave de rastreo</label><input type="text" id="claveRastreo" placeholder="Escribe la clave completa" class="input-light uppercase" required><p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><p class="ux-muted">Informar el pago no acredita el saldo de inmediato. Primero se valida el depósito; no se garantiza aprobación automática.</p><button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-bold text-white shadow-lg text-sm mt-4">Informar pago</button><button type="button" class="ux-page-button mt-3" onclick="window.pasoRecarga(1)">Ver datos de cuentas</button></div>
+            <div data-recarga-paso="3" hidden><p class="ux-muted">Mostramos hasta cinco recargas entre tus últimos movimientos. El estado y el saldo se obtienen del servidor.</p><div id="recargasRecientes" aria-live="polite">Cargando movimientos…</div><p id="recargasActualizadas" role="status" class="ux-muted"></p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.actualizarRecargas()">Actualizar estado</button><button type="button" class="ux-action-primary" onclick="window.nuevaRecarga()">Nueva recarga</button><a href="finanzas.html" class="ux-page-button">Ver finanzas</a></div></div>
+            <button type="button" class="ux-page-button mt-4" onclick="window.pasoRecarga(3)">Consultar mis recargas</button>
         </div>
     </div>
 
@@ -1940,30 +1946,56 @@ function buscarSeguimiento() {
     renderSeguimiento(rows);
 }
 let pasoRecarga = 1;
+function sincronizarCuentaRecarga() {
+    const code = document.getElementById('cuentaDestinoRecarga').value;
+    for (const radio of document.querySelectorAll('[data-recarga-opcion]')) radio.checked = radio.value === code;
+}
+window.seleccionarCuentaRecarga = code => {
+    if (!Object.hasOwn(cuentasRecarga,code)) return;
+    document.getElementById('cuentaDestinoRecarga').value = code;
+    sincronizarCuentaRecarga();
+};
+function prepararOpcionesCuentaRecarga() {
+    for (const [id,complete] of [['cuentasRecargaDatos',true],['cuentasRecargaInforme',false]]) {
+        const container = document.getElementById(id);
+        if (container.childElementCount) continue;
+        for (const [code,account] of Object.entries(cuentasRecarga)) {
+            const card = document.createElement('article'); card.className = 'ux-account-card';
+            const label = document.createElement('label'); label.className = 'ux-account-choice';
+            const radio = document.createElement('input'); radio.type = 'radio'; radio.name = id; radio.value = code;
+            radio.dataset.recargaOpcion = code; radio.onchange = () => window.seleccionarCuentaRecarga(code);
+            const text = document.createElement('span'); text.append(elementoTexto('strong',account.nombre));
+            if (complete) text.append(elementoTexto('small',account.titular),elementoTexto('strong',account.numero));
+            label.append(radio,text); card.append(label);
+            if (complete) {
+                const copy = elementoTexto('button','Copiar número de '+account.nombre,'ux-page-button');
+                copy.type = 'button'; copy.onclick = () => window.copiarCuentaRecarga(code); card.append(copy);
+            }
+            container.append(card);
+        }
+    }
+    sincronizarCuentaRecarga();
+}
 window.pasoRecarga = step => {
-    if (step >= 2 && step <= 4 && !Object.hasOwn(cuentasRecarga, document.getElementById('cuentaDestinoRecarga').value)) { mensajeRecarga('Selecciona primero la cuenta destino.'); return; }
+    if (![1,2,3].includes(step)) return;
+    prepararOpcionesCuentaRecarga();
     pasoRecarga = step;
     for (const el of document.querySelectorAll('[data-recarga-paso]')) el.hidden = Number(el.dataset.recargaPaso) !== step;
     for (const el of document.querySelectorAll('[data-recarga-indicador]')) { el.classList.toggle('is-current',Number(el.dataset.recargaIndicador) === step); el.setAttribute('aria-current',Number(el.dataset.recargaIndicador) === step ? 'step' : 'false'); }
-    const account = cuentasRecarga[document.getElementById('cuentaDestinoRecarga').value];
-    const details = document.getElementById('datosCuentaRecargaPaso'); details.replaceChildren();
-    if (account) details.append(elementoTexto('strong',account.nombre),elementoTexto('p',account.titular),elementoTexto('p','Número para depósito'),elementoTexto('strong',account.numero));
-    for (const el of document.querySelectorAll('[data-recarga-cuenta]')) el.hidden = !account || el.dataset.recargaCuenta !== document.getElementById('cuentaDestinoRecarga').value;
-    document.getElementById('recargaPasoTitulo').textContent = `Paso ${step} de 5: ` + ['Elige la cuenta','Copia los datos','Realiza tu transferencia','Informa tu pago','Consulta el estado'][step - 1];
+    document.getElementById('recargaPasoTitulo').textContent = `Paso ${step} de 3: ` + ['Datos para transferir','Informa tu pago','Consulta el estado'][step - 1];
     document.getElementById('recargaPasoTitulo').scrollIntoView({block:'nearest'});
 };
 function mensajeRecarga(text) { const box = document.getElementById('recargaMensaje'); if (box) { box.textContent = text; box.hidden = false; } }
-window.copiarCuentaRecarga = async () => {
+window.copiarCuentaRecarga = async code => {
+    if (code) window.seleccionarCuentaRecarga(code);
     const account = cuentasRecarga[document.getElementById('cuentaDestinoRecarga').value]; if (!account) return;
     try { await navigator.clipboard.writeText(account.numero.replace(/\s/g,'')); mensajeRecarga('Número de cuenta copiado. Verifica banco y titular antes de transferir.'); }
     catch { mensajeRecarga('No se pudo copiar automáticamente. Selecciona el número de cuenta y cópialo.'); }
 };
-window.prepararRecargas = () => {
-    window.pasoRecarga(pasoRecarga); cargarRecargasRecientes();
-};
+window.prepararRecargas = () => { window.pasoRecarga(pasoRecarga); cargarRecargasRecientes(); };
 window.mostrarPagoInformado = () => {
     mensajeRecarga('Pago informado. Está pendiente de validación; informar el pago todavía no significa saldo abonado. Consulta abajo los últimos movimientos.');
-    window.pasoRecarga(5); cargarRecargasRecientes(true);
+    window.pasoRecarga(3); cargarRecargasRecientes(true);
 };
 window.nuevaRecarga = () => { document.getElementById('recargaMensaje').hidden = true; window.pasoRecarga(1); };
 function estadoMovimientoRecarga(m) {
@@ -2249,6 +2281,7 @@ document.addEventListener('visibilitychange', () => {
     </script>
 </body>
 </html>
+
 
 
 
