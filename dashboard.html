@@ -89,6 +89,40 @@
         .ux-step-button:disabled { opacity:.45; }
         .ux-step-next { background:#047857; color:white; border-color:#047857; margin-left:auto; }
         @media(max-width:700px) { .ux-grid { grid-template-columns:1fr; } .ux-search { padding:16px; } #modalTramite > div { padding:24px 18px; border-radius:22px; } }
+
+        /* Phase 2: tracking, recharge guidance, responsive cards. */
+        #historialPanel { scroll-margin-top:130px; }
+        .ux-history-controls { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+        .ux-filter,.ux-page-button { border:1px solid #cbd5e1; border-radius:14px; background:white; padding:11px 14px; font-size:13px; font-weight:700; min-height:44px; }
+        .ux-filter[aria-pressed=true] { background:#064e3b; color:white; border-color:#064e3b; }
+        .ux-page-button:disabled { opacity:.45; cursor:not-allowed; }
+        .ux-muted { font-size:12px; line-height:1.5; color:#475569; margin-top:5px; }
+        .ux-history-message { font-size:13px; color:#475569; margin:12px 0; }
+        .ux-pagination { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-top:18px; font-size:12px; flex-wrap:wrap; }
+        .ux-request-card { padding:18px; border:1px solid #cbd5e1; border-radius:20px; background:white; margin:12px 0; }
+        .ux-request-info strong { display:block; font-size:14px; color:#0f172a; margin-top:8px; }
+        .ux-request-data { font-size:13px; color:#334155; overflow-wrap:anywhere; margin-top:8px; }
+        .ux-status { display:inline-block; border-radius:999px; padding:6px 10px; font-size:12px; font-weight:700; }
+        .ux-status-proceso { background:#fef3c7; color:#92400e; }
+        .ux-status-listos { background:#d1fae5; color:#065f46; }
+        .ux-status-incidencia { background:#fee2e2; color:#991b1b; }
+        .ux-request-actions { display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top:10px; }
+        .ux-action-primary,.ux-action-secondary { min-height:44px; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:700; }
+        .ux-action-primary { color:white; background:#047857; }.ux-action-secondary { color:#6b21a8; background:#f3e8ff; }
+        .ux-refund { color:#047857; font-size:12px; margin-top:6px; }.ux-recovery { color:#7e22ce; font-size:12px; margin-top:6px; }
+        .ux-row-recovery { background:#faf5ff; } #listaHistorial td { padding:16px 10px; vertical-align:top; border-bottom:1px solid #e2e8f0; font-size:13px; }
+        #tarjetasSolicitudes { display:none; }.ux-empty { color:#475569; padding:24px 8px; }
+        #modalSaldo { z-index:150; } #modalSaldo > div { text-align:left; padding:28px; border-radius:24px; }
+        .ux-recharge-steps { display:flex; list-style:none; gap:6px; margin:12px 0; padding:0; }
+        .ux-recharge-steps li { flex:1; font-size:10px; padding:8px 3px; border-bottom:3px solid #e2e8f0; text-align:center; color:#475569; }
+        .ux-recharge-steps .is-current { border-color:#047857; color:#047857; font-weight:700; }
+        .ux-bank-details { border:1px solid #a7f3d0; padding:18px; border-radius:18px; margin:16px 0; background:#ecfdf5; }
+        .ux-bank-details strong,.ux-bank-details p { display:block; margin:6px 0; overflow-wrap:anywhere; }
+        .ux-recharge-message { background:#eff6ff; border:1px solid #bfdbfe; padding:12px; border-radius:14px; font-size:13px; line-height:1.5; margin:16px 0; }
+        .ux-recharge-movement { border:1px solid #e2e8f0; border-radius:14px; padding:12px; margin:10px 0; font-size:13px; }
+        #modalSaldo .input-light { font-size:16px; } .ux-recharge-actions { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+        [aria-busy=true] { cursor:progress; }.ux-page-button:focus-visible,.ux-filter:focus-visible,.ux-action-primary:focus-visible,.ux-action-secondary:focus-visible { outline:3px solid #059669; outline-offset:3px; }
+        @media(max-width:700px) { #tablaSolicitudes { display:none; } #tarjetasSolicitudes { display:block; } #historialPanel { padding:18px; border-radius:24px; scroll-margin-top:230px; } .bottom-nav button { min-height:58px; font-size:12px; text-transform:none; } #modalSaldo > div { padding:24px 18px; } .ux-filter { flex:1; font-size:12px; padding:10px 7px; } }
     </style>
 </head>
 <body>
@@ -129,7 +163,7 @@
                     <div class="flex items-center gap-3 flex-wrap justify-between">
                         <button onclick="window.abrirModal('modalSaldo')" class="balance-pill px-5 py-3 flex items-center gap-3">
                             <span class="text-xl"></span>
-                            <span><span class="block text-[9px] font-black uppercase text-slate-400">Saldo disponible</span><span id="txtSaldoHeader" class="font-black text-emerald-600 text-lg tracking-tight">$0.00</span></span>
+                            <span><span class="block text-[9px] font-black uppercase text-slate-400">Saldo disponible</span><span id="txtSaldoHeader" class="font-black text-emerald-600 text-lg tracking-tight">Consultando…</span><span id="saldoEstado" role="status" class="block text-xs text-red-700"></span></span>
                         </button>
                         <div class="flex items-center gap-2 flex-wrap justify-end quick-scroll">
                             <button onclick="window.abrirModal('modalSaldo')" class="quick-action"> Recargar</button>
@@ -179,30 +213,19 @@
         <div id="listaServicios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12 hidden"></div>
 
         <section id="historialPanel" class="bg-white/90 rounded-[2.5rem] p-6 shadow-xl border border-slate-200 mt-12 backdrop-blur">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                <div>
-                    <p class="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-1">NOVYRA SERVICES</p>
-                    <h2 class="text-lg font-black text-slate-800 uppercase italic">Historial de Solicitudes</h2>
-                </div>
-                <div class="w-full md:w-96">
-                    <input id="buscadorHistorial" onkeyup="window.buscarHistorialGlobal()" type="text" placeholder="BUSCAR POR CURP, NSS, TRÁMITE O ESTATUS..." class="input-light uppercase">
-                </div>
+            <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-xl font-bold">Mis solicitudes</h2><p class="ux-muted">Consulta el estado real y descarga tus documentos.</p></div><button id="actualizarSolicitudes" type="button" class="ux-page-button" onclick="window.actualizarSolicitudes()">Actualizar</button></div>
+            <div class="ux-history-controls" aria-label="Filtrar solicitudes">
+                <button type="button" class="ux-filter" data-solicitud-filtro="todas" aria-pressed="true" onclick="window.filtrarSolicitudes('todas')">Todas</button>
+                <button type="button" class="ux-filter" data-solicitud-filtro="proceso" aria-pressed="false" onclick="window.filtrarSolicitudes('proceso')">En proceso</button>
+                <button type="button" class="ux-filter" data-solicitud-filtro="listos" aria-pressed="false" onclick="window.filtrarSolicitudes('listos')">Listos</button>
+                <button type="button" class="ux-filter" data-solicitud-filtro="incidencia" aria-pressed="false" onclick="window.filtrarSolicitudes('incidencia')">Con incidencia</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[9px] font-black uppercase text-slate-400 border-b italic">
-                            <th class="pb-4 px-2">Fecha</th>
-                            <th class="pb-4 px-4">Información</th>
-                            <th class="pb-4 px-2 text-center">Estatus</th>
-                            <th class="pb-4 px-2 text-right">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="listaHistorial" class="text-xs font-bold italic">
-                        <tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sincronizando...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <label for="buscadorHistorial" class="ux-field-label">Buscar en mis solicitudes</label><input id="buscadorHistorial" oninput="window.buscarHistorialGlobal()" type="search" placeholder="CURP, NSS, RFC, trámite o estado" class="input-light">
+            <p id="historialEstado" role="status" aria-live="polite" class="ux-history-message">Cargando tus solicitudes…</p>
+            <div id="tablaSolicitudes" class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="text-sm text-slate-500"><th>Fecha</th><th>Solicitud</th><th>Estado</th><th>Siguiente acción</th></tr></thead><tbody id="listaHistorial"><tr><td colspan="4">Cargando…</td></tr></tbody></table></div>
+            <div id="tarjetasSolicitudes"></div>
+            <div class="ux-pagination"><button id="solicitudesAnterior" type="button" class="ux-page-button" onclick="window.cambiarPaginaSolicitudes(-1)" disabled>Anterior</button><span id="paginaSolicitudes" role="status" aria-live="polite"></span><button id="solicitudesSiguiente" type="button" class="ux-page-button" onclick="window.cambiarPaginaSolicitudes(1)" disabled>Siguiente</button></div>
+            <p class="ux-muted">Se consultan hasta las 100 solicitudes más recientes. Fechas y horas del centro de México.</p>
         </section>
             </main>
         </div>
@@ -210,8 +233,8 @@
 
     <div id="bottomNav" class="bottom-nav">
         <button onclick="window.resetearPanel()"><br>Inicio</button>
-        <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})"><br>Historial</button>
-        <button onclick="window.abrirAvisos()" class="notify-wrap"><br>Avisos<span class="notify-dot aviso-dot"></span></button>
+        <button onclick="document.getElementById('historialPanel').scrollIntoView({behavior:'smooth'})"><br>Solicitudes</button>
+        <button onclick="window.abrirModal('modalSaldo')"><br>Recargar</button>
         <button onclick="window.toggleChat()"><br>Ayuda</button>
     </div>
 
@@ -229,37 +252,18 @@
     </div>
 
     <div id="modalSaldo" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[3rem] p-10 relative text-center border shadow-2xl">
-            <button onclick="window.cerrarModal()" class="absolute top-6 right-8 text-slate-400 text-2xl">x</button>
-            <h2 class="text-lg font-black text-slate-800 uppercase mb-4 italic">Recargar Saldo</h2>
-            <div class="space-y-3 mb-6">
-                <div class="bg-emerald-50 border-2 border-emerald-500/20 p-4 rounded-3xl text-center">
-                    <p class="font-black text-emerald-600 text-xs uppercase mb-1">Banorte</p>
-                    <p class="text-xs font-bold text-emerald-700 mb-1">Diana Puente Rodríguez</p>
-                    <p class="text-[10px] text-slate-600 mb-1">Número para depósito</p>
-                    <p class="text-lg font-black text-emerald-700 tracking-wider">4915 6630 4036 4896</p>
-                </div>
-                <div class="bg-blue-50 border-2 border-blue-500/30 p-4 rounded-3xl text-center">
-                    <p class="font-black text-blue-600 text-xs uppercase mb-1">Mercado Pago</p>
-                    <p class="text-xs font-bold text-blue-700 mb-1">Alejandro Santos</p>
-                    <p class="text-[10px] text-blue-600 mb-1">Número para depósito</p>
-                    <p class="text-lg font-black text-blue-700 tracking-wider">5428 7808 5064 0715</p>
-                </div>
-            </div>
-            <div class="space-y-3">
-                <label for="cuentaDestinoRecarga" class="block text-left text-xs font-bold">Cuenta a la que depositaste</label>
-                <select id="cuentaDestinoRecarga" class="input-light text-center" required>
-                    <option value="">Selecciona la cuenta destino</option>
-                    <option value="banorte">Banorte</option>
-                    <option value="mercado_pago">Mercado Pago</option>
-                </select>
-                <label for="depMonto" class="block text-left text-xs font-bold">Monto depositado</label>
-                <input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="MONTO MÍN $200" class="input-light text-center" required>
-                <label for="claveRastreo" class="block text-left text-xs font-bold">Clave de rastreo</label>
-                <input type="text" id="claveRastreo" placeholder="CLAVE DE RASTREO" class="input-light text-center uppercase" required>
-                <p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p>
-                <button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-black text-white uppercase shadow-lg text-xs mt-4">Informar Pago</button>
-            </div>
+        <div class="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto border shadow-2xl relative">
+            <button onclick="window.cerrarModal()" aria-label="Cerrar recargas" class="absolute top-4 right-5 text-2xl text-slate-500">×</button>
+            <h2 class="text-xl font-bold pr-6">Recargar saldo</h2>
+            <ol class="ux-recharge-steps" aria-label="Pasos de recarga"><li data-recarga-indicador="1">Cuenta</li><li data-recarga-indicador="2">Datos</li><li data-recarga-indicador="3">Transferir</li><li data-recarga-indicador="4">Informar</li><li data-recarga-indicador="5">Estado</li></ol>
+            <h3 id="recargaPasoTitulo" class="ux-section-title" aria-live="polite">Paso 1 de 5: Elige la cuenta</h3>
+            <div id="recargaMensaje" class="ux-recharge-message" role="status" aria-live="polite" hidden></div>
+            <div data-recarga-paso="1"><label for="cuentaDestinoRecarga" class="ux-field-label">Cuenta destino de tu depósito</label><select id="cuentaDestinoRecarga" class="input-light" required><option value="">Selecciona la cuenta destino</option><option value="banorte">Banorte</option><option value="mercado_pago">Mercado Pago</option></select><p class="ux-muted">Elige la cuenta antes de transferir. Si ya pagaste, selecciona la que utilizaste.</p><div class="ux-recharge-actions"><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(2)">Ver datos para transferir</button></div></div>
+            <div data-recarga-paso="2" hidden><div id="datosCuentaRecargaPaso" class="ux-bank-details"></div><button type="button" class="ux-page-button" onclick="window.copiarCuentaRecarga()">Copiar número de cuenta</button><p id="avisoAntesTransferir" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.pasoRecarga(1)">Anterior</button><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(3)">Continuar</button></div></div>
+            <div data-recarga-paso="3" hidden><p class="text-sm leading-relaxed">Realiza la transferencia desde tu banco. Verifica banco, titular e importe y conserva la clave de rastreo. Esta pantalla no mueve dinero.</p><p class="ux-muted">Monto mínimo: $200. No uses transferencias Banorte a Banorte.</p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.pasoRecarga(2)">Ver datos de cuenta</button><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(4)">Ya realicé el pago</button></div></div>
+            <div data-recarga-paso="4" hidden><label for="depMonto" class="ux-field-label">Monto depositado</label><input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="Monto mínimo $200" class="input-light" required><label for="claveRastreo" class="ux-field-label mt-4">Clave de rastreo</label><input type="text" id="claveRastreo" placeholder="Escribe la clave completa" class="input-light uppercase" required><p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><p class="ux-muted">Informar el pago no acredita el saldo de inmediato. Primero se valida el depósito; no se garantiza aprobación automática.</p><button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-bold text-white shadow-lg text-sm mt-4">Informar pago</button><button type="button" class="ux-page-button mt-3" onclick="window.pasoRecarga(3)">Anterior</button></div>
+            <div data-recarga-paso="5" hidden><p class="ux-muted">Mostramos hasta cinco recargas entre tus últimos movimientos. El estado y el saldo se obtienen del servidor.</p><div id="recargasRecientes" aria-live="polite">Cargando movimientos…</div><p id="recargasActualizadas" role="status" class="ux-muted"></p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.actualizarRecargas()">Actualizar estado</button><button type="button" class="ux-action-primary" onclick="window.nuevaRecarga()">Nueva recarga</button><a href="finanzas.html" class="ux-page-button">Ver finanzas</a></div></div>
+            <button type="button" class="ux-page-button mt-4" onclick="window.pasoRecarga(5)">Consultar mis recargas</button>
         </div>
     </div>
 
@@ -725,7 +729,7 @@ async function cargarPreciosBackend() {
             w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
         };
 
-        window.abrirModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); if (id === 'modalSaldo') window.prepararRecargas(); };
         window.abrirAvisos = () => {
             document.getElementById('modalAvisos').classList.remove('hidden');
             const ultimoAviso = localStorage.getItem('ultimoAvisoAdminTS') || '0';
@@ -1700,19 +1704,19 @@ vacuna_covid: val('vacuna_covid_p'),
                     })
                 });
 
-                alert("Recarga reportada correctamente. Validaremos la clave de rastreo y el monto en la cuenta seleccionada.");
+                mensajeRecarga("Pago informado. Pendiente de validación.");
                 document.getElementById('depMonto').value = '';
                 document.getElementById('claveRastreo').value = '';
                 document.getElementById('cuentaDestinoRecarga').value = '';
-                window.cerrarModal();
+                window.mostrarPagoInformado();
                 cargarHistorial();
             } catch (error) {
                 console.error("Error reportando recarga", error);
-                alert(`No se pudo reportar la recarga: ${error.message || "error desconocido"}`);
+                mensajeRecarga(`No se pudo confirmar el reporte: ${error.message || "comprueba tu conexión"}. Consulta tus recargas antes de volver a informar el mismo pago.`);
             } finally {
                 if (boton) {
                     boton.disabled = false;
-                    boton.textContent = "REPORTAR PAGO";
+                    boton.textContent = "Informar pago";
                     boton.style.opacity = "1";
                 }
             }
@@ -1857,97 +1861,194 @@ vacuna_covid: val('vacuna_covid_p'),
             }
         };
 
-        function renderizarHistorialSolicitudes(lista) {
-            const tbody = document.getElementById('listaHistorial');
-            tbody.innerHTML = "";
-
-            if (!lista.length) {
-                tbody.innerHTML = `<tr><td colspan="4" class="py-10 text-center opacity-30 font-black uppercase">Sin resultados</td></tr>`;
-                return;
+// Phase 2: display, authenticated reads and read-refresh coordination only.
+let filtroSolicitudes = 'todas', paginaSolicitudes = 1, busquedaSolicitudesAnterior = '';
+const SOLICITUDES_POR_PAGINA = 10;
+function grupoSolicitud(s) {
+    const status = textoBusquedaServicio(s.estatus);
+    if (s.reembolsado === true || Number(s.monto_reembolsado) > 0 || s.codigo_error || /error|rechaz|cancel|vencid|expir/.test(status)) return 'incidencia';
+    if (normalizarUrlArchivo(s.archivoFinal)) return 'listos';
+    if (s.finalizado === true || /termin|finaliz/.test(status)) return 'incidencia';
+    return 'proceso';
+}
+function fechaPanel(value) {
+    const d = value?.toDate ? value.toDate() : value ? new Date(value) : null;
+    return d && !Number.isNaN(d.getTime()) ? d.toLocaleString('es-MX', {timeZone:'America/Mexico_City',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Sin fecha registrada';
+}
+function elementoTexto(tag, text, className = '') { const el = document.createElement(tag); el.textContent = text; el.className = className; return el; }
+function detalleSolicitud(s) {
+    const box = document.createElement('div'); box.className = 'ux-request-info';
+    box.append(elementoTexto('strong', s.tipo || 'Solicitud'), elementoTexto('p', datoPrincipalSolicitud(s), 'ux-request-data'));
+    box.append(elementoTexto('p', 'Solicitada: ' + fechaPanel(s.fecha || s.fecha_creacion || s.fechaSolicitud), 'ux-muted'));
+    if (s.fecha_finalizacion) box.append(elementoTexto('p', 'Cerrada: ' + fechaPanel(s.fecha_finalizacion), 'ux-muted'));
+    if (s.recuperacion_limite === true) box.append(elementoTexto('p', 'Reintento por límite de consultas', 'ux-recovery'));
+    if (s.finalizado === true && s.tiempo_entrega_texto) box.append(elementoTexto('p', 'Entregado en ' + s.tiempo_entrega_texto, 'ux-muted'));
+    if (s.reembolsado === true) box.append(elementoTexto('p', 'Reembolso registrado' + (Number(s.monto_reembolsado) > 0 ? ': ' + Number(s.monto_reembolsado).toLocaleString('es-MX',{style:'currency',currency:'MXN'}) : ''), 'ux-refund'));
+    return box;
+}
+function estadoSolicitud(s) {
+    const group = grupoSolicitud(s), box = document.createElement('div');
+    const labels = {proceso:'En proceso',listos:'Listo para descargar',incidencia:'Con incidencia'};
+    box.append(elementoTexto('span', labels[group], 'ux-status ux-status-' + group));
+    box.append(elementoTexto('p', s.estatus || 'Estado pendiente de actualizar', 'ux-muted'));
+    return box;
+}
+function accionesSolicitud(s) {
+    const box = document.createElement('div'); box.className = 'ux-request-actions';
+    const url = normalizarUrlArchivo(s.archivoFinal);
+    if (url) {
+        const button = elementoTexto('button', s.descargado_cliente === true ? 'Descargar de nuevo' : 'Descargar documento', 'ux-action-primary'); button.type = 'button';
+        button.addEventListener('click', () => window.marcarDescargado(s.id, url)); box.append(button);
+    } else if (grupoSolicitud(s) === 'proceso') box.append(elementoTexto('p', 'Tu solicitud sigue abierta. No necesitas enviarla otra vez.', 'ux-muted'));
+    else box.append(elementoTexto('p', 'Revisa el estado indicado. Si necesitas ayuda, abre una aclaración.', 'ux-muted'));
+    if (s.puede_reintentar_limite === true) {
+        const retry = elementoTexto('button', 'Reintentar por límite', 'ux-action-secondary'); retry.type = 'button';
+        retry.addEventListener('click', () => window.reintentarConsultaLimite(s.id, retry)); box.append(retry);
+    }
+    return box;
+}
+function renderSeguimiento(lista) {
+    const tbody = document.getElementById('listaHistorial'), mobile = document.getElementById('tarjetasSolicitudes');
+    tbody.replaceChildren(); mobile.replaceChildren();
+    const maxPage = Math.max(1, Math.ceil(lista.length / SOLICITUDES_POR_PAGINA)); paginaSolicitudes = Math.min(paginaSolicitudes, maxPage);
+    const start = (paginaSolicitudes - 1) * SOLICITUDES_POR_PAGINA, page = lista.slice(start, start + SOLICITUDES_POR_PAGINA);
+    for (const s of page) {
+        const row = document.createElement('tr'); row.className = s.recuperacion_limite ? 'ux-row-recovery' : '';
+        for (const part of [elementoTexto('span',fechaPanel(s.fecha || s.fecha_creacion)),detalleSolicitud(s),estadoSolicitud(s),accionesSolicitud(s)]) { const cell = document.createElement('td'); cell.append(part); row.append(cell); }
+        tbody.append(row);
+        const card = document.createElement('article'); card.className = 'ux-request-card'; card.append(estadoSolicitud(s),detalleSolicitud(s),accionesSolicitud(s)); mobile.append(card);
+    }
+    if (!page.length) {
+        const row = document.createElement('tr'), cell = elementoTexto('td','No hay solicitudes con estos filtros.'); cell.colSpan = 4; row.append(cell); tbody.append(row);
+        mobile.append(elementoTexto('p','No hay solicitudes con estos filtros.','ux-empty'));
+    }
+    document.getElementById('paginaSolicitudes').textContent = lista.length ? `${start + 1}–${start + page.length} de ${lista.length} · Página ${paginaSolicitudes} de ${maxPage}` : 'Sin resultados';
+    document.getElementById('solicitudesAnterior').disabled = paginaSolicitudes === 1;
+    document.getElementById('solicitudesSiguiente').disabled = paginaSolicitudes === maxPage;
+    for (const button of document.querySelectorAll('[data-solicitud-filtro]')) {
+        const group = button.dataset.solicitudFiltro; const count = historialSolicitudesCache.filter(s => group === 'todas' || grupoSolicitud(s) === group).length;
+        button.textContent = ({todas:'Todas',proceso:'En proceso',listos:'Listos',incidencia:'Con incidencia'})[group] + ' (' + count + ')';
+        button.setAttribute('aria-pressed', String(filtroSolicitudes === group));
+    }
+}
+window.filtrarSolicitudes = group => { filtroSolicitudes = group; paginaSolicitudes = 1; window.buscarHistorialGlobal(); };
+window.cambiarPaginaSolicitudes = delta => { paginaSolicitudes = Math.max(1, paginaSolicitudes + delta); window.buscarHistorialGlobal(); };
+function buscarSeguimiento() {
+    const search = textoBusquedaServicio(document.getElementById('buscadorHistorial')?.value);
+    if (search !== busquedaSolicitudesAnterior) { paginaSolicitudes = 1; busquedaSolicitudesAnterior = search; }
+    const rows = historialSolicitudesCache.filter(s => (filtroSolicitudes === 'todas' || grupoSolicitud(s) === filtroSolicitudes) && textoBusquedaServicio([s.tipo,s.curp,s.nss,s.rfc,s.estatus,s.detalles_extra?.nombre_cliente,s.detalles_extra?.rfc].join(' ')).includes(search));
+    renderSeguimiento(rows);
+}
+let pasoRecarga = 1;
+window.pasoRecarga = step => {
+    if (step >= 2 && step <= 4 && !Object.hasOwn(cuentasRecarga, document.getElementById('cuentaDestinoRecarga').value)) { mensajeRecarga('Selecciona primero la cuenta destino.'); return; }
+    pasoRecarga = step;
+    for (const el of document.querySelectorAll('[data-recarga-paso]')) el.hidden = Number(el.dataset.recargaPaso) !== step;
+    for (const el of document.querySelectorAll('[data-recarga-indicador]')) { el.classList.toggle('is-current',Number(el.dataset.recargaIndicador) === step); el.setAttribute('aria-current',Number(el.dataset.recargaIndicador) === step ? 'step' : 'false'); }
+    const account = cuentasRecarga[document.getElementById('cuentaDestinoRecarga').value];
+    const details = document.getElementById('datosCuentaRecargaPaso'); details.replaceChildren();
+    if (account) details.append(elementoTexto('strong',account.nombre),elementoTexto('p',account.titular),elementoTexto('p','Número para depósito'),elementoTexto('strong',account.numero));
+    for (const el of document.querySelectorAll('[data-recarga-cuenta]')) el.hidden = !account || el.dataset.recargaCuenta !== document.getElementById('cuentaDestinoRecarga').value;
+    document.getElementById('recargaPasoTitulo').textContent = `Paso ${step} de 5: ` + ['Elige la cuenta','Copia los datos','Realiza tu transferencia','Informa tu pago','Consulta el estado'][step - 1];
+    document.getElementById('recargaPasoTitulo').scrollIntoView({block:'nearest'});
+};
+function mensajeRecarga(text) { const box = document.getElementById('recargaMensaje'); if (box) { box.textContent = text; box.hidden = false; } }
+window.copiarCuentaRecarga = async () => {
+    const account = cuentasRecarga[document.getElementById('cuentaDestinoRecarga').value]; if (!account) return;
+    try { await navigator.clipboard.writeText(account.numero.replace(/\s/g,'')); mensajeRecarga('Número de cuenta copiado. Verifica banco y titular antes de transferir.'); }
+    catch { mensajeRecarga('No se pudo copiar automáticamente. Selecciona el número de cuenta y cópialo.'); }
+};
+window.prepararRecargas = () => {
+    window.pasoRecarga(pasoRecarga); cargarRecargasRecientes();
+};
+window.mostrarPagoInformado = () => {
+    mensajeRecarga('Pago informado. Está pendiente de validación; informar el pago todavía no significa saldo abonado. Consulta abajo los últimos movimientos.');
+    window.pasoRecarga(5); cargarRecargasRecientes(true);
+};
+window.nuevaRecarga = () => { document.getElementById('recargaMensaje').hidden = true; window.pasoRecarga(1); };
+function estadoMovimientoRecarga(m) {
+    const status = textoBusquedaServicio(m.estatus);
+    if (/pendient|reportad|revision/.test(status)) return 'Pendiente de validación';
+    if (/rechaz|cancel/.test(status)) return 'Con incidencia: ' + m.estatus;
+    if (/aprob|acredit/.test(status) || (m.saldo_despues !== null && m.saldo_despues !== undefined && Number(m.monto) > 0)) return 'Acreditación registrada';
+    return 'Movimiento registrado: ' + (m.estatus || 'sin estado adicional');
+}
+let recargasEnCurso = null, ultimaLecturaRecargas = 0;
+async function cargarRecargasRecientes(force = false) {
+    if (recargasEnCurso) return force ? recargasEnCurso.then(() => cargarRecargasRecientes()) : recargasEnCurso;
+    const container = document.getElementById('recargasRecientes'); if (!container) return;
+    container.setAttribute('aria-busy','true');
+    recargasEnCurso = (async () => {
+        try {
+            const data = await requestDashboardApi('/api/v1/dashboard/finance');
+            if (!Array.isArray(data.movimientos)) throw Error('Respuesta de movimientos incompleta.');
+            const rows = data.movimientos.filter(m => textoBusquedaServicio(m.tipo_movimiento).includes('recarga')).slice(0,5);
+            container.replaceChildren();
+            for (const m of rows) {
+                const card = document.createElement('article'); card.className = 'ux-recharge-movement';
+                card.append(elementoTexto('strong',Number(m.monto || 0).toLocaleString('es-MX',{style:'currency',currency:'MXN'})),elementoTexto('p',estadoMovimientoRecarga(m)),elementoTexto('small',fechaPanel(m.fecha))); container.append(card);
             }
+            if (!rows.length) container.append(elementoTexto('p','No hay recargas entre los movimientos recientes. Puedes consultar Finanzas.'));
+            document.getElementById('recargasActualizadas').textContent = 'Actualizado: ' + fechaPanel(new Date());
+        } catch { document.getElementById('recargasActualizadas').textContent = 'No se pudieron actualizar las recargas. Reintenta; no vuelvas a informar un pago solo por este error.'; }
+        finally { container.removeAttribute('aria-busy'); recargasEnCurso = null; ultimaLecturaRecargas = Date.now(); }
+    })();
+    return recargasEnCurso;
+}
+// Coalesce reads, retaining a requested fresh read after in-flight mutations.
+function crearLecturaCoordinada(read) {
+    let pending = null, repeat = false;
+    return function(options = {}) {
+        if (pending) { if (!options.silencioso) repeat = true; return pending; }
+        pending = (async () => { do { repeat = false; await read(options); } while (repeat); })().finally(() => { pending = null; });
+        return pending;
+    };
+}
+let ultimaLecturaHistorial = 0, ultimaLecturaSaldo = 0, firmaHistorial = null, pollingPanel = null, saldoLeido = false;
+const leerHistorialCoordinado = crearLecturaCoordinada(async options => {
+    const status = document.getElementById('historialEstado'), refresh = document.getElementById('actualizarSolicitudes');
+    if (!options.silencioso || !historialSolicitudesCache.length) status.textContent = 'Actualizando solicitudes…';
+    refresh.disabled = true;
+    try {
+        const data = await requestDashboardApi('/api/v1/dashboard/requests');
+        if (!Array.isArray(data.requests)) throw Error('Respuesta de solicitudes incompleta.');
+        const signature = JSON.stringify(data.requests); historialSolicitudesCache = data.requests;
+        if (signature !== firmaHistorial) { firmaHistorial = signature; window.buscarHistorialGlobal(); }
+        status.textContent = 'Actualizado: ' + fechaPanel(new Date());
+    } catch {
+        status.textContent = historialSolicitudesCache.length ? 'No pudimos actualizar. Conservamos las solicitudes de la última consulta. Pulsa Actualizar para reintentar.' : 'No pudimos cargar tus solicitudes. Comprueba tu conexión y pulsa Actualizar.';
+        if (!historialSolicitudesCache.length) { const row = document.createElement('tr'), cell = elementoTexto('td','Historial no disponible. Pulsa Actualizar.'); cell.colSpan = 4; row.append(cell); document.getElementById('listaHistorial').replaceChildren(row); document.getElementById('tarjetasSolicitudes').replaceChildren(elementoTexto('p','Historial no disponible. Pulsa Actualizar.','ux-empty')); }
+    } finally { ultimaLecturaHistorial = Date.now(); refresh.disabled = false; }
+});
+const leerSaldoCoordinado = crearLecturaCoordinada(async () => {
+    const el = document.getElementById('txtSaldoHeader'); el.setAttribute('aria-busy','true');
+    try {
+        const data = await requestDashboardApi('/api/v1/dashboard/balance');
+        if (data.saldo === null || data.saldo === undefined || !Number.isFinite(Number(data.saldo))) throw Error('Saldo inválido');
+        saldoGlobal = Number(data.saldo); saldoLeido = true; el.textContent = saldoGlobal.toLocaleString('es-MX',{style:'currency',currency:'MXN'}); el.removeAttribute('title'); document.getElementById('saldoEstado').textContent = '';
+    } catch { el.title = 'No se pudo actualizar el saldo. Comprueba tu conexión.'; if (!saldoLeido) el.textContent = 'No disponible'; document.getElementById('saldoEstado').textContent = 'No se pudo actualizar el saldo.'; }
+    finally { ultimaLecturaSaldo = Date.now(); el.removeAttribute('aria-busy'); }
+});
+function iniciarLecturasPanel() {
+    if (pollingPanel) return;
+    pollingPanel = setInterval(() => {
+        if (document.hidden) return;
+        const active = historialSolicitudesCache.some(s => grupoSolicitud(s) === 'proceso');
+        if (Date.now() - ultimaLecturaHistorial >= (active ? 60000 : 180000)) cargarHistorial({silencioso:true});
+        if (Date.now() - ultimaLecturaSaldo >= 120000) cargarSaldo({silencioso:true});
+        if (!document.getElementById('modalSaldo').classList.contains('hidden') && Date.now() - ultimaLecturaRecargas >= 60000) cargarRecargasRecientes();
+    },30000);
+}
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !pollingPanel) return;
+    if (Date.now() - ultimaLecturaHistorial >= 60000) cargarHistorial({silencioso:true});
+    if (Date.now() - ultimaLecturaSaldo >= 60000) cargarSaldo({silencioso:true});
+});
 
-            lista.forEach(s => {
-                const datoPrincipal = escaparTextoHistorial(datoPrincipalSolicitud(s));
-                const fechaValor = s.fecha || s.fecha_creacion || s.fechaSolicitud || s.fecha_solicitud || null;
-                const fechaBase = fechaValor?.toDate ? fechaValor.toDate() : (fechaValor ? new Date(fechaValor) : null);
-                const f = fechaBase && !Number.isNaN(fechaBase.getTime())
-                    ? fechaBase.toLocaleString('es-MX', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })
-                    : 'Sin fecha';
-                const estatusTexto = String(s.estatus || '');
-                let estatusColor = 'text-amber-600 bg-amber-50 border-amber-100';
-
-                if (s.recuperacion_limite === true) estatusColor = 'text-purple-700 bg-purple-50 border-purple-200';
-                if (estatusTexto === 'Terminado') estatusColor = 'text-emerald-600 bg-emerald-50 border-emerald-100';
-                if (estatusTexto.toUpperCase().includes('ERROR')) estatusColor = 'text-red-600 bg-red-50 border-red-100';
-
-                let accion = '--';
-                const tiempoEntrega = s.finalizado === true && s.tiempo_entrega_texto
-                    ? `<div class="mt-1 text-[9px] font-black text-emerald-600 uppercase">⏱ Entregado en ${s.tiempo_entrega_texto}</div>`
-                    : '';
-                const archivoFinalUrl = normalizarUrlArchivo(s.archivoFinal);
-                if (archivoFinalUrl) {
-                    if (s.descargado_cliente === true) {
-                        accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-slate-200 text-slate-500 px-3 py-2 rounded-xl text-[9px] font-black uppercase inline-block">Descargado</button>`;
-                    } else {
-                        accion = `<button onclick='window.marcarDescargado(${JSON.stringify(s.id)}, ${JSON.stringify(archivoFinalUrl)})' class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-[9px] font-black uppercase">Descargar</button>`;
-                    }
-                } else if (String(s.estatus || '').toLowerCase().includes('termin')) {
-                    accion = `<span class="inline-block bg-amber-50 text-amber-700 border border-amber-100 px-3 py-2 rounded-xl text-[9px] font-black uppercase">Sin archivo</span>`;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="border-b transition ${s.recuperacion_limite === true ? 'bg-purple-50 hover:bg-purple-100' : 'hover:bg-slate-50'}">
-                        <td class="py-3 px-2 font-black text-slate-500">${f}</td>
-                        <td class="py-3 px-4">
-                            <div class="font-black text-slate-800 uppercase">${s.tipo || ''}</div>
-                            ${tiempoEntrega}
-                            ${s.recuperacion_limite === true ? '<div class="text-[9px] font-black text-purple-700 uppercase">Reintento por límite de consultas</div>' : ''}
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <small class="text-slate-500 font-bold">${datoPrincipal}</small>
-                                ${s.puede_reintentar_limite === true ? `<button onclick="window.reintentarConsultaLimite(${escaparTextoHistorial(JSON.stringify(s.id))}, this)" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-xl text-[9px] font-black disabled:opacity-50">Reintentar</button>` : ''}
-                            </div>
-                        </td>
-                        <td class="py-3 px-2 text-center">
-                            <span class="inline-block px-3 py-1 rounded-full border text-[9px] font-black uppercase ${estatusColor}">
-                                ${estatusTexto}
-                            </span>
-                        </td>
-                        <td class="py-3 px-2 text-right">${accion}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        window.buscarHistorialGlobal = () => {
-            const busqueda = (document.getElementById('buscadorHistorial')?.value || '').trim().toUpperCase();
-
-            if (!busqueda) {
-                renderizarHistorialSolicitudes(historialSolicitudesCache);
-                return;
-            }
-
-            const filtrados = historialSolicitudesCache.filter(s => {
-                const texto = [
-                    s.tipo,
-                    s.curp,
-                    s.nss,
-                    s.estatus,
-                    s.nombre_asesor,
-                    s.detalles_extra?.nombre_cliente,
-                    s.detalles_extra?.rfc
-                ].join(' ').toUpperCase();
-
-                return texto.includes(busqueda);
-            });
-
-            renderizarHistorialSolicitudes(filtrados);
-        };
+        function renderizarHistorialSolicitudes(lista) { renderSeguimiento(lista); }
+        window.buscarHistorialGlobal = buscarSeguimiento;
+        window.actualizarSolicitudes = () => cargarHistorial();
+        window.actualizarRecargas = () => cargarRecargasRecientes(true);
 
         function normalizarUrlArchivo(url) {
             const valor = String(url || '').trim();
@@ -1988,50 +2089,10 @@ vacuna_covid: val('vacuna_covid_p'),
             }
         };
 
-        async function cargarSaldo() {
-            try {
-                const data = await requestDashboardApi("/api/v1/dashboard/balance");
-                saldoGlobal = Number(data.saldo || 0);
-                document.getElementById('txtSaldoHeader').innerText = `$${saldoGlobal.toLocaleString('es-MX')}`;
-            } catch (error) {
-                console.error("saldo", error);
-                document.getElementById('txtSaldoHeader').innerText = "Error";
-            }
-        }
-
-        function escucharSaldo() {
-            cargarSaldo();
-            setInterval(cargarSaldo, 120000);
-        }
-
-        async function cargarHistorial() {
-            try {
-                const data = await requestDashboardApi("/api/v1/dashboard/requests");
-                historialSolicitudesCache = Array.isArray(data.requests) ? data.requests : [];
-                window.buscarHistorialGlobal();
-            } catch (error) {
-                console.error("historial", error);
-                const tbody = document.getElementById('listaHistorial');
-                if (tbody) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="py-10 text-center">
-                                <div class="inline-block bg-red-50 border border-red-200 text-red-700 rounded-2xl px-5 py-4 text-left max-w-xl">
-                                    <p class="font-black uppercase text-xs">No se pudo cargar el historial</p>
-                                    <p class="text-xs font-bold mt-2">${error.message || 'Revisa el despliegue del backend.'}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-        }
-
-        function escucharHistorial() {
-            cargarHistorial();
-            setInterval(cargarHistorial, 180000);
-        }
-
+        function cargarSaldo(options) { return leerSaldoCoordinado(options); }
+        function escucharSaldo() { cargarSaldo(); iniciarLecturasPanel(); }
+        function cargarHistorial(options) { return leerHistorialCoordinado(options); }
+        function escucharHistorial() { cargarHistorial(); iniciarLecturasPanel(); }
 
         async function cargarAvisosDashboard() {
             const cont = document.getElementById('listaAvisosDashboard');
@@ -2138,7 +2199,7 @@ vacuna_covid: val('vacuna_covid_p'),
 
         function escucharAvisos() {
             cargarAvisosDashboard();
-            setInterval(cargarAvisosDashboard, 300000);
+            setInterval(() => { if (!document.hidden) cargarAvisosDashboard(); }, 300000);
         }
         async function cargarChat() {
             try {
@@ -2178,7 +2239,7 @@ vacuna_covid: val('vacuna_covid_p'),
 
         function escucharChat() {
             cargarChat();
-            setInterval(cargarChat, 60000);
+            setInterval(() => { if (!document.hidden) cargarChat(); }, 60000);
         }
 
         window.cerrarSesion = () => {
@@ -2188,5 +2249,6 @@ vacuna_covid: val('vacuna_covid_p'),
     </script>
 </body>
 </html>
+
 
 
