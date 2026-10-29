@@ -143,6 +143,20 @@
         #inputRespuesta { min-width:0; font-size:14px; }
         @media(max-width:600px) { #modalChat > div { padding:20px; max-height:92dvh; overflow-y:auto; border-radius:24px; } #btnEnviarRespuesta { padding-left:14px; padding-right:14px; } #chatHistory { padding:12px; } }
 
+
+        .ux-request-heading { display:flex; align-items:center; gap:8px; }
+        .ux-request-heading strong { margin-top:0; }
+        .ux-info-button { flex:none; width:32px; height:32px; border:1.5px solid #64748b; border-radius:50%; background:#fff; color:#0f2a55; font:700 18px Georgia,serif; cursor:pointer; }
+        .ux-info-button:hover { background:#e0f2fe; border-color:#0369a1; }
+        .ux-info-button:focus-visible,.ux-detail-close:focus-visible { outline:3px solid #0284c7; outline-offset:3px; }
+        #detalleSolicitudModal { width:min(480px,calc(100vw - 32px)); max-height:85dvh; overflow-y:auto; padding:24px; border:1px solid #e2e8f0; border-radius:24px; color:#0f172a; background:#fff; box-shadow:0 24px 70px #0f172a40; margin:auto; }
+        #detalleSolicitudModal::backdrop { background:#0f172a99; backdrop-filter:blur(3px); }
+        .ux-detail-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .ux-detail-header h2 { font-size:18px; font-weight:800; margin:0; }
+        .ux-detail-close { width:40px; height:40px; flex:none; border-radius:50%; background:#f1f5f9; border:0; font-size:26px; cursor:pointer; }
+        #detalleSolicitudModal dt { font-size:12px; font-weight:800; color:#475569; margin-top:18px; }
+        #detalleSolicitudModal dd { margin:4px 0 0; font-size:14px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+
 </style>
 </head>
 <body>
@@ -1895,21 +1909,47 @@ function fechaPanel(value) {
     return d && !Number.isNaN(d.getTime()) ? d.toLocaleString('es-MX', {timeZone:'America/Mexico_City',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Sin fecha registrada';
 }
 function elementoTexto(tag, text, className = '') { const el = document.createElement(tag); el.textContent = text; el.className = className; return el; }
+function abrirDetalleSolicitud(s, trigger) {
+    let modal = document.getElementById('detalleSolicitudModal');
+    if (!modal) {
+        modal = document.createElement('dialog'); modal.id = 'detalleSolicitudModal';
+        modal.setAttribute('aria-labelledby','detalleSolicitudTitulo');
+        document.body.append(modal);
+        modal.addEventListener('click', event => { if (event.target === modal) { const r = modal.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) modal.close(); } });
+    }
+    modal.replaceChildren();
+    const header = document.createElement('div'); header.className = 'ux-detail-header';
+    const title = elementoTexto('h2','Detalles de la solicitud'); title.id = 'detalleSolicitudTitulo';
+    const close = elementoTexto('button','×','ux-detail-close'); close.type = 'button'; close.setAttribute('aria-label','Cerrar detalles'); close.onclick = () => modal.close();
+    header.append(title,close); modal.append(header);
+    const list = document.createElement('dl');
+    const detail = (label,value) => { list.append(elementoTexto('dt',label),elementoTexto('dd',value)); };
+    detail('Trámite',s.tipo || 'Solicitud'); detail('Datos',datoPrincipalSolicitud(s));
+    detail('Solicitada',fechaPanel(s.fecha || s.fecha_creacion || s.fechaSolicitud));
+    detail('Estado',s.estatus || 'Estado pendiente de actualizar');
+    if (s.fecha_finalizacion) detail('Cerrada',fechaPanel(s.fecha_finalizacion));
+    if (s.recuperacion_limite === true) detail('Reintento','Reintento por límite de consultas');
+    if (s.finalizado === true && s.tiempo_entrega_texto) detail('Tiempo registrado',s.tiempo_entrega_texto);
+    if (s.reembolsado === true) detail('Reembolso registrado',Number(s.monto_reembolsado) > 0 ? Number(s.monto_reembolsado).toLocaleString('es-MX',{style:'currency',currency:'MXN'}) : 'Registrado');
+    detail('Siguiente paso',normalizarUrlArchivo(s.archivoFinal) ? 'Puedes descargar tu documento desde la lista.' : grupoSolicitud(s) === 'proceso' ? 'Tu solicitud sigue abierta. No necesitas enviarla otra vez.' : 'Si necesitas ayuda, abre una aclaración.');
+    modal.append(list);
+    modal.onclose = () => { if (trigger?.isConnected) trigger.focus(); };
+    modal.showModal(); close.focus();
+}
 function detalleSolicitud(s) {
     const box = document.createElement('div'); box.className = 'ux-request-info';
-    box.append(elementoTexto('strong', s.tipo || 'Solicitud'), elementoTexto('p', datoPrincipalSolicitud(s), 'ux-request-data'));
-    box.append(elementoTexto('p', 'Solicitada: ' + fechaPanel(s.fecha || s.fecha_creacion || s.fechaSolicitud), 'ux-muted'));
-    if (s.fecha_finalizacion) box.append(elementoTexto('p', 'Cerrada: ' + fechaPanel(s.fecha_finalizacion), 'ux-muted'));
-    if (s.recuperacion_limite === true) box.append(elementoTexto('p', 'Reintento por límite de consultas', 'ux-recovery'));
-    if (s.finalizado === true && s.tiempo_entrega_texto) box.append(elementoTexto('p', 'Entregado en ' + s.tiempo_entrega_texto, 'ux-muted'));
-    if (s.reembolsado === true) box.append(elementoTexto('p', 'Reembolso registrado' + (Number(s.monto_reembolsado) > 0 ? ': ' + Number(s.monto_reembolsado).toLocaleString('es-MX',{style:'currency',currency:'MXN'}) : ''), 'ux-refund'));
+    const header = document.createElement('div'); header.className = 'ux-request-heading';
+    const info = elementoTexto('button','i','ux-info-button'); info.type = 'button';
+    info.setAttribute('aria-label','Ver detalles de ' + (s.tipo || 'solicitud')); info.title = 'Ver detalles de la solicitud';
+    info.onclick = () => abrirDetalleSolicitud(s,info);
+    header.append(elementoTexto('strong',s.tipo || 'Solicitud'),info);
+    box.append(header,elementoTexto('p',datoPrincipalSolicitud(s),'ux-request-data'));
     return box;
 }
 function estadoSolicitud(s) {
     const group = grupoSolicitud(s), box = document.createElement('div');
     const labels = {proceso:'En proceso',listos:'Listo para descargar',incidencia:'Con incidencia'};
-    box.append(elementoTexto('span', labels[group], 'ux-status ux-status-' + group));
-    box.append(elementoTexto('p', s.estatus || 'Estado pendiente de actualizar', 'ux-muted'));
+    box.append(elementoTexto('span',labels[group],'ux-status ux-status-' + group));
     return box;
 }
 function accionesSolicitud(s) {
@@ -1918,12 +1958,12 @@ function accionesSolicitud(s) {
     if (url) {
         const button = elementoTexto('button', s.descargado_cliente === true ? 'Descargar de nuevo' : 'Descargar documento', 'ux-action-primary'); button.type = 'button';
         button.addEventListener('click', () => window.marcarDescargado(s.id, url)); box.append(button);
-    } else if (grupoSolicitud(s) === 'proceso') box.append(elementoTexto('p', 'Tu solicitud sigue abierta. No necesitas enviarla otra vez.', 'ux-muted'));
-    else box.append(elementoTexto('p', 'Revisa el estado indicado. Si necesitas ayuda, abre una aclaración.', 'ux-muted'));
+    }
     if (s.puede_reintentar_limite === true) {
         const retry = elementoTexto('button', 'Reintentar por límite', 'ux-action-secondary'); retry.type = 'button';
         retry.addEventListener('click', () => window.reintentarConsultaLimite(s.id, retry)); box.append(retry);
     }
+    if (!box.childElementCount) box.append(elementoTexto('span','—','ux-muted'));
     return box;
 }
 function renderSeguimiento(lista) {
@@ -2314,6 +2354,7 @@ document.addEventListener('visibilitychange', () => {
     </script>
 </body>
 </html>
+
 
 
 
