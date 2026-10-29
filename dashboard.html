@@ -55,6 +55,40 @@
         .mini-check { display:flex; align-items:center; gap:8px; padding:10px 12px; background:white; border:1px solid #E2E8F0; border-radius:16px; font-size:11px; font-weight:900; text-transform:uppercase; color:#334155; }
         .mini-check input { width:16px; height:16px; accent-color:#10B981; }
         @media (max-width: 900px) { .app-shell { display:block; } .sidebar-premium { display:none; } .mobile-brand { display:flex; } body { padding-bottom: 92px; } main { padding: 18px !important; } .quick-scroll { overflow-x:auto; flex-wrap:nowrap !important; justify-content:flex-start !important; padding-bottom:6px; } .quick-scroll::-webkit-scrollbar { display:none; } #chat-widget { right: 14px !important; bottom: 92px !important; } #chat-window { width: calc(100vw - 28px); height: 68vh; } .bottom-nav { display:grid; grid-template-columns: repeat(4, 1fr); position:fixed; left:12px; right:12px; bottom:12px; z-index:120; background:rgba(255,255,255,.92); backdrop-filter: blur(18px); border:1px solid rgba(148,163,184,.24); border-radius:26px; box-shadow:0 18px 45px rgba(15,23,42,.14); overflow:hidden; } .bottom-nav button, .bottom-nav a { padding:11px 4px; text-align:center; font-size:9px; font-weight:900; color:#0F172A; text-transform:uppercase; } }
+
+        /* Novyra UX: service discovery and form guidance only. */
+        [hidden] { display:none !important; }
+        .ux-search { margin:24px 0; padding:20px; border:1px solid #cbd5e1; border-radius:22px; background:#f8fafc; }
+        .ux-search label { display:block; font-size:16px; font-weight:700; margin-bottom:10px; }
+        .ux-search-row { display:flex; gap:10px; align-items:center; }
+        .ux-search input { font-size:16px; font-weight:400; }
+        .ux-clear { border:1px solid #cbd5e1; background:white; padding:12px; border-radius:14px; font-size:12px; min-height:44px; }
+        .ux-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:12px 0 24px; }
+        .ux-service { display:flex; flex-direction:column; gap:10px; padding:18px; background:white; border:1px solid #cbd5e1; border-radius:20px; text-align:left; min-width:0; }
+        .ux-service:hover:not(:disabled) { border-color:#059669; box-shadow:0 6px 20px #05966915; }
+        .ux-service:focus-visible,.ux-clear:focus-visible,.ux-step-button:focus-visible { outline:3px solid #059669; outline-offset:3px; }
+        .ux-service:disabled { opacity:.65; cursor:not-allowed; }
+        .ux-service-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; font-size:14px; }
+        .ux-price { color:#047857; font-size:13px; font-weight:700; white-space:nowrap; }
+        .ux-category { color:#475569; font-size:11px; font-weight:700; }
+        .ux-service-info { color:#475569; font-size:12px; line-height:1.5; }
+        .ux-service-action { color:#047857; font-size:13px; font-weight:700; margin-top:auto; }
+        .ux-section-title { font-size:16px; font-weight:700; margin:20px 0 8px; }
+        .ux-field-wrap { min-width:0; margin-bottom:14px; }
+        .ux-field-wrap > .input-light { margin-bottom:0; }
+        .ux-field-label { display:block; margin:0 0 6px; font-size:13px; font-weight:700; color:#334155; }
+        .ux-field-help { margin:6px 0 12px; color:#475569; font-size:12px; line-height:1.45; }
+        .ux-field-error { color:#b91c1c; margin:6px 0 12px; font-size:13px; line-height:1.45; }
+        .ux-field-error:empty { display:none; }
+        #modalTramite { z-index:150; }
+        #modalTramite .input-light { font-size:16px; font-weight:400; }
+        #modalTramite .question-title { font-size:13px; letter-spacing:normal; text-transform:none; }
+        .ux-step-status { margin:8px 0 18px; font-size:14px; font-weight:700; color:#047857; }
+        .ux-step-nav { display:flex; gap:12px; justify-content:space-between; margin:18px 0; }
+        .ux-step-button { padding:12px 18px; min-height:44px; border-radius:14px; border:1px solid #cbd5e1; background:white; font-weight:700; }
+        .ux-step-button:disabled { opacity:.45; }
+        .ux-step-next { background:#047857; color:white; border-color:#047857; margin-left:auto; }
+        @media(max-width:700px) { .ux-grid { grid-template-columns:1fr; } .ux-search { padding:16px; } #modalTramite > div { padding:24px 18px; border-radius:22px; } }
     </style>
 </head>
 <body>
@@ -117,9 +151,18 @@
                 <button onclick="window.abrirAvisos()" class="bg-white border border-amber-300 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-amber-700">Ver avisos</button>
             </div>
             <div class="flex justify-between items-center mb-6 gap-4">
-                <div><p class="text-[9px] font-black uppercase tracking-[0.4em] text-emerald-600 italic">NOVYRA SERVICES</p><h2 id="tituloSeccion" class="text-2xl md:text-4xl font-black tracking-tight text-slate-900 mt-2">Panel de Servicios</h2><p class="text-sm text-slate-500 font-bold mt-2">Elige una categoría para iniciar un trámite.</p></div>
+                <div><p class="text-[9px] font-black uppercase tracking-[0.4em] text-emerald-600 italic">NOVYRA SERVICES</p><h2 id="tituloSeccion" class="text-2xl md:text-4xl font-black tracking-tight text-slate-900 mt-2">¿Qué trámite necesitas?</h2><p class="text-sm text-slate-500 font-bold mt-2">Busca un servicio, usa un acceso rápido o explora las categorías.</p></div>
                 <button id="btnVolver" onclick="window.resetearPanel()" class="hidden text-[10px] font-black uppercase bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-lg"> Volver</button>
             </div>
+
+            <div class="ux-search" role="search" aria-label="Buscar trámites">
+                <label for="buscarServicio">Encuentra tu trámite</label>
+                <div class="ux-search-row"><input id="buscarServicio" type="search" maxlength="100" autocomplete="off" class="input-light" placeholder="Ej. semanas, acta de nacimiento, RFC verificable" oninput="window.buscarServiciosDashboard()" aria-controls="resultadosServicios" aria-describedby="estadoBusquedaServicios"><button id="limpiarBusquedaServicios" type="button" class="ux-clear" onclick="window.limpiarBusquedaServicios()" hidden>Limpiar</button></div>
+                <p id="estadoBusquedaServicios" role="status" aria-live="polite" class="ux-service-info mt-3"></p>
+                <div id="resultadosServicios" class="ux-grid" hidden></div>
+            </div>
+            <div id="accesosServicios"><h3 class="ux-section-title">Accesos rápidos</h3><div id="serviciosFrecuentes" class="ux-grid">Estamos cargando los servicios y precios vigentes…</div></div>
+            <h3 id="tituloCategorias" class="ux-section-title">Explora por categoría</h3>
             <div id="gridCategorias" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <button onclick="window.mostrarTramites('IMSS')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3"></span><span class="text-sm block font-black uppercase">IMSS</span><span class="text-[10px] font-bold text-slate-400">Semanas, NSS y más</span></button>
                 <button onclick="window.mostrarTramites('SAT')" class="category-card p-5 text-center transition"><span class="text-4xl block mb-3"></span><span class="text-sm block font-black uppercase">SAT</span><span class="text-[10px] font-bold text-slate-400">RFC, IDCIF y más</span></button>
@@ -472,6 +515,7 @@ async function cargarPreciosBackend() {
         premiumState = { activo: false };
     } finally {
         preciosBackendListos = true;
+        actualizarInicioServicios();
     }
 }
         let historialSolicitudesCache = [];
@@ -736,6 +780,134 @@ async function cargarPreciosBackend() {
             }
         };
 
+// Presentation helpers embedded in dashboard.html; no requests, billing or storage.
+function textoBusquedaServicio(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function requisitosServicio(t) {
+    return [[t.curp, 'CURP'], [t.nss, 'NSS'], [t.rfc, 'RFC con homoclave'], [t.idcif, 'IDCIF'], [t.pideNombre, 'nombre completo'],
+        [t.pideCuestionarioPension, 'cuestionario'], [t.pideIneFrente || t.pideIneReverso, 'INE'],
+        [t.pideFotoCli, 'fotografía'], [t.pideCompDomicilio, 'comprobante de domicilio'], [t.pideEdoCta, 'estado de cuenta']]
+        .filter(([needed]) => needed).map(([, label]) => label).join(' · ') || 'Consulta los datos al abrir el formulario';
+}
+function catalogoServiciosInicio() {
+    return Object.entries(TRAMITES).flatMap(([categoria, items]) => (Array.isArray(items) ? items : []).map(t => ({...t, categoria})));
+}
+function tarjetaAccesoServicio(t) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'ux-service'; button.disabled = t.pausado === true;
+    const heading = document.createElement('span'); heading.className = 'ux-service-top';
+    const title = document.createElement('strong'); title.textContent = t.nombre;
+    const price = document.createElement('span'); price.className = 'ux-price';
+    price.textContent = t.pausado ? 'No disponible' : obtenerEtiquetaPrecioTramite(t);
+    heading.append(title, price);
+    const category = document.createElement('span'); category.className = 'ux-category'; category.textContent = String(t.categoria).replaceAll('_', ' ');
+    const requirements = document.createElement('span'); requirements.className = 'ux-service-info'; requirements.textContent = 'Necesitas: ' + requisitosServicio(t);
+    const time = document.createElement('span'); time.className = 'ux-service-info';
+    time.textContent = t.pausado ? (t.estadoServicio || 'Temporalmente pausado') : t.tiempoEstimado ? 'Tiempo estimado: ' + t.tiempoEstimado : 'Tiempo de entrega según el trámite';
+    const action = document.createElement('span'); action.className = 'ux-service-action'; action.textContent = t.pausado ? 'Temporalmente pausado' : 'Iniciar trámite →';
+    button.append(category, heading, requirements, time, action);
+    button.addEventListener('click', () => window.prepararTramite(t));
+    return button;
+}
+function actualizarInicioServicios() {
+    const quick = document.getElementById('serviciosFrecuentes');
+    if (!quick) return;
+    quick.replaceChildren();
+    if (!preciosBackendListos) {
+        quick.textContent = 'Estamos cargando los servicios y precios vigentes…';
+        return;
+    }
+    const catalog = catalogoServiciosInicio();
+    if (!catalog.length) { quick.textContent = 'No pudimos cargar el catálogo. Recarga el panel para intentarlo de nuevo.'; return; }
+    for (const name of ['SEMANAS COTIZADAS', 'ACTA DE NACIMIENTO', 'RFC VERIFICABLE']) {
+        const t = catalog.find(t => nombreServicioNormalizado(t) === name && t.pausado !== true);
+        if (t) quick.append(tarjetaAccesoServicio(t));
+    }
+    if (document.getElementById('buscarServicio').value.trim()) window.buscarServiciosDashboard();
+}
+window.buscarServiciosDashboard = () => {
+    const input = document.getElementById('buscarServicio');
+    const query = textoBusquedaServicio(input.value);
+    const results = document.getElementById('resultadosServicios');
+    const status = document.getElementById('estadoBusquedaServicios');
+    document.getElementById('limpiarBusquedaServicios').hidden = !input.value;
+    document.getElementById('accesosServicios').hidden = !!query || !!categoriaActual;
+    document.getElementById('gridCategorias').classList.toggle('hidden', !!query || !!categoriaActual);
+    document.getElementById('tituloCategorias').hidden = !!query || !!categoriaActual;
+    document.getElementById('listaServicios').classList.toggle('hidden', !!query || !categoriaActual);
+    if (!query) { results.hidden = true; results.replaceChildren(); status.textContent = ''; return; }
+    results.hidden = false; results.replaceChildren();
+    if (!preciosBackendListos) { status.textContent = 'Estamos cargando el catálogo. Intenta de nuevo en un momento.'; return; }
+    const words = query.split(' ');
+    const matches = catalogoServiciosInicio().filter(t => {
+        const haystack = textoBusquedaServicio([t.nombre, t.categoria, requisitosServicio(t), t.extraMsg || ''].join(' '));
+        return words.every(word => haystack.includes(word));
+    }).sort((a, b) => Number(!!a.pausado) - Number(!!b.pausado));
+    status.textContent = matches.length ? `${matches.length} ${matches.length === 1 ? 'servicio encontrado' : 'servicios encontrados'}. Elige uno para ver el formulario.` : 'No encontramos ese servicio. Prueba con “semanas”, “acta” o “RFC”.';
+    for (const t of matches) results.append(tarjetaAccesoServicio(t));
+};
+window.limpiarBusquedaServicios = () => {
+    document.getElementById('buscarServicio').value = '';
+    window.buscarServiciosDashboard(); document.getElementById('buscarServicio').focus();
+};
+function mostrarErrorTramite(id, message, enfocar = true) {
+    const field = document.getElementById(id); if (!field) return;
+    let error = document.getElementById(id + '-error');
+    if (!error) { error = document.createElement('p'); error.id = id + '-error'; error.className = 'ux-field-error'; error.setAttribute('aria-live', 'polite'); field.after(error); }
+    error.textContent = message; field.setAttribute('aria-invalid', 'true'); field.classList.add('border-red-500');
+    const described = new Set((field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)); described.add(error.id); field.setAttribute('aria-describedby', [...described].join(' '));
+    if (enfocar) { field.closest('[data-ux-step]')?.dispatchEvent(new Event('ux-reveal')); field.focus(); }
+}
+function limpiarErrorTramite(field) {
+    field.removeAttribute('aria-invalid'); field.classList.remove('border-red-500');
+    const error = document.getElementById(field.id + '-error'); if (error) error.textContent = '';
+}
+function mejorarFormularioTramite(t) {
+    const content = document.getElementById('formContent');
+    const identities = {curp_p: 'curp', nss_p: 'nss', rfc_p: 'rfc', idcif_p: 'idcif', q_curp: 'curp', q_nss: 'nss', q_rfc: 'rfc'};
+    const names = {curp_p: permiteVariasCurp(t) ? 'CURP de las solicitudes' : 'CURP', nss_p: 'NSS', rfc_p: 'RFC con homoclave', idcif_p: 'IDCIF', afore_tipo_p: 'Tipo de estado de cuenta', preferencia_fecha_cita_p: 'Preferencia de fecha', fecha_cita_afore_p: 'Fecha solicitada'};
+    const hints = {curp: '18 caracteres. Copia la CURP tal como aparece en el documento.', nss: '11 números, sin espacios.', rfc: '12 o 13 caracteres, incluyendo la homoclave.', idcif: '11 números.'};
+    for (const field of content.querySelectorAll('input[id], textarea[id], select[id]')) {
+        if (['checkbox', 'radio', 'hidden'].includes(field.type)) continue;
+        let label = content.querySelector(`label[for="${field.id}"]`);
+        if (!label && field.previousElementSibling?.tagName === 'LABEL') { label = field.previousElementSibling; label.htmlFor = field.id; }
+        if (!label) {
+            label = document.createElement('label'); label.htmlFor = field.id; label.className = 'ux-field-label';
+            label.textContent = names[field.id] || field.getAttribute('placeholder') || field.options?.[0]?.text || field.id.replace(/_/g, ' ');
+            // Keep grid columns and existing visibility rules attached to the original control.
+            const wrapper = document.createElement('div'); wrapper.className = 'ux-field-wrap';
+            for (const c of [...field.classList]) if (c.includes('col-span-')) wrapper.classList.add(c);
+            field.before(wrapper); wrapper.append(label, field);
+        }
+        const tipo = identities[field.id];
+        if (tipo) {
+            const hint = document.createElement('p'); hint.id = field.id + '-ayuda'; hint.className = 'ux-field-help';
+            hint.textContent = field.id === 'curp_p' && permiteVariasCurp(t) ? 'Una CURP por renglón o separadas por comas. Máximo 50; cada una conserva su solicitud y precio.' : hints[tipo];
+            field.after(hint); field.setAttribute('aria-describedby', hint.id);
+            if (!(field.id === 'curp_p' && permiteVariasCurp(t))) field.addEventListener('blur', () => { if (field.value.trim()) validarCampoIdentidad(field.id, tipo, label.textContent, false); });
+        }
+        field.addEventListener('input', () => limpiarErrorTramite(field));
+    }
+    if (t.pideCuestionarioPension) prepararPasosCuestionario(content);
+}
+function prepararPasosCuestionario(content) {
+    const cards = [...content.querySelectorAll('.question-card')]; if (cards.length < 3) return;
+    const steps = [cards.slice(0, 1), cards.slice(1, 5), cards.slice(5)];
+    const labels = ['Datos generales', 'Objetivo y cotización', 'Beneficiarios y tipo de pensión'];
+    const header = document.createElement('p'); header.className = 'ux-step-status'; header.setAttribute('aria-live', 'polite');
+    const nav = document.createElement('div'); nav.className = 'ux-step-nav';
+    const prev = document.createElement('button'); prev.type = 'button'; prev.textContent = 'Anterior'; prev.className = 'ux-step-button';
+    const next = document.createElement('button'); next.type = 'button'; next.textContent = 'Continuar'; next.className = 'ux-step-button ux-step-next';
+    nav.append(prev, next); cards[0].before(header); content.querySelector('#btnPagarTramite').before(nav);
+    let current = 0; const pay = content.querySelector('#btnPagarTramite');
+    function show(index) { current = index; steps.forEach((group, i) => group.forEach(card => card.hidden = i !== index)); prev.disabled = index === 0; next.hidden = index === steps.length - 1; pay.hidden = index !== steps.length - 1; header.textContent = `Paso ${index + 1} de ${steps.length}: ${labels[index]}`; }
+    steps.forEach((group, i) => group.forEach(card => { card.dataset.uxStep = String(i); card.addEventListener('ux-reveal', () => show(i)); }));
+    prev.addEventListener('click', () => { show(Math.max(0, current - 1)); header.scrollIntoView({block: 'nearest'}); });
+    next.addEventListener('click', () => { show(Math.min(steps.length - 1, current + 1)); header.scrollIntoView({block: 'nearest'}); });
+    show(0);
+}
+
         window.mostrarTramites = (cat) => {
             if (!preciosBackendListos) {
                 alert("Cargando catalogo seguro de precios. Intenta nuevamente en unos segundos.");
@@ -747,6 +919,8 @@ async function cargarPreciosBackend() {
             document.getElementById('btnVolver').classList.remove('hidden');
             document.getElementById('tituloSeccion').innerText = "Servicios: " + String(cat || '').replace(/_/g, ' ');
             categoriaActual = cat;
+            document.getElementById("buscarServicio").value = "";
+            window.buscarServiciosDashboard();
             const lista = document.getElementById('listaServicios');
             let html = renderContadorPremiumCategoria(cat);
 
@@ -787,8 +961,9 @@ async function cargarPreciosBackend() {
                             ? 'text-emerald-600'
                             : 'text-slate-900';
                 const actionAttr = pausado ? `aria-disabled="true"` : `onclick="window.prepararTramite(JSON.parse('${conf}'))"`;
-                html += `<div ${actionAttr} class="service-card ${cardClass} ${pausado ? '' : 'cursor-pointer transition hover:-translate-y-1 hover:shadow-xl'}">
+                html += `<div ${actionAttr} role="button" tabindex="${pausado ? -1 : 0}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" class="service-card ${cardClass} ${pausado ? '' : 'cursor-pointer transition hover:-translate-y-1 hover:shadow-xl'}">
                     <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-black ${detalleColor} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
+                    <p class="ux-service-info mt-3">Necesitas: ${requisitosServicio(servicio)}</p>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase ${pausado ? 'text-red-500' : 'text-slate-400'}">${pausado ? 'Temporalmente pausado' : 'Iniciar trámite'}</span><span class="w-9 h-9 rounded-2xl ${pausado ? 'bg-slate-300' : 'bg-slate-900'} text-white flex items-center justify-center font-black text-sm">${pausado ? '—' : 'Ir'}</span></div>
                 </div>`;
             });
@@ -800,8 +975,11 @@ async function cargarPreciosBackend() {
             document.getElementById('gridCategorias').classList.remove('hidden');
             document.getElementById('listaServicios').classList.add('hidden');
             document.getElementById('btnVolver').classList.add('hidden');
-            document.getElementById('tituloSeccion').innerText = "Panel de Servicios";
+            document.getElementById('tituloSeccion').innerText = "¿Qué trámite necesitas?";
+            document.getElementById("buscarServicio").value = "";
+            document.getElementById("accesosServicios").hidden = false;
             categoriaActual = "";
+            window.buscarServiciosDashboard();
         };
 
         const VALIDADORES_DPR = {
@@ -830,7 +1008,7 @@ async function cargarPreciosBackend() {
             if (tipo === 'nss' || tipo === 'idcif') el.value = el.value.replace(/\D/g, '');
         }
 
-        function validarCampoIdentidad(id, tipo, etiqueta) {
+        function validarCampoIdentidad(id, tipo, etiqueta, enfocar = true) {
             const el = document.getElementById(id);
             if (!el) return true;
             normalizarInputIdentidad(id, tipo);
@@ -838,12 +1016,10 @@ async function cargarPreciosBackend() {
             if (!valor || valor === 'N/A') return true;
             const regla = VALIDADORES_DPR[tipo];
             if (!regla.regex.test(valor)) {
-                el.focus();
-                el.classList.add('border-red-500');
-                alert(`Candado de validación: ${etiqueta}\n\n${regla.msg}`);
+                mostrarErrorTramite(id, `${etiqueta}: ${regla.msg}`, enfocar);
                 return false;
             }
-            el.classList.remove('border-red-500');
+            limpiarErrorTramite(el);
             return true;
         }
 
@@ -879,23 +1055,19 @@ async function cargarPreciosBackend() {
             const campo = document.getElementById('curp_p');
             const curps = obtenerCurpsCapturadas(campo?.value);
             if (!curps.length) {
-                alert('Captura al menos una CURP.');
-                campo?.focus();
+                mostrarErrorTramite('curp_p', 'Captura al menos una CURP.');
                 return false;
             }
             if (curps.length > 50) {
-                alert('Puedes enviar hasta 50 CURP por lote.');
-                campo?.focus();
+                mostrarErrorTramite('curp_p', 'Puedes enviar hasta 50 CURP por lote.');
                 return false;
             }
             const invalidas = curps.filter(curp => !VALIDADORES_DPR.curp.regex.test(curp));
             if (invalidas.length) {
-                campo?.focus();
-                campo?.classList.add('border-red-500');
-                alert(`Estas CURP no tienen una estructura válida:\n\n${invalidas.join('\n')}`);
+                mostrarErrorTramite('curp_p', `Revisa estas CURP: ${invalidas.join(', ')}. Cada una debe tener 18 caracteres y formato válido.`);
                 return false;
             }
-            campo.classList.remove('border-red-500');
+            limpiarErrorTramite(campo);
             campo.value = curps.join('\n');
             return true;
         }
@@ -930,6 +1102,7 @@ async function cargarPreciosBackend() {
             if (!preferencia || !fecha) return;
             const solicitaFecha = preferencia.value === 'FECHA_ESPECIFICA';
             fecha.classList.toggle('hidden', !solicitaFecha);
+            fecha.closest('.ux-field-wrap')?.classList.toggle('hidden', !solicitaFecha);
             fecha.disabled = !solicitaFecha;
             if (!solicitaFecha) fecha.value = '';
         };
@@ -1205,6 +1378,7 @@ fields += `
                 </button>
             `;
 
+            mejorarFormularioTramite(t);
             window.abrirModal('modalTramite');
             setTimeout(() => window.actualizarPrecioAfore?.(), 0);
             setTimeout(() => window.actualizarFechaCitaAfore?.(), 0);
@@ -2014,4 +2188,5 @@ vacuna_covid: val('vacuna_covid_p'),
     </script>
 </body>
 </html>
+
 
