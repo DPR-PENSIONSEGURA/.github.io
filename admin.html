@@ -504,70 +504,25 @@ body > .max-w-7xl { max-width:1560px; }
 @media(prefers-reduced-motion:reduce) { .nv-admin-sidebar * { transition:none!important; animation:none!important; } }
 
 </style>
+<link rel="stylesheet" href="panel-refresh.css?v=20261030-1">
 </head>
 <body class="p-4 md:p-8">
+<script src="panel-session.js?v=20261030-1"></script>
 
     <div class="max-w-7xl mx-auto">
 <div class="nv-menu-mobilebar"><span class="nv-menu-mobilebrand">N<span>Novyra</span></span><button type="button" id="nvMenuMobileToggle" aria-controls="nvAdminMenu" aria-expanded="false" aria-label="Abrir menú del panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button></div>
-        <div class="premium-admin-banner">
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-                <div class="flex items-center gap-4">
-                    <div class="premium-brand-mark">DP</div>
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300">CRM Administrativo</p>
-                        <h1 class="text-2xl md:text-4xl font-black tracking-tight">NOVYRA SERVICES</h1>
-                        <p class="text-xs md:text-sm font-bold text-white/65 mt-1">Control premium de solicitudes, asesores, avisos, saldo y soporte interno.</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <span class="premium-chip">Panel interno</span>
-                    <span class="premium-chip">Firebase activo</span>
-                    <span class="premium-chip">n8n protegido</span>
-                </div>
-            </div>
-        </div>
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-            <div class="flex items-center gap-4">
-                <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shadow-lg italic text-xl">DP</div>
-                <div>
-                    <h1 class="text-3xl font-black uppercase italic text-slate-800 tracking-tighter">Panel <span class="text-blue-600">CRM</span></h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NOVYRA SERVICES</p>
-                    <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Sesión: <span id="txtSesion">Cargando...</span></p>
-                </div>
-            </div>
+<header class="nv-panel-header"><div class="nv-panel-brand"><span aria-hidden="true">N</span><div><h1>Novyra</h1><p>Panel administrador · <span id="txtSesion">Verificando acceso…</span></p></div></div><button type="button" onclick="window.logoutStaff()">Cerrar sesión</button></header>
+<div class="nv-owner-overview solo-admin">
+ <article class="nv-overview-card nv-sales-card"><p>Ventas de trámites terminados</p><strong id="nvOverviewSales">—</strong><small id="nvOverviewSalesMeta">Cargando corte…</small></article>
+ <article class="nv-overview-card nv-approved-card"><p>Recargas aprobadas</p><strong id="nvOverviewApproved">—</strong><small id="nvOverviewApprovedMeta">Cargando…</small></article>
+ <article class="nv-overview-card"><p>Recargas por revisar</p><strong id="nvOverviewRechargePending">—</strong><small>Reportadas en el corte seleccionado</small></article>
+</div>
+<div class="nv-common-stats">
+ <button type="button" class="nv-common-stat" onclick="window.mostrarModuloAdmin('solicitudes');window.filtrarPendientesHoy()"><span class="nv-common-symbol" aria-hidden="true">◷</span><span><strong id="contadorPendientes">—</strong><small>Trámites por entregar</small></span><span aria-hidden="true">↗</span></button>
+ <button type="button" class="nv-common-stat" onclick="window.nvOpenAttention()"><span class="nv-common-symbol" aria-hidden="true">☷</span><span><strong data-nv-attention-count>—</strong><small>Chats por atender</small></span><span aria-hidden="true">↗</span></button>
+</div>
+<div class="solo-admin" style="display:none" aria-hidden="true" hidden><span id="txtVisitas"></span><span id="gananciaHoyHeader"></span></div>
 
-            <div class="flex gap-4 w-full lg:w-auto flex-wrap">
-                <div class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-orange-500 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[8px] font-black text-slate-400 uppercase">Usuarios conectados</p>
-                    <p id="txtVisitas" class="text-xl font-black">0</p>
-                </div>
-
-                <div class="card-stat bg-blue-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-blue-800 text-center flex-1 min-w-[110px]">
-                    <p class="text-[8px] font-black uppercase">Pendientes</p>
-                    <p id="contadorPendientes" class="text-xl font-black">0</p>
-                </div>
-
-                <div class="card-stat bg-emerald-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-emerald-800 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[8px] font-black uppercase">Ventas del día</p>
-                    <p id="gananciaHoyHeader" class="text-xl font-black">$0</p>
-                </div>
-
-                <button onclick="window.filtrarPendientesHoy()" class="card-stat bg-amber-500 text-white p-4 rounded-3xl shadow-lg border-b-4 border-amber-700 text-center flex-1 min-w-[110px]">
-                    <p class="text-[10px] font-black uppercase">Ver solo pendientes</p>
-                </button>
-
-                <button onclick="window.verErroresSinDevolucion()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[10px] font-black uppercase">Sin devolución</p>
-                </button>
-
-                <button onclick="window.mostrarTodas()" class="card-stat bg-white p-4 rounded-3xl shadow-md border-b-4 border-slate-300 text-center flex-1 min-w-[110px] solo-admin">
-                    <p class="text-[10px] font-black uppercase text-slate-700">Ver todo</p>
-                </button>
-                <button onclick="window.logoutStaff()" class="card-stat bg-red-600 text-white p-4 rounded-3xl shadow-lg border-b-4 border-red-800 text-center flex-1 min-w-[110px]">
-                    <p class="text-[10px] font-black uppercase">Salir</p>
-                </button>
-            </div>
-        </header>
 
 
         <button type="button" class="nv-menu-backdrop" id="nvMenuBackdrop" aria-label="Cerrar menú" tabindex="-1" hidden></button>
@@ -631,7 +586,7 @@ body > .max-w-7xl { max-width:1560px; }
                             <select id="nuevoAsesorRol" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold">
                                 <option value="operador">Operador / proveedor</option>
                                 <option value="asesor">Asesor general</option>
-                                <option value="admin">Administrador</option>
+                                
                             </select>
 
                             <div class="bg-slate-50 border rounded-2xl p-4">
@@ -753,8 +708,8 @@ body > .max-w-7xl { max-width:1560px; }
         </section>
 
         <section class="admin-vista" data-admin-view="solicitudes">
-            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
-                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Historial de solicitudes</h2>
+            <div onclick="window.toggleSeccion('contenidoSolicitudes', 'icoSoli')" class="nv-request-title flex justify-between items-center cursor-pointer bg-slate-200 p-4 rounded-2xl hover:bg-slate-300 transition select-none mb-4">
+                <h2 class="text-sm font-black uppercase italic text-slate-700 border-l-4 border-blue-600 pl-4">Solicitudes recientes</h2>
                 <div id="icoSoli" class="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm font-black text-slate-400"></div>
             </div>
 
@@ -773,12 +728,12 @@ body > .max-w-7xl { max-width:1560px; }
                 </div>
 
                 <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto nv-requests-desktop">
                         <table class="w-full text-left border-collapse">
                             <thead id="theadSolicitudes" class="bg-slate-900 text-white text-[10px] uppercase font-black italic"></thead>
                             <tbody id="tablaSolicitudes" class="text-xs font-medium italic"></tbody>
                         </table>
-                    </div>
+                    </div><div id="nvMobileRequests" class="nv-mobile-requests"></div>
                 </div>
             </div>
         </section>
@@ -834,6 +789,7 @@ body > .max-w-7xl { max-width:1560px; }
 
     <div id="modalChat" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm hidden z-[160] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl">
+            <button type="button" class="nv-chat-window-close" aria-label="Cerrar conversación" onclick="window.cerrarModales()">×</button>
             <h2 id="chatTitle" class="text-xs font-black text-blue-600 uppercase mb-4 italic">Aclaración de:</h2>
             <div id="chatHistory" class="bg-slate-50 h-64 overflow-y-auto p-4 rounded-2xl mb-4 space-y-2 flex flex-col"></div>
             <div class="mb-3"><select id="estadoAclaracion" class="w-full bg-slate-100 p-4 rounded-xl outline-none text-xs font-black uppercase"><option value="en_revision">En revisión</option><option value="atendida">Atendida</option><option value="reembolsada">Reembolsada</option><option value="improcedente">Solicitud improcedente</option></select></div>
@@ -841,7 +797,7 @@ body > .max-w-7xl { max-width:1560px; }
                 <textarea id="inputRespuesta" placeholder="Nota para el usuario o resolución..." class="flex-1 bg-slate-100 p-4 rounded-xl outline-none text-xs font-bold min-h-[90px]"></textarea>
                 <button id="btnEnviarRespuesta" class="bg-blue-600 text-white px-6 rounded-xl font-black">ENVIAR</button>
             </div>
-            <button onclick="window.cerrarModales()" class="mt-4 text-[9px] font-black uppercase text-slate-400">Cerrar</button>
+            <button onclick="window.cerrarModales()" class="nv-chat-bottom-close mt-4 text-[9px] font-black uppercase text-slate-400">Cerrar</button>
         </div>
     </div>
 
@@ -979,20 +935,17 @@ body > .max-w-7xl { max-width:1560px; }
       </div>
     </div>
 
+<button type="button" class="nv-attention-backdrop" aria-label="Cerrar centro de atención" onclick="window.nvCloseAttention()"></button>
+<aside class="nv-attention-sidebar" aria-label="Centro de atención"><div class="nv-attention-header"><small>Centro de atención</small><div><h2>Chats pendientes</h2><span class="nv-attention-badge" data-nv-attention-count>—</span><button type="button" class="nv-attention-close" aria-label="Cerrar chats pendientes" onclick="window.nvCloseAttention()">×</button></div><p>Más antiguos primero</p></div><div id="nvAttentionList" class="nv-attention-list"><p class="nv-attention-empty">Cargando conversaciones…</p></div><div class="nv-attention-footer" id="nvAttentionFooter">Todas las conversaciones pendientes</div></aside>
+<button type="button" class="nv-chat-mobile-toggle" onclick="window.nvOpenAttention()">Chats <span class="nv-attention-badge" data-nv-attention-count>—</span></button>
+
     <script>
-        const staffSession = JSON.parse(localStorage.getItem('staffSession'));
-        if (!staffSession) {
-            window.location.href = 'staff-login.html';
-        } else {
+        window.nvPanelReady.then(staff => {
+            document.getElementById('txtSesion').textContent = (staff.name || staff.username) + (staff.is_owner ? ' · Propietaria' : ' · Colaborador');
+            document.querySelectorAll('.solo-admin').forEach(el => el.style.display = staff.is_owner ? 'block' : 'none');
             document.body.style.display = 'block';
-            document.getElementById('txtSesion').textContent = `${staffSession.name || staffSession.username} · ${staffSession.role}`;
-            const esAdmin = staffSession.role === 'admin';
-            if (esAdmin) {
-                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'block');
-            } else {
-                document.querySelectorAll('.solo-admin').forEach(el => el.style.display = 'none');
-            }
-        }
+            window.mostrarModuloAdmin('solicitudes');
+        }).catch(() => {});
 
         window.logoutStaff = function () {
             localStorage.removeItem('staffSession');
@@ -1131,7 +1084,7 @@ body > .max-w-7xl { max-width:1560px; }
         if (document.body.classList.contains('nv-menu-open')) setOpen(false, true);
     };
     mobile.addEventListener('change', () => setOpen(false));
-    try { setCompact(localStorage.getItem('nv_admin_menu_compact') === '1'); } catch (_) {}
+    try { setCompact(localStorage.getItem('nv_admin_menu_compact') !== '0'); } catch (_) {}
     document.addEventListener('DOMContentLoaded', () => { syncActive(); filterMenu(); });
 })();
 </script>
@@ -1139,7 +1092,7 @@ body > .max-w-7xl { max-width:1560px; }
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, setDoc, deleteDoc, limit, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, increment, getDoc, getDocs, addDoc, setDoc, deleteDoc, limit, serverTimestamp, runTransaction } from "./panel-data.js?v=20261030-1";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM",
@@ -1150,7 +1103,7 @@ body > .max-w-7xl { max-width:1560px; }
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const miSesion = JSON.parse(localStorage.getItem('staffSession')) || { role: 'asesor' };
+        const miSesion = await window.nvPanelReady;
         const staffUid = String(miSesion.uid || miSesion.id || miSesion.username || miSesion.name || 'staff').trim();
         const staffNombre = String(miSesion.name || miSesion.nombre || miSesion.username || 'Empleado').trim();
         const staffRol = String(miSesion.role || 'asesor').toLowerCase();
@@ -1160,14 +1113,7 @@ body > .max-w-7xl { max-width:1560px; }
             "https://us-central1-pensionsegura-9c817.cloudfunctions.net/api"
         ];
 
-        function obtenerAdminToken() {
-            let token = sessionStorage.getItem('dpr_admin_token') || '';
-            if (!token && miSesion.role === 'admin') {
-                token = prompt('Token de administrador para acciones protegidas:') || '';
-                if (token) sessionStorage.setItem('dpr_admin_token', token);
-            }
-            return token;
-        }
+        function obtenerAdminToken() { return ''; }
 
 let paginaSuscripcionesAdmin=0;
 function nodoFinanzas(tag,text){const el=document.createElement(tag);el.textContent=text;return el;}
@@ -1225,7 +1171,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
         async function adminApi(path, options = {}) {
             const staffToken = sessionStorage.getItem('dpr_staff_token') || '';
-            const token = sessionStorage.getItem('dpr_admin_token') || (miSesion.role === 'admin' ? obtenerAdminToken() : '');
+            const token = ''; 
             if (!token && !staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
 
             let res = null;
@@ -1307,6 +1253,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         async function cargarResumenVentasAdmin() {
             const rango = rangoHoyLocalISO();
             const query = new URLSearchParams(rango).toString();
+            if (!miSesion.is_owner) return;
             const data = await adminApi(`/api/v1/admin/panel/summary?${query}`, { timeoutMs: 30000 });
             const nota = data.possibly_truncated
                 ? `Resumen parcial: se alcanzó el límite de ${data.limit || data.loaded_count || 0} registros.`
@@ -1345,6 +1292,11 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 
                 setText('corteRecargas', dineroMX(data.total_recargas_aprobadas));
+                setText('nvOverviewSales', dineroMX(data.venta_real ?? data.venta_neta ?? data.total_vendido));
+                setText('nvOverviewSalesMeta', `${data.solicitudes_terminadas || 0} documentos terminados · corte seleccionado`);
+                setText('nvOverviewApproved', dineroMX(data.total_recargas_aprobadas));
+                setText('nvOverviewApprovedMeta', `${data.recargas_aprobadas || 0} recargas aprobadas`);
+                setText('nvOverviewRechargePending', String(data.recargas_pendientes || 0));
                 mostrarDepositosPorCuenta(data.recargas_por_cuenta);
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
                 const vendidoReal = data.venta_real ?? data.venta_neta ?? data.total_vendido;
@@ -1618,7 +1570,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                             <div>
                                 <p class="text-[11px] font-black uppercase text-slate-800">${a.nombre || a.username || 'Asesor'}</p>
-                                <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} · Rol: ${a.role || a.area || 'operador'} · Clave: ${a.password || ''}</p>
+                                <p class="text-[10px] font-bold text-slate-500">Usuario: ${a.username || 'sin-usuario'} · Rol: ${a.role || a.area || 'operador'}</p>
                                 <p class="text-[9px] font-black uppercase text-emerald-700 mt-1">${permisos.length ? permisos.map(labelTramite).join(' · ') : 'Sin permisos asignados'}</p>
                             </div>
                             <div class="flex gap-2 flex-wrap">
@@ -1659,10 +1611,10 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             const username = document.getElementById('nuevoAsesorUser')?.value.trim();
             const nombre = document.getElementById('nuevoAsesorNombre')?.value.trim();
             const password = document.getElementById('nuevoAsesorPass')?.value.trim();
-            const rolEmpleado = document.getElementById('nuevoAsesorRol')?.value || 'operador';
+            const rolEmpleado = 'operador';
             const tramitesPermitidos = leerCheckboxTramites('nuevoAsesorTramites');
 
-            if (!username || !nombre || !password) return alert('Llena usuario, nombre y contraseña');
+            if (!username || !nombre || password.length < 12) return alert('Completa usuario, nombre y una contraseña de al menos 12 caracteres');
             if (rolEmpleado !== 'admin' && !tramitesPermitidos.length) return alert('Selecciona al menos un trámite para este usuario');
 
             const existente = await getDocs(query(collection(db, 'accesos_crm'), where('username', '==', username)));
@@ -2277,6 +2229,24 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             renderizarTablaPersonalizada(fuente.slice(inicio, inicio + PAGE_SIZE));
         };
 
+
+        function renderMobileRequests(rows) {
+            const host=document.getElementById('nvMobileRequests');host.replaceChildren();
+            if(!rows.length){const p=document.createElement('p');p.className='nv-attention-empty';p.textContent='Sin solicitudes en esta página.';host.append(p);return;}
+            for(const row of rows){
+                const card=document.createElement('article');card.className='nv-mobile-request';
+                const title=document.createElement('h3');title.textContent=row.tipo||'Solicitud';
+                const status=document.createElement('span');status.className='nv-mobile-request-status';status.textContent=row.estatus||'En proceso';
+                const customer=document.createElement('p');customer.textContent=row.email||row.nombre_asesor||'Cliente';
+                const id=document.createElement('p');id.textContent=row.curp?'CURP: '+row.curp:row.nss?'NSS: '+row.nss:'';
+                const actions=document.createElement('div');actions.className='nv-mobile-request-actions';
+                function action(text,fn){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',fn);actions.append(b);}
+                action('Ver datos',()=>window.verDetalles(row));
+                if(!row.finalizado){action(row.tomado_uid?'Tomado':'Tomar',()=>window.tomarSolicitud(row.id));action('Subir resultado',()=>window.abrirSubida(row.id));}
+                card.append(title,status,customer,id,actions);host.append(card);
+            }
+        }
+
         function renderizarTablaPersonalizada(docsArray) {
             const tabla = document.getElementById('tablaSolicitudes');
             tabla.innerHTML = '';
@@ -2358,7 +2328,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         <td class="p-4 text-center">
                             <div class="inline-flex items-center gap-2">
                                 ${estadoVisual}
-                                <select onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none ${claseEstatus}">
+                                <select ${miSesion.is_owner ? '' : 'disabled'} onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none ${claseEstatus}">
                                     <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}> EN PROCESO</option>
                                     <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}> TERMINADO</option>
                                     <option value="ERR_NSS_CURP" ${(estatusActual.includes('CURP') || estatusActual.includes('NSS')) ? 'selected' : ''}> CURP / NSS INCORRECTO</option>
@@ -2383,9 +2353,11 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                     </tr>
                 `;
             });
+            renderMobileRequests(docsArray);
         }
 
         window.cambiarEstatus = async (id, val) => {
+            if (!miSesion.is_owner) { alert('Para terminar una solicitud utiliza SUBIR. Los demás cambios de estado corresponden a la propietaria.'); return; }
             try {
                 const s = todasLasSoliCargadas.find(x => x.id === id) || {};
                 const est = LISTA_ERRORES_DPR[val] || val;
@@ -3149,46 +3121,39 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             return m.texto || '';
         }
 
-        async function cargarChatAdmin() {
-            try {
-                const data = await adminApi('/api/v1/admin/panel/chat');
-                const cont = document.getElementById('listaChat');
-                cont.innerHTML = '';
-                let uniqueChats = {};
-                let chatsSinResponder = 0;
-
-                (data.rows || []).forEach(m => {
-                    if (!m.asesor_uid || uniqueChats[m.asesor_uid]) return;
-                    uniqueChats[m.asesor_uid] = true;
-                    const pendiente = m.estado_aclaracion === 'en_revision' || m.respondido !== true;
-                    if (pendiente) chatsSinResponder++;
-
-                    const alertClass = pendiente ? 'msg-alerta' : '';
-                    const uidSeguro = encodeURIComponent(String(m.asesor_uid || ''));
-                    const remitenteSeguro = encodeURIComponent(String(m.email || m.remitente || 'Usuario'));
-
-                    cont.innerHTML += `
-                        <button type="button" onclick="window.abrirChat(decodeURIComponent('${uidSeguro}'), decodeURIComponent('${remitenteSeguro}'))" class="chat-preview-card w-full text-left p-4 rounded-2xl cursor-pointer transition ${alertClass}">
-                            <div class="flex justify-between items-center gap-3 mb-2 pr-12">
-                                <span class="text-[9px] font-black uppercase text-blue-600 truncate">${m.email || m.remitente || 'Usuario'}</span>
-                                ${etiquetaEstadoAclaracion(m.estado_aclaracion)}
-                            </div>
-                            <p class="text-[10px] font-bold text-slate-600 truncate pr-14">${textoResumenAclaracion(m)}</p>
-                        </button>
-                    `;
-                });
-
-                window.actualizarNotificacionAdmin('chat', chatsSinResponder > 0, chatsSinResponder);
-
-                if (!cont.innerHTML) {
-                    cont.innerHTML = '<p class="text-[11px] font-black text-slate-400 uppercase text-center py-10">Sin aclaraciones todavía</p>';
-                }
-            } catch (e) {
-                console.error(e);
+        window.nvOpenAttention = () => { if (matchMedia('(max-width:1099px)').matches) document.body.classList.add('nv-show-attention'); else document.getElementById('nvAttentionList').querySelector('button')?.focus(); };
+        window.nvCloseAttention = () => document.body.classList.remove('nv-show-attention');
+        function renderAttentionRows(host, rows) {
+            host.replaceChildren();
+            if (!rows.length) { const empty=document.createElement('p');empty.className='nv-attention-empty';empty.textContent='No hay chats pendientes de atención.';host.append(empty);return; }
+            for (const m of rows) {
+                const button=document.createElement('button');button.type='button';button.className='nv-attention-chat';
+                const name=String(m.email||m.remitente||'Usuario');button.setAttribute('aria-label','Abrir conversación de '+name);
+                const avatar=document.createElement('span');avatar.className='nv-attention-avatar';avatar.textContent=name.slice(0,2).toUpperCase();
+                const copy=document.createElement('span');copy.className='nv-attention-copy';const line=document.createElement('span');line.className='nv-attention-name';
+                const title=document.createElement('strong');title.textContent=name;title.title=name;
+                const time=document.createElement('time');const date=new Date(m.fecha);const minutes=Math.max(0,Math.floor((Date.now()-date.getTime())/60000));time.textContent=Number.isFinite(minutes)?(minutes<60?minutes+' min':Math.floor(minutes/60)+' h'):'—';
+                const message=document.createElement('p');message.textContent=textoResumenAclaracion(m);
+                const meta=document.createElement('small');meta.textContent=m.estado_aclaracion==='en_revision'?'En revisión':'Sin responder';
+                line.append(title,time);copy.append(line,message,meta);button.append(avatar,copy);button.addEventListener('click',()=>window.abrirChat(m.asesor_uid,name));host.append(button);
             }
         }
-        cargarChatAdmin();
-        setInterval(cargarChatAdmin, 120000);
+        async function cargarChatAdmin() {
+            try {
+                const data=await adminApi('/api/v1/admin/panel/attention');
+                const rows=data.rows||[];
+                renderAttentionRows(document.getElementById('listaChat'),rows);
+                renderAttentionRows(document.getElementById('nvAttentionList'),rows);
+                document.querySelectorAll('[data-nv-attention-count]').forEach(el=>el.textContent=String(rows.length));
+                document.getElementById('nvAttentionFooter').textContent=data.possibly_truncated?'Hay más conversaciones; carga parcial.':'Todas las conversaciones pendientes';
+                window.actualizarNotificacionAdmin('chat',rows.length>0,rows.length);
+            } catch(e) {
+                console.error('No se pudo cargar atención:', e.message);
+                const host=document.getElementById('nvAttentionList');host.replaceChildren();const p=document.createElement('p');p.className='nv-attention-empty';p.textContent='No se pudieron cargar los chats. Se volverá a intentar.';host.append(p);
+            }
+        }
+        cargarChatAdmin();setInterval(cargarChatAdmin,60000);
+        document.addEventListener('keydown',event=>{if(event.key==='Escape')window.nvCloseAttention();});
 
 
         function mensajeEsDelCliente(m, email) {
@@ -3218,8 +3183,10 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 alert('No se encontró el ID del usuario.');
                 return;
             }
+            window.nvCloseAttention();
             const modal = document.getElementById('modalChat');
-            document.getElementById('chatTitle').innerText = 'Aclaración de: ' + email;
+            document.getElementById('chatTitle').innerText = email;
+            document.querySelector('#estadoAclaracion option[value="reembolsada"]').hidden = !miSesion.is_owner;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
@@ -3624,6 +3591,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
     </script>
 </body>
 </html>
+
 
 
 

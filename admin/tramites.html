@@ -9,8 +9,8 @@
   <style>
     body{font-family:Inter,sans-serif;background:#eef2f7}.glass{background:rgba(255,255,255,.86);backdrop-filter:blur(18px)}.card{background:white;border:1px solid #e2e8f0;border-radius:28px;box-shadow:0 18px 40px rgba(15,23,42,.08)}.btn{border-radius:16px;padding:12px 16px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}.field{width:100%;border:2px solid #e5e7eb;border-radius:16px;padding:12px;font-size:13px;outline:none;background:white}.field:focus{border-color:#2563eb}.label{font-size:10px;font-weight:900;text-transform:uppercase;color:#64748b;letter-spacing:.08em;margin-bottom:6px}.chip{font-size:10px;font-weight:900;text-transform:uppercase;border-radius:999px;padding:7px 10px}.fade{animation:fade .25s ease}@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   </style>
-</head>
-<body class="min-h-screen p-4 md:p-8 text-slate-800">
+<link rel="stylesheet" href="../panel-refresh.css?v=20261030-1"></head>
+<body class="min-h-screen p-4 md:p-8 text-slate-800"><script src="../panel-session.js?v=20261030-1"></script>
  
   <div class="max-w-7xl mx-auto">
     <header class="glass sticky top-0 z-30 rounded-[2rem] border border-white shadow-xl p-4 md:p-5 mb-7 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
@@ -83,9 +83,10 @@
   </div>
 
 <script type="module">
+const panelStaff=await window.nvPanelReady;if(!panelStaff.is_owner){location.replace("../admin.html");throw new Error("Acceso exclusivo de propietaria");}
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { getFirestore, collection, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getFirestore, collection, updateDoc, doc, onSnapshot, serverTimestamp, query, orderBy } from '../panel-data.js?v=20261030-1';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js';
 const firebaseConfig={apiKey:'AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM',authDomain:'pensionsegura-9c817.firebaseapp.com',projectId:'pensionsegura-9c817',storageBucket:'pensionsegura-9c817.appspot.com' /* si tu bucket nuevo en Firebase aparece como pensionsegura-9c817.firebasestorage.app, cámbialo aquí */};
 const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app), storage=getStorage(app);
@@ -297,3 +298,4 @@ window.iniciar=iniciar;
 </script>
 </body>
 </html>
+

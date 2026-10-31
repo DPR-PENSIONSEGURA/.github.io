@@ -14,8 +14,8 @@
         .btn-blue:hover { background: #1e40af; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-</head>
-<body class="p-4 md:p-8">
+<link rel="stylesheet" href="../panel-refresh.css?v=20261030-1"></head>
+<body class="p-4 md:p-8"><script src="../panel-session.js?v=20261030-1"></script>
 
     <div class="max-w-7xl mx-auto">
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
@@ -122,8 +122,9 @@
     </div>
 
     <script type="module">
+const panelStaff=await window.nvPanelReady;if(!panelStaff.is_owner){location.replace("../admin.html");throw new Error("Acceso exclusivo de propietaria");}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "../panel-data.js?v=20261030-1";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyAEDygVfkQbJgMuEmm_We-OlQFTKzQ1raM", 
@@ -353,3 +354,4 @@
     </script>
 </body>
 </html>
+
