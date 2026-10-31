@@ -505,6 +505,8 @@ body > .max-w-7xl { max-width:1560px; }
 
 </style>
 <link rel="stylesheet" href="panel-refresh.css?v=20261030-1">
+<link rel="stylesheet" href="admin-solicitudes.css?v=20261031-1">
+<script src="admin-entregas.js?v=20261031-1"></script>
 </head>
 <body class="p-4 md:p-8">
 <script src="panel-session.js?v=20261030-1"></script>
@@ -727,7 +729,8 @@ body > .max-w-7xl { max-width:1560px; }
                     </div>
                 </div>
 
-                <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
+<div class="nv-delivery-legend" aria-label="Origen de entrega"><span>Entrega:</span><span class="nv-delivery-badge nv-delivery-auto">Automático</span><span class="nv-delivery-badge nv-delivery-manual">Manual</span><span class="nv-delivery-badge nv-delivery-unknown">Sin identificar</span></div>
+                                <div class="bg-white premium-module-card rounded-[2.5rem] shadow-xl border border-slate-200 overflow-hidden text-[9px]">
                     <div class="overflow-x-auto nv-requests-desktop">
                         <table class="w-full text-left border-collapse">
                             <thead id="theadSolicitudes" class="bg-slate-900 text-white text-[10px] uppercase font-black italic"></thead>
@@ -2231,20 +2234,10 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
 
         function renderMobileRequests(rows) {
-            const host=document.getElementById('nvMobileRequests');host.replaceChildren();
-            if(!rows.length){const p=document.createElement('p');p.className='nv-attention-empty';p.textContent='Sin solicitudes en esta página.';host.append(p);return;}
-            for(const row of rows){
-                const card=document.createElement('article');card.className='nv-mobile-request';
-                const title=document.createElement('h3');title.textContent=row.tipo||'Solicitud';
-                const status=document.createElement('span');status.className='nv-mobile-request-status';status.textContent=row.estatus||'En proceso';
-                const customer=document.createElement('p');customer.textContent=row.email||row.nombre_asesor||'Cliente';
-                const id=document.createElement('p');id.textContent=row.curp?'CURP: '+row.curp:row.nss?'NSS: '+row.nss:'';
-                const actions=document.createElement('div');actions.className='nv-mobile-request-actions';
-                function action(text,fn){const b=document.createElement('button');b.type='button';b.textContent=text;b.addEventListener('click',fn);actions.append(b);}
-                action('Ver datos',()=>window.verDetalles(row));
-                if(!row.finalizado){action(row.tomado_uid?'Tomado':'Tomar',()=>window.tomarSolicitud(row.id));action('Subir resultado',()=>window.abrirSubida(row.id));}
-                card.append(title,status,customer,id,actions);host.append(card);
-            }
+            window.nvDelivery.render(document.getElementById('nvMobileRequests'),rows,{
+                date:fechaDateCampo,extra:obtenerBolsaVariablesExtra,locked:lockVigente,mine:tomadoPorMi,
+                owner:miSesion.is_owner===true,canOperate:puedeOperarSolicitud,hasError:esDocumentoConError
+            });
         }
 
         function renderizarTablaPersonalizada(docsArray) {
@@ -2292,7 +2285,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 const esError = esDocumentoConError(s);
 
                 const riesgo = esError && s.reembolsado !== true;
-                const claseFila = riesgo ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-blue-50';
+                const claseFila = riesgo ? 'bg-red-50 hover:bg-red-100' : window.nvDelivery.info(s).className + ' hover:bg-blue-50';
 
                 const celdaReembolso = miSesion.role === 'admin'
                     ? `<td class="p-4 text-center"><span class="inline-block w-3 h-3 rounded-full ${s.reembolsado === true ? 'bg-emerald-500' : 'bg-red-500'}"></span></td>`
@@ -2306,6 +2299,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
                         <td class="p-4">
                             <div class="font-black text-slate-700 uppercase text-[10px] mb-1">${s.tipo}</div>
+                            ${window.nvDelivery.badge(s)}
                             <div class="text-[9px] text-blue-700 font-black uppercase tracking-wide">FECHA: ${fStr}</div>
                         </td>
 
