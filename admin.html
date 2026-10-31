@@ -901,6 +901,15 @@ class="admin-menu-btn solo-admin relative">
             <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-rose-700">Reembolsos</p><p id="corteReembolsos" class="text-2xl font-black text-rose-700">$0.00</p><small id="corteFlujoCaja" class="font-bold text-slate-500">Flujo: $0.00</small></div>
             <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl"><p class="text-[10px] font-black uppercase text-amber-700">Saldo clientes actual</p><p id="corteSaldoClientes" class="text-2xl font-black text-amber-700">$0.00</p><small id="corteSaldoMeta" class="font-bold text-slate-500">0 clientes con saldo</small></div>
           </div>
+          <div class="mb-4 rounded-2xl border border-slate-200 p-4" aria-labelledby="tituloDepositosCuenta">
+            <h4 id="tituloDepositosCuenta" class="text-sm font-black text-slate-800 mb-3">Depósitos por cuenta</h4>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4"><p class="text-xs font-bold text-slate-600">Tu cuenta · Banorte</p><p id="corteDepositosBanorte" class="text-2xl font-black text-slate-900">—</p><small id="corteDepositosBanorteMeta" class="text-slate-500">Por cargar</small></div>
+              <div class="rounded-xl border border-blue-100 bg-blue-50 p-4"><p class="text-xs font-bold text-blue-700">Mercado Pago</p><p id="corteDepositosMercadoPago" class="text-2xl font-black text-blue-800">—</p><small id="corteDepositosMercadoPagoMeta" class="text-slate-500">Por cargar</small></div>
+              <div class="rounded-xl border border-amber-100 bg-amber-50 p-4"><p class="text-xs font-bold text-amber-800">Sin cuenta identificada</p><p id="corteDepositosSinCuenta" class="text-2xl font-black text-amber-900">—</p><small id="corteDepositosSinCuentaMeta" class="text-slate-500">Por cargar</small></div>
+            </div>
+            <p class="mt-3 text-xs text-slate-500">Solo recargas aprobadas registradas en el día seleccionado. Las pendientes y rechazadas no se suman. El desglose usa la cuenta registrada en cada recarga; no consulta el saldo bancario.</p>
+          </div>
           <div id="corteDineroDetalle" class="text-[11px] font-bold text-slate-600"></div>
         </div>
       </div>
@@ -1189,6 +1198,17 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             return `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
 
+        function mostrarDepositosPorCuenta(rows, estado = 'No disponible') {
+            const list = Array.isArray(rows) ? rows : [];
+            for (const [code, suffix] of [['banorte', 'Banorte'], ['mercado_pago', 'MercadoPago'], ['no_identificada', 'SinCuenta']]) {
+                const row = list.find(item => item.cuenta_destino === code);
+                const amount = document.getElementById('corteDepositos' + suffix);
+                const meta = document.getElementById('corteDepositos' + suffix + 'Meta');
+                if (amount) amount.textContent = row ? dineroMX(row.monto) : '—';
+                if (meta) meta.textContent = row ? `${row.operaciones || 0} recargas aprobadas` : estado;
+            }
+        }
+
         window.cargarCorteDineroAdmin = async function () {
             if (miSesion.role !== 'admin') return;
             const fechaInput = document.getElementById('fechaCorteDinero');
@@ -1196,6 +1216,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             const fecha = fechaInput?.value || fechaKeyLocal(new Date());
             if (fechaInput && !fechaInput.value) fechaInput.value = fecha;
             if (detalle) detalle.innerHTML = '<span class="text-slate-400 uppercase">Cargando corte real...</span>';
+            mostrarDepositosPorCuenta(null, 'Cargando…');
 
             try {
                 const query = new URLSearchParams(rangoDiaLocalISO(fecha)).toString();
@@ -1203,6 +1224,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 
                 setText('corteRecargas', dineroMX(data.total_recargas_aprobadas));
+                mostrarDepositosPorCuenta(data.recargas_por_cuenta);
                 setText('corteRecargasMeta', `${data.recargas_aprobadas || 0} aprobadas · ${data.recargas_pendientes || 0} pendientes`);
                 const vendidoReal = data.venta_real ?? data.venta_neta ?? data.total_vendido;
                 setText('corteVentaNeta', dineroMX(vendidoReal));
@@ -1227,6 +1249,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 }
             } catch (error) {
                 console.error('Error cargando corte real:', error);
+                mostrarDepositosPorCuenta(null);
                 if (detalle) detalle.innerHTML = `<span class="text-red-600 uppercase">No se pudo cargar el corte real: ${error.message || error}</span>`;
             }
         };
@@ -3480,6 +3503,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
     </script>
 </body>
 </html>
+
 
 
 
