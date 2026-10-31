@@ -1,0 +1,12 @@
+.nv-install-trigger{color:#fff!important;background:#ffffff15!important;border:1px solid #ffffff25;margin:6px 0}
+.nv-install-trigger[hidden],.nv-install-confirm[hidden]{display:none!important}
+.nv-install-dialog{background:var(--nv-surface,#fff);color:var(--nv-text,#242139);border:1px solid var(--nv-line,#e6e2f0);border-radius:24px;padding:28px;max-width:460px;width:calc(100% - 32px);box-shadow:0 25px 90px #0005}
+.nv-install-dialog::backdrop{background:#141321a8;backdrop-filter:blur(4px)}
+.nv-install-dialog h2{font-size:23px;font-weight:700;line-height:1.4;padding-right:28px}
+.nv-install-logo{display:block;width:64px;height:64px;margin-bottom:12px;object-fit:contain}
+.nv-install-dialog p{font-size:14px;line-height:1.75;margin-top:16px;color:var(--nv-muted,#68647b)}
+.nv-install-dialog .nv-install-note{background:var(--nv-soft,#f7f5fc);padding:16px;border-radius:14px;color:var(--nv-text,#242139)}
+.nv-install-close{float:right;font-size:24px;border-radius:10px;min-width:36px;min-height:36px;background:var(--nv-soft,#f7f5fc);color:var(--nv-text,#242139)}
+.nv-install-confirm{background:linear-gradient(115deg,#c64d18,#262262);color:#fff;font-size:14px;font-weight:700;border:0;padding:13px 18px;border-radius:12px;margin-top:18px;min-height:44px;width:100%}
+.nv-install-confirm:disabled{opacity:.65}
+@media(max-width:540px){.nv-install-dialog{padding:22px}.nv-install-dialog h2{font-size:21px}}

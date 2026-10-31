@@ -1,0 +1,19 @@
+{
+  "id": "/novyra-app",
+  "name": "Novyra Services",
+  "short_name": "Novyra",
+  "description": "Tus trámites, documentos y seguimiento en Novyra Services. Requiere conexión a internet.",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "start_url": "/dashboard.html?origen=app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1eff9",
+  "theme_color": "#262262",
+  "prefer_related_applications": false,
+  "icons": [
+    {"src": "/icons/novyra-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/novyra-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/novyra-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
