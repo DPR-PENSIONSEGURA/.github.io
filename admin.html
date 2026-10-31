@@ -436,11 +436,79 @@
 .nv-admin-subscription h3{font-weight:800;font-size:15px}.nv-finance-hint{color:#475569;font-size:13px;margin:10px 0}
 .nv-package-validity{color:#facc15;background:#172554;border-radius:10px;padding:12px;font-weight:800}
 
+
+/* Navegación administrativa: presentación independiente de los procesos. */
+body { --nv-sidebar-width:260px; }
+body > .max-w-7xl { max-width:1560px; }
+.nv-menu-mobilebar,.nv-menu-backdrop { display:none; }
+.nv-admin-sidebar { position:fixed; left:16px; top:16px; bottom:16px; width:var(--nv-sidebar-width); margin:0; padding:20px 12px 12px; border-radius:24px; background:#09212a; border:1px solid #16343b; color:#dcece6; box-shadow:0 14px 40px #08202a18; display:flex; flex-direction:column; z-index:60; backdrop-filter:none; }
+.nv-admin-sidebar svg { width:20px; height:20px; flex:0 0 20px; }
+.nv-menu-brand { display:flex; align-items:center; gap:10px; padding:0 8px 22px; }
+.nv-menu-monogram { width:34px; height:34px; flex:0 0 34px; border-radius:11px; background:#c5f7de; color:#0b3d32; display:grid; place-items:center; font-weight:900; font-size:21px; }
+.nv-menu-brand strong { display:block; font-size:20px; letter-spacing:-.7px; color:#f3fff8; }
+.nv-menu-brand .nv-menu-label > span { display:block; font-size:10px; margin-top:1px; color:#a0bdb6; }
+#nvMenuCollapse { color:#adc8c1; padding:6px; border:1px solid #2b484e; border-radius:9px; margin-left:auto; }
+#nvMenuCollapse:hover { background:#193c43; color:white; }
+.nv-menu-search { position:relative; margin:0 4px 15px; }
+.nv-menu-search > svg { position:absolute; left:11px; top:12px; color:#a3c4ba; width:17px; height:17px; }
+.nv-menu-search input { width:100%; border:1px solid #32524f!important; color:#e8f9f1; background:#15343b; border-radius:11px; padding:10px 9px 10px 36px; font:400 12px Inter,sans-serif; min-width:0; }
+.nv-menu-search input::placeholder { color:#a3c4ba; }
+.nv-menu-content { flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#3c625b transparent; }
+.nv-menu-group { margin-bottom:15px; }
+.nv-menu-group-title { color:#9cbcb3; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; padding:4px 13px 8px; }
+.nv-admin-sidebar .admin-menu-grid { display:block; }
+.nv-admin-sidebar .admin-menu-btn { width:100%; margin:2px 0; min-height:43px; padding:0; border:0; border-radius:11px; background:transparent; box-shadow:none; text-align:left; color:#c6ddd5; font-size:12px; font-weight:500; text-transform:none; text-decoration:none; transform:none; }
+.nv-admin-sidebar .admin-menu-btn:before { content:none; }
+.nv-menu-item { display:flex; align-items:center; gap:12px; padding:11px 13px; width:100%; min-height:43px; }
+.nv-menu-item > svg { color:#96c3b1; }
+.nv-menu-item > .nv-menu-label { flex:1; min-width:0; padding-right:15px; line-height:1.45; }
+.nv-admin-sidebar .admin-menu-btn:hover { background:#173c40; color:white; box-shadow:none; transform:none; }
+.nv-admin-sidebar .admin-menu-btn.activo { background:#ccf5e1; color:#0b3e32; border:0; font-weight:700; }
+.nv-admin-sidebar .admin-menu-btn.activo svg { color:#0b6c50; }
+.nv-admin-sidebar .admin-menu-btn:focus-visible,#nvMenuCollapse:focus-visible,#nvMenuMobileToggle:focus-visible { outline:3px solid #60d9ae; outline-offset:3px; }
+.nv-admin-sidebar .notif-dot { top:50%; right:9px; transform:translateY(-50%); min-width:8px; height:8px; border:0; padding:0; box-shadow:none; animation:none; }
+.nv-admin-sidebar .notif-dot.con-numero { height:18px; min-width:18px; padding:0 4px; font-size:10px; }
+.nv-menu-footer { padding:14px 12px 3px; border-top:1px solid #29464a; margin-top:6px; font-size:10px; color:#96b4ab; }
+.nv-menu-footer-mark { display:none; }
+.nv-menu-close { display:none; margin-left:auto; color:#c5f7de; font-size:26px; line-height:1; padding:6px 10px; border:1px solid #32524f; border-radius:9px; }
+.nv-menu-empty { padding:12px; font-size:12px; color:#b8d1c7; }
+.nv-menu-filtered { display:none!important; }
+@media(min-width:1100px) {
+ body { padding:24px 24px 24px calc(var(--nv-sidebar-width) + 40px)!important; }
+ body.nv-menu-compact { --nv-sidebar-width:78px; }
+ .nv-menu-compact .nv-admin-sidebar { padding:16px 8px; }
+ .nv-menu-compact .nv-menu-label,.nv-menu-compact .nv-menu-search,.nv-menu-compact .nv-menu-group-title { display:none; }
+ .nv-menu-compact .nv-menu-brand { flex-direction:column; padding:0 0 16px; gap:12px; }
+ .nv-menu-compact #nvMenuCollapse { margin:0; }
+ .nv-menu-compact #nvMenuCollapse svg { transform:rotate(180deg); }
+ .nv-menu-compact .nv-menu-item { padding:12px; justify-content:center; }
+ .nv-menu-compact .nv-menu-group { margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #29464a; }
+ .nv-menu-compact .nv-menu-footer { padding:12px 0 0; text-align:center; }
+ .nv-menu-compact .nv-menu-footer-mark { display:inline; font-weight:900; color:#c5f7de; }
+ .nv-menu-compact .notif-dot { right:5px; top:9px; transform:none; }
+}
+@media(max-width:1099px) {
+ .nv-menu-mobilebar { display:flex; align-items:center; justify-content:space-between; position:sticky; top:8px; z-index:70; border:1px solid #1c4045; border-radius:16px; background:#09212a; color:#e6fff0; padding:10px 14px; margin-bottom:18px; box-shadow:0 10px 30px #0b292322; }
+ .nv-menu-mobilebrand { display:flex; align-items:center; gap:9px; font-size:22px; font-weight:900; color:#c5f7de; }
+ .nv-menu-mobilebrand > span { font-size:15px; font-weight:700; color:#e6fff0; }
+ #nvMenuMobileToggle { display:flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid #43625f; border-radius:10px; font-size:12px; font-weight:700; }
+ #nvMenuMobileToggle svg { width:18px; height:18px; }
+ .nv-admin-sidebar { display:none; top:76px; left:16px; bottom:16px; width:min(310px,calc(100vw - 32px)); padding-top:18px; z-index:80; }
+ body.nv-menu-open .nv-admin-sidebar { display:flex; }
+ .nv-menu-backdrop:not([hidden]) { display:block; position:fixed; inset:0; z-index:75; background:#051b26aa; backdrop-filter:blur(3px); }
+ #nvMenuCollapse { display:none; }
+ .nv-menu-close { display:block; }
+ body.nv-menu-open { overflow:hidden; }
+ .nv-menu-footer { padding-top:10px; }
+}
+@media(prefers-reduced-motion:reduce) { .nv-admin-sidebar * { transition:none!important; animation:none!important; } }
+
 </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
+<div class="nv-menu-mobilebar"><span class="nv-menu-mobilebrand">N<span>Novyra</span></span><button type="button" id="nvMenuMobileToggle" aria-controls="nvAdminMenu" aria-expanded="false" aria-label="Abrir menú del panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button></div>
         <div class="premium-admin-banner">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                 <div class="flex items-center gap-4">
@@ -501,36 +569,12 @@
             </div>
         </header>
 
-        <nav class="admin-menu-shell" aria-label="Menú administrativo">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-                <div>
-                    <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Menú del panel</p>
-                    <h2 class="text-xl font-black text-slate-800 uppercase italic">Selecciona un módulo</h2>
-                </div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase">Solo se muestra una sección a la vez</p>
-            </div>
-            <div class="admin-menu-grid">
-                <button type="button" class="admin-menu-btn activo" data-admin-btn="solicitudes" onclick="window.mostrarModuloAdmin('solicitudes')">Historial</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="recargas" onclick="window.mostrarModuloAdmin('recargas')"> Recargas <span class="notif-dot" data-notif-dot="recargas"></span></button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="metricas" onclick="window.mostrarModuloAdmin('metricas')"> Métricas</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="operacion" onclick="window.mostrarModuloAdmin('operacion')"> Operación</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')"> Leads <span class="notif-dot" data-notif-dot="leads"></span></button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="avisos" onclick="window.mostrarModuloAdmin('avisos')"> Avisos</button>
-<a href="admin/tramites"
-class="admin-menu-btn solo-admin relative">
-    Expedientes
-    <span class="notif-dot"></span>
-</a>
 
-<button type="button" class="admin-menu-btn" data-admin-btn="chat" onclick="window.mostrarModuloAdmin('chat')">
-     Chat
-    <span class="notif-dot" data-notif-dot="chat"></span>
-</button>
-<button type="button" class="admin-menu-btn solo-admin" data-admin-btn="finanzas-usuarios" onclick="window.mostrarModuloAdmin('finanzas-usuarios')">Finanzas de usuarios</button>
-<button type="button" class="admin-menu-btn solo-admin" data-admin-btn="suscripciones" onclick="window.mostrarModuloAdmin('suscripciones')">Suscripciones</button>
-                <button type="button" class="admin-menu-btn solo-admin" data-admin-btn="control" onclick="window.mostrarModuloAdmin('control')"> Control</button>
-            </div>
-        </nav>
+        <button type="button" class="nv-menu-backdrop" id="nvMenuBackdrop" aria-label="Cerrar menú" tabindex="-1" hidden></button>
+        <nav class="admin-menu-shell nv-admin-sidebar" id="nvAdminMenu" aria-label="Menú administrativo">
+          <div class="nv-menu-brand"><span class="nv-menu-monogram" aria-hidden="true">N</span><div class="nv-menu-label"><strong>Novyra</strong><span>Menú del panel</span></div><button type="button" id="nvMenuCollapse" aria-label="Contraer menú" aria-expanded="true" aria-controls="nvMenuContent" title="Contraer menú"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button type="button" id="nvMenuClose" class="nv-menu-close" aria-label="Cerrar menú del panel"><span aria-hidden="true">×</span></button></div>
+          <div class="nv-menu-search"><label for="nvMenuSearch" class="sr-only">Buscar módulo</label><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" id="nvMenuSearch" placeholder="Buscar módulo…" autocomplete="off"></div>
+          <div id="nvMenuContent" class="nv-menu-content"><div class="nv-menu-group"><p class="nv-menu-group-title">Operación</p><div class="admin-menu-grid"><button type="button" data-admin-btn="solicitudes" onclick="window.mostrarModuloAdmin('solicitudes')" class="admin-menu-btn activo" aria-label="Historial" title="Historial"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="nv-menu-label">Historial</span></span></button><button type="button" data-admin-btn="operacion" onclick="window.mostrarModuloAdmin('operacion')" class="admin-menu-btn solo-admin" aria-label="Operación" title="Operación"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span class="nv-menu-label">Operación</span></span></button><a href="admin/tramites" class="admin-menu-btn solo-admin" aria-label="Expedientes" title="Expedientes"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span class="nv-menu-label">Expedientes</span></span></a></div></div><div class="nv-menu-group solo-admin"><p class="nv-menu-group-title">Dinero</p><div class="admin-menu-grid"><button type="button" data-admin-btn="recargas" onclick="window.mostrarModuloAdmin('recargas')" class="admin-menu-btn solo-admin" aria-label="Recargas" title="Recargas"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15v14H5a2 2 0 0 1-2-2V5"/><path d="M20 11h-5v6h5M16 14h1"/></svg><span class="nv-menu-label">Recargas</span><span class="notif-dot" data-notif-dot="recargas"></span></span></button><button type="button" data-admin-btn="metricas" onclick="window.mostrarModuloAdmin('metricas')" class="admin-menu-btn solo-admin" aria-label="Métricas" title="Métricas"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v17h17M8 16v-5m5 5V7m5 9V4"/></svg><span class="nv-menu-label">Métricas</span></span></button><button type="button" data-admin-btn="finanzas-usuarios" onclick="window.mostrarModuloAdmin('finanzas-usuarios')" class="admin-menu-btn solo-admin" aria-label="Finanzas de usuarios" title="Finanzas de usuarios"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 9v8m2-6h-3a1 1 0 0 0 0 2h1a1 1 0 0 1 0 2h-3"/></svg><span class="nv-menu-label">Finanzas de usuarios</span></span></button><button type="button" data-admin-btn="suscripciones" onclick="window.mostrarModuloAdmin('suscripciones')" class="admin-menu-btn solo-admin" aria-label="Suscripciones" title="Suscripciones"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M7 15h4"/></svg><span class="nv-menu-label">Suscripciones</span></span></button></div></div><div class="nv-menu-group"><p class="nv-menu-group-title">Atención</p><div class="admin-menu-grid"><button type="button" data-admin-btn="chat" onclick="window.mostrarModuloAdmin('chat')" class="admin-menu-btn" aria-label="Chat" title="Chat"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2v-10A8.5 8.5 0 0 1 10.5 3H13a8 8 0 0 1 8 8.5Z"/><path d="M7 10h10M7 14h6"/></svg><span class="nv-menu-label">Chat</span><span class="notif-dot" data-notif-dot="chat"></span></span></button><button type="button" data-admin-btn="leads" onclick="window.mostrarModuloAdmin('leads')" class="admin-menu-btn solo-admin" aria-label="Leads" title="Leads"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2M17 4a4 4 0 0 1 0 7m5 10v-2a4 4 0 0 0-3-3.9"/></svg><span class="nv-menu-label">Leads</span><span class="notif-dot" data-notif-dot="leads"></span></span></button><button type="button" data-admin-btn="avisos" onclick="window.mostrarModuloAdmin('avisos')" class="admin-menu-btn solo-admin" aria-label="Avisos" title="Avisos"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="nv-menu-label">Avisos</span></span></button></div></div><div class="nv-menu-group solo-admin"><p class="nv-menu-group-title">Administración</p><div class="admin-menu-grid"><button type="button" data-admin-btn="control" onclick="window.mostrarModuloAdmin('control')" class="admin-menu-btn solo-admin" aria-label="Control" title="Control"><span class="nv-menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg><span class="nv-menu-label">Control</span></span></button></div></div><p id="nvMenuEmpty" class="nv-menu-empty" hidden>No encontramos ese módulo.</p></div><div class="nv-menu-footer"><span class="nv-menu-label">Tu operación, en un solo lugar.</span><span class="nv-menu-footer-mark" aria-hidden="true">N</span></div></nav>
 
 
 
@@ -1014,6 +1058,83 @@ class="admin-menu-btn solo-admin relative">
         });
 
     </script>
+
+
+<script id="nv-admin-navigation">
+(function () {
+    const menu = document.getElementById('nvAdminMenu');
+    const toggle = document.getElementById('nvMenuMobileToggle');
+    const backdrop = document.getElementById('nvMenuBackdrop');
+    const collapse = document.getElementById('nvMenuCollapse');
+    const search = document.getElementById('nvMenuSearch');
+    const mobile = window.matchMedia('(max-width: 1099px)');
+    function setOpen(open, restoreFocus = false) {
+        const shown = Boolean(open && mobile.matches);
+        document.body.classList.toggle('nv-menu-open', shown);
+        toggle.setAttribute('aria-expanded', String(shown));
+        toggle.setAttribute('aria-label', shown ? 'Cerrar menú del panel' : 'Abrir menú del panel');
+        backdrop.hidden = !shown;
+        if (shown) search.focus();
+        else if (restoreFocus && mobile.matches) toggle.focus();
+    }
+    function setCompact(compact) {
+        document.body.classList.toggle('nv-menu-compact', compact);
+        collapse.setAttribute('aria-expanded', String(!compact));
+        collapse.setAttribute('aria-label', compact ? 'Ampliar menú' : 'Contraer menú');
+        collapse.title = compact ? 'Ampliar menú' : 'Contraer menú';
+    }
+    function syncActive() {
+        menu.querySelectorAll('[data-admin-btn]').forEach(button => {
+            if (button.classList.contains('activo')) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+        });
+    }
+    toggle.addEventListener('click', () => setOpen(!document.body.classList.contains('nv-menu-open'), true));
+    backdrop.addEventListener('click', () => setOpen(false, true));
+    document.getElementById('nvMenuClose').addEventListener('click', () => setOpen(false, true));
+    collapse.addEventListener('click', () => {
+        const compact = !document.body.classList.contains('nv-menu-compact');
+        search.value = ''; filterMenu(); setCompact(compact);
+        try { localStorage.setItem('nv_admin_menu_compact', compact ? '1' : '0'); } catch (_) {}
+    });
+    const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    function filterMenu() {
+        const term = normalize(search.value);
+        let count = 0;
+        menu.querySelectorAll('.nv-menu-group').forEach(group => {
+            let visible = 0;
+            group.querySelectorAll('.admin-menu-btn').forEach(button => {
+                const matches = normalize(button.getAttribute('aria-label')).includes(term);
+                const allowed = !button.classList.contains('solo-admin') || (JSON.parse(localStorage.getItem('staffSession') || '{}').role === 'admin');
+                button.classList.toggle('nv-menu-filtered', !matches);
+                if (matches && allowed) visible++;
+            });
+            group.classList.toggle('nv-menu-filtered', visible === 0);
+            count += visible;
+        });
+        document.getElementById('nvMenuEmpty').hidden = count > 0;
+    }
+    search.addEventListener('input', filterMenu);
+    document.addEventListener('keydown', event => {
+        if (!document.body.classList.contains('nv-menu-open') || !mobile.matches) return;
+        if (event.key === 'Escape') { event.preventDefault(); setOpen(false, true); }
+        if (event.key === 'Tab') {
+            const focusable = Array.from(menu.querySelectorAll('button, a[href], input')).filter(el => el.getClientRects().length);
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+    });
+    const original = window.mostrarModuloAdmin;
+    window.mostrarModuloAdmin = function (module) {
+        original(module); syncActive();
+        if (document.body.classList.contains('nv-menu-open')) setOpen(false, true);
+    };
+    mobile.addEventListener('change', () => setOpen(false));
+    try { setCompact(localStorage.getItem('nv_admin_menu_compact') === '1'); } catch (_) {}
+    document.addEventListener('DOMContentLoaded', () => { syncActive(); filterMenu(); });
+})();
+</script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
@@ -3503,6 +3624,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
     </script>
 </body>
 </html>
+
 
 
 
