@@ -187,8 +187,10 @@
         .nv-bot-card:focus-visible { outline:3px solid #047857; outline-offset:3px; }
         @media(max-width:640px) { .nv-bots-section { padding:18px; } .nv-bots-heading { display:block; } .nv-bots-heading>p { margin-top:10px; } .nv-bots-grid { grid-template-columns:1fr; } .nv-bot-card { padding:18px; } }
     </style>
+<link rel="stylesheet" href="novyra-apariencia.css?v=20261030-1">
+<script src="novyra-apariencia.js?v=20261030-1"></script>
 </head>
-<body>
+<body data-nv-demo="false">
 
     <div class="app-shell">
         <aside class="sidebar-premium">
@@ -330,7 +332,7 @@
             <h3 id="recargaPasoTitulo" class="ux-section-title" aria-live="polite">Paso 1 de 3: Datos para transferir</h3>
             <div id="recargaMensaje" class="ux-recharge-message" role="status" aria-live="polite" hidden></div>
             <select id="cuentaDestinoRecarga" hidden aria-hidden="true" tabindex="-1"><option value="">Selecciona la cuenta destino</option><option value="banorte">Banorte</option><option value="mercado_pago">Mercado Pago</option></select>
-            <div data-recarga-paso="1"><p class="ux-muted">Selecciona una cuenta para transferir. Monto mínimo: $200. Conserva la clave de rastreo.</p><fieldset class="ux-account-fieldset"><legend class="ux-field-label">Cuentas disponibles</legend><div id="cuentasRecargaDatos"></div></fieldset><p id="avisoAntesTransferir" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><div class="ux-recharge-actions"><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(2)">Ya hice mi recarga</button></div></div>
+            <div data-recarga-paso="1"><button type="button" class="ux-page-button mb-3" onclick="delete document.getElementById('modalSaldo').dataset.nvAccount">Ver ambas cuentas</button><p class="ux-muted">Selecciona una cuenta para transferir. Monto mínimo: $200. Conserva la clave de rastreo.</p><fieldset class="ux-account-fieldset"><legend class="ux-field-label">Cuentas disponibles</legend><div id="cuentasRecargaDatos"></div></fieldset><p id="avisoAntesTransferir" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><div class="ux-recharge-actions"><button type="button" class="ux-action-primary" onclick="window.pasoRecarga(2)">Ya hice mi pago</button></div></div>
             <div data-recarga-paso="2" hidden><fieldset class="ux-account-fieldset"><legend class="ux-field-label">¿En qué cuenta realizaste tu recarga?</legend><div id="cuentasRecargaInforme"></div></fieldset><label for="depMonto" class="ux-field-label">Monto depositado</label><input type="number" id="depMonto" min="200" step="0.01" inputmode="decimal" placeholder="Monto mínimo $200" class="input-light" required><label for="claveRastreo" class="ux-field-label mt-4">Clave de rastreo</label><input type="text" id="claveRastreo" placeholder="Escribe la clave completa" class="input-light uppercase" required><p id="avisoTransferenciasRecarga" class="text-red-600 text-sm font-bold text-left leading-relaxed" style="color: #dc2626;">No se aceptan recargas mediante transferencias de Banorte a Banorte, ya que no generan clave de rastreo. Si realizas una transferencia de este tipo, no se harán devoluciones ni abonos manuales.</p><p class="ux-muted">Informar el pago no acredita el saldo de inmediato. Primero se valida el depósito; no se garantiza aprobación automática.</p><button onclick="window.notificarPago()" id="btnNotificar" class="w-full bg-[#F97316] py-4 rounded-2xl font-bold text-white shadow-lg text-sm mt-4">Informar pago</button><button type="button" class="ux-page-button mt-3" onclick="window.pasoRecarga(1)">Ver datos de cuentas</button></div>
             <div data-recarga-paso="3" hidden><p class="ux-muted">Mostramos hasta cinco recargas entre tus últimos movimientos. El estado y el saldo se obtienen del servidor.</p><div id="recargasRecientes" aria-live="polite">Cargando movimientos…</div><p id="recargasActualizadas" role="status" class="ux-muted"></p><div class="ux-recharge-actions"><button type="button" class="ux-page-button" onclick="window.actualizarRecargas()">Actualizar estado</button><button type="button" class="ux-action-primary" onclick="window.nuevaRecarga()">Nueva recarga</button><a href="finanzas.html" class="ux-page-button">Ver finanzas</a></div></div>
             <button type="button" class="ux-page-button mt-4" onclick="window.pasoRecarga(3)">Consultar mis recargas</button>
@@ -746,9 +748,11 @@ async function cargarPreciosBackend() {
             emailAsesor = user.email;
 
             try {
-                await requestDashboardApi("/api/v1/dashboard/bootstrap", {
+                const profileBootstrap = await requestDashboardApi("/api/v1/dashboard/bootstrap", {
                     method: "POST"
                 });
+                window.nvPendingProfileName = profileBootstrap.asesor?.nombre || '';
+                window.nvSetProfileName?.(window.nvPendingProfileName);
             } catch (error) {
                 console.error("bootstrap dashboard", error);
             }
@@ -856,7 +860,16 @@ async function cargarPreciosBackend() {
             w.style.display = (w.style.display === 'flex') ? 'none' : 'flex';
         };
 
-        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); if (id === 'modalSaldo') window.prepararRecargas(); if(id === 'modalPremium') window.cargarPaquetesNovyra(); };
+        window.guardarPerfilNovyra = async nombre => {
+            const data = await requestDashboardApi('/api/v1/dashboard/profile', {method:'PATCH', body:JSON.stringify({nombre})});
+            return data.asesor.nombre;
+        };
+        window.abrirCuentaNovyra = code => {
+            if(!Object.hasOwn(cuentasRecarga,code)) return;
+            window.abrirModal('modalSaldo'); window.seleccionarCuentaRecarga(code); window.pasoRecarga(1);
+            document.getElementById('modalSaldo').dataset.nvAccount = code;
+        };
+        window.abrirModal = (id) => { document.getElementById(id).classList.remove('hidden'); if (id === 'modalSaldo') { delete document.getElementById(id).dataset.nvAccount; window.prepararRecargas(); } if(id === 'modalPremium') window.cargarPaquetesNovyra(); };
         window.abrirAvisos = () => {
             document.getElementById('modalAvisos').classList.remove('hidden');
             const ultimoAviso = localStorage.getItem('ultimoAvisoAdminTS') || '0';
@@ -2226,6 +2239,7 @@ const leerSaldoCoordinado = crearLecturaCoordinada(async () => {
     const el = document.getElementById('txtSaldoHeader'); el.setAttribute('aria-busy','true');
     try {
         const data = await requestDashboardApi('/api/v1/dashboard/balance');
+        window.nvPendingProfileName = data.asesor?.nombre || ''; window.nvSetProfileName?.(window.nvPendingProfileName);
         if (data.saldo === null || data.saldo === undefined || !Number.isFinite(Number(data.saldo))) throw Error('Saldo inválido');
         saldoGlobal = Number(data.saldo); saldoLeido = true; el.textContent = saldoGlobal.toLocaleString('es-MX',{style:'currency',currency:'MXN'}); el.removeAttribute('title'); document.getElementById('saldoEstado').textContent = '';
     } catch { el.title = 'No se pudo actualizar el saldo. Comprueba tu conexión.'; if (!saldoLeido) el.textContent = 'No disponible'; document.getElementById('saldoEstado').textContent = 'No se pudo actualizar el saldo.'; }
@@ -2469,6 +2483,12 @@ document.addEventListener('visibilitychange', () => {
             signOut(auth).finally(() => window.location.replace(LOGIN_URL));
         };
     </script>
+
+    <dialog id="nvProfileDialog" class="nv-profile-dialog" aria-labelledby="nvProfileTitle">
+      <button type="button" class="nv-dialog-close" data-nv-profile-close aria-label="Cerrar perfil">×</button>
+      <h2 id="nvProfileTitle">Mi perfil</h2><p>Este nombre aparecerá en el saludo de tu dashboard.</p>
+      <form id="nvProfileForm"><label for="nvProfileName">Tu nombre</label><input id="nvProfileName" name="nombre" autocomplete="name" minlength="2" maxlength="80" required class="input-light"><button type="submit" class="nv-gradient-action">Guardar nombre</button><p id="nvProfileStatus" role="status" aria-live="polite"></p></form>
+    </dialog>
 </body>
 </html>
 
