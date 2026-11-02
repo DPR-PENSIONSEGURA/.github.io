@@ -46,7 +46,9 @@
         if(locked){group.append(text('small',row.tomado_nombre||'Tomada','nv-compact-lock'));if(mine||options.owner)action('Liberar',()=>window.liberarSolicitud(row.id));else group.append(text('small','Bloqueada','nv-compact-lock'));}
         else action('Tomar',()=>window.tomarSolicitud(row.id));
         action('Subir',()=>window.abrirSubida(row.id),true,options.canOperate?!options.canOperate(row):false);
+        if(options.canReportError&&!options.owner)action('Registrar error',()=>window.reportarErrorSolicitud(row.id),false,options.canOperate?!options.canOperate(row):false);
       }
+      if(options.owner&&(row.raw_data?.error_revision_pendiente===true||row.error_revision_pendiente===true)&&row.reembolsado!==true)action('Revisar devolución',()=>window.revisarIncidencia(row.id));
       actions.append(group);tr.append(service,details,actions);body.append(tr);
     }
     table.append(head,body);host.append(table);
