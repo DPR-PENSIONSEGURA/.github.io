@@ -10,6 +10,9 @@ export function campoPrincipal(t){
 }
 export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
  const doc=content.ownerDocument,root=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
+ // A CURP-only service needs one familiar field, not a second batch editor.
+ const controls=[...root.querySelectorAll('input,textarea,select')];
+ if(t.curp&&controls.length===1&&controls[0].id==='curp_p')return crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar});
  const primary=campoPrincipal(t),items=[{node:root,state:'draft'}];let current=0,busy=false,feedback='';
  const bar=doc.createElement('section');bar.className='nv-batch';bar.setAttribute('aria-label','Consultas individuales');
  const heading=doc.createElement('h3');heading.textContent='Consultas individuales';bar.append(heading);
@@ -83,4 +86,51 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
  pay.onclick=submit;content.oninput=()=>{if(!busy)render()};mount(0);
  return {submit,get busy(){return busy},items,mount,loadIdentifiers};
 }
+
+function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
+ const doc=content.ownerDocument,visible=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
+ const original=visible.querySelector('#curp_p'),input=doc.createElement('textarea');
+ input.id=original.id;input.className=original.className;input.rows=2;input.autocomplete='off';
+ input.placeholder='CURP1, CURP2, CURP3';input.dataset.multiCurp='true';original.replaceWith(input);mejorar(t);
+ const status=doc.createElement('p');status.className='ux-field-help';status.setAttribute('role','status');visible.append(status);
+ let busy=false,frozen=false,items=[{node:visible,state:'draft'}];
+ const label=()=>{if(!busy)pay.textContent='Enviar solicitud'+(items.filter(x=>x.state==='draft').length>1?'es':'')};
+ function mount(index){const item=items[index];if(!item)return;const current=content.querySelector('#datosConsultaActual');if(current!==item.node)current.replaceWith(item.node);if(!item.ready){mejorar(t);item.ready=true}}
+ function restore(){const current=content.querySelector('#datosConsultaActual');if(current!==visible)current.replaceWith(visible);input.disabled=busy;input.readOnly=frozen;pay.disabled=busy||(!items.some(x=>x.state==='draft')&&frozen);label()}
+ function loadIdentifiers(values){if(frozen||busy)return;input.value=values.join(', ')}
+ input.oninput=()=>{input.value=input.value.toUpperCase();status.textContent=''};
+ async function submit(){
+  if(busy)return;
+  if(!frozen){
+   let values;try{values=separarIdentificadores(input.value)}catch(e){status.textContent=e.message;input.focus();return}
+   if(!values.length){status.textContent='Escribe al menos una CURP.';input.focus();return}
+   items=values.map(value=>{const node=doc.createElement('div');node.id='datosConsultaActual';node.hidden=true;node.innerHTML=fields;node.querySelector('#curp_p').value=value;return {node,state:'draft'}});
+  }
+  const pending=items.filter(x=>x.state==='draft');if(!pending.length)return;
+  busy=true;input.disabled=true;pay.disabled=true;status.textContent='';let sent=0;
+  try{
+   let total=0;
+   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true);if(!checked){status.textContent='Revisa la CURP: '+item.node.querySelector('#curp_p').value;return}total+=Number(checked.precio||0)}
+   if(validarTotal&&!validarTotal(total,pending.length))return;
+   restore();
+   if(!confirm(`Enviar ${pending.length} solicitud${pending.length===1?'':'es'} individual${pending.length===1?'':'es'}.\nImporte estimado total: $${total.toFixed(2)} MXN.\n¿Continuar?`))return;
+   frozen=true;
+   for(let i=0;i<pending.length;i++){
+    const item=pending[i];mount(items.indexOf(item));pay.textContent=`Enviando ${i+1} de ${pending.length}…`;pay.disabled=true;
+    const prepared=await preparar(t,precio,false);if(!prepared)return;
+    const body={...prepared.body,detalles_extra:{...prepared.body.detalles_extra,lote_total:pending.length,lote_posicion:i+1}};
+    try{
+     const result=await enviar(body);
+     if(result?.success!==true||typeof result.solicitud_id!=='string'||!result.solicitud_id){const e=new Error('El servidor no confirmó el folio');e.deliveryUncertain=true;throw e}
+     item.state='sent';item.requestId=result.solicitud_id;sent++;
+    }catch(e){item.state=e.deliveryUncertain?'uncertain':'draft';status.textContent=`${items.filter(x=>x.state==='sent').length} enviadas. `+(item.state==='uncertain'?'Revisa el historial para confirmar la CURP '+item.node.querySelector('#curp_p').value+'. No se volverá a enviar automáticamente.':'Puedes continuar para enviar únicamente las solicitudes pendientes.');alert(status.textContent);return}
+   }
+   if(items.some(x=>x.state==='uncertain')){status.textContent='Las solicitudes pendientes se enviaron. Revisa el historial para confirmar las anteriores.';return}
+   alert(`${sent} solicitud${sent===1?'':'es'} enviada${sent===1?'':'s'}. Cada CURP quedó registrada individualmente.`);finalizar();
+  }finally{busy=false;restore();await actualizar()}
+ }
+ pay.onclick=submit;label();
+ return {submit,get busy(){return busy},get items(){return items},mount,loadIdentifiers};
+}
+
 
