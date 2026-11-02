@@ -199,6 +199,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
   <link rel="stylesheet" href="/novyra-instalar.css?v=20261031-1">
   <script src="/novyra-instalar.js?v=20261031-1" defer></script>
+<link rel="stylesheet" href="novyra-lotes.css?v=20261101-1">
 </head>
 <body data-nv-demo="false">
 
@@ -460,6 +461,8 @@
     </div>
 
     <script type="module">
+        import { crearEditorLote } from "./novyra-lotes.mjs?v=20261101-1";
+        let editorLoteActivo = null;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { initializeFirestore, doc, getDoc, onSnapshot, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut, getIdToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -810,6 +813,7 @@ async function cargarPreciosBackend() {
                 headers["Content-Type"] = "application/json";
             }
 
+            const solicitudIndividual=path==="/api/v1/dashboard/requests" && String(options.method||"GET").toUpperCase()==="POST";
             let response;
             let lastNetworkError = null;
 
@@ -826,15 +830,19 @@ async function cargarPreciosBackend() {
                         headers,
                         signal: controller.signal
                     });
-                    if (response.ok) break;
+                    if (response.ok || solicitudIndividual) break;
                     lastNetworkError = new Error(`Backend ${baseUrl} respondio ${response.status}`);
                 } catch (error) {
                     lastNetworkError = error;
+                    if(solicitudIndividual)break;
                 } finally {
                     clearTimeout(timeout);
                 }
             }
 
+            if (!response && solicitudIndividual) {
+                const e=new Error('No se pudo confirmar el envío. Revisa el historial antes de volver a solicitarlo.');e.deliveryUncertain=true;throw e;
+            }
             if (!response) {
                 if (lastNetworkError?.name === "AbortError") {
                     throw new Error("El servidor tardó demasiado en responder. Revisa el despliegue de Functions.");
@@ -853,7 +861,8 @@ async function cargarPreciosBackend() {
             }
 
             if (!response.ok) {
-                throw new Error(data.error || data.message || data.raw || `Error ${response.status}`);
+                const e=new Error(data.error || data.message || data.raw || `Error ${response.status}`);
+                e.deliveryUncertain=solicitudIndividual && response.status>=500;throw e;
             }
 
             return data;
@@ -888,6 +897,7 @@ async function cargarPreciosBackend() {
         };
 
         window.cerrarModal = () => {
+            if(editorLoteActivo?.busy)return;
             document.querySelectorAll('.fixed').forEach(m => m.classList.add('hidden'));
         };
 
@@ -1018,7 +1028,7 @@ function limpiarErrorTramite(field) {
     const error = document.getElementById(field.id + '-error'); if (error) error.textContent = '';
 }
 function mejorarFormularioTramite(t) {
-    const content = document.getElementById('formContent');
+    const content = document.getElementById('datosConsultaActual');
     const identities = {curp_p: 'curp', nss_p: 'nss', rfc_p: 'rfc', idcif_p: 'idcif', q_curp: 'curp', q_nss: 'nss', q_rfc: 'rfc'};
     const names = {curp_p: permiteVariasCurp(t) ? 'CURP de las solicitudes' : 'CURP', nss_p: 'NSS', rfc_p: 'RFC con homoclave', idcif_p: 'IDCIF', afore_tipo_p: 'Tipo de estado de cuenta', preferencia_fecha_cita_p: 'Preferencia de fecha', fecha_cita_afore_p: 'Fecha solicitada'};
     const hints = {curp: '18 caracteres. Copia la CURP tal como aparece en el documento.', nss: '11 números, sin espacios.', rfc: '12 o 13 caracteres, incluyendo la homoclave.', idcif: '11 números.'};
@@ -1053,8 +1063,8 @@ function prepararPasosCuestionario(content) {
     const nav = document.createElement('div'); nav.className = 'ux-step-nav';
     const prev = document.createElement('button'); prev.type = 'button'; prev.textContent = 'Anterior'; prev.className = 'ux-step-button';
     const next = document.createElement('button'); next.type = 'button'; next.textContent = 'Continuar'; next.className = 'ux-step-button ux-step-next';
-    nav.append(prev, next); cards[0].before(header); content.querySelector('#btnPagarTramite').before(nav);
-    let current = 0; const pay = content.querySelector('#btnPagarTramite');
+    nav.append(prev, next); cards[0].before(header); content.append(nav);
+    let current = 0; const pay = document.getElementById('btnPagarTramite');
     function show(index) { current = index; steps.forEach((group, i) => group.forEach(card => card.hidden = i !== index)); prev.disabled = index === 0; next.hidden = index === steps.length - 1; pay.hidden = index !== steps.length - 1; header.textContent = `Paso ${index + 1} de ${steps.length}: ${labels[index]}`; }
     steps.forEach((group, i) => group.forEach(card => { card.dataset.uxStep = String(i); card.addEventListener('ux-reveal', () => show(i)); }));
     prev.addEventListener('click', () => { show(Math.max(0, current - 1)); header.scrollIntoView({block: 'nearest'}); });
@@ -1186,8 +1196,8 @@ function prepararPasosCuestionario(content) {
         }
 
         function permiteVariasCurp(t) {
-            const nombre = nombreServicioNormalizado(t);
-            return nombre === 'SEMANAS COTIZADAS' || nombre.startsWith('ACTA DE ');
+            // Each batch card contains exactly one identity; the editor creates separate cards.
+            return false;
         }
 
         function obtenerCurpsCapturadas(valor) {
@@ -1231,6 +1241,10 @@ function prepararPasosCuestionario(content) {
             if (t.curp && permiteVariasCurp(t)) {
                 if (!validarCurpsMultiples(t)) return false;
             } else if (t.curp) checks.push(['curp_p', 'curp', 'CURP']);
+            if (t.pideNumServicio) {
+                const campo=document.getElementById('num_servicio_p');
+                if(!/^\d{12}$/.test(campo?.value.trim()||'')){mostrarErrorTramite('num_servicio_p','Escribe un número de servicio de 12 dígitos por consulta.');return false;}
+            }
             if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
             if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
             if (t.idcif) checks.push(['idcif_p', 'idcif', 'IDCIF']);
@@ -1238,6 +1252,10 @@ function prepararPasosCuestionario(content) {
                 checks.push(['q_curp', 'curp', 'CURP del cuestionario']);
                 checks.push(['q_nss', 'nss', 'NSS del cuestionario']);
                 checks.push(['q_rfc', 'rfc', 'RFC del cuestionario']);
+            }
+            for(const [id,,etiqueta] of checks){
+                const campo=document.getElementById(id);
+                if(campo && (!campo.value.trim() || campo.value.trim()==='N/A')){mostrarErrorTramite(id,`Completa ${etiqueta} para esta consulta.`);return false;}
             }
             return checks.every(([id, tipo, etiqueta]) => validarCampoIdentidad(id, tipo, etiqueta));
         }
@@ -1262,7 +1280,7 @@ function prepararPasosCuestionario(content) {
         };
 
         window.prepararTramite = (t) => {
-            if (!t || t.pausado === true) return;
+            if (!t || t.pausado === true || editorLoteActivo?.busy) return;
             const content = document.getElementById('formContent');
             t = {...t,paquete_id:paqueteParaTramite(t)?.id || null};
             let pFinal = obtenerPrecioTramite(t);
@@ -1527,13 +1545,25 @@ fields += `
 
             content.innerHTML = `
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">NOVYRA SERVICES</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${t.nombre}</h2>
-                ${fields}
-                <button id="btnPagarTramite" onclick="window.confirmarCompra(JSON.parse('${JSON.stringify(t).replace(/'/g, "&apos;").replace(/"/g, "&quot;")}'), ${pFinal})" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
+                <div id="datosConsultaActual">${fields}</div>
+                <button id="btnPagarTramite" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
                     ${textoBotonPago}
                 </button>
             `;
 
-            mejorarFormularioTramite(t);
+            editorLoteActivo = crearEditorLote({
+                content, fields, t, precio:pFinal, mejorar:mejorarFormularioTramite,
+                preparar:window.prepararConsultaIndividual,
+                enviar:body=>requestDashboardApi('/api/v1/dashboard/requests',{method:'POST',body:JSON.stringify(body)}),
+                validarTotal:(total,cantidad)=>{
+                    const paquete=paqueteParaTramite(t);
+                    if(paquete&&cantidad>paquete.total-paquete.usados){alert('El lote supera los usos disponibles del paquete. Reduce la cantidad de consultas.');return false;}
+                    if(total>Number(saldoGlobal||0)){alert(`Saldo insuficiente para el lote. Importe estimado: $${total.toFixed(2)} MXN.`);return false;}
+                    return true;
+                },
+                actualizar:async()=>{await cargarPreciosBackend();await cargarSaldo();await cargarHistorial();},
+                finalizar:()=>{document.getElementById('modalTramite').classList.add('hidden');}
+            });
             window.abrirModal('modalTramite');
             setTimeout(() => window.actualizarPrecioAfore?.(), 0);
             setTimeout(() => window.actualizarFechaCitaAfore?.(), 0);
@@ -1541,7 +1571,7 @@ fields += `
 
         let enviandoTramite = false;
 
-        window.confirmarCompra = async (t, c) => {
+        window.prepararConsultaIndividual = async (t, c, validarSolo=false) => {
             if (enviandoTramite) return;
             const userActual = auth.currentUser;
             const uidActual = userActual?.uid || userUID;
@@ -1573,7 +1603,8 @@ fields += `
                 });
 
                 const data = await res.json();
-                return data.secure_url || "N/A";
+                if(!res.ok || !data.secure_url)throw new Error("No se pudo subir el archivo. La consulta no se envió.");
+                return data.secure_url;
             };
 
             try {
@@ -1593,16 +1624,7 @@ fields += `
                     c = Number(sel?.selectedOptions?.[0]?.dataset?.precio || c);
                 }
 
-                const curpsLote = t.curp && permiteVariasCurp(t)
-                    ? obtenerCurpsCapturadas(document.getElementById('curp_p')?.value)
-                    : [];
-                const cantidadSolicitudes = Math.max(curpsLote.length, 1);
-                if(paqueteSeleccionado && cantidadSolicitudes > paqueteSeleccionado.total-paqueteSeleccionado.usados){alert('El lote supera los usos disponibles de tu paquete. Reduce las CURP antes de enviar.');return;}
-                const costoEstimadoLote = Number(c || 0) * cantidadSolicitudes;
-                if (saldoGlobal < costoEstimadoLote) {
-                    alert(`Saldo insuficiente para ${cantidadSolicitudes} solicitudes.\n\nCosto estimado: $${costoEstimadoLote.toFixed(2)}\nSaldo disponible: $${Number(saldoGlobal || 0).toFixed(2)}`);
-                    return;
-                }
+                if (saldoGlobal < Number(c||0)) { alert('Saldo insuficiente.'); return; }
 
                 if (t.pideCitaAfore) {
                     const requeridos = [
@@ -1750,6 +1772,8 @@ vacuna_covid: val('vacuna_covid_p'),
                     };
                 }
 
+                if(validarSolo)return {precio:Number(c||0)};
+
                 let file_ine_f = "N/A";
                 let file_ine_r = "N/A";
                 let file_selfie = "N/A";
@@ -1762,56 +1786,15 @@ vacuna_covid: val('vacuna_covid_p'),
                 if (t.pideCompDomicilio) file_comp_domicilio = await subirArchivoCloudinary('file_comp_domicilio');
                 if (t.pideEdoCta) file_edocta = await subirArchivoCloudinary('file_edocta');
 
-                const curpsSolicitud = curpsLote.length
-                    ? curpsLote
-                    : [(val('curp_p') !== 'N/A' ? val('curp_p') : val('q_curp')).toUpperCase()];
-                let enviadas = 0;
-                for (let index = 0; index < curpsSolicitud.length; index++) {
-                    const curpActual = curpsSolicitud[index];
-                    if (botonPago && curpsSolicitud.length > 1) {
-                        botonPago.innerText = `ENVIANDO ${index + 1} DE ${curpsSolicitud.length}...`;
-                    }
-                    try {
-                        await requestDashboardApi("/api/v1/dashboard/requests", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                service_name: t.nombre,
-                                service_display_name: t.pideAforeTipo ? `${t.nombre} - ${val('afore_tipo_p')}` : t.nombre,
-                                costo: costoCatalogo,
-                                paquete_id: paqueteSeleccionado?.id || null,
-                                curp: curpActual,
-                                nss: val('nss_p') !== 'N/A' ? val('nss_p') : val('q_nss'),
-                                detalles_extra: { ...extra, lote_total: curpsSolicitud.length, lote_posicion: index + 1 },
-                                cuestionario: quest,
-                                file_ine_f,
-                                file_ine_r,
-                                file_selfie,
-                                file_comp_domicilio,
-                                file_edocta
-                            })
-                        });
-                        enviadas += 1;
-                    } catch (errorSolicitud) {
-                        const pendientes = curpsSolicitud.slice(index);
-                        const campoCurp = document.getElementById('curp_p');
-                        if (campoCurp && curpsLote.length) campoCurp.value = pendientes.join('\n');
-                        await cargarSaldo();
-                        await cargarHistorial();
-                        throw new Error(`${enviadas} de ${curpsSolicitud.length} solicitudes fueron enviadas. Falló ${curpActual}: ${errorSolicitud.message || 'error desconocido'}. Las CURP pendientes permanecen en el cuadro.`);
-                    }
-                }
-
-                alert(curpsSolicitud.length > 1
-                    ? `${enviadas} solicitudes enviadas correctamente. Cada CURP fue registrada de manera individual.`
-                    : "Solicitud enviada correctamente.");
-                window.cerrarModal();
-                await cargarPreciosBackend();
-                if (categoriaActual) window.mostrarTramites(categoriaActual);
-                cargarSaldo();
-                cargarHistorial();
+                return {precio:Number(c||0),body:{
+                    service_name:t.nombre,
+                    service_display_name:t.pideAforeTipo?`${t.nombre} - ${val('afore_tipo_p')}`:t.nombre,
+                    costo:costoCatalogo,paquete_id:paqueteSeleccionado?.id||null,
+                    curp:(val('curp_p')!=='N/A'?val('curp_p'):val('q_curp')).toUpperCase(),
+                    nss:val('nss_p')!=='N/A'?val('nss_p'):val('q_nss'),
+                    detalles_extra:extra,cuestionario:quest,
+                    file_ine_f,file_ine_r,file_selfie,file_comp_domicilio,file_edocta
+                }};
 
             } catch (e) {
                 console.error(e);
