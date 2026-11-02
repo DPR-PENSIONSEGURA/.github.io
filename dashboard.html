@@ -199,7 +199,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
   <link rel="stylesheet" href="/novyra-instalar.css?v=20261031-1">
   <script src="/novyra-instalar.js?v=20261031-1" defer></script>
-<link rel="stylesheet" href="novyra-lotes.css?v=20261101-1">
+
 </head>
 <body data-nv-demo="false">
 
@@ -461,7 +461,7 @@
     </div>
 
     <script type="module">
-        import { crearEditorLote } from "./novyra-lotes.mjs?v=20261102-2";
+        import { crearEditorLote } from "./novyra-lotes.mjs?v=20261102-3";
         let editorLoteActivo = null;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { initializeFirestore, doc, getDoc, onSnapshot, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -1049,9 +1049,9 @@ function mejorarFormularioTramite(t) {
         const tipo = identities[field.id];
         if (tipo) {
             const hint = document.createElement('p'); hint.id = field.id + '-ayuda'; hint.className = 'ux-field-help';
-            hint.textContent = field.id === 'curp_p' && (permiteVariasCurp(t) || field.dataset.multiCurp === 'true') ? 'Puedes escribir varias CURP separadas por comas. Cada una genera una solicitud individual.' : hints[tipo];
+            hint.textContent = field.dataset.multiIdentifier ? 'Puedes escribir varios identificadores separados por comas. Cada uno genera una solicitud individual.' : field.id === 'curp_p' && (permiteVariasCurp(t) || field.dataset.multiCurp === 'true') ? 'Puedes escribir varias CURP separadas por comas. Cada una genera una solicitud individual.' : hints[tipo];
             field.after(hint); field.setAttribute('aria-describedby', hint.id);
-            if (!(field.id === 'curp_p' && (permiteVariasCurp(t) || field.dataset.multiCurp === 'true'))) field.addEventListener('blur', () => { if (field.value.trim()) validarCampoIdentidad(field.id, tipo, label.textContent, false); });
+            if (!field.dataset.multiIdentifier && !(field.id === 'curp_p' && (permiteVariasCurp(t) || field.dataset.multiCurp === 'true'))) field.addEventListener('blur', () => { if (field.value.trim()) validarCampoIdentidad(field.id, tipo, label.textContent, false); });
         }
         field.addEventListener('input', () => limpiarErrorTramite(field));
     }
