@@ -1247,6 +1247,11 @@ function prepararPasosCuestionario(content) {
                 const campo=document.getElementById('num_servicio_p');
                 if(!/^\d{12}$/.test(campo?.value.trim()||'')){mostrarErrorTramite('num_servicio_p','Escribe un número de servicio de 12 dígitos por consulta.');return false;}
             }
+            if(t.cfeDatosObligatorios){
+                const name=document.getElementById('nombre_p'),email=document.getElementById('correo_p');
+                if(!name||name.value.trim().length<2||name.value.length>200||name.value.trim().toUpperCase()==='N/A'||/[<>\r\n\x00-\x1f]/.test(name.value)){mostrarErrorTramite('nombre_p','Escribe el nombre completo del titular tal como aparece en el recibo.');return false;}
+                if(!email||email.value.length>254||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email.value.trim())||/[,;<>]/.test(email.value)){mostrarErrorTramite('correo_p','Escribe un correo electrónico válido.');return false;}
+            }
             if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
             if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
             if (t.idcif) checks.push(['idcif_p', 'idcif', 'IDCIF']);
@@ -1365,7 +1370,7 @@ fields += `
 </select>
 `;
             if (t.extraMsg) fields += `<p class="text-[9px] font-bold ${t.destacadoAmarillo ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-red-600 bg-red-50 border-red-100'} mb-4 p-3 border rounded-xl uppercase">${t.extraMsg}</p>`;
-            if (t.pideNombre) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
+            if (t.pideNombre && !t.cfeDatosObligatorios) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
             if (t.curp && permiteVariasCurp(t)) fields += `
                 <div class="mb-4">
                     <textarea id="curp_p" rows="5" autocomplete="off" placeholder="ESCRIBE UNA O VARIAS CURP, SEPARADAS POR COMAS O RENGLONES" oninput="this.value=this.value.toUpperCase()" class="input-light uppercase min-h-[130px]"></textarea>
@@ -1390,7 +1395,8 @@ fields += `
                     </div>
                     <p class="mt-2 text-[9px] font-bold uppercase text-amber-700">Selecciona una sola opción.</p>
                 </fieldset>`;
-            if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4">`;
+            if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4" ${t.cfeDatosObligatorios?'required':''}>`;
+            if(t.cfeDatosObligatorios) fields += `<p class="ux-field-help mb-3">Todos los datos son obligatorios. Escríbelos exactamente como aparecen en un recibo actual o anterior de CFE.</p><input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO DEL TITULAR" class="input-light mb-2" style="text-transform:none" maxlength="200" required><p class="ux-field-help mb-4">Nombre(s) y apellidos, respetando puntos, comas, abreviaturas y cualquier otro signo del recibo.</p>`;
             if (t.pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
             if (t.pideCitaAfore) fields += `
                 <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -1412,7 +1418,8 @@ fields += `
             if (t.pideDiasIncapacidad) fields += `<input type="number" id="dias_incapacidad_p" placeholder="DÍAS DE INCAPACIDAD" class="input-light mb-4">`;
             if (t.pideTel) fields += `<input type="text" id="tel_p" placeholder="TELEFONO" class="input-light mb-4">`;
             if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELEFONO DE CONTACTO" class="input-light mb-4">`;
-            if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4">`;
+            if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4" ${t.cfeDatosObligatorios?'required maxlength="254"':''}>`;
+            if(t.cfeDatosObligatorios) fields += `<aside class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><strong>⚠️ CONSIDERACIONES IMPORTANTES</strong><p class="mt-2 font-bold">1. Entrega mediante correo electrónico:</p><p class="mt-2">En algunos casos, el sistema de CFE podría no permitir la descarga directa del recibo. Cuando esto suceda, CFE enviará el documento directamente al correo electrónico registrado por el titular al momento de contratar el servicio en CFE.</p></aside>`;
             if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
             if (t.pideCalle) fields += `<input type="text" id="calle_p" placeholder="CALLE" class="input-light mb-4 uppercase">`;
             if (t.pideNumeroExterior) fields += `<input type="text" id="numero_exterior_p" placeholder="NÚMERO EXTERIOR" class="input-light mb-4 uppercase">`;
