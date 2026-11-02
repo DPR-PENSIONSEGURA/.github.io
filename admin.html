@@ -1741,7 +1741,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         }
 
         function lockVigente(s) {
-            if (!s.tomado_uid) return false;
+            if (s.lock_activo === false || !s.tomado_uid) return false;
             const base = fechaMsCampo(s.ultima_actividad || s.fecha_tomado);
             if (!base) return true;
             return (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000);
@@ -1904,7 +1904,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             try {
                 const s = respaldoLocal || {};
                 const base = fechaMsCampo(s.ultima_actividad || s.fecha_tomado);
-                const vigente = s.tomado_uid && (!base || (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000));
+                const vigente = s.lock_activo !== false && s.tomado_uid && (!base || (Date.now() - base) < (LOCK_MINUTOS * 60 * 1000));
 
                 if (vigente && String(s.tomado_uid) !== staffUid && miSesion.role !== 'admin') {
                     throw new Error(`Esta solicitud ya fue tomada por ${s.tomado_nombre || 'otro operador'}`);
@@ -1924,9 +1924,11 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         }
                     })
                 });
+                return true;
             } catch (e) {
                 if (respaldoLocal) actualizarSolicitudLocalRapida(id, respaldoLocal);
                 alert(e.message || 'No se pudo tomar la solicitud');
+                return false;
             }
         };
 
@@ -1946,8 +1948,9 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         tomado_role: '',
                         lock_activo: false,
                         estatus_operativo: 'Libre',
-                        liberada_por: staffNombre,
-                            fecha_liberacion: new Date().toISOString()
+                        liberado_por_uid: staffUid,
+                        liberado_por_nombre: staffNombre,
+                            fecha_liberado: new Date().toISOString()
                         }
                     })
                 });
@@ -1957,8 +1960,9 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                     tomado_role: '',
                     lock_activo: false,
                     estatus_operativo: 'Libre',
-                    liberada_por: staffNombre,
-                    fecha_liberacion: new Date()
+                    liberado_por_uid: staffUid,
+                    liberado_por_nombre: staffNombre,
+                    fecha_liberado: new Date()
                 });
             } catch (e) {
                 alert(e.message || 'No se pudo liberar la solicitud');
@@ -2320,7 +2324,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         <td class="p-4 text-center">
                             <div class="inline-flex items-center gap-2">
                                 ${estadoVisual}
-                                <select ${miSesion.is_owner ? '' : 'disabled'} onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none ${claseEstatus}">
+                                <select ${miSesion.is_owner || (miSesion.can_report_errors && !s.finalizado && puedeOperarSolicitud(s)) ? '' : 'disabled'} onchange="window.cambiarEstatus('${s.id}', this.value)" class="border rounded p-1 font-black text-[9px] uppercase outline-none ${claseEstatus}">
                                     <option value="En Proceso" ${estatusActual === 'En Proceso' ? 'selected' : ''}> EN PROCESO</option>
                                     <option value="Terminado" ${estatusActual === 'Terminado' ? 'selected' : ''}> TERMINADO</option>
                                     <option value="ERR_NSS_CURP" ${(estatusActual.includes('CURP') || estatusActual.includes('NSS')) ? 'selected' : ''}> CURP / NSS INCORRECTO</option>
@@ -2339,7 +2343,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
                         <td class="p-4 text-right space-x-1">
                             <button onclick='window.verDetalles(${JSON.stringify(s).replace(/'/g, "&apos;")})' class="bg-blue-100 text-blue-600 p-2 rounded-lg font-black text-[10px] uppercase transition hover:scale-110" title="Ver datos">Ver</button>
-                            <button onclick="window.abrirSubida('${s.id}')" class="btn-blue ${!puedeOperarSolicitud(s) ? 'opacity-40 pointer-events-none' : ''}">SUBIR</button>
+                            ${!s.finalizado ? `<button onclick="window.abrirSubida('${s.id}')" class="btn-blue ${!puedeOperarSolicitud(s) ? 'opacity-40 pointer-events-none' : ''}">SUBIR</button>` : ''}
                             ${!miSesion.is_owner && miSesion.can_report_errors && !s.finalizado ? `<button onclick="window.reportarErrorSolicitud('${s.id}')" ${puedeOperarSolicitud(s)?'':'disabled'} class="bg-amber-100 text-amber-900 px-3 py-2 rounded-lg font-black text-[9px] uppercase">Registrar error</button>` : ''}
                             ${miSesion.is_owner && s.reembolsado !== true ? (incidenciaPendienteRevision(s)?`<button onclick="window.revisarIncidencia('${s.id}')" class="bg-amber-100 text-amber-900 px-3 py-2 rounded-lg font-black text-[9px] uppercase">Revisar devolución</button>`:`<button onclick="window.reembolsarManual('${s.id}')" class="bg-emerald-600 text-white px-3 py-2 rounded-lg font-black text-[9px] uppercase">Devolver</button>`):''}
                         </td>
@@ -2352,7 +2356,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         function incidenciaPendienteRevision(s) {
             return (s.raw_data?.error_revision_pendiente===true || s.error_revision_pendiente===true) && s.reembolsado!==true;
         }
-        window.reportarErrorSolicitud = id => {
+        window.reportarErrorSolicitud = (id, selectedCode = '') => {
             const row=todasLasSoliCargadas.find(s=>s.id===id);
             if(!miSesion.can_report_errors || !row || row.finalizado || !puedeOperarSolicitud(row)){alert('No puedes registrar una incidencia en esta solicitud.');return;}
             const dialog=document.createElement('dialog');dialog.style.cssText='border:0;border-radius:20px;padding:24px;max-width:440px;width:calc(100% - 32px);color:#172033;background:white';
@@ -2361,6 +2365,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             const label=document.createElement('label');label.textContent='Tipo de error';const select=document.createElement('select');select.required=true;select.style.cssText='display:block;width:100%;padding:10px;margin:10px 0;border:1px solid #bbb;border-radius:8px';
             const empty=document.createElement('option');empty.value='';empty.textContent='Selecciona un error';select.append(empty);
             for(const [code,text] of Object.entries(LISTA_ERRORES_DPR)){const option=document.createElement('option');option.value=code;option.textContent=text;select.append(option)}label.append(select);
+            if(LISTA_ERRORES_DPR[selectedCode])select.value=selectedCode;
             const feedback=document.createElement('p');feedback.setAttribute('role','alert');feedback.style.cssText='font-size:13px;color:#b91c1c';
             const save=document.createElement('button');save.type='submit';save.textContent='Confirmar error y devolución';save.className='op-btn take';
             const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='op-btn';cancel.onclick=()=>dialog.close();
@@ -2379,7 +2384,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         };
 
         window.cambiarEstatus = async (id, val) => {
-            if (!miSesion.is_owner) { alert('Para terminar una solicitud utiliza SUBIR. Los demás cambios de estado corresponden a la propietaria.'); return; }
+            if (!miSesion.is_owner) { if(miSesion.can_report_errors && LISTA_ERRORES_DPR[val])return window.reportarErrorSolicitud(id,val); alert('Para entregar el documento utiliza SUBIR.'); return; }
             try {
                 const s = todasLasSoliCargadas.find(x => x.id === id) || {};
                 const est = LISTA_ERRORES_DPR[val] || val;
@@ -2788,13 +2793,14 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         window.abrirSubida = async (id) => {
             const s = todasLasSoliCargadas.find(item => String(item.id) === String(id));
             if (!s) return alert('La solicitud no existe');
+            if (s.finalizado) return alert('Esta solicitud ya está cerrada. Revisa su resultado en Ver datos.');
 
             if (!puedeOperarSolicitud(s)) {
                 return alert(`Esta solicitud ya está tomada por ${s.tomado_nombre || 'otro operador'}.`);
             }
 
-            if (!s.tomado_uid) {
-                await window.tomarSolicitud(id);
+            if (!lockVigente(s) || !tomadoPorMi(s)) {
+                if (!await window.tomarSolicitud(id)) return;
             } else {
                 await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/status`, {
                     method: "POST",
@@ -2828,6 +2834,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
                 const data = await res.json();
 
+                if (!res.ok || !data.secure_url) throw new Error(data.error?.message || 'No se pudo cargar el documento.');
                 if (data.secure_url) {
                     await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(idTramiteActual)}/status`, {
                         method: "POST",
@@ -2853,7 +2860,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                     alert(' Trámite terminado.');
                 }
             } catch (e) {
-                alert('Error al subir archivo.');
+                alert(e.message || 'No se pudo entregar el archivo.');
             } finally {
                 btn.innerText = 'Enviar a Cliente';
                 btn.disabled = false;
