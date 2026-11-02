@@ -2357,16 +2357,16 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             if(!miSesion.can_report_errors || !row || row.finalizado || !puedeOperarSolicitud(row)){alert('No puedes registrar una incidencia en esta solicitud.');return;}
             const dialog=document.createElement('dialog');dialog.style.cssText='border:0;border-radius:20px;padding:24px;max-width:440px;width:calc(100% - 32px);color:#172033;background:white';
             const form=document.createElement('form');const title=document.createElement('h2');title.textContent='Registrar error';title.style.fontWeight='800';
-            const info=document.createElement('p');info.textContent='Elige el motivo. Se guardará para revisión de la propietaria; esta acción no realiza devoluciones.';info.style.cssText='font-size:13px;margin:12px 0';
+            const info=document.createElement('p');info.textContent='Al registrar el error se devolverá automáticamente el importe cobrado o el uso del paquete correspondiente. Revisa el motivo antes de confirmar.';info.style.cssText='font-size:13px;margin:12px 0';
             const label=document.createElement('label');label.textContent='Tipo de error';const select=document.createElement('select');select.required=true;select.style.cssText='display:block;width:100%;padding:10px;margin:10px 0;border:1px solid #bbb;border-radius:8px';
             const empty=document.createElement('option');empty.value='';empty.textContent='Selecciona un error';select.append(empty);
             for(const [code,text] of Object.entries(LISTA_ERRORES_DPR)){const option=document.createElement('option');option.value=code;option.textContent=text;select.append(option)}label.append(select);
             const feedback=document.createElement('p');feedback.setAttribute('role','alert');feedback.style.cssText='font-size:13px;color:#b91c1c';
-            const save=document.createElement('button');save.type='submit';save.textContent='Registrar error';save.className='op-btn take';
+            const save=document.createElement('button');save.type='submit';save.textContent='Confirmar error y devolución';save.className='op-btn take';
             const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='op-btn';cancel.onclick=()=>dialog.close();
             form.append(title,info,label,feedback,save,cancel);dialog.append(form);document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());let sending=false;dialog.addEventListener('cancel',event=>{if(sending)event.preventDefault()});
             form.onsubmit=async event=>{event.preventDefault();if(sending||!LISTA_ERRORES_DPR[select.value])return;sending=true;save.disabled=cancel.disabled=true;select.disabled=true;
-                try{await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/report-error`,{method:'POST',body:JSON.stringify({error_code:select.value})});dialog.close();await cargarSolicitudesAdminDesdeBackend();alert('Error registrado para revisión de la propietaria.');}
+                try{await adminApi(`/api/v1/admin/panel/requests/${encodeURIComponent(id)}/report-error`,{method:'POST',body:JSON.stringify({error_code:select.value})});dialog.close();await cargarSolicitudesAdminDesdeBackend();alert('Error registrado. Devolución automática completada.');}
                 catch(e){feedback.textContent=e.message||'No se pudo registrar el error.';}
                 finally{sending=false;save.disabled=cancel.disabled=false;select.disabled=false;}
             };dialog.showModal();
