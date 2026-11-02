@@ -1175,13 +1175,14 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
         async function adminApi(path, options = {}) {
             const staffToken = sessionStorage.getItem('dpr_staff_token') || '';
-            const token = ''; 
-            if (!token && !staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
+            if (!staffToken) throw new Error('Falta sesión interna. Cierra sesión e inicia de nuevo.');
+            const method = String(options.method || 'GET').toUpperCase();
+            const readOnly = method === 'GET' || method === 'HEAD';
+            const bases = readOnly ? ADMIN_API_BASES : ADMIN_API_BASES.slice(0, 1);
+            let res = null, data = {}, deliveryUncertain = false;
 
-            let res = null;
-            let data = {};
-
-            for (const baseUrl of ADMIN_API_BASES) {
+            for (const baseUrl of bases) {
+                res = null; data = {}; deliveryUncertain = false;
                 const requestOptions = { ...options };
                 const requestTimeoutMs = Number(requestOptions.timeoutMs || 22000);
                 delete requestOptions.timeoutMs;
@@ -1190,35 +1191,40 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 try {
                     res = await fetch(`${baseUrl}${path}`, {
                         ...requestOptions,
-                        cache: "no-store",
+                        cache: 'no-store',
                         signal: controller.signal,
                         headers: {
-                            "Content-Type": "application/json",
-                            "Cache-Control": "no-cache",
-                            "Pragma": "no-cache",
-                            ...(token ? { "x-admin-token": token } : {}),
-                            ...(staffToken ? { "Authorization": `Bearer ${staffToken}` } : {}),
+                            'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache',
+                            Authorization: `Bearer ${staffToken}`,
                             ...(requestOptions.headers || {})
                         }
                     });
-                    data = await res.json().catch(() => ({}));
-                    if (res.ok && data.success !== false) break;
+                    data = method === 'HEAD' ? {} : await res.json();
+                    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Respuesta no válida del servidor.');
+                    if (res.ok && (readOnly ? data.success !== false : data.success === true)) return data;
+                    deliveryUncertain = !readOnly && (res.status >= 500 || (res.ok && data.success !== false));
                 } catch (error) {
+                    deliveryUncertain = !readOnly && (!res || res.ok || res.status >= 500);
                     data = { message: error.name === 'AbortError' ? 'El backend tardó demasiado en responder.' : (error.message || String(error)) };
                 } finally {
                     clearTimeout(timeout);
                 }
             }
 
-            if (!res || !res.ok || data.success === false) {
-                if (data.error_code === 'INVALID_ADMIN_TOKEN') sessionStorage.removeItem('dpr_admin_token');
-                if (['INVALID_STAFF_TOKEN', 'STAFF_TOKEN_EXPIRED', 'STAFF_TOKEN_REQUIRED'].includes(data.error_code)) {
-                    sessionStorage.removeItem('dpr_staff_token');
-                    localStorage.removeItem('staffSession');
-                }
-                throw new Error(data.message || `Error ${res?.status || 'backend'}`);
+            if (data.error_code === 'INVALID_ADMIN_TOKEN') sessionStorage.removeItem('dpr_admin_token');
+            if (['INVALID_STAFF_TOKEN', 'STAFF_TOKEN_EXPIRED', 'STAFF_TOKEN_REQUIRED'].includes(data.error_code)) {
+                sessionStorage.removeItem('dpr_staff_token');
+                localStorage.removeItem('staffSession');
             }
-            return data;
+            const error = new Error(deliveryUncertain
+                ? 'No se pudo confirmar el resultado. La acción no se reenvió automáticamente. Actualiza el panel y verifica su estado antes de volver a intentarlo.'
+                : (data.message || `Error ${res?.status || 'backend'}`));
+            error.deliveryUncertain = deliveryUncertain;
+            error.status = res?.status || null;
+            error.errorCode = data.error_code || null;
+            throw error;
         }
 
         function rangoHoyLocalISO() {
