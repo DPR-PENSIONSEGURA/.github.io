@@ -850,7 +850,9 @@ async function cargarPreciosBackend() {
                 throw new Error("No se pudo conectar con el backend. Revisa conexión, VPN o Functions.");
             }
 
-            const text = await response.text();
+            let text;
+            try{text=await response.text();}catch(e){if(solicitudIndividual)e.deliveryUncertain=true;throw e;}
+
             let data = {};
             if (text) {
                 try {

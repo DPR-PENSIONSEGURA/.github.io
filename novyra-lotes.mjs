@@ -69,7 +69,11 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
     const item=pending[i];mount(items.indexOf(item));pay.textContent=`ENVIANDO ${i+1} DE ${pending.length}…`;pay.disabled=true;
     const prepared=await preparar(t,precio,false);if(!prepared)return;
     const body={...prepared.body,detalles_extra:{...prepared.body.detalles_extra,lote_total:pending.length,lote_posicion:i+1}};
-    try{const result=await enviar(body);item.state='sent';item.requestId=result.solicitud_id;sent++}
+    try{
+     const result=await enviar(body);
+     if(result?.success!==true||typeof result.solicitud_id!=='string'||!result.solicitud_id){const e=new Error('El servidor no confirmó el folio de esta consulta');e.deliveryUncertain=true;throw e}
+     item.state='sent';item.requestId=result.solicitud_id;sent++;
+    }
     catch(e){item.state=e.deliveryUncertain?'uncertain':'draft';feedback=`${sent} enviadas. ${e.message}. `+(item.state==='uncertain'?'Revisa el historial antes de volver a solicitar esta consulta. No se reintentó automáticamente.':'Las consultas que faltan conservan sus datos.');status.textContent=feedback;alert(feedback);return}
    }
    alert(`${sent} solicitud${sent===1?'':'es'} enviada${sent===1?'':'s'}. Cada consulta quedó registrada individualmente.`);
