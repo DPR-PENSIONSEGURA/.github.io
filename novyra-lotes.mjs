@@ -16,7 +16,7 @@ function validarIdentificadores(values,primary){
 }
 export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
  const doc=content.ownerDocument,root=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
- const primary=campoPrincipal(t),controls=[...root.querySelectorAll('input,textarea,select')];
+ const primary=t.cfeDatosObligatorios?null:campoPrincipal(t),controls=[...root.querySelectorAll('input,textarea,select')];
  if(primary&&controls.length===1&&controls[0].id===primary)return crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar});
  const items=[{node:root,state:'draft'}];let current=0,busy=false,frozen=false,feedback='',input;
  const names={curp_p:'CURP',q_curp:'CURP',num_servicio_p:'Número de servicio',nss_p:'NSS',rfc_p:'RFC',idcif_p:'IDCIF'};
