@@ -488,7 +488,7 @@ body > .max-w-7xl { max-width:1560px; }
  .nv-menu-compact .notif-dot { right:5px; top:9px; transform:none; }
 }
 @media(max-width:1099px) {
- .nv-menu-mobilebar { display:flex; align-items:center; justify-content:space-between; position:sticky; top:8px; z-index:70; border:1px solid #1c4045; border-radius:16px; background:#09212a; color:#e6fff0; padding:10px 14px; margin-bottom:18px; box-shadow:0 10px 30px #0b292322; }
+ .nv-menu-mobilebar { display:flex; align-items:center; justify-content:flex-start; gap:16px; position:sticky; top:8px; z-index:70; border:1px solid #1c4045; border-radius:16px; background:#09212a; color:#e6fff0; padding:10px 14px; margin-bottom:18px; box-shadow:0 10px 30px #0b292322; }
  .nv-menu-mobilebrand { display:flex; align-items:center; gap:9px; font-size:22px; font-weight:900; color:#c5f7de; }
  .nv-menu-mobilebrand > span { font-size:15px; font-weight:700; color:#e6fff0; }
  #nvMenuMobileToggle { display:flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid #43625f; border-radius:10px; font-size:12px; font-weight:700; }
@@ -991,6 +991,8 @@ body > .max-w-7xl { max-width:1560px; }
                 modulo = 'solicitudes';
             }
 
+            const objetivo = document.querySelector(`[data-admin-view="${modulo}"]`);
+            const yaVisible = objetivo && !objetivo.classList.contains('admin-oculta');
             document.querySelectorAll('[data-admin-view]').forEach(function (el) {
                 el.classList.toggle('admin-oculta', el.getAttribute('data-admin-view') !== modulo);
             });
@@ -1001,8 +1003,7 @@ body > .max-w-7xl { max-width:1560px; }
 
             window.marcarModuloVistoAdmin(modulo);
 
-            const objetivo = document.querySelector(`[data-admin-view="${modulo}"]`);
-            if (objetivo) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (objetivo && !yaVisible) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
         };
 
         document.addEventListener('DOMContentLoaded', function () {
@@ -1088,7 +1089,7 @@ body > .max-w-7xl { max-width:1560px; }
         if (document.body.classList.contains('nv-menu-open')) setOpen(false, true);
     };
     mobile.addEventListener('change', () => setOpen(false));
-    try { setCompact(localStorage.getItem('nv_admin_menu_compact') !== '0'); } catch (_) {}
+    try { setCompact(localStorage.getItem('nv_admin_menu_compact') === '1'); } catch (_) {}
     document.addEventListener('DOMContentLoaded', () => { syncActive(); filterMenu(); });
 })();
 </script>
