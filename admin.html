@@ -724,6 +724,7 @@ body > .max-w-7xl { max-width:1560px; }
                     </div>
 
                     <div class="flex gap-2 items-center flex-wrap">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-300 bg-white text-xs font-bold cursor-pointer"><input type="checkbox" id="soloPendientesAdmin" onchange="this.checked ? window.filtrarPendientesHoy() : window.mostrarTodas()" class="w-4 h-4 accent-blue-600">Ver solo pendientes</label>
                         <span id="estadoFiltro" class="text-[10px] font-black uppercase text-amber-600"></span>
                         <input type="text" id="buscador" onkeyup="window.buscarGlobal()" placeholder="BUSCAR CURP, NSS O ASESOR..." class="p-4 rounded-2xl border text-[10px] font-black uppercase w-72 shadow-lg outline-none focus:border-blue-600">
                     </div>
@@ -1475,6 +1476,8 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
         function actualizarFiltroLabel(texto = '') {
             document.getElementById('estadoFiltro').textContent = texto;
+            const control = document.getElementById('soloPendientesAdmin');
+            if (control) control.checked = filtroPendientesHoyActivo;
         }
 
         function obtenerSolicitudesFiltradas() {
@@ -1500,21 +1503,11 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         };
 
         window.filtrarPendientesHoy = async () => {
-            try {
-                filtroPendientesHoyActivo = false;
-                actualizarFiltroLabel('Pendientes cargados desde Supabase');
-                currentPage = 1;
-                if (selector) selector.value = 1;
-                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 2000, status: 'pending' }, 45000);
-                cacheSolicitudes = rows;
-                todasLasSoliCargadas = rows;
-                const elPend = document.getElementById('contadorPendientes');
-                if (elPend) elPend.innerText = rows.length;
-                cargarSolicitudes(1);
-            } catch (error) {
-                console.error('Error cargando pendientes desde Supabase:', error);
-                alert(`No se pudieron cargar pendientes: ${error.message || error}`);
-            }
+            filtroPendientesHoyActivo = true;
+            actualizarFiltroLabel('Solo pendientes');
+            currentPage = 1;
+            if (selector) selector.value = 1;
+            await cargarSolicitudesAdminDesdeBackend();
         };
 
         window.verErroresSinDevolucion = () => {
@@ -1675,7 +1668,10 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
         async function cargarSolicitudesAdminDesdeBackend() {
             try {
-                const rows = await obtenerSolicitudesAdminDesdeBackend({ limit: 500 }, 30000);
+                const soloPendientes = filtroPendientesHoyActivo;
+                const params = soloPendientes ? { limit: 2000, status: 'pending' } : { limit: 500 };
+                const rows = await obtenerSolicitudesAdminDesdeBackend(params, soloPendientes ? 45000 : 30000);
+                if (soloPendientes !== filtroPendientesHoyActivo) return;
                 cacheSolicitudes = rows;
                 metricasListas = true;
             todasLasSoliCargadas = [];
@@ -1697,7 +1693,9 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             });
             window.cargarCorteDineroAdmin?.();
 
-            cargarSolicitudes(currentPage);
+            actualizarFiltroLabel(filtroPendientesHoyActivo ? 'Solo pendientes' : '');
+            if (document.getElementById('buscador')?.value.trim()) window.buscarGlobal();
+            else cargarSolicitudes(currentPage);
             window.renderOperacionDashboard?.();
             window.renderCorteOperadores?.();
             window.renderVentaDirecta?.();
@@ -3067,12 +3065,13 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             if (bus.length < 1) { actualizarFiltroLabel(filtroPendientesHoyActivo ? 'Todos los pendientes' : ''); return cargarSolicitudes(currentPage); }
 
             const hoy = new Date();
-            const baseSemana = todasLasSoliCargadas.filter(s => {
+            const fuente = obtenerSolicitudesFiltradas();
+            const baseSemana = fuente.filter(s => {
                 const fecha = s.fecha?.toDate?.();
                 return fecha && esMismaSemana(fecha, hoy);
             });
 
-            const base = aplicarFiltroPermisosSolicitudes(baseSemana.length ? baseSemana : todasLasSoliCargadas);
+            const base = aplicarFiltroPermisosSolicitudes(filtroPendientesHoyActivo ? fuente : (baseSemana.length ? baseSemana : fuente));
             const filtrados = base.filter(s => {
                 const extra = obtenerBolsaVariablesExtra(s);
                 const campos = [
@@ -3093,7 +3092,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             });
 
             renderizarTablaPersonalizada(filtrados);
-            actualizarFiltroLabel(`Búsqueda semanal: ${filtrados.length} resultado(s)`);
+            actualizarFiltroLabel(`${filtroPendientesHoyActivo ? 'Solo pendientes' : 'Búsqueda semanal'}: ${filtrados.length} resultado(s)`);
         };
 
         function etiquetaEstadoAclaracion(estado) {
