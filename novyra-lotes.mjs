@@ -10,9 +10,9 @@ export function campoPrincipal(t){
 }
 export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
  const doc=content.ownerDocument,root=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
- // A CURP-only service needs one familiar field, not a second batch editor.
+ // Services with one identifier use the original field for comma-separated requests.
  const controls=[...root.querySelectorAll('input,textarea,select')];
- if(t.curp&&controls.length===1&&controls[0].id==='curp_p')return crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar});
+ if(controls.length===1&&((t.curp&&controls[0].id==='curp_p')||(t.pideNumServicio&&controls[0].id==='num_servicio_p')))return crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar});
  const primary=campoPrincipal(t),items=[{node:root,state:'draft'}];let current=0,busy=false,feedback='';
  const bar=doc.createElement('section');bar.className='nv-batch';bar.setAttribute('aria-label','Consultas individuales');
  const heading=doc.createElement('h3');heading.textContent='Consultas individuales';bar.append(heading);
@@ -89,9 +89,13 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
 
 function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
  const doc=content.ownerDocument,visible=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
- const original=visible.querySelector('#curp_p'),input=doc.createElement('textarea');
+ const primary=campoPrincipal(t),isCfe=primary==='num_servicio_p';
+ const original=visible.querySelector('#'+primary),input=doc.createElement('textarea');
  input.id=original.id;input.className=original.className;input.rows=2;input.autocomplete='off';
- input.placeholder='CURP1, CURP2, CURP3';input.dataset.multiCurp='true';original.replaceWith(input);mejorar(t);
+ input.placeholder=isCfe?'Número de servicio 1, número de servicio 2, número de servicio 3':'CURP1, CURP2, CURP3';
+ if(isCfe){input.inputMode='text';input.setAttribute('aria-label','Números de servicio CFE');}else input.dataset.multiCurp='true';
+ original.replaceWith(input);mejorar(t);
+ if(isCfe){const help=doc.createElement('p');help.className='ux-field-help';help.id='num_servicio_p-ayuda';help.textContent='Escribe números de servicio de 12 dígitos separados por comas. Cada uno genera una solicitud individual.';input.after(help);input.setAttribute('aria-describedby',help.id);}
  const status=doc.createElement('p');status.className='ux-field-help';status.setAttribute('role','status');visible.append(status);
  let busy=false,frozen=false,items=[{node:visible,state:'draft'}];
  const label=()=>{if(!busy)pay.textContent='Enviar solicitud'+(items.filter(x=>x.state==='draft').length>1?'es':'')};
@@ -103,14 +107,14 @@ function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar
   if(busy)return;
   if(!frozen){
    let values;try{values=separarIdentificadores(input.value)}catch(e){status.textContent=e.message;input.focus();return}
-   if(!values.length){status.textContent='Escribe al menos una CURP.';input.focus();return}
-   items=values.map(value=>{const node=doc.createElement('div');node.id='datosConsultaActual';node.hidden=true;node.innerHTML=fields;node.querySelector('#curp_p').value=value;return {node,state:'draft'}});
+   if(!values.length){status.textContent=isCfe?'Escribe al menos un número de servicio.':'Escribe al menos una CURP.';input.focus();return}
+   items=values.map(value=>{const node=doc.createElement('div');node.id='datosConsultaActual';node.hidden=true;node.innerHTML=fields;node.querySelector('#'+primary).value=value;return {node,state:'draft'}});
   }
   const pending=items.filter(x=>x.state==='draft');if(!pending.length)return;
   busy=true;input.disabled=true;pay.disabled=true;status.textContent='';let sent=0;
   try{
    let total=0;
-   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true);if(!checked){status.textContent='Revisa la CURP: '+item.node.querySelector('#curp_p').value;return}total+=Number(checked.precio||0)}
+   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true);if(!checked){status.textContent=(isCfe?'Revisa el número de servicio (12 dígitos): ':'Revisa la CURP: ')+item.node.querySelector('#'+primary).value;return}total+=Number(checked.precio||0)}
    if(validarTotal&&!validarTotal(total,pending.length))return;
    restore();
    if(!confirm(`Enviar ${pending.length} solicitud${pending.length===1?'':'es'} individual${pending.length===1?'':'es'}.\nImporte estimado total: $${total.toFixed(2)} MXN.\n¿Continuar?`))return;
@@ -123,10 +127,10 @@ function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar
      const result=await enviar(body);
      if(result?.success!==true||typeof result.solicitud_id!=='string'||!result.solicitud_id){const e=new Error('El servidor no confirmó el folio');e.deliveryUncertain=true;throw e}
      item.state='sent';item.requestId=result.solicitud_id;sent++;
-    }catch(e){item.state=e.deliveryUncertain?'uncertain':'draft';status.textContent=`${items.filter(x=>x.state==='sent').length} enviadas. `+(item.state==='uncertain'?'Revisa el historial para confirmar la CURP '+item.node.querySelector('#curp_p').value+'. No se volverá a enviar automáticamente.':'Puedes continuar para enviar únicamente las solicitudes pendientes.');alert(status.textContent);return}
+    }catch(e){item.state=e.deliveryUncertain?'uncertain':'draft';status.textContent=`${items.filter(x=>x.state==='sent').length} enviadas. `+(item.state==='uncertain'?(isCfe?'Revisa el historial para confirmar el número de servicio ':'Revisa el historial para confirmar la CURP ')+item.node.querySelector('#'+primary).value+'. No se volverá a enviar automáticamente.':'Puedes continuar para enviar únicamente las solicitudes pendientes.');alert(status.textContent);return}
    }
    if(items.some(x=>x.state==='uncertain')){status.textContent='Las solicitudes pendientes se enviaron. Revisa el historial para confirmar las anteriores.';return}
-   alert(`${sent} solicitud${sent===1?'':'es'} enviada${sent===1?'':'s'}. Cada CURP quedó registrada individualmente.`);finalizar();
+   alert(`${sent} solicitud${sent===1?'':'es'} enviada${sent===1?'':'s'}. ${isCfe?'Cada número de servicio quedó registrado individualmente.':'Cada CURP quedó registrada individualmente.'}`);finalizar();
   }finally{busy=false;restore();await actualizar()}
  }
  pay.onclick=submit;label();
