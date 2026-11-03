@@ -1249,6 +1249,8 @@ function prepararPasosCuestionario(content) {
             }
             if(t.cfeDatosObligatorios){
                 const name=document.getElementById('nombre_p'),email=document.getElementById('correo_p');
+                const photo=document.getElementById('cfe_foto_p')?.files?.[0];
+                if(photo&&(!['image/jpeg','image/png','image/webp'].includes(photo.type)||photo.size>10*1024*1024||photo.size===0)){mostrarErrorTramite('cfe_foto_p','Adjunta una foto JPG, PNG o WEBP de hasta 10 MB.');return false;}
                 if(!name||name.value.trim().length<2||name.value.length>200||name.value.trim().toUpperCase()==='N/A'||/[<>\r\n\x00-\x1f]/.test(name.value)){mostrarErrorTramite('nombre_p','Escribe el nombre completo del titular tal como aparece en el recibo.');return false;}
                 if(!email||email.value.length>254||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email.value.trim())||/[,;<>]/.test(email.value)){mostrarErrorTramite('correo_p','Escribe un correo electrónico válido.');return false;}
             }
@@ -1418,6 +1420,7 @@ fields += `
             if (t.pideDiasIncapacidad) fields += `<input type="number" id="dias_incapacidad_p" placeholder="DÍAS DE INCAPACIDAD" class="input-light mb-4">`;
             if (t.pideTel) fields += `<input type="text" id="tel_p" placeholder="TELEFONO" class="input-light mb-4">`;
             if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELEFONO DE CONTACTO" class="input-light mb-4">`;
+            if(t.cfeDatosObligatorios) fields += `<label for="cfe_foto_p" class="ux-field-label">Foto del recibo CFE (opcional)</label><input type="file" id="cfe_foto_p" accept="image/jpeg,image/png,image/webp" class="input-light mb-2"><p class="ux-field-help mb-4">Adjunta una foto JPG, PNG o WEBP de hasta 10 MB. El proveedor la recibirá como imagen junto con los datos de esta solicitud.</p>`;
             if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4" ${t.cfeDatosObligatorios?'required maxlength="254"':''}>`;
             if(t.cfeDatosObligatorios) fields += `<aside class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><strong>⚠️ CONSIDERACIONES IMPORTANTES</strong><p class="mt-2 font-bold">1. Entrega mediante correo electrónico:</p><p class="mt-2">En algunos casos, el sistema de CFE podría no permitir la descarga directa del recibo. Cuando esto suceda, CFE enviará el documento directamente al correo electrónico registrado por el titular al momento de contratar el servicio en CFE.</p></aside>`;
             if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
@@ -1789,6 +1792,7 @@ vacuna_covid: val('vacuna_covid_p'),
                 let file_comp_domicilio = "N/A";
                 let file_edocta = "N/A";
 
+                if(t.cfeDatosObligatorios&&document.getElementById('cfe_foto_p')?.files?.[0]) extra.cfe_foto=await subirArchivoCloudinary('cfe_foto_p');
                 if (t.pideIneFrente) file_ine_f = await subirArchivoCloudinary('file_ine_f');
                 if (t.pideIneReverso) file_ine_r = await subirArchivoCloudinary('file_ine_r');
                 if (t.pideFotoCli) file_selfie = await subirArchivoCloudinary('file_selfie');
@@ -2493,11 +2497,3 @@ document.addEventListener('visibilitychange', () => {
     </dialog>
 </body>
 </html>
-
-
-
-
-
-
-
-
