@@ -1252,7 +1252,7 @@ function prepararPasosCuestionario(content) {
                 const photo=document.getElementById('cfe_foto_p')?.files?.[0];
                 if(photo&&(!['image/jpeg','image/png','image/webp'].includes(photo.type)||photo.size>10*1024*1024||photo.size===0)){mostrarErrorTramite('cfe_foto_p','Adjunta una foto JPG, PNG o WEBP de hasta 10 MB.');return false;}
                 if(!name||name.value.trim().length<2||name.value.length>200||name.value.trim().toUpperCase()==='N/A'||/[<>\r\n\x00-\x1f]/.test(name.value)){mostrarErrorTramite('nombre_p','Escribe el nombre completo del titular tal como aparece en el recibo.');return false;}
-                if(!email||email.value.length>254||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email.value.trim())||/[,;<>]/.test(email.value)){mostrarErrorTramite('correo_p','Escribe un correo electrónico válido.');return false;}
+                if(email&&email.value.trim()&&(email.value.length>254||!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email.value.trim())||/[,;<>]/.test(email.value))){mostrarErrorTramite('correo_p','Escribe un correo electrónico válido.');return false;}
             }
             if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
             if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
@@ -1398,7 +1398,7 @@ fields += `
                     <p class="mt-2 text-[9px] font-bold uppercase text-amber-700">Selecciona una sola opción.</p>
                 </fieldset>`;
             if (t.pideNumServicio) fields += `<input type="text" id="num_servicio_p" placeholder="NÚMERO DE SERVICIO" class="input-light mb-4" ${t.cfeDatosObligatorios?'required':''}>`;
-            if(t.cfeDatosObligatorios) fields += `<p class="ux-field-help mb-3">Todos los datos son obligatorios. Escríbelos exactamente como aparecen en un recibo actual o anterior de CFE.</p><input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO DEL TITULAR" class="input-light mb-2" style="text-transform:none" maxlength="200" required><p class="ux-field-help mb-4">Nombre(s) y apellidos, respetando puntos, comas, abreviaturas y cualquier otro signo del recibo.</p>`;
+            if(t.cfeDatosObligatorios) fields += `<p class="ux-field-help mb-3">El número de servicio y el nombre del titular son obligatorios. Escríbelos exactamente como aparecen en un recibo actual o anterior de CFE.</p><input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO DEL TITULAR" class="input-light mb-2" style="text-transform:none" maxlength="200" required><p class="ux-field-help mb-4">Nombre(s) y apellidos, respetando puntos, comas, abreviaturas y cualquier otro signo del recibo.</p>`;
             if (t.pideFecha) fields += `<input type="date" id="fecha_p" class="input-light mb-4">`;
             if (t.pideCitaAfore) fields += `
                 <div class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -1421,6 +1421,7 @@ fields += `
             if (t.pideTel) fields += `<input type="text" id="tel_p" placeholder="TELEFONO" class="input-light mb-4">`;
             if (t.pideTelContacto) fields += `<input type="text" id="tel_contacto_p" placeholder="TELEFONO DE CONTACTO" class="input-light mb-4">`;
             if(t.cfeDatosObligatorios) fields += `<label for="cfe_foto_p" class="ux-field-label">Foto del recibo CFE (opcional)</label><input type="file" id="cfe_foto_p" accept="image/jpeg,image/png,image/webp" class="input-light mb-2"><p class="ux-field-help mb-4">Adjunta una foto JPG, PNG o WEBP de hasta 10 MB. El proveedor la recibirá como imagen junto con los datos de esta solicitud.</p>`;
+            if(t.cfeDatosObligatorios) fields += `<details class="mb-4"><summary class="cursor-pointer text-sm font-bold">Agregar correo si se necesita (opcional)</summary><p class="ux-field-help my-2">Se guarda por si es necesario. No se envía al proveedor con la solicitud inicial.</p><input type="email" id="correo_p" placeholder="CORREO (OPCIONAL)" class="input-light" maxlength="254"></details>`;
             if (t.pideCorreo) fields += `<input type="email" id="correo_p" placeholder="CORREO" class="input-light mb-4" ${t.cfeDatosObligatorios?'required maxlength="254"':''}>`;
             if(t.cfeDatosObligatorios) fields += `<aside class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><strong>⚠️ CONSIDERACIONES IMPORTANTES</strong><p class="mt-2 font-bold">1. Entrega mediante correo electrónico:</p><p class="mt-2">En algunos casos, el sistema de CFE podría no permitir la descarga directa del recibo. Cuando esto suceda, CFE enviará el documento directamente al correo electrónico registrado por el titular al momento de contratar el servicio en CFE.</p></aside>`;
             if (t.pideNota) fields += `<textarea id="nota_p" placeholder="NOTA" class="input-light mb-4"></textarea>`;
