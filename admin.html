@@ -808,78 +808,72 @@ body > .max-w-7xl { max-width:1560px; }
 
     <section id="vistaOperacion" class="mb-8 solo-admin admin-vista admin-oculta" data-admin-view="operacion">
       <div class="bg-white rounded-[2rem] p-6 shadow-xl border">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Venta directa / WhatsApp</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Trámites del portal Novyra</p>
             <h2 class="text-xl font-black uppercase italic text-slate-800">Inventario, ventas y utilidad</h2>
-            <p class="text-xs font-bold text-slate-500 mt-1">Módulo conectado visualmente con el corte: registra trámites, precio proveedor, precio público y utilidad estimada.</p>
+            <p class="text-xs font-bold text-slate-500 mt-1">Importe cobrado por los trámites entregados, menos devoluciones y costos de proveedor.</p>
           </div>
-          <div class="flex gap-2 flex-wrap">
-            <a href="https://novyraservices.org/admin/corte.html" target="_blank" class="bg-emerald-600 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Abrir corte</a>
-            <button onclick="window.renderVentaDirecta()" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Actualizar tablas</button>
-          </div>
-        </div>
-
-        <div class="op-card mb-6 border-l-4 border-l-emerald-600">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Referencia de corte</p>
-              <h3 class="text-lg font-black uppercase italic text-slate-800">https://novyraservices.org/admin/corte.html</h3>
-              <p class="text-xs font-bold text-slate-500 mt-1">Este recuadro reemplaza Cloudflare y se enfoca en ventas directas por WhatsApp, inventario y utilidad real.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px] font-black uppercase">
-              <span class="op-pill green">Venta directa</span>
-              <span class="op-pill blue">WhatsApp</span>
-              <span class="op-pill amber">Sin contar errores</span>
-            </div>
+          <div class="flex flex-wrap items-end gap-2">
+            <label class="grid gap-1 text-xs font-bold text-slate-600">Fecha · Ciudad de México
+              <input id="vdFecha" type="date" class="border rounded-xl px-3 py-2">
+            </label>
+            <button type="button" id="vdActualizar" class="bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-bold">Actualizar</button>
           </div>
         </div>
 
-        <div class="grid md:grid-cols-4 gap-4 mb-6">
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ventas válidas hoy</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Ingreso público</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">$0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Costo proveedor</p><p id="vdCostoHoy" class="text-3xl font-black text-amber-600">$0</p></div>
-          <div class="op-card"><p class="text-[10px] font-black uppercase text-slate-500">Utilidad estimada</p><p id="vdUtilidadHoy" class="text-3xl font-black text-purple-700">$0</p></div>
+        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-3">
+          <div class="op-card"><p class="text-xs font-bold text-slate-500">Trámites entregados</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">—</p></div>
+          <div class="op-card"><p class="text-xs font-bold text-slate-500">Ingreso después de devoluciones</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">—</p><small id="vdDevoluciones" class="font-bold text-slate-500"></small></div>
+          <div class="op-card"><p class="text-xs font-bold text-slate-500">Costos de proveedor registrados</p><p id="vdCostoHoy" class="text-3xl font-black text-amber-600">—</p></div>
+          <div class="op-card"><p class="text-xs font-bold text-slate-500">Utilidad del día</p><p id="vdUtilidadHoy" class="text-3xl font-black text-purple-700">—</p></div>
+        </div>
+        <p id="vdEstado" class="text-xs font-bold text-slate-600 mb-5" role="status"></p>
+
+        <div class="op-card mb-5">
+          <h3 class="text-sm font-black text-blue-700 mb-2">Detalle por trámite</h3>
+          <p class="text-xs text-slate-600 mb-3">La tarifa del inventario se aplica desde el día en que se registró. Si ese día pagaste otro importe, captura el costo total del proveedor para ese trámite.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-white uppercase font-black"><tr>
+                <th scope="col" class="p-3">Trámite</th><th scope="col" class="p-3 text-right">Entregados</th>
+                <th scope="col" class="p-3 text-right">Ingreso</th><th scope="col" class="p-3 text-right">Costo</th>
+                <th scope="col" class="p-3 text-right">Utilidad</th><th scope="col" class="p-3">Costo del día</th>
+              </tr></thead>
+              <tbody id="vdTablaUtilidad"></tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-5">
-          <div class="op-card lg:col-span-1">
-            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Configurar inventario</h3>
-            <div class="space-y-3">
+        <div class="grid lg:grid-cols-2 gap-5">
+          <details class="op-card">
+            <summary class="text-sm font-black text-blue-700 cursor-pointer">Configurar tarifas del inventario</summary>
+            <form id="vdInventarioForm" class="space-y-3 mt-3">
               <input id="vdInventarioEditId" type="hidden">
-              <input id="vdNombreTramite" type="text" placeholder="Nombre del trámite" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <input id="vdPrecioProveedor" type="number" min="0" step="0.01" placeholder="Precio proveedor" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <input id="vdPrecioPublico" type="number" min="0" step="0.01" placeholder="Precio público" class="w-full bg-slate-100 p-4 rounded-xl text-xs font-bold outline-none">
-              <button onclick="window.guardarInventarioVentaDirecta()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase">Guardar trámite / cambios</button>
-              <button onclick="window.limpiarFormularioInventarioVentaDirecta()" class="w-full bg-slate-200 text-slate-700 py-4 rounded-xl font-black text-xs uppercase">Limpiar formulario</button>
-              <button onclick="window.precargarInventarioVentaDirecta()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black text-xs uppercase">Precargar trámites del dashboard</button>
-            </div>
-            <p class="text-[10px] text-slate-500 font-bold mt-3">Puedes editar los precios después. La utilidad se calcula: precio público - precio proveedor.</p>
-          </div>
+              <label class="grid gap-1 text-xs font-bold">Nombre del trámite
+                <input id="vdNombreTramite" type="text" required maxlength="140" class="bg-slate-100 p-3 rounded-xl">
+              </label>
+              <div class="grid sm:grid-cols-2 gap-2">
+                <label class="grid gap-1 text-xs font-bold">Costo unitario de proveedor
+                  <input id="vdPrecioProveedor" type="number" min="0" max="10000000" step="0.01" class="bg-slate-100 p-3 rounded-xl" placeholder="Sin capturar">
+                </label>
+                <label class="grid gap-1 text-xs font-bold">Precio público de referencia
+                  <input id="vdPrecioPublico" type="number" min="0" max="10000000" step="0.01" class="bg-slate-100 p-3 rounded-xl" placeholder="Opcional">
+                </label>
+              </div>
+              <p class="text-xs text-slate-600">Deja vacío un costo pendiente y captura 0 cuando el servicio sea gratuito. Los cambios de tarifa aplican desde hoy.</p>
+              <div class="flex flex-wrap gap-2">
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-xl font-bold text-xs">Guardar tarifa</button>
+                <button type="reset" class="bg-slate-100 py-2 px-4 rounded-xl font-bold text-xs">Limpiar</button>
+              </div>
+            </form>
+            <div id="vdInventarioLista" class="space-y-2 max-h-[420px] overflow-y-auto mt-4"></div>
+          </details>
 
-          <div class="op-card lg:col-span-2">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-xs font-black uppercase text-emerald-700">Inventario configurado</h3>
-              <span class="op-pill green">Editable</span>
-            </div>
-            <div id="vdInventarioLista" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
-          </div>
-        </div>
-
-        <div class="grid lg:grid-cols-2 gap-5 mt-5">
-          <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-blue-700 mb-3">Tabla de utilidad por trámite</h3>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-[10px]">
-                <thead class="text-white uppercase font-black"><tr><th class="p-3">Trámite</th><th class="p-3 text-center">Vendidos</th><th class="p-3 text-right">Venta</th><th class="p-3 text-right">Utilidad</th></tr></thead>
-                <tbody id="vdTablaUtilidad"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="op-card">
-            <h3 class="text-xs font-black uppercase text-slate-700 mb-3">Últimas ventas válidas</h3>
-            <div id="vdUltimasVentas" class="space-y-2 max-h-[420px] overflow-y-auto"></div>
-          </div>
+          <details class="op-card">
+            <summary class="text-sm font-black text-slate-700 cursor-pointer">Últimas entregas del día</summary>
+            <div id="vdUltimasVentas" class="space-y-2 max-h-[420px] overflow-y-auto mt-3"></div>
+          </details>
         </div>
       </div>
     </section>
@@ -1002,6 +996,7 @@ body > .max-w-7xl { max-width:1560px; }
             });
 
             window.marcarModuloVistoAdmin(modulo);
+            if (modulo === 'operacion') window.renderVentaDirecta?.();
 
             if (objetivo && !yaVisible) objetivo.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
         };
@@ -1705,7 +1700,6 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             else cargarSolicitudes(currentPage);
             window.renderOperacionDashboard?.();
             window.renderCorteOperadores?.();
-            window.renderVentaDirecta?.();
             window.cargarReportesAdmin?.();
             } catch (error) {
                 console.error('Error cargando solicitudes admin desde Supabase:', error);
@@ -1976,262 +1970,129 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
             }
         };
 
-        const INVENTARIO_VENTA_DIRECTA_DEFAULT = [
-            { key: 'SEMANAS_COTIZADAS', nombre: 'SEMANAS COTIZADAS', proveedor: 0, publico: 18 },
-            { key: 'SEMANAS_DETALLADAS', nombre: 'SEMANAS DETALLADAS', proveedor: 0, publico: 29 },
-            { key: 'SINDO_ULTIMO_RETIRO', nombre: 'SINDO ULTIMO RETIRO', proveedor: 0, publico: 45 },
-            { key: 'SINDO_ALFANUMERICO', nombre: 'SINDO ALFANUMERICO', proveedor: 0, publico: 55 },
-            { key: 'SINDO_COMPLETO', nombre: 'SINDO COMPLETO', proveedor: 0, publico: 190 },
-            { key: 'SINDO_SALARIO_PROMEDIO', nombre: 'SINDO SALARIO PROMEDIO', proveedor: 0, publico: 95 },
-            { key: 'SINDO_VIGENCIA', nombre: 'SINDO VIGENCIA', proveedor: 0, publico: 95 },
-            { key: 'TARJETA_NSS', nombre: 'Tarjeta NSS', proveedor: 0, publico: 8 },
-            { key: 'DESCARGA_DE_CARTILLA', nombre: 'Descarga de Cartilla', proveedor: 0, publico: 20 },
-            { key: 'VIGENCIA_DE_DERECHOS', nombre: 'Vigencia de Derechos', proveedor: 0, publico: 8 },
-            { key: 'INCAPACIDAD', nombre: 'Incapacidad', proveedor: 0, publico: 20 },
-            { key: 'RECETAS', nombre: 'Recetas', proveedor: 0, publico: 20 },
-            { key: 'INSCRIPCION_MODALIDAD_10', nombre: 'Inscripción Modalidad 10', proveedor: 0, publico: 200 },
-            { key: 'ALTA_MENSUAL', nombre: 'Alta Mensual', proveedor: 0, publico: 600 },
-            { key: 'ALTA_PARA_DESEMPLEO_CON_LINEA_DE_CAPTURA', nombre: 'Alta Para Desempleo con linea de captura', proveedor: 0, publico: 200 },
-            { key: 'ALTA_PARA_DESEMPLEO_CON_APORTACIONES', nombre: 'Alta para Desempleo con aportaciones', proveedor: 0, publico: 650 },
-            { key: 'RFC_CLON', nombre: 'RFC Clon', proveedor: 0, publico: 25 },
-            { key: 'RFC_VERIFICABLE', nombre: 'RFC Verificable', proveedor: 0, publico: 95 },
-            { key: 'RFC_CON_IDCIF', nombre: 'RFC con IDCIF', proveedor: 0, publico: 20 },
-            { key: 'RFC_ORIGINAL', nombre: 'RFC Original', proveedor: 0, publico: 180 },
-            { key: 'LOCALIZACION_DE_IDCIF', nombre: 'Localización de IDcif', proveedor: 0, publico: 60 },
-            { key: 'BURO_DE_CREDITO', nombre: 'Buró de Crédito', proveedor: 0, publico: 170 },
-            { key: 'CURP', nombre: 'CURP', proveedor: 0, publico: 4 },
-            { key: 'ACTA_DE_NACIMIENTO', nombre: 'Acta de Nacimiento', proveedor: 0, publico: 13 },
-            { key: 'ACTA_DE_MATRIMONIO', nombre: 'Acta de Matrimonio', proveedor: 0, publico: 13 },
-            { key: 'ACTA_DE_DIVORCIO', nombre: 'Acta de Divorcio', proveedor: 0, publico: 13 },
-            { key: 'ACTA_DE_DEFUNCION', nombre: 'Acta de Defunción', proveedor: 0, publico: 13 },
-            { key: 'ACTA_DE_NACIMIENTO_CON_FOLIO', nombre: 'Acta de Nacimiento con Folio', proveedor: 0, publico: 15 },
-            { key: 'ACTA_DE_MATRIMONIO_CON_FOLIO', nombre: 'Acta de Matrimonio con Folio', proveedor: 0, publico: 15 },
-            { key: 'ACTA_DE_DIVORCIO_CON_FOLIO', nombre: 'Acta de Divorcio con Folio', proveedor: 0, publico: 15 },
-            { key: 'ACTA_DE_DEFUNCION_CON_FOLIO', nombre: 'Acta de Defunción con Folio', proveedor: 0, publico: 15 },
-            { key: 'CERTIFICADO_INEA', nombre: 'Certificado INEA', proveedor: 0, publico: 30 },
-            { key: 'CERTIFICADO_COVID', nombre: 'Certificado COVID', proveedor: 0, publico: 20 },
-            { key: 'LOCALIZACION_DE_CONTRASENA', nombre: 'Localización de Contraseña', proveedor: 0, publico: 150 },
-            { key: 'RESETEO_CUENTA', nombre: 'Reseteo Cuenta', proveedor: 0, publico: 220 },
-            { key: 'PRECALIFICACION_MEJORAVIT', nombre: 'Precalificación Mejoravit', proveedor: 0, publico: 100 },
-            { key: 'PRECALIFICACION_LINEA_II', nombre: 'Precalificación Linea II', proveedor: 0, publico: 100 },
-            { key: 'CREAR_CUENTA_EN_MI_CUENTAINFONAVIT', nombre: 'CREAR CUENTA EN MI CUENTAINFONAVIT', proveedor: 0, publico: 150 },
-            { key: 'HISTORICO_INFONAVIT', nombre: 'Histórico Infonavit', proveedor: 0, publico: 150 },
-            { key: 'ESTADO_DE_CUENTA_AFORE', nombre: 'Estado de cuenta AFORE', proveedor: 0, publico: 500 },
-            { key: 'LOCALIZAR_CONTRASENA', nombre: 'Localizar Contraseña', proveedor: 0, publico: 70 },
-            { key: 'RESUMEN_DE_SALDOS', nombre: 'Resumen de Saldos', proveedor: 0, publico: 170 },
-            { key: 'LOCALIZA_TU_AFORE', nombre: 'Localiza tu AFORE', proveedor: 0, publico: 29 },
-            { key: 'CITA_INVERCAP', nombre: 'Cita Invercap', proveedor: 0, publico: 250 },
-            { key: 'CITA_BANAMEX', nombre: 'Cita Banamex', proveedor: 0, publico: 250 },
-            { key: 'CITA_COPPEL', nombre: 'Cita Coppel', proveedor: 0, publico: 250 },
-            { key: 'ANALISIS_RAPIDO_DE_PENSION', nombre: 'Análisis rápido de pensión', proveedor: 0, publico: 200 },
-            { key: 'ANALISIS_DETALLADO_DE_PENSION', nombre: 'Análisis Detallado de pensión', proveedor: 0, publico: 3000 }
-        ];
-        let inventarioVentaDirecta = [];
+        const vd = id => document.getElementById(id);
+        let vdVersion = 0;
+        let vdInventory = [];
+        const vdAmount = amount => amount === null ? 'Por confirmar' : dineroMX(amount);
+        const vdSource = { capturado: 'Costo capturado', inventario: 'Tarifa de inventario', solicitud: 'Costo de la solicitud', pendiente: 'Costo pendiente' };
+        const vdTime = new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit' });
 
-        function normalizarKeyInventario(nombre = '') {
-            return String(nombre || '')
-                .toUpperCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^A-Z0-9]+/g, '_')
-                .replace(/^_+|_+$/g, '') || 'TRAMITE';
-        }
-
-        function obtenerInventarioParaSolicitud(s) {
-            const key = claveTramiteSolicitud(s);
-            const nombre = String(s.tipo || s.tramite || s.servicio || key || 'Trámite').trim();
-            return inventarioVentaDirecta.find(i => i.key === key) ||
-                   inventarioVentaDirecta.find(i => normalizarKeyInventario(i.nombre) === normalizarKeyInventario(nombre)) ||
-                   { key, nombre, proveedor: Number(s.costoProveedor || 0), publico: Number(s.costo || s.precio || 0) };
-        }
-
-        function ventasValidasDelDia() {
-            const fechaInput = document.getElementById('fechaCorteOperadores')?.value;
-            const objetivo = fechaInput ? new Date(fechaInput + 'T12:00:00') : new Date();
-            const lista = Array.isArray(todasLasSoliCargadas) && todasLasSoliCargadas.length ? todasLasSoliCargadas : (Array.isArray(cacheSolicitudes) ? cacheSolicitudes : []);
-            return lista.filter(s => {
-                const estatus = String(s.estatus || '').trim().toLowerCase();
-                const cuentaComoVenta = estatus === 'terminado' || estatus === 'finalizado' || s.finalizado === true;
-                const f = fechaSolicitudTerminada(s) || s.fecha?.toDate?.() || (s.fecha ? new Date(s.fecha) : null);
-                return f && !isNaN(f.getTime()) && esMismoDia(f, objetivo) && cuentaComoVenta && !esDocumentoConError(s) && s.reembolsado !== true;
-            }).sort((a, b) => {
-                const fa = fechaSolicitudTerminada(a) || a.fecha?.toDate?.() || new Date(0);
-                const fb = fechaSolicitudTerminada(b) || b.fecha?.toDate?.() || new Date(0);
-                return fb - fa;
-            });
-        }
-
-        window.precargarInventarioVentaDirecta = async function () {
+        window.renderVentaDirecta = async function () {
+            if (miSesion.role !== 'admin' || vd('vistaOperacion').classList.contains('admin-oculta')) return;
+            const version = ++vdVersion;
+            const fecha = vd('vdFecha').value;
+            for (const id of ['vdVentasHoy', 'vdIngresoHoy', 'vdCostoHoy', 'vdUtilidadHoy']) vd(id).textContent = '—';
+            for (const id of ['vdTablaUtilidad', 'vdUltimasVentas', 'vdDevoluciones']) vd(id).textContent = '';
+            vd('vdEstado').textContent = 'Cargando el corte…';
             try {
-                for (const item of INVENTARIO_VENTA_DIRECTA_DEFAULT) {
-                    const utilidad = Number(item.publico || 0) - Number(item.proveedor || 0);
-                    await setDoc(doc(db, 'inventario_venta_directa', item.key), {
-                        ...item,
-                        utilidad,
-                        activo: true,
-                        actualizado_por: staffNombre,
-                        fecha_actualizado: serverTimestamp()
-                    }, { merge: true });
-                }
-                alert(' Inventario precargado sin duplicar. Puedes editar precios y utilidad.');
-            } catch (e) {
-                alert(e.message || 'No se pudo precargar inventario');
+                const data = await adminApi('/api/v1/admin/panel/daily-utility' + (fecha ? '?' + new URLSearchParams({ date: fecha }) : ''));
+                if (version !== vdVersion) return;
+                vd('vdFecha').max = data.hoy;
+                vd('vdFecha').value = data.fecha;
+                vd('vdVentasHoy').textContent = data.cantidad;
+                vd('vdIngresoHoy').textContent = dineroMX(data.ingresos);
+                vd('vdCostoHoy').textContent = dineroMX(data.costos);
+                vd('vdUtilidadHoy').textContent = vdAmount(data.utilidad);
+                vd('vdDevoluciones').textContent = data.devoluciones ? 'Devuelto de estas entregas ' + dineroMX(data.devoluciones) : '';
+                vd('vdEstado').textContent = data.sin_costo
+                    ? `Falta el costo de proveedor de ${data.sin_costo} ${data.sin_costo === 1 ? 'entrega' : 'entregas'}. El total de utilidad se confirma al completar esos costos.`
+                    : data.cantidad ? 'Corte de trámites entregados del día.' : 'No hay trámites entregados para esta fecha.';
+                const escape = escaparRecargaAdmin;
+                vd('vdTablaUtilidad').innerHTML = data.servicios.map(row => `
+                    <tr class="border-b">
+                        <th scope="row" class="p-3 font-bold">${escape(row.servicio)}</th>
+                        <td class="p-3 text-right">${row.cantidad}</td>
+                        <td class="p-3 text-right">${dineroMX(row.ingresos)}</td>
+                        <td class="p-3 text-right">${row.sin_costo ? (row.costos ? dineroMX(row.costos) + ' registrados' : 'Pendiente') : dineroMX(row.costos)}</td>
+                        <td class="p-3 text-right font-bold">${vdAmount(row.utilidad)}</td>
+                        <td class="p-3">
+                            <details>
+                                <summary class="cursor-pointer text-blue-700 font-bold">${row.sin_costo ? 'Capturar costo' : vdSource[row.fuente]}</summary>
+                                <form class="flex flex-wrap gap-2 mt-2 min-w-[180px]" data-vd-cost="${escape(row.key)}" data-vd-day="${escape(data.fecha)}">
+                                    <input aria-label="Costo total del proveedor para ${escape(row.servicio)}" type="number" name="costo" required min="0" max="10000000" step="0.01" class="border rounded-lg px-2 py-1 w-32" placeholder="Costo total" value="${row.fuente === 'capturado' ? row.costos : ''}">
+                                    <button type="submit" class="op-btn take">Guardar</button>
+                                    ${row.fuente === 'capturado' ? '<button type="submit" class="op-btn" value="quitar" formnovalidate>Quitar ajuste</button>' : ''}
+                                </form>
+                            </details>
+                        </td>
+                    </tr>`).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-500">Sin entregas.</td></tr>';
+                vd('vdUltimasVentas').innerHTML = data.recientes.map(row => `
+                    <div class="flex justify-between gap-2 bg-slate-50 rounded-xl p-3 text-xs">
+                        <span>${escape(row.servicio)} · ${vdTime.format(new Date(row.fecha))}</span><strong>${dineroMX(row.importe)}</strong>
+                    </div>`).join('') || '<p class="text-xs text-slate-500">Sin entregas.</p>';
+                vdInventory = data.inventario;
+                vd('vdInventarioLista').innerHTML = vdInventory.map((item, index) => `
+                    <div class="flex flex-wrap justify-between items-center gap-2 bg-slate-50 rounded-xl p-3 text-xs">
+                        <div><strong>${escape(item.nombre)}</strong><br>Proveedor ${item.proveedor === null ? 'pendiente' : dineroMX(item.proveedor)}${item.publico === null ? '' : ' · Referencia ' + dineroMX(item.publico)}</div>
+                        <div class="flex gap-2">
+                            <button type="button" class="op-btn take" data-vd-edit="${index}">Editar</button>
+                            <button type="button" class="op-btn" data-vd-archive="${index}">Archivar</button>
+                        </div>
+                    </div>`).join('') || '<p class="text-xs text-slate-500">Sin tarifas registradas.</p>';
+            } catch (error) {
+                if (version === vdVersion) vd('vdEstado').textContent = error.message || 'No se pudo cargar el corte.';
             }
         };
 
-        window.editarInventarioVentaDirecta = function (id) {
-            const item = inventarioVentaDirecta.find(i => String(i.id) === String(id));
-            if (!item) return alert('No se encontró el trámite para editar');
-
-            document.getElementById('vdInventarioEditId').value = item.id || item.key || '';
-            document.getElementById('vdNombreTramite').value = item.nombre || item.key || '';
-            document.getElementById('vdPrecioProveedor').value = Number(item.proveedor || 0);
-            document.getElementById('vdPrecioPublico').value = Number(item.publico || 0);
-            document.getElementById('vdNombreTramite').focus();
-        };
-
-        window.borrarInventarioVentaDirecta = async function (id) {
-            if (miSesion.role !== 'admin') return;
-            const item = inventarioVentaDirecta.find(i => String(i.id || i.key) === String(id));
-            const nombre = item?.nombre || id;
-            if (!confirm(`¿Borrar del inventario: ${nombre}?`)) return;
+        async function vdGuardar(path, payload, button) {
+            button.disabled = true;
             try {
-                await deleteDoc(doc(db, 'inventario_venta_directa', id));
-                window.limpiarFormularioInventarioVentaDirecta?.();
-            } catch (e) {
-                alert(e.message || 'No se pudo borrar el trámite del inventario');
+                await adminApi('/api/v1/admin/panel/daily-utility/' + path, {
+                    method: 'PUT', body: JSON.stringify(payload)
+                });
+                return true;
+            } catch (error) {
+                vd('vdEstado').textContent = error.message || 'No se pudo confirmar el cambio.';
+                return false;
+            } finally {
+                button.disabled = false;
             }
-        };
+        }
 
-        window.limpiarFormularioInventarioVentaDirecta = function () {
-            document.getElementById('vdInventarioEditId').value = '';
-            document.getElementById('vdNombreTramite').value = '';
-            document.getElementById('vdPrecioProveedor').value = '';
-            document.getElementById('vdPrecioPublico').value = '';
-        };
-
-        window.guardarInventarioVentaDirecta = async function () {
-            const editId = document.getElementById('vdInventarioEditId')?.value.trim();
-            const nombre = document.getElementById('vdNombreTramite')?.value.trim();
-            const proveedor = Number(document.getElementById('vdPrecioProveedor')?.value || 0);
-            const publico = Number(document.getElementById('vdPrecioPublico')?.value || 0);
-
-            if (!nombre) return alert('Agrega el nombre del trámite');
-            if (publico < proveedor) return alert('El precio público no debe ser menor al precio proveedor');
-
-            const key = normalizarKeyInventario(nombre);
-            const existente = inventarioVentaDirecta.find(i =>
-                String(i.id) === String(editId) ||
-                String(i.key) === String(key) ||
-                normalizarKeyInventario(i.nombre) === key
-            );
-            const docId = editId || existente?.id || key;
-
-            await setDoc(doc(db, 'inventario_venta_directa', docId), {
-                key,
-                nombre,
-                proveedor,
-                publico,
-                utilidad: publico - proveedor,
-                activo: true,
-                actualizado_por: staffNombre,
-                fecha_actualizado: serverTimestamp()
-            }, { merge: true });
-
-            window.limpiarFormularioInventarioVentaDirecta();
-            alert(editId ? ' Trámite actualizado sin duplicar' : ' Trámite guardado sin duplicar');
-        };
-
-        window.renderVentaDirecta = function () {
-            const ventas = ventasValidasDelDia();
-            let ingreso = 0, costo = 0, utilidad = 0;
-            const porTramite = {};
-
-            ventas.forEach(s => {
-                const inv = obtenerInventarioParaSolicitud(s);
-                const nombre = inv.nombre || s.tipo || 'Trámite';
-                const publico = Number(inv.publico || s.costo || s.precio || 0);
-                const proveedor = Number(inv.proveedor || s.costoProveedor || 0);
-                const util = publico - proveedor;
-                ingreso += publico;
-                costo += proveedor;
-                utilidad += util;
-                if (!porTramite[nombre]) porTramite[nombre] = { nombre, cantidad: 0, ingreso: 0, utilidad: 0 };
-                porTramite[nombre].cantidad++;
-                porTramite[nombre].ingreso += publico;
-                porTramite[nombre].utilidad += util;
-            });
-
-            const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
-            setText('vdVentasHoy', ventas.length);
-            setText('vdIngresoHoy', money(ingreso));
-            setText('vdCostoHoy', money(costo));
-            setText('vdUtilidadHoy', money(utilidad));
-
-            const tabla = document.getElementById('vdTablaUtilidad');
-            if (tabla) {
-                const filas = Object.values(porTramite).sort((a,b)=>b.utilidad-a.utilidad);
-                tabla.innerHTML = filas.length ? filas.map(r => `
-                    <tr class="border-b hover:bg-emerald-50">
-                        <td class="p-3 font-black uppercase text-slate-700">${r.nombre}</td>
-                        <td class="p-3 text-center font-black">${r.cantidad}</td>
-                        <td class="p-3 text-right font-black text-blue-700">${money(r.ingreso)}</td>
-                        <td class="p-3 text-right font-black text-emerald-700">${money(r.utilidad)}</td>
-                    </tr>
-                `).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No hay ventas terminadas válidas hoy.</td></tr>';
-            }
-
-            const ultimas = document.getElementById('vdUltimasVentas');
-            if (ultimas) {
-                ultimas.innerHTML = ventas.slice(0, 20).map(s => {
-                    const inv = obtenerInventarioParaSolicitud(s);
-                    const f = (fechaSolicitudTerminada(s) || s.fecha?.toDate?.());
-                    return `<div class="flex items-center justify-between bg-slate-50 border rounded-xl p-3 gap-3">
-                        <div>
-                            <p class="text-xs font-black uppercase text-slate-800">${inv.nombre || s.tipo || 'Trámite'}</p>
-                            <p class="text-[10px] font-bold text-slate-500">${s.nombre_asesor || 'Venta directa'} · ${f ? f.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''}</p>
-                        </div>
-                        <span class="op-pill green">${money(Number(inv.publico || s.costo || 0))}</span>
-                    </div>`;
-                }).join('') || '<p class="text-xs font-bold text-slate-400">Aún no hay ventas válidas terminadas hoy.</p>';
-            }
-        };
-
-        onSnapshot(query(collection(db, 'inventario_venta_directa'), limit(200)), (snap) => {
-            const mapa = new Map();
-            snap.forEach(d => {
-                const item = { id: d.id, ...d.data() };
-                const llave = item.key || normalizarKeyInventario(item.nombre || d.id);
-                if (!mapa.has(llave)) mapa.set(llave, item);
-            });
-            inventarioVentaDirecta = Array.from(mapa.values());
-            if (!inventarioVentaDirecta.length) {
-                inventarioVentaDirecta = INVENTARIO_VENTA_DIRECTA_DEFAULT.map(i => ({ id: i.key, ...i }));
-            }
-
-            const lista = document.getElementById('vdInventarioLista');
-            const money = n => `$${Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            if (lista) {
-                lista.innerHTML = inventarioVentaDirecta.map(i => `
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-slate-50 border rounded-xl p-3 gap-3">
-                        <div>
-                            <p class="text-xs font-black uppercase text-slate-800">${i.nombre || i.key}</p>
-                            <p class="text-[10px] font-bold text-slate-500">Proveedor: ${money(i.proveedor)} · Público: ${money(i.publico)}</p>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap justify-end">
-                            <span class="op-pill green">Utilidad ${money(Number(i.publico || 0) - Number(i.proveedor || 0))}</span>
-                            <button type="button" onclick="window.editarInventarioVentaDirecta('${i.id || i.key}')" class="op-btn take">Editar</button>
-                            <button type="button" onclick="window.borrarInventarioVentaDirecta('${i.id || i.key}')" class="op-btn" style="background:#fee2e2;color:#991b1b;" title="Borrar del inventario">x</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-            window.renderVentaDirecta?.();
+        vd('vdActualizar').onclick = window.renderVentaDirecta;
+        vd('vdFecha').onchange = window.renderVentaDirecta;
+        vd('vdTablaUtilidad').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.target;
+            const button = event.submitter || form.querySelector('button[type="submit"]');
+            const cost = button.value === 'quitar' ? null : form.elements.costo.valueAsNumber;
+            if (cost !== null && !Number.isFinite(cost)) return;
+            const path = 'cost/' + encodeURIComponent(form.dataset.vdDay) + '/' + encodeURIComponent(form.dataset.vdCost);
+            if (await vdGuardar(path, { costo: cost }, button)) await window.renderVentaDirecta();
         });
 
-        window.recalcularOperacionHoy = function () {
-            window.renderVentaDirecta?.();
-        };
+        vd('vdInventarioForm').addEventListener('reset', () => { vd('vdInventarioEditId').value = ''; });
+        vd('vdInventarioForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.target;
+            const button = event.submitter || form.querySelector('button[type="submit"]');
+            const payload = {
+                id: vd('vdInventarioEditId').value || null,
+                nombre: vd('vdNombreTramite').value,
+                proveedor: vd('vdPrecioProveedor').value === '' ? null : vd('vdPrecioProveedor').valueAsNumber,
+                publico: vd('vdPrecioPublico').value === '' ? null : vd('vdPrecioPublico').valueAsNumber
+            };
+            if (await vdGuardar('inventory', payload, button)) {
+                form.reset();
+                await window.renderVentaDirecta();
+            }
+        });
+        vd('vdInventarioLista').addEventListener('click', async event => {
+            const button = event.target.closest('button');
+            if (!button) return;
+            const index = button.dataset.vdEdit ?? button.dataset.vdArchive;
+            const item = vdInventory[Number(index)];
+            if (!item) return;
+            if (button.dataset.vdEdit !== undefined) {
+                vd('vdInventarioEditId').value = item.id;
+                vd('vdNombreTramite').value = item.nombre;
+                vd('vdPrecioProveedor').value = item.proveedor ?? '';
+                vd('vdPrecioPublico').value = item.publico ?? '';
+                vd('vdNombreTramite').focus();
+            } else if (confirm(`¿Archivar la tarifa de ${item.nombre} a partir de hoy?`)) {
+                if (await vdGuardar('inventory', { ...item, activo: false }, button)) await window.renderVentaDirecta();
+            }
+        });
 
         window.cargarSolicitudes = (pagina = 1) => {
             const fuente = aplicarFiltroPermisosSolicitudes(obtenerSolicitudesFiltradas());
