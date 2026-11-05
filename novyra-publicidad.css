@@ -11,6 +11,9 @@
 
 .nv-promotion[hidden] { display: none !important; }
 
+.nv-account-rail > .nv-promotion { margin-top: 0; }
+.nv-account-rail:has(> .nv-promotion:not([hidden])) { position: static; }
+
 .nv-promotion-header {
   display: flex;
   align-items: center;
@@ -77,7 +80,7 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .nv-promotion {
     width: calc(100% - 32px);
     max-width: 264px;

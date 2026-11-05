@@ -22,9 +22,9 @@ function campaignIsActive() {
 function scheduleBanner(userId) {
   if (!campaignIsActive()) return () => {};
   const alwaysVisible = userId === campaign.alwaysVisibleUserId;
-  const sidebar = document.querySelector('.sidebar-premium nav');
+  const help = document.querySelector('.nv-account-rail .nv-help-button');
   const main = document.querySelector('main');
-  if (!sidebar || !main || !('IntersectionObserver' in window)) return () => {};
+  if (!help || !main || !('IntersectionObserver' in window)) return () => {};
 
   const storageKey = `nv-promotion:${campaign.id}:${userId}`;
   const sessionKey = `${storageKey}:attempted`;
@@ -87,7 +87,7 @@ function scheduleBanner(userId) {
   link.append(image, cta);
   card.append(header, link);
 
-  const desktop = matchMedia('(min-width: 901px)');
+  const desktop = matchMedia('(min-width: 1001px)');
   let timer = null;
   let expiryTimer = null;
   let remaining = campaign.durationMs;
@@ -137,7 +137,7 @@ function scheduleBanner(userId) {
 
   function place() {
     if (!campaignIsActive()) { dismiss(); return; }
-    if (desktop.matches) sidebar.after(card);
+    if (desktop.matches) help.after(card);
     else main.after(card);
   }
 

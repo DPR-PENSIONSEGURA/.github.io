@@ -69,12 +69,16 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   sidebar.append(nav);
   const page = new Element('div');
   const main = new Element('main');
+  const rail = new Element('aside');
+  const help = new Element('button');
+  rail.append(help);
+  main.append(rail);
   page.append(main);
   const created = [];
   const document = events({
     readyState: 'complete', hidden: false, activeElement: null,
     body: { dataset: { nvDemo: 'false' } },
-    querySelector: selector => selector === 'main' ? main : nav,
+    querySelector: selector => selector === 'main' ? main : selector === '.nv-account-rail .nv-help-button' ? help : nav,
     createElement(tag) {
       const element = new Element(tag);
       created.push(element);
@@ -111,7 +115,7 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   vm.runInNewContext(source, context);
   const find = className => created.find(element => element.className === className);
   return {
-    document, window, media, sidebar, page, main, local,
+    document, window, media, sidebar, rail, help, page, main, local,
     login: uid => authChanged(uid ? { uid } : null),
     find,
     setNow(value) { now = value; },
@@ -145,7 +149,9 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   const test = fixture();
   test.login('user-a');
   const card = test.find('nv-promotion');
-  assert.equal(card.parentNode, test.sidebar);
+  assert.equal(card.parentNode, test.rail);
+  assert.equal(test.rail.children[1], card);
+  assert.equal(test.sidebar.contains(card), false);
   assert.equal(card.hidden, true);
   test.load();
   assert.equal(test.local.size, 0);
@@ -181,7 +187,8 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   test.show();
   test.media.matches = true;
   test.media.emit('change');
-  assert.equal(card.parentNode, test.sidebar);
+  assert.equal(card.parentNode, test.rail);
+  assert.equal(test.rail.children[1], card);
   test.advance(3000);
   card.emit('mouseenter');
   test.advance(15000);
