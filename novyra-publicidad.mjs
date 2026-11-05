@@ -4,6 +4,8 @@ const campaign = Object.freeze({
   id: 'peso-ganador-50000-20261105',
   destination: 'https://www.pesoganador.com/',
   image: 'images/publicidad/peso-ganador-banner-20261105.png',
+  startsAt: '2026-11-05T06:56:32Z',
+  endsAt: '2026-11-07T06:56:32Z',
   probability: 0.35,
   durationMs: 10000,
   cooldownMs: 24 * 60 * 60 * 1000
@@ -11,7 +13,13 @@ const campaign = Object.freeze({
 
 let disposeBanner = () => {};
 
+function campaignIsActive() {
+  const now = Date.now();
+  return now >= Date.parse(campaign.startsAt) && now < Date.parse(campaign.endsAt);
+}
+
 function scheduleBanner(userId) {
+  if (!campaignIsActive()) return () => {};
   const sidebar = document.querySelector('.sidebar-premium nav');
   const main = document.querySelector('main');
   if (!sidebar || !main || !('IntersectionObserver' in window)) return () => {};
@@ -77,6 +85,7 @@ function scheduleBanner(userId) {
 
   const desktop = matchMedia('(min-width: 901px)');
   let timer = null;
+  let expiryTimer = null;
   let remaining = campaign.durationMs;
   let runningSince = null;
   let inView = false;
@@ -96,6 +105,8 @@ function scheduleBanner(userId) {
     if (finished) return;
     finished = true;
     stopTimer();
+    if (expiryTimer !== null) clearTimeout(expiryTimer);
+    expiryTimer = null;
     observer.disconnect();
     desktop.removeEventListener('change', place);
     document.removeEventListener('visibilitychange', updateTimer);
@@ -105,6 +116,7 @@ function scheduleBanner(userId) {
 
   function updateTimer() {
     stopTimer();
+    if (!campaignIsActive()) { dismiss(); return; }
     if (finished || !imageReady || !inView || document.hidden) return;
     if (!claimed) {
       if (shownRecently()) { dismiss(); return; }
@@ -119,6 +131,7 @@ function scheduleBanner(userId) {
   }
 
   function place() {
+    if (!campaignIsActive()) { dismiss(); return; }
     if (desktop.matches) sidebar.after(card);
     else main.after(card);
   }
@@ -142,10 +155,12 @@ function scheduleBanner(userId) {
   desktop.addEventListener('change', place);
   image.addEventListener('error', dismiss, { once: true });
   image.addEventListener('load', () => {
+    if (!campaignIsActive()) { dismiss(); return; }
     imageReady = true;
     card.hidden = false;
     observer.observe(card);
   }, { once: true });
+  expiryTimer = setTimeout(dismiss, Math.max(0, Date.parse(campaign.endsAt) - Date.now()));
   place();
   image.src = campaign.image;
   return dismiss;

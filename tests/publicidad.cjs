@@ -8,8 +8,9 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../novyra-publicidad.mjs'), 'utf8')
   .replace(/^import[^\n]+;\r?\n/, '');
 
-function fixture({ random = 0, desktop = true, local = new Map(), session = new Map(), storageFails = false } = {}) {
-  let now = 1800000000000;
+function fixture({ random = 0, desktop = true, local = new Map(), session = new Map(), storageFails = false,
+  now: initialNow = Date.parse('2026-11-05T18:00:00Z') } = {}) {
+  let now = initialNow;
   let authChanged;
   let intersection;
   const timers = new Map();
@@ -99,8 +100,8 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   const context = {
     window, document, IntersectionObserver: Observer,
     localStorage: storage(local), sessionStorage: storage(session),
-    matchMedia: () => media, Math: { random: () => random },
-    Date: { now: () => now }, queueMicrotask: fn => fn(),
+    matchMedia: () => media, Math: { random: () => random, max: Math.max },
+    Date: { now: () => now, parse: Date.parse }, queueMicrotask: fn => fn(),
     getAuth: () => ({}), onAuthStateChanged: (_, callback) => { authChanged = callback; },
     setTimeout(fn, delay) { const id = ++timerId; timers.set(id, { fn, at: now + delay }); return id; },
     clearTimeout: id => timers.delete(id)
@@ -111,6 +112,7 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
     document, media, sidebar, page, main, local,
     login: uid => authChanged(uid ? { uid } : null),
     find,
+    setNow(value) { now = value; },
     load() { find('nv-promotion-image').emit('load'); },
     show(ratio = 1) { intersection([{ isIntersecting: ratio > 0, intersectionRatio: ratio }]); },
     advance(ms) {
@@ -223,4 +225,51 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   assert.equal(test.find('nv-promotion').parentNode, null);
 }
 
-console.log('Publicidad verificada: azar, autenticación, 24 horas, 10 segundos visibles, cierre, enlace y ubicación adaptable.');
+{
+  const test = fixture({ now: Date.parse('2026-11-05T06:56:31.999Z') });
+  test.login('user-a');
+  assert.equal(test.find('nv-promotion'), undefined);
+}
+{
+  const test = fixture({ now: Date.parse('2026-11-05T06:56:32Z') });
+  test.login('user-a');
+  assert(test.find('nv-promotion'));
+}
+for (const date of ['2026-11-07T06:56:32Z', '2026-11-08T00:00:00Z']) {
+  const test = fixture({ now: Date.parse(date) });
+  test.login('user-a');
+  assert.equal(test.find('nv-promotion'), undefined);
+  assert.equal(test.local.size, 0);
+}
+{
+  const test = fixture({ now: Date.parse('2026-11-07T06:56:31.999Z') });
+  test.login('user-a');
+  test.load();
+  test.show();
+  const card = test.find('nv-promotion');
+  card.emit('mouseenter');
+  test.document.activeElement = test.find('nv-promotion-link');
+  card.emit('focusin');
+  test.document.hidden = true;
+  test.document.emit('visibilitychange');
+  test.advance(1);
+  assert.equal(card.parentNode, null);
+}
+{
+  const test = fixture({ now: Date.parse('2026-11-07T06:56:30Z') });
+  test.login('user-a');
+  test.load();
+  test.show();
+  test.setNow(Date.parse('2026-11-07T07:00:00Z'));
+  test.document.emit('visibilitychange');
+  assert.equal(test.find('nv-promotion').parentNode, null);
+}
+{
+  const test = fixture({ now: Date.parse('2026-11-07T06:56:30Z') });
+  test.login('user-a');
+  test.setNow(Date.parse('2026-11-07T07:00:00Z'));
+  test.load();
+  assert.equal(test.find('nv-promotion').parentNode, null);
+}
+
+console.log('Publicidad verificada: vigencia de 48 horas, vencimiento en pestañas abiertas/ocultas, azar, autenticación, 24 horas entre apariciones, 10 segundos visibles, cierre, enlace y ubicación adaptable.');
