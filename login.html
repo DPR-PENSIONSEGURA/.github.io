@@ -269,6 +269,8 @@
   };
 
   const app = initializeApp(firebaseConfig);
+  const adsReturn = new URLSearchParams(location.search).get("returnTo");
+  const loginDestination = ["/ads/", "/ads/#solicitar", "/ads/#mis-anuncios"].includes(adsReturn) ? adsReturn : "/dashboard.html";
   const auth = getAuth(app);
   const db = getFirestore(app);
 
@@ -327,7 +329,7 @@
 
       await updateProfile(user, { displayName: name });
 
-      window.location.href = "/dashboard.html";
+      window.location.href = loginDestination;
 
     } catch (error) {
       errorMsg.innerText = "Error: " + error.message;
@@ -350,7 +352,7 @@
 
     signInWithEmailAndPassword(auth, email, password)
       .then(async ({ user }) => {
-        window.location.href = "/dashboard.html";
+        window.location.href = loginDestination;
       })
       .catch(() => errorMsg.innerText = "Credenciales incorrectas.");
   };
