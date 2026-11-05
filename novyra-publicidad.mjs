@@ -2,6 +2,7 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 
 const campaign = Object.freeze({
   id: 'peso-ganador-50000-20261105',
+  alwaysVisibleUserId: '2JTQdNW5o3e5sPKYWnYeGtNbcYQ2',
   destination: 'https://www.pesoganador.com/',
   image: 'images/publicidad/peso-ganador-banner-20261105.png',
   startsAt: '2026-11-05T06:56:32Z',
@@ -20,6 +21,7 @@ function campaignIsActive() {
 
 function scheduleBanner(userId) {
   if (!campaignIsActive()) return () => {};
+  const alwaysVisible = userId === campaign.alwaysVisibleUserId;
   const sidebar = document.querySelector('.sidebar-premium nav');
   const main = document.querySelector('main');
   if (!sidebar || !main || !('IntersectionObserver' in window)) return () => {};
@@ -35,13 +37,15 @@ function scheduleBanner(userId) {
     }
   }
 
-  try {
-    if (sessionStorage.getItem(sessionKey) || shownRecently()) return () => {};
-    sessionStorage.setItem(sessionKey, '1');
-  } catch {
-    return () => {};
+  if (!alwaysVisible) {
+    try {
+      if (sessionStorage.getItem(sessionKey) || shownRecently()) return () => {};
+      sessionStorage.setItem(sessionKey, '1');
+    } catch {
+      return () => {};
+    }
+    if (Math.random() >= campaign.probability) return () => {};
   }
-  if (Math.random() >= campaign.probability) return () => {};
 
   const card = document.createElement('aside');
   card.className = 'nv-promotion';
@@ -118,6 +122,7 @@ function scheduleBanner(userId) {
     stopTimer();
     if (!campaignIsActive()) { dismiss(); return; }
     if (finished || !imageReady || !inView || document.hidden) return;
+    if (alwaysVisible) return;
     if (!claimed) {
       if (shownRecently()) { dismiss(); return; }
       try { localStorage.setItem(storageKey, String(Date.now())); }
@@ -137,7 +142,7 @@ function scheduleBanner(userId) {
   }
 
   function otherTabShown(event) {
-    if (event.key === storageKey && event.newValue) dismiss();
+    if (!alwaysVisible && event.key === storageKey && event.newValue) dismiss();
   }
 
   const observer = new IntersectionObserver(entries => {

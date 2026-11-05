@@ -7,6 +7,8 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '../novyra-publicidad.mjs'), 'utf8')
   .replace(/^import[^\n]+;\r?\n/, '');
+const alwaysVisibleUserId = source.match(/alwaysVisibleUserId:\s*['"]([^'"]+)['"]/)?.[1];
+assert(alwaysVisibleUserId, 'Falta la cuenta configurada para exposición continua.');
 
 function fixture({ random = 0, desktop = true, local = new Map(), session = new Map(), storageFails = false,
   now: initialNow = Date.parse('2026-11-05T18:00:00Z') } = {}) {
@@ -109,7 +111,7 @@ function fixture({ random = 0, desktop = true, local = new Map(), session = new 
   vm.runInNewContext(source, context);
   const find = className => created.find(element => element.className === className);
   return {
-    document, media, sidebar, page, main, local,
+    document, window, media, sidebar, page, main, local,
     login: uid => authChanged(uid ? { uid } : null),
     find,
     setNow(value) { now = value; },
@@ -272,4 +274,57 @@ for (const date of ['2026-11-07T06:56:32Z', '2026-11-08T00:00:00Z']) {
   assert.equal(test.find('nv-promotion').parentNode, null);
 }
 
-console.log('Publicidad verificada: vigencia de 48 horas, vencimiento en pestañas abiertas/ocultas, azar, autenticación, 24 horas entre apariciones, 10 segundos visibles, cierre, enlace y ubicación adaptable.');
+{
+  const key = `nv-promotion:peso-ganador-50000-20261105:${alwaysVisibleUserId}`;
+  const local = new Map([[key, String(Date.parse('2026-11-05T17:59:59Z'))]]);
+  const session = new Map([[`${key}:attempted`, '1']]);
+  const test = fixture({ random: 1, local, session });
+  test.login(alwaysVisibleUserId);
+  const card = test.find('nv-promotion');
+  assert(card.parentNode);
+  test.load();
+  test.show();
+  test.advance(60000);
+  assert(card.parentNode, 'La cuenta designada conserva el anuncio después de 10 segundos.');
+  test.window.emit('storage', { key, newValue: String(Date.parse('2026-11-05T18:00:30Z')) });
+  assert(card.parentNode, 'Otra pestaña no oculta el anuncio de esta cuenta.');
+  test.find('nv-promotion-close').emit('click');
+  assert.equal(card.parentNode, null);
+  const reload = fixture({ random: 1, local, session });
+  reload.login(alwaysVisibleUserId);
+  assert(reload.find('nv-promotion').parentNode, 'Vuelve a aparecer al recargar aunque la sesión ya lo haya visto.');
+}
+{
+  const test = fixture({ random: 1, storageFails: true, desktop: false });
+  test.login(alwaysVisibleUserId);
+  test.load();
+  test.show();
+  assert.equal(test.page.children[1], test.find('nv-promotion'));
+  test.advance(60000);
+  assert(test.find('nv-promotion').parentNode);
+  test.login('another-user');
+  assert.equal(test.find('nv-promotion').parentNode, null, 'La excepción se retira al cambiar de cuenta.');
+}
+{
+  const test = fixture();
+  test.login('user-a');
+  test.load();
+  test.show();
+  test.window.emit('storage', { key: 'nv-promotion:peso-ganador-50000-20261105:user-a', newValue: '1' });
+  assert.equal(test.find('nv-promotion').parentNode, null, 'Se conserva el control entre pestañas para otros usuarios.');
+}
+{
+  const test = fixture({ random: 1, now: Date.parse('2026-11-07T06:56:31.999Z') });
+  test.login(alwaysVisibleUserId);
+  test.load();
+  test.show();
+  test.advance(1);
+  assert.equal(test.find('nv-promotion').parentNode, null, 'La exposición continua respeta el vencimiento de campaña.');
+}
+{
+  const test = fixture({ random: 1, now: Date.parse('2026-11-07T06:56:32Z') });
+  test.login(alwaysVisibleUserId);
+  assert.equal(test.find('nv-promotion'), undefined);
+}
+
+console.log('Publicidad verificada: cuenta designada siempre visible durante la vigencia, excepción aislada por sesión autenticada, otros usuarios conservados y vencimiento de 48 horas.');
