@@ -24,6 +24,19 @@
       document.getElementById('nvProfileDialog').showModal();
     });
     nav.insertBefore(profileButton, nav.children[1]);
+    const subscriptionsButton = document.createElement('button');
+    subscriptionsButton.type = 'button'; subscriptionsButton.className = 'side-link'; subscriptionsButton.textContent = 'Premium y paquetes';
+    subscriptionsButton.dataset.nvSubscriptions = ''; subscriptionsButton.setAttribute('aria-haspopup', 'dialog');
+    subscriptionsButton.addEventListener('click', openSubscriptions);
+    const rechargeLink = nav.querySelector('[onclick*="modalSaldo"]');
+    if (rechargeLink) rechargeLink.after(subscriptionsButton); else nav.append(subscriptionsButton);
+    for (const button of document.querySelectorAll('.quick-scroll .quick-action[onclick*="modalPremium"]')) {
+      button.dataset.nvSubscriptions = ''; button.textContent = 'Premium y paquetes'; button.setAttribute('aria-haspopup', 'dialog');
+      button.addEventListener('click', closeMenu);
+    }
+    const subscriptionsModal = document.getElementById('modalPremium');
+    if (subscriptionsModal) { subscriptionsModal.setAttribute('role', 'dialog'); subscriptionsModal.setAttribute('aria-modal', 'true'); subscriptionsModal.setAttribute('aria-label', 'Suscripciones y paquetes'); }
+
     const appearance = document.createElement('div'); appearance.className = 'nv-appearance';
     const appearanceLabel = document.createElement('p'); appearanceLabel.textContent = 'Apariencia'; appearance.append(appearanceLabel);
     for (const [value, label] of [['light', '☀ Claro'], ['dark', '☾ Oscuro']]) {
@@ -40,6 +53,7 @@
     const header = document.querySelector('header > div'); header.prepend(menuButton);
     function closeMenu() { document.body.classList.remove('nv-menu-open'); backdrop.hidden = true; menuButton.setAttribute('aria-expanded', 'false'); }
     function closeAndFocus() { closeMenu(); menuButton.focus(); }
+    function openSubscriptions() { closeMenu(); window.abrirModal('modalPremium'); subscriptionsModal?.querySelector('button')?.focus(); }
     menuButton.addEventListener('click', () => { const open = !document.body.classList.contains('nv-menu-open'); document.body.classList.toggle('nv-menu-open', open); backdrop.hidden = !open; menuButton.setAttribute('aria-expanded', String(open)); if(open) menuClose.focus(); });
     backdrop.addEventListener('click', closeAndFocus); menuClose.addEventListener('click', closeAndFocus);
     menu.addEventListener('click', event => { if(event.target.closest('nav button,nav a')) closeMenu(); });
@@ -69,7 +83,7 @@
     const packageText = document.createElement('p'); packageText.textContent = 'Paquetes para trabajar con mayor volumen.';
     const packagePrice = document.createElement('strong'); packagePrice.textContent = '60 actas · $600';
     const expiry = document.createElement('p'); expiry.className = 'nv-package-expiry'; expiry.textContent = '30 días de vigencia';
-    const packages = document.createElement('button'); packages.type = 'button'; packages.textContent = 'Conocer paquetes'; packages.addEventListener('click', () => window.abrirModal('modalPremium'));
+    const packages = document.createElement('button'); packages.type = 'button'; packages.textContent = 'Conocer paquetes'; packages.addEventListener('click', openSubscriptions);
     packageCard.append(packageTitle, packageText, packagePrice, expiry, packages);
     const help = document.createElement('button'); help.type = 'button'; help.className = 'nv-help-button'; help.textContent = '¿Necesitas ayuda?'; help.addEventListener('click', () => window.toggleChat());
     rail.append(account, packageCard, help); main.append(welcome, content, rail); main.classList.add('nv-dashboard-layout');
