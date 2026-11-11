@@ -48,6 +48,7 @@
         action('Subir',()=>window.abrirSubida(row.id),true,options.canOperate?!options.canOperate(row):false);
         if(options.canReportError&&!options.owner)action('Registrar error',()=>window.reportarErrorSolicitud(row.id),false,options.canOperate?!options.canOperate(row):false);
       }
+      if(row.finalizado && (options.owner||options.canReopen))action('Volver a proceso',()=>window.reabrirSolicitud(row.id),false,options.canOperate?!options.canOperate(row):false);
       if(options.owner&&(row.raw_data?.error_revision_pendiente===true||row.error_revision_pendiente===true)&&row.reembolsado!==true)action('Revisar devolución',()=>window.revisarIncidencia(row.id));
       actions.append(group);tr.append(service,details,actions);body.append(tr);
     }
