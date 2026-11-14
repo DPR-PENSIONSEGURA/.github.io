@@ -1984,35 +1984,8 @@ vacuna_covid: val('vacuna_covid_p'),
             return `${encontrado[0]}: ${valorUtilSolicitud(encontrado[1])}`;
         }
 
-        const reintentosLimiteEnCurso = new Set();
-        window.reintentarConsultaLimite = async (id, boton) => {
-            if (reintentosLimiteEnCurso.has(id)) return;
-            const solicitud = historialSolicitudesCache.find(s => s.id === id);
-            if (!solicitud?.puede_reintentar_limite) return;
-            const costo = Number(solicitud.costo_reintento);
-            if (!Number.isFinite(costo) || costo <= 0) return alert('No se pudo consultar el costo del reintento. Actualiza el historial.');
-            let nss = String(solicitud.nss || '').trim();
-            if (String(solicitud.tipo).toUpperCase() === 'VIGENCIA DE DERECHOS' && !/^\d{11}$/.test(nss)) {
-                const respuesta = prompt('Para recuperar esta vigencia, escribe el NSS de 11 dígitos:');
-                if (respuesta === null) return;
-                nss = respuesta.trim();
-                if (!/^\d{11}$/.test(nss)) return alert('El NSS debe tener exactamente 11 números.');
-            }
-            if (!confirm('Se cobrará nuevamente '+costo.toLocaleString('es-MX',{style:'currency',currency:'MXN'})+' por reintentar '+solicitud.tipo+'. Se conservará la solicitud original. ¿Continuar?')) return;
-            reintentosLimiteEnCurso.add(id);
-            if (boton) { boton.disabled = true; boton.textContent = 'Procesando...'; }
-            try {
-                const resultado = await requestDashboardApi('/api/v1/dashboard/requests/'+encodeURIComponent(id)+'/retry-limit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nss,expected_cost:costo})});
-                await cargarSaldo();
-                await cargarHistorial();
-                alert(resultado.already_retried ? 'Este reintento ya estaba registrado. No se hizo otro cargo.' : 'Reintento registrado. Aparece en morado al inicio de tu historial y se enviará al proveedor.');
-            } catch (error) {
-                alert((error.message || 'No se pudo confirmar el reintento.')+' Si se interrumpió la conexión, actualiza el historial antes de volver a intentar.');
-                await cargarSaldo(); await cargarHistorial();
-            } finally {
-                reintentosLimiteEnCurso.delete(id);
-                if (boton) { boton.disabled = false; boton.textContent = 'Reintentar'; }
-            }
+        window.reintentarConsultaLimite = async () => {
+            alert('El reintento de semanas cotizadas y vigencias está deshabilitado.');
         };
 
 // Phase 2: display, authenticated reads and read-refresh coordination only.
@@ -2090,10 +2063,6 @@ function accionesSolicitud(s) {
     if (url) {
         const button = elementoTexto('button', s.descargado_cliente === true ? 'Descargar de nuevo' : 'Descargar documento', 'ux-action-primary'); button.type = 'button';
         button.addEventListener('click', () => window.marcarDescargado(s.id, url)); box.append(button);
-    }
-    if (s.puede_reintentar_limite === true) {
-        const retry = elementoTexto('button', 'Reintentar por límite', 'ux-action-secondary'); retry.type = 'button';
-        retry.addEventListener('click', () => window.reintentarConsultaLimite(s.id, retry)); box.append(retry);
     }
     const content = document.createElement('div'); content.className = 'ux-row-actions';
     while (box.firstChild) content.append(box.firstChild);
