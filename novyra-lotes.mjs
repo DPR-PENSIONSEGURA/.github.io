@@ -6,10 +6,10 @@ export function separarIdentificadores(texto) {
  return result;
 }
 export function campoPrincipal(t){
- return t.curp?'curp_p':t.pideNumServicio?'num_servicio_p':t.nss?'nss_p':t.rfc?'rfc_p':t.idcif?'idcif_p':t.pideCuestionarioPension?'q_curp':null;
+ return t.principalInfonavit==='nss'?'nss_p':t.pideCreditoInfonavit?'credito_infonavit_p':t.curp?'curp_p':t.pideNumServicio?'num_servicio_p':t.nss?'nss_p':t.rfc?'rfc_p':t.idcif?'idcif_p':t.pideCuestionarioPension?'q_curp':null;
 }
 function validarIdentificadores(values,primary){
- const rules={curp_p:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,q_curp:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,num_servicio_p:/^\d{12}$/,nss_p:/^\d{11}$/,idcif_p:/^\d{11}$/,rfc_p:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/};
+ const rules={credito_infonavit_p:/^\d{5,15}$/,curp_p:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,q_curp:/^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$/,num_servicio_p:/^\d{12}$/,nss_p:/^\d{11}$/,idcif_p:/^\d{11}$/,rfc_p:/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/};
  const invalid=values.find(value=>rules[primary]&&!rules[primary].test(value));
  if(invalid)throw new Error('Revisa el identificador: '+invalid+'. Debe tener el formato completo del campo.');
  return values;
@@ -19,7 +19,7 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
  const primary=t.cfeDatosObligatorios?null:campoPrincipal(t),controls=[...root.querySelectorAll('input,textarea,select')];
  if(primary&&controls.length===1&&controls[0].id===primary)return crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar});
  const items=[{node:root,state:'draft'}];let current=0,busy=false,frozen=false,feedback='',input;
- const names={curp_p:'CURP',q_curp:'CURP',num_servicio_p:'Número de servicio',nss_p:'NSS',rfc_p:'RFC',idcif_p:'IDCIF'};
+ const names={credito_infonavit_p:'Número de crédito',curp_p:'CURP',q_curp:'CURP',num_servicio_p:'Número de servicio',nss_p:'NSS',rfc_p:'RFC',idcif_p:'IDCIF'};
  if(primary){
   const wrap=doc.createElement('div');wrap.className='ux-field-wrap';
   const label=doc.createElement('label');label.className='ux-field-label';label.textContent=names[primary];label.htmlFor=primary+'_lista';
@@ -94,7 +94,7 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
 function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar,validarTotal,actualizar,finalizar}){
  const doc=content.ownerDocument,visible=content.querySelector('#datosConsultaActual'),pay=content.querySelector('#btnPagarTramite');
  const primary=campoPrincipal(t),isCfe=primary==='num_servicio_p';
- const name={curp_p:'CURP',q_curp:'CURP',nss_p:'NSS',rfc_p:'RFC',idcif_p:'IDCIF',num_servicio_p:'número de servicio'}[primary];
+ const name={credito_infonavit_p:'número de crédito',curp_p:'CURP',q_curp:'CURP',nss_p:'NSS',rfc_p:'RFC',idcif_p:'IDCIF',num_servicio_p:'número de servicio'}[primary];
  const original=visible.querySelector('#'+primary),input=doc.createElement('textarea');
  input.id=original.id;input.className=original.className;input.rows=2;input.autocomplete='off';
  input.placeholder=isCfe?'Número de servicio 1, número de servicio 2, número de servicio 3':name+'1, '+name+'2, '+name+'3';input.dataset.multiIdentifier='true';

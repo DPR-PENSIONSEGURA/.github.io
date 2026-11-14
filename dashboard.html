@@ -464,7 +464,7 @@
     </div>
 
     <script type="module">
-        import { crearEditorLote } from "./novyra-lotes.mjs?v=20261102-cfe-individual";
+        import { crearEditorLote } from "./novyra-lotes.mjs?v=20261114-infonavit-api";
         let editorLoteActivo = null;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { initializeFirestore, doc, getDoc, onSnapshot, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -956,7 +956,7 @@ function textoBusquedaServicio(value) {
 function requisitosServicio(t) {
     return [[t.curp, 'CURP'], [t.nss, 'NSS'], [t.rfc, 'RFC con homoclave'], [t.idcif, 'IDCIF'], [t.pideNombre, 'nombre completo'],
         [t.pideCuestionarioPension, 'cuestionario'], [t.pideIneFrente || t.pideIneReverso, 'INE'],
-        [t.pideFotoCli, 'fotografía'], [t.pideCompDomicilio, 'comprobante de domicilio'], [t.pideEdoCta, 'estado de cuenta']]
+        [t.pideNombreInfonavit,'nombres y apellidos'], [t.pidePeriodoInfonavit,'año y mes'], [t.pideEjercicioInfonavit,'año fiscal'], [t.pideCreditoInfonavit,'número de crédito'], [t.pideFotoCli, 'fotografía'], [t.pideCompDomicilio, 'comprobante de domicilio'], [t.pideEdoCta, 'estado de cuenta']]
         .filter(([needed]) => needed).map(([, label]) => label).join(' · ') || 'Consulta los datos al abrir el formulario';
 }
 function catalogoServiciosInicio() {
@@ -1256,6 +1256,12 @@ function prepararPasosCuestionario(content) {
                 if(photo&&(!['image/jpeg','image/png','image/webp'].includes(photo.type)||photo.size>10*1024*1024||photo.size===0)){mostrarErrorTramite('cfe_foto_p','Adjunta una foto JPG, PNG o WEBP de hasta 10 MB.');return false;}
                 if(!name||name.value.trim().length<2||name.value.length>200||name.value.trim().toUpperCase()==='N/A'||/[<>\r\n\x00-\x1f]/.test(name.value)){mostrarErrorTramite('nombre_p','Escribe el nombre completo del titular tal como aparece en el recibo.');return false;}
             }
+            const infChecks=[];
+            if(t.pideCreditoInfonavit)infChecks.push(['credito_infonavit_p',/^\d{5,15}$/,'Escribe un número de crédito de 5 a 15 dígitos.']);
+            if(t.pidePeriodoInfonavit)infChecks.push(['periodo_infonavit_p',/^\d{4}-(0[1-9]|1[0-2])$/,'Selecciona el año y el mes del estado de cuenta.']);
+            if(t.pideEjercicioInfonavit)infChecks.push(['ejercicio_infonavit_p',/^(19|20)\d{2}$/,'Escribe el año fiscal con cuatro dígitos.']);
+            if(t.pideNombreInfonavit){for(const id of ['inf_nombres_p','inf_apellido_paterno_p','inf_apellido_materno_p'])infChecks.push([id,/^\p{L}+(?: +\p{L}+)*$/u,'Escribe nombres y apellidos en sus campos correspondientes.']);infChecks.push(['correo_p',/^[^\s@]+@[^\s@]+\.[^\s@]+$/,'Escribe un correo válido.'],['tel_p',/^\d{10}$/,'Escribe un teléfono de 10 dígitos.']);}
+            for(const[id,regex,message]of infChecks){if(!regex.test(document.getElementById(id)?.value.trim()||'')){mostrarErrorTramite(id,message);return false;}}
             if (t.nss) checks.push(['nss_p', 'nss', 'NSS']);
             if (t.rfc) checks.push(['rfc_p', 'rfc', 'RFC']);
             if (t.idcif) checks.push(['idcif_p', 'idcif', 'IDCIF']);
@@ -1374,6 +1380,10 @@ fields += `
 </select>
 `;
             if (t.extraMsg) fields += `<p class="text-[9px] font-bold ${t.destacadoAmarillo ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-red-600 bg-red-50 border-red-100'} mb-4 p-3 border rounded-xl uppercase">${t.extraMsg}</p>`;
+            if(t.pideNombreInfonavit)fields+=`<input type="text" id="inf_nombres_p" placeholder="NOMBRE(S)" maxlength="100" autocomplete="given-name" class="input-light mb-4 uppercase"><input type="text" id="inf_apellido_paterno_p" placeholder="APELLIDO PATERNO" maxlength="100" class="input-light mb-4 uppercase"><input type="text" id="inf_apellido_materno_p" placeholder="APELLIDO MATERNO" maxlength="100" class="input-light mb-4 uppercase">`;
+            if(t.pideCreditoInfonavit)fields+=`<input type="text" id="credito_infonavit_p" placeholder="NÚMERO DE CRÉDITO" inputmode="numeric" maxlength="15" autocomplete="off" class="input-light mb-4"><p class="ux-field-help">De 5 a 15 dígitos. Conserva los ceros iniciales.</p>`;
+            if(t.pidePeriodoInfonavit)fields+=`<input type="month" id="periodo_infonavit_p" placeholder="PERIODO: AÑO Y MES" class="input-light mb-4">`;
+            if(t.pideEjercicioInfonavit)fields+=`<input type="text" id="ejercicio_infonavit_p" placeholder="AÑO FISCAL (4 DÍGITOS)" inputmode="numeric" maxlength="4" class="input-light mb-4">`;
             if (t.pideNombre && !t.cfeDatosObligatorios) fields += `<input type="text" id="nombre_p" placeholder="NOMBRE COMPLETO" class="input-light mb-4 uppercase">`;
             if (t.curp && permiteVariasCurp(t)) fields += `
                 <div class="mb-4">
@@ -1677,6 +1687,10 @@ fields += `
                 const val = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : "N/A";
 
                 const extra = {
+                    ...(t.pideCreditoInfonavit?{credito_infonavit:val('credito_infonavit_p')}:{}),
+                    ...(t.pidePeriodoInfonavit?{periodo_infonavit:val('periodo_infonavit_p').replace('-','')}:{}),
+                    ...(t.pideEjercicioInfonavit?{ejercicio_infonavit:val('ejercicio_infonavit_p')}:{}),
+                    ...(t.pideNombreInfonavit?{inf_nombres:val('inf_nombres_p'),inf_apellido_paterno:val('inf_apellido_paterno_p'),inf_apellido_materno:val('inf_apellido_materno_p')}:{}),
                     nombre_cliente: val('nombre_p'),
                     rfc: val('rfc_p'),
                     idcif: val('idcif_p'),
@@ -1972,6 +1986,7 @@ vacuna_covid: val('vacuna_covid_p'),
                 ['NÚM. SERVICIO', extra.num_servicio],
                 ['NÚM. SERVICIO', extra.numero_servicio],
                 ['NÚM. SERVICIO', extra.service_number],
+                ['CRÉDITO', extra.credito_infonavit],
                 ['FOLIO', extra.folio],
                 ['NOMBRE', extra.nombre_cliente],
                 ['CURP', cuestionario.curp],
@@ -2253,7 +2268,7 @@ document.addEventListener('visibilitychange', () => {
 
         window.marcarDescargado = async (id, url) => {
             let archivoUrl = normalizarUrlArchivo(url);
-            if (!archivoUrl) {
+            if (!archivoUrl || /\/api\/v1\/infonavit-api\/result\//.test(archivoUrl)) {
                 try {
                     const data = await requestDashboardApi(`/api/v1/dashboard/requests/${encodeURIComponent(id)}/file-url`);
                     archivoUrl = normalizarUrlArchivo(data.url);
