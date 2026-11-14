@@ -1595,7 +1595,7 @@ fields += `
 
         let enviandoTramite = false;
 
-        window.prepararConsultaIndividual = async (t, c, validarSolo=false) => {
+        window.prepararConsultaIndividual = async (t, c, validarSolo=false, posicionLote=1) => {
             if (enviandoTramite) return;
             const userActual = auth.currentUser;
             const uidActual = userActual?.uid || userUID;
@@ -1607,6 +1607,9 @@ fields += `
             const costoCatalogo = c, paqueteSeleccionado = paqueteParaTramite(t);
             if(t.paquete_id && (!paqueteSeleccionado || paqueteSeleccionado.id!==t.paquete_id)){alert('El paquete mostrado ya no está disponible. Actualiza los servicios antes de enviar.');return;}
             if(paqueteSeleccionado)c=0;
+            const esInfonavit=String(t.categoria||'').toUpperCase()==='INF'||(TRAMITES.INF||[]).some(s=>normalizarClavePrecio(s.nombre)===normalizarClavePrecio(t.nombre));
+            const cupoPremium=Number(premiumState?.solicitudes_restantes??premiumState?.infonavit_restantes??0);
+            if(esInfonavit&&premiumState?.activo===true&&posicionLote<=cupoPremium)c=0;
             if (saldoGlobal < c) return alert("Saldo insuficiente.");
 
             const botonPago = document.querySelector('#modalTramite .orange-btn');

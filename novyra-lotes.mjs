@@ -68,13 +68,13 @@ export function crearEditorLote({content,fields,t,precio,mejorar,preparar,enviar
   try{
    // Validate every independent form before any upload, charge or request.
    let total=0;
-   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true);if(!checked){feedback='Revisa los datos de la solicitud '+(items.indexOf(item)+1)+(primary?' · '+item.node.querySelector('#'+primary).value:'')+'.';return}total+=Number(checked.precio||0)}
+   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true,pending.indexOf(item)+1);if(!checked){feedback='Revisa los datos de la solicitud '+(items.indexOf(item)+1)+(primary?' · '+item.node.querySelector('#'+primary).value:'')+'.';return}total+=Number(checked.precio||0)}
    if(validarTotal&&!validarTotal(total,pending.length))return;
    if(!confirm(`Enviar ${pending.length} consultas individuales.\nImporte estimado total: $${total.toFixed(2)} MXN.\nSe aplican los paquetes y beneficios vigentes de cada solicitud. ¿Continuar?`))return;
    frozen=true;if(input)input.readOnly=true;
    for(let i=0;i<pending.length;i++){
     const item=pending[i];mount(items.indexOf(item));pay.textContent=`ENVIANDO ${i+1} DE ${pending.length}…`;pay.disabled=true;
-    const prepared=await preparar(t,precio,false);if(!prepared)return;
+    const prepared=await preparar(t,precio,false,i+1);if(!prepared)return;
     const body={...prepared.body,detalles_extra:{...prepared.body.detalles_extra,lote_total:pending.length,lote_posicion:i+1}};
     try{
      const result=await enviar(body);
@@ -119,14 +119,14 @@ function crearEditorCurpsSimple({content,fields,t,precio,mejorar,preparar,enviar
   busy=true;input.disabled=true;pay.disabled=true;status.textContent='';let sent=0;
   try{
    let total=0;
-   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true);if(!checked){status.textContent=('Revisa '+name+': ')+item.node.querySelector('#'+primary).value;return}total+=Number(checked.precio||0)}
+   for(const item of pending){mount(items.indexOf(item));const checked=await preparar(t,precio,true,pending.indexOf(item)+1);if(!checked){status.textContent=('Revisa '+name+': ')+item.node.querySelector('#'+primary).value;return}total+=Number(checked.precio||0)}
    if(validarTotal&&!validarTotal(total,pending.length))return;
    restore();
    if(!confirm(`Enviar ${pending.length} solicitud${pending.length===1?'':'es'} individual${pending.length===1?'':'es'}.\nImporte estimado total: $${total.toFixed(2)} MXN.\n¿Continuar?`))return;
    frozen=true;
    for(let i=0;i<pending.length;i++){
     const item=pending[i];mount(items.indexOf(item));pay.textContent=`Enviando ${i+1} de ${pending.length}…`;pay.disabled=true;
-    const prepared=await preparar(t,precio,false);if(!prepared)return;
+    const prepared=await preparar(t,precio,false,i+1);if(!prepared)return;
     const body={...prepared.body,detalles_extra:{...prepared.body.detalles_extra,lote_total:pending.length,lote_posicion:i+1}};
     try{
      const result=await enviar(body);
