@@ -16,7 +16,7 @@
   window.nvPanelReady=(async()=>{
     try{
       if(!sessionStorage.getItem('dpr_staff_token'))throw new Error('Inicia sesión de nuevo.');
-      let {staff}=await call('session');if(staff.must_change_password)staff=await privatePassword();
+      let {staff}=await call('session');if(staff.role==='proveedor'){location.replace(new URL('proveedores/',document.querySelector('script[src*="panel-session.js"]').src).href);return new Promise(()=>{});}if(staff.must_change_password)staff=await privatePassword();
       localStorage.setItem('staffSession',JSON.stringify(staff));window.nvPanelVerified=Object.freeze(staff);
       document.body.classList.toggle('nv-owner',staff.is_owner===true);document.body.classList.toggle('nv-collaborator',staff.is_owner!==true);
       return staff;

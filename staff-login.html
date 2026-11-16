@@ -18,13 +18,13 @@
     <div class="space-y-4">
       <div>
         <label class="block text-[11px] font-black uppercase text-slate-500 mb-2">Usuario</label>
-        <input id="staffUser" type="text" placeholder="admin o usuario del operador"
+        <input id="staffUser" type="text" autocomplete="username" autocapitalize="none" placeholder="admin o usuario del operador"
           class="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:border-blue-600 font-bold">
       </div>
 
       <div>
         <label class="block text-[11px] font-black uppercase text-slate-500 mb-2">Contraseña</label>
-        <input id="staffPass" type="password" placeholder="Tu contraseña"
+        <input id="staffPass" type="password" autocomplete="current-password" placeholder="Tu contraseña"
           class="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:border-blue-600 font-bold">
       </div>
 
@@ -77,7 +77,7 @@
 
         localStorage.setItem('staffSession', JSON.stringify(data.staff));
         sessionStorage.setItem('dpr_staff_token', data.token);
-        window.location.href = 'admin.html';
+        window.location.href = data.staff?.role === 'proveedor' ? '/proveedores/' : 'admin.html';
       } catch (error) {
         mostrarError(error.message || 'No se pudo iniciar sesión.');
       } finally {
