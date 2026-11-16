@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOVYRA SERVICES | Panel Asesor</title>
+    <link rel="stylesheet" href="./novyra-miuc.css?v=20261116-1">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -465,6 +466,7 @@
 
     <script type="module">
         import { crearEditorLote } from "./novyra-lotes.mjs?v=20261114-infonavit-api";
+        import { createMiucUI } from "./novyra-miuc.mjs?v=20261116-1";
         let editorLoteActivo = null;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { initializeFirestore, doc, getDoc, onSnapshot, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -816,7 +818,7 @@ async function cargarPreciosBackend() {
                 headers["Content-Type"] = "application/json";
             }
 
-            const solicitudIndividual=path==="/api/v1/dashboard/requests" && String(options.method||"GET").toUpperCase()==="POST";
+            const solicitudIndividual=(path==="/api/v1/dashboard/requests" && String(options.method||"GET").toUpperCase()==="POST")||(path.startsWith("/api/v1/dashboard/infonavit-miuc/") && String(options.method||"GET").toUpperCase()!=="GET");
             let response;
             let lastNetworkError = null;
 
@@ -1296,8 +1298,15 @@ function prepararPasosCuestionario(content) {
             if (!solicitaFecha) fecha.value = '';
         };
 
+        let consultaMiuc=null;
+        window.abrirConsultaMiuc = reference => {
+            const t=(TRAMITES.INF||[]).find(x=>x.pideMiuc)||{nombre:'Precalificacion MIUC',categoria:'INF',precio:80};
+            consultaMiuc ||= createMiucUI();
+            return consultaMiuc.open({api:requestDashboardApi,price:obtenerPrecioTramite(t)||80,getPremium:()=>obtenerBeneficioPremium({...t,categoria:'INF'}),after:async()=>{await cargarPreciosBackend();await cargarSaldo();await cargarHistorial();}},reference||null);
+        };
         window.prepararTramite = (t) => {
             if (!t || t.pausado === true || editorLoteActivo?.busy) return;
+            if(t.pideMiuc)return window.abrirConsultaMiuc();
             const content = document.getElementById('formContent');
             t = {...t,paquete_id:paqueteParaTramite(t)?.id || null};
             let pFinal = obtenerPrecioTramite(t);
@@ -2081,6 +2090,9 @@ function accionesSolicitud(s) {
     if (url) {
         const button = elementoTexto('button', s.descargado_cliente === true ? 'Descargar de nuevo' : 'Descargar documento', 'ux-action-primary'); button.type = 'button';
         button.addEventListener('click', () => window.marcarDescargado(s.id, url)); box.append(button);
+    }
+    if(!url && textoBusquedaServicio(s.tipo)==='precalificacion miuc' && s.reembolsado!==true && grupoSolicitud(s)==='proceso'){
+        const resume=elementoTexto('button','Continuar MIUC','ux-action-primary');resume.type='button';resume.addEventListener('click',()=>window.abrirConsultaMiuc(s.id));box.append(resume);
     }
     const content = document.createElement('div'); content.className = 'ux-row-actions';
     while (box.firstChild) content.append(box.firstChild);
