@@ -466,7 +466,7 @@
 
     <script type="module">
         import { crearEditorLote } from "./novyra-lotes.mjs?v=20261114-infonavit-api";
-        import { createMiucUI } from "./novyra-miuc.mjs?v=20261116-1";
+        import { createMiucUI } from "./novyra-miuc.mjs?v=20261116-entrega-2";
         let editorLoteActivo = null;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { initializeFirestore, doc, getDoc, onSnapshot, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -955,6 +955,10 @@ async function cargarPreciosBackend() {
 function textoBusquedaServicio(value) {
     return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
+function nombreVisibleServicio(value) {
+    const name = String(value || 'Solicitud');
+    return textoBusquedaServicio(name) === 'precalificacion miuc' ? 'Precalificación Infonavit' : name;
+}
 function requisitosServicio(t) {
     return [[t.curp, 'CURP'], [t.nss, 'NSS'], [t.rfc, 'RFC con homoclave'], [t.idcif, 'IDCIF'], [t.pideNombre, 'nombre completo'],
         [t.pideCuestionarioPension, 'cuestionario'], [t.pideIneFrente || t.pideIneReverso, 'INE'],
@@ -968,7 +972,7 @@ function tarjetaAccesoServicio(t) {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'ux-service'; button.disabled = t.pausado === true;
     const heading = document.createElement('span'); heading.className = 'ux-service-top';
-    const title = document.createElement('strong'); title.textContent = t.nombre;
+    const title = document.createElement('strong'); title.textContent = nombreVisibleServicio(t.nombre);
     const price = document.createElement('span'); price.className = 'ux-price';
     price.textContent = t.pausado ? 'No disponible' : obtenerEtiquetaPrecioTramite(t);
     heading.append(title, price);
@@ -1012,7 +1016,7 @@ window.buscarServiciosDashboard = () => {
     if (!preciosBackendListos) { status.textContent = 'Estamos cargando el catálogo. Intenta de nuevo en un momento.'; return; }
     const words = query.split(' ');
     const matches = catalogoServiciosInicio().filter(t => {
-        const haystack = textoBusquedaServicio([t.nombre, t.categoria, requisitosServicio(t), t.extraMsg || ''].join(' '));
+        const haystack = textoBusquedaServicio([t.nombre, nombreVisibleServicio(t.nombre), t.categoria, requisitosServicio(t), t.extraMsg || ''].join(' '));
         return words.every(word => haystack.includes(word));
     }).sort((a, b) => Number(!!a.pausado) - Number(!!b.pausado));
     status.textContent = matches.length ? `${matches.length} ${matches.length === 1 ? 'servicio encontrado' : 'servicios encontrados'}. Elige uno para ver el formulario.` : 'No encontramos ese servicio. Prueba con “semanas”, “acta” o “RFC”.';
@@ -1133,7 +1137,7 @@ function prepararPasosCuestionario(content) {
                             : 'text-slate-900';
                 const actionAttr = pausado ? `aria-disabled="true"` : `onclick="window.prepararTramite(JSON.parse('${conf}'))"`;
                 html += `<div ${actionAttr} role="button" tabindex="${pausado ? -1 : 0}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" class="service-card ${cardClass} ${pausado ? '' : 'cursor-pointer transition hover:-translate-y-1 hover:shadow-xl'}">
-                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${servicio.nombre}</p><p class="text-[10px] font-black ${detalleColor} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
+                    <div class="flex items-start justify-between gap-3"><div><p class="font-black text-[12px] uppercase text-slate-900 leading-tight">${nombreVisibleServicio(servicio.nombre)}</p><p class="text-[10px] font-black ${detalleColor} mt-2">${detalleCard}</p></div><span class="${badgeClass} border px-3 py-1 rounded-full font-black text-[10px]">${etiquetaPrecio}</span></div>
                     <p class="ux-service-info mt-3">Necesitas: ${requisitosServicio(servicio)}</p>
                     <div class="mt-5 flex items-center justify-between"><span class="text-[9px] font-black uppercase ${pausado ? 'text-red-500' : 'text-slate-400'}">${pausado ? 'Temporalmente pausado' : 'Iniciar trámite'}</span><span class="w-9 h-9 rounded-2xl ${pausado ? 'bg-slate-300' : 'bg-slate-900'} text-white flex items-center justify-center font-black text-sm">${pausado ? '—' : 'Ir'}</span></div>
                 </div>`;
@@ -1577,7 +1581,7 @@ fields += `
             }
 
             content.innerHTML = `
-                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">NOVYRA SERVICES</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${t.nombre}</h2>
+                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 mb-2">NOVYRA SERVICES</p><h2 class="text-2xl font-black text-slate-900 mb-6 uppercase">${nombreVisibleServicio(t.nombre)}</h2>
                 <div id="datosConsultaActual">${fields}</div>
                 <button id="btnPagarTramite" class="w-full orange-btn py-4 rounded-2xl font-black uppercase text-xs">
                     ${textoBotonPago}
@@ -2045,7 +2049,7 @@ function abrirDetalleSolicitud(s, trigger) {
     header.append(title,close); modal.append(header);
     const list = document.createElement('dl');
     const detail = (label,value) => { list.append(elementoTexto('dt',label),elementoTexto('dd',value)); };
-    detail('Trámite',s.tipo || 'Solicitud'); detail('Datos',datoPrincipalSolicitud(s));
+    detail('Trámite',nombreVisibleServicio(s.tipo)); detail('Datos',datoPrincipalSolicitud(s));
     detail('Solicitada',fechaPanel(s.fecha || s.fecha_creacion || s.fechaSolicitud));
     detail('Estado',s.estatus || 'Estado pendiente de actualizar');
     if (s.fecha_finalizacion) detail('Cerrada',fechaPanel(s.fecha_finalizacion));
@@ -2075,7 +2079,7 @@ function resumenErrorSolicitud(s) {
 }
 function detalleSolicitud(s) {
     const box = document.createElement('div'); box.className = 'ux-request-info';
-    box.append(elementoTexto('strong',s.tipo || 'Solicitud'),elementoTexto('p',datoPrincipalSolicitud(s),'ux-request-data'));
+    box.append(elementoTexto('strong',nombreVisibleServicio(s.tipo)),elementoTexto('p',datoPrincipalSolicitud(s),'ux-request-data'));
     return box;
 }
 function estadoSolicitud(s) {
@@ -2098,7 +2102,7 @@ function accionesSolicitud(s) {
     while (box.firstChild) content.append(box.firstChild);
     if (!content.childElementCount) content.append(elementoTexto('span','—','ux-muted'));
     const info = elementoTexto('button','i','ux-info-button'); info.type = 'button';
-    info.setAttribute('aria-label','Ver detalles de ' + (s.tipo || 'solicitud')); info.title = 'Ver detalles de la solicitud';
+    info.setAttribute('aria-label','Ver detalles de ' + nombreVisibleServicio(s.tipo)); info.title = 'Ver detalles de la solicitud';
     info.onclick = () => abrirDetalleSolicitud(s,info);
     box.append(content,info);
     return box;
@@ -2132,7 +2136,7 @@ window.cambiarPaginaSolicitudes = delta => { paginaSolicitudes = Math.max(1, pag
 function buscarSeguimiento() {
     const search = textoBusquedaServicio(document.getElementById('buscadorHistorial')?.value);
     if (search !== busquedaSolicitudesAnterior) { paginaSolicitudes = 1; busquedaSolicitudesAnterior = search; }
-    const rows = historialSolicitudesCache.filter(s => (filtroSolicitudes === 'todas' || grupoSolicitud(s) === filtroSolicitudes) && textoBusquedaServicio([s.tipo,s.curp,s.nss,s.rfc,s.estatus,s.detalles_extra?.nombre_cliente,s.detalles_extra?.rfc].join(' ')).includes(search));
+    const rows = historialSolicitudesCache.filter(s => (filtroSolicitudes === 'todas' || grupoSolicitud(s) === filtroSolicitudes) && textoBusquedaServicio([s.tipo,nombreVisibleServicio(s.tipo),s.curp,s.nss,s.rfc,s.estatus,s.detalles_extra?.nombre_cliente,s.detalles_extra?.rfc].join(' ')).includes(search));
     renderSeguimiento(rows);
 }
 let pasoRecarga = 1;
