@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Estado de servicios | NovyraServices</title>
+  <meta name="description" content="Consulta el estado de los servicios de Novyra y el historial de los últimos 30 días.">
+  <meta name="theme-color" content="#262262">
+  <link rel="icon" href="/icons/favicon-32.png">
+  <link rel="stylesheet" href="/estado-servicios.css?v=20261123-1">
+  <script src="/novyra-apariencia.js?v=20261123-1" defer></script>
+  <script src="/estado-servicios.mjs?v=20261123-1" type="module"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/dashboard.html"><img src="/icons/favicon-192.png" width="36" height="36" alt="">Novyra<span>Portal de servicios</span></a><a class="button back" href="/dashboard.html">← Volver al panel</a></header>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">INFORMACIÓN DE TU PORTAL</p><h1>Estado de los servicios</h1>
+      <p>Revisa cómo están funcionando antes de solicitar tu trámite.</p>
+      <div class="hero-bottom"><span class="live"><span aria-hidden="true">●</span> Últimos 30 días</span><span>Hora de Ciudad de México</span></div>
+    </section>
+    <div class="update-line"><p id="updated" role="status" aria-live="polite">Consultando mediciones…</p><button class="button" id="refresh" type="button">Actualizar</button></div>
+    <p class="notice" id="load-error" role="alert" hidden></p>
+    <section class="panel" aria-label="Monitoreo de servicios">
+      <div class="panel-heading"><div><h2>Así van nuestros servicios</h2><p>Selecciona un día para consultar su detalle.</p></div><span id="service-count" class="muted"></span></div>
+      <div class="filters"><label>Buscar servicio<input id="search" type="search" placeholder="Ej. semanas, CFE, Infonavit" autocomplete="off"></label><label>Categoría<select id="category"><option value="all">Todas las categorías</option></select></label></div>
+      <div class="legend" aria-label="Significado de los colores"><span><i data-state="ok"></i>Operativo</span><span><i data-state="slow"></i>Con demoras</span><span><i data-state="down"></i>Interrupción</span><span><i data-state="paused"></i>Pausado</span><span><i data-state="unknown"></i>Sin medición</span></div>
+      <div id="services" class="services" aria-busy="true"><p class="empty">Cargando el estado real de los servicios…</p></div>
+      <div class="range-label"><span id="from-day">Hace 29 días</span><span>Hoy</span></div>
+    </section>
+    <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-title"><button class="button dialog-close" id="detail-close" type="button">Cerrar ×</button><section class="detail" id="detail"><p class="eyebrow">DETALLE DEL DÍA</p><h2 id="detail-title">Selecciona un servicio</h2><p class="muted">Aquí podrás consultar sus mediciones y avisos.</p></section></dialog>
+    <section class="method"><h2>Cómo leer este historial</h2><p>Cada barra representa un día y muestra el estado más desfavorable observado. El estado actual se calcula con entregas, demoras y fallas técnicas recientes; una entrega aislada no garantiza que todas las solicitudes se completen.</p><p>Los errores de datos, una CURP sin NSS y los límites de consulta individuales no cuentan como una interrupción del servicio. El gris indica que faltan mediciones o actividad suficiente. Los días anteriores al inicio del monitoreo se mantienen en gris.</p><p id="started">Actualización automática cada 5 minutos. No se realizan trámites de pago para medir el estado.</p></section>
+  </main>
+  <footer>NovyraServices · Información para acompañar tus solicitudes.</footer>
+</body>
+</html>
