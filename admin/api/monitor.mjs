@@ -21,7 +21,7 @@ export function createMonitor(root,call=api){
    const row=make('tr'),identity=make('td'),service=make('td'),state=make('td'),updated=make('td',date(item.updated_at),'date'),action=make('td');
    identity.append(make('span',item.identifier||'Identificador pendiente','identifier'),make('span','Folio: '+item.request_ref,'ref'));
    service.append(make('span',names[item.service]||item.service,'service'),make('span',item.provider,'sub'),make('span',item.origin==='sambot'?'Sam Bot':'Novyra','origin-label'));
-   state.append(chip(item));if(stages[item.state])state.append(make('small',stages[item.state],'sub'));
+   state.append(chip(item));if(item.retry_at)state.append(make('small','Reintento '+item.retry_count+' de 2 · '+date(item.retry_at),'sub'));else if(stages[item.state])state.append(make('small',(item.retry_count?'Reintento '+item.retry_count+' de 2 · ':'')+stages[item.state],'sub'));
    const button=make('button','Ver respuesta','button secondary small');button.type='button';button.setAttribute('aria-label','Ver respuesta de '+(item.identifier||item.request_ref));button.addEventListener('click',()=>open(item));action.append(button);
    row.append(identity,service,state,updated,action);box.append(row);
   }
@@ -43,6 +43,7 @@ export function createMonitor(root,call=api){
   const box=$('detail-content'),item=data.item;box.replaceChildren();$('detail-title').textContent='Respuesta de '+item.provider;
   box.append(chip(item));const grid=make('dl',undefined,'detail-meta');
   field(grid,'Servicio',names[item.service]||item.service);field(grid,'CURP / NSS',item.identifier);field(grid,'Folio de Novyra / Sam Bot',item.request_ref);field(grid,'Origen',item.origin==='sambot'?'Sam Bot':'Novyra');field(grid,'Solicitud creada',date(item.created_at));field(grid,'Último cambio',date(item.updated_at));if(item.provider_uuid)field(grid,'Folio de la API',item.provider_uuid);box.append(grid);
+  if(item.retry_count){field(grid,'Reintentos automáticos',item.retry_count+' de 2');if(item.retry_at)field(grid,'Próximo intento',date(item.retry_at));}
   if(item.code)box.append(make('p','Código registrado: '+item.code,'technical'));
   if(stages[item.state])box.append(make('p',stages[item.state]+'.','detail-note'));
   for(const note of data.notes||[])box.append(make('p',note,'detail-note'));
