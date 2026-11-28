@@ -10,10 +10,10 @@ export function createBilling({request,render,account,meta,showMessage}){
  function save(v){try{sessionStorage.setItem(storageKey,JSON.stringify(v));}catch{}}
  function update(type=current){
   current=type;box.hidden=false;balance.textContent='Saldo Novyra: '+money(config.balance);
-  const available=meta.services?.find(s=>s.id===type)?.available!==false,monthly=['pension','ley97'].includes(type),plan=config.shared_access?'imss_73_97':type,access=config.accesses?.find(x=>x.plan===plan&&Date.parse(x.inicio)<=Date.now()&&Date.parse(x.fin)>Date.now());
+  const availability=meta.services?.find(s=>s.id===type)?.available,available=type==='unemployment'?availability===true:availability!==false,monthly=['pension','ley97'].includes(type),plan=config.shared_access?'imss_73_97':type,access=config.accesses?.find(x=>x.plan===plan&&Date.parse(x.inicio)<=Date.now()&&Date.parse(x.fin)>Date.now());
   price.textContent=(!config.enabled||!available)?'En preparación':config.premium_included?'Incluido en tu Premium':monthly&&access?'Tu acceso está vigente':monthly?'$199 por 30 días':'$89 por uso';
   detail.textContent=(!config.enabled||!available)?'Estamos preparando el acceso. No se realizarán cargos.':config.premium_included?'Puedes calcular sin cargo adicional mientras tu Premium esté activo.':monthly&&access?'Puedes usar '+(config.shared_access?'Ley 73 y Ley 97':'esta calculadora')+' hasta el '+when(access.fin)+'.':monthly?(config.shared_access?'Incluye Ley 73 y Ley 97.':'Acceso para esta calculadora.')+' La vigencia comienza con tu primer cálculo confirmado. Sin renovación automática.':'Se cobra al obtener un resultado. Volver a abrirlo o imprimirlo no tiene costo.';
-  for(const b of document.querySelectorAll('.forms [type=submit]'))b.disabled=!config.enabled||meta.services?.find(s=>s.id===b.closest('form').id)?.available===false;
+  for(const b of document.querySelectorAll('.forms [type=submit]')){const id=b.closest('form').id,flag=meta.services?.find(s=>s.id===id)?.available;b.disabled=!config.enabled||(id==='unemployment'?flag!==true:flag===false);}
  }
  async function confirm(q){
   if(q.price===0)return true;
