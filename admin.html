@@ -812,7 +812,7 @@ body > .max-w-7xl { max-width:1560px; }
           <div>
             <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-600">Trámites del portal Novyra</p>
             <h2 class="text-xl font-black uppercase italic text-slate-800">Inventario, ventas y utilidad</h2>
-            <p class="text-xs font-bold text-slate-500 mt-1">Importe cobrado por los trámites entregados, menos devoluciones y costos de proveedor.</p>
+            <p class="text-xs font-bold text-slate-500 mt-1">Importe cobrado por trámites entregados y calculadoras de pensiones, menos devoluciones y costos de proveedor.</p>
           </div>
           <div class="flex flex-wrap items-end gap-2">
             <label class="grid gap-1 text-xs font-bold text-slate-600">Fecha · Ciudad de México
@@ -823,12 +823,12 @@ body > .max-w-7xl { max-width:1560px; }
         </div>
 
         <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-3">
-          <div class="op-card"><p class="text-xs font-bold text-slate-500">Trámites entregados</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">—</p></div>
+          <div class="op-card"><p class="text-xs font-bold text-slate-500">Entregas y cobros de calculadoras</p><p id="vdVentasHoy" class="text-3xl font-black text-blue-700">—</p></div>
           <div class="op-card"><p class="text-xs font-bold text-slate-500">Ingreso después de devoluciones</p><p id="vdIngresoHoy" class="text-3xl font-black text-emerald-700">—</p><small id="vdDevoluciones" class="font-bold text-slate-500"></small></div>
           <div class="op-card"><p class="text-xs font-bold text-slate-500">Costos de proveedor registrados</p><p id="vdCostoHoy" class="text-3xl font-black text-amber-600">—</p></div>
           <div class="op-card"><p class="text-xs font-bold text-slate-500">Utilidad del día</p><p id="vdUtilidadHoy" class="text-3xl font-black text-purple-700">—</p></div>
         </div>
-        <p id="vdEstado" class="text-xs font-bold text-slate-600 mb-5" role="status"></p>
+        <p id="vdEstado" class="text-xs font-bold text-slate-600 mb-2" role="status"></p><p id="vdCalculadoras" class="text-xs font-bold text-purple-700 mb-5"></p>
 
         <div class="op-card mb-5">
           <h3 class="text-sm font-black text-blue-700 mb-2">Detalle por trámite</h3>
@@ -1974,7 +1974,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
         let vdVersion = 0;
         let vdInventory = [];
         const vdAmount = amount => amount === null ? 'Por confirmar' : dineroMX(amount);
-        const vdSource = { capturado: 'Costo capturado', inventario: 'Tarifa de inventario', solicitud: 'Costo de la solicitud', pendiente: 'Costo pendiente' };
+        const vdSource = { capturado: 'Costo capturado', inventario: 'Tarifa de inventario', solicitud: 'Costo de la solicitud', pendiente: 'Costo pendiente', calculadora: 'Sin costo de proveedor' };
         const vdTime = new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit' });
 
         window.renderVentaDirecta = async function () {
@@ -1993,6 +1993,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                 vd('vdIngresoHoy').textContent = dineroMX(data.ingresos);
                 vd('vdCostoHoy').textContent = dineroMX(data.costos);
                 vd('vdUtilidadHoy').textContent = vdAmount(data.utilidad);
+                vd('vdCalculadoras').textContent = data.calculadoras?.cobros ? 'Pensiones: ' + data.calculadoras.cobros + ' cobros · ' + dineroMX(data.calculadoras.ingresos) + '. Los usos incluidos en accesos vigentes no se vuelven a sumar como ingreso.' : '';
                 vd('vdDevoluciones').textContent = data.devoluciones ? 'Devuelto de estas entregas ' + dineroMX(data.devoluciones) : '';
                 vd('vdEstado').textContent = data.sin_costo
                     ? `Falta el costo de proveedor de ${data.sin_costo} ${data.sin_costo === 1 ? 'entrega' : 'entregas'}. El total de utilidad se confirma al completar esos costos.`
@@ -2006,14 +2007,14 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
                         <td class="p-3 text-right">${row.sin_costo ? (row.costos ? dineroMX(row.costos) + ' registrados' : 'Pendiente') : dineroMX(row.costos)}</td>
                         <td class="p-3 text-right font-bold">${vdAmount(row.utilidad)}</td>
                         <td class="p-3">
-                            <details>
+                            ${row.fuente === 'calculadora' ? '<span class="text-purple-700 font-bold">Sin costo de proveedor</span>' : `<details>
                                 <summary class="cursor-pointer text-blue-700 font-bold">${row.sin_costo ? 'Capturar costo' : vdSource[row.fuente]}</summary>
                                 <form class="flex flex-wrap gap-2 mt-2 min-w-[180px]" data-vd-cost="${escape(row.key)}" data-vd-day="${escape(data.fecha)}">
                                     <input aria-label="Costo total del proveedor para ${escape(row.servicio)}" type="number" name="costo" required min="0" max="10000000" step="0.01" class="border rounded-lg px-2 py-1 w-32" placeholder="Costo total" value="${row.fuente === 'capturado' ? row.costos : ''}">
                                     <button type="submit" class="op-btn take">Guardar</button>
                                     ${row.fuente === 'capturado' ? '<button type="submit" class="op-btn" value="quitar" formnovalidate>Quitar ajuste</button>' : ''}
                                 </form>
-                            </details>
+                            </details>`}
                         </td>
                     </tr>`).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-500">Sin entregas.</td></tr>';
                 vd('vdUltimasVentas').innerHTML = data.recientes.map(row => `
@@ -3506,7 +3507,7 @@ window.paginaSuscripcionAdmin=delta=>{paginaSuscripcionesAdmin=Math.max(0,pagina
 
     </script>
 <script type="module" src="/admin/api/navigation.mjs?v=20261124-1"></script>
-<script type="module" src="/admin/pensiones/navigation.mjs?v=20261126-1"></script>
+<script type="module" src="/admin/pensiones/navigation.mjs?v=20261127-cobros1"></script>
 </body>
 </html>
 
