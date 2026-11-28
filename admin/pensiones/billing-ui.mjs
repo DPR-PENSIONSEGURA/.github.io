@@ -1,4 +1,4 @@
-const names={pension:'Pensión IMSS Ley 73',ley97:'Retiro IMSS Ley 97',average:'Salario de 250 semanas',m40:'Aportaciones y continuidad Modalidad 40'};
+const names={pension:'Pensión IMSS Ley 73',ley97:'Retiro IMSS Ley 97',average:'Salario de 250 semanas',m40:'Aportaciones y continuidad Modalidad 40',unemployment:'Descuento de semanas por desempleo'};
 const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n);
 const when=v=>new Intl.DateTimeFormat('es-MX',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Mexico_City'}).format(new Date(v));
 function node(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(className)n.className=className;return n;}
@@ -10,10 +10,10 @@ export function createBilling({request,render,account,meta,showMessage}){
  function save(v){try{sessionStorage.setItem(storageKey,JSON.stringify(v));}catch{}}
  function update(type=current){
   current=type;box.hidden=false;balance.textContent='Saldo Novyra: '+money(config.balance);
-  const monthly=['pension','ley97'].includes(type),plan=config.shared_access?'imss_73_97':type,access=config.accesses?.find(x=>x.plan===plan&&Date.parse(x.inicio)<=Date.now()&&Date.parse(x.fin)>Date.now());
-  price.textContent=!config.enabled?'En preparación':config.premium_included?'Incluido en tu Premium':monthly&&access?'Tu acceso está vigente':monthly?'$199 por 30 días':'$89 por uso';
-  detail.textContent=!config.enabled?'Estamos preparando el acceso. No se realizarán cargos.':config.premium_included?'Puedes calcular sin cargo adicional mientras tu Premium esté activo.':monthly&&access?'Puedes usar '+(config.shared_access?'Ley 73 y Ley 97':'esta calculadora')+' hasta el '+when(access.fin)+'.':monthly?(config.shared_access?'Incluye Ley 73 y Ley 97.':'Acceso para esta calculadora.')+' La vigencia comienza con tu primer cálculo confirmado. Sin renovación automática.':'Se cobra al obtener un resultado. Volver a abrirlo o imprimirlo no tiene costo.';
-  for(const b of document.querySelectorAll('.forms [type=submit]'))b.disabled=!config.enabled;
+  const available=meta.services?.find(s=>s.id===type)?.available!==false,monthly=['pension','ley97'].includes(type),plan=config.shared_access?'imss_73_97':type,access=config.accesses?.find(x=>x.plan===plan&&Date.parse(x.inicio)<=Date.now()&&Date.parse(x.fin)>Date.now());
+  price.textContent=(!config.enabled||!available)?'En preparación':config.premium_included?'Incluido en tu Premium':monthly&&access?'Tu acceso está vigente':monthly?'$199 por 30 días':'$89 por uso';
+  detail.textContent=(!config.enabled||!available)?'Estamos preparando el acceso. No se realizarán cargos.':config.premium_included?'Puedes calcular sin cargo adicional mientras tu Premium esté activo.':monthly&&access?'Puedes usar '+(config.shared_access?'Ley 73 y Ley 97':'esta calculadora')+' hasta el '+when(access.fin)+'.':monthly?(config.shared_access?'Incluye Ley 73 y Ley 97.':'Acceso para esta calculadora.')+' La vigencia comienza con tu primer cálculo confirmado. Sin renovación automática.':'Se cobra al obtener un resultado. Volver a abrirlo o imprimirlo no tiene costo.';
+  for(const b of document.querySelectorAll('.forms [type=submit]'))b.disabled=!config.enabled||meta.services?.find(s=>s.id===b.closest('form').id)?.available===false;
  }
  async function confirm(q){
   if(q.price===0)return true;

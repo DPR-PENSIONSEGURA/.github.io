@@ -1,5 +1,5 @@
 const API='https://api-326bly7kmq-uc.a.run.app/api/v1/admin/panel/pensions/usage';
-const $=id=>document.getElementById(id),names={pension:'Pensión IMSS Ley 73',ley97:'Retiro IMSS Ley 97',average:'Salario de 250 semanas',m40:'Aportaciones Modalidad 40'},money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n);
+const $=id=>document.getElementById(id),names={pension:'Pensión IMSS Ley 73',ley97:'Retiro IMSS Ley 97',average:'Salario de 250 semanas',m40:'Aportaciones Modalidad 40',unemployment:'Descuento de semanas por desempleo'},money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(n);
 const date=new Intl.DateTimeFormat('es-MX',{dateStyle:'short',timeStyle:'short',timeZone:'America/Mexico_City'});
 const day=()=>new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'America/Mexico_City'}).format(new Date());
 let busy=false;
